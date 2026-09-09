@@ -23,6 +23,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   fresh each time, which closes anything stale before anything else happens, and
   opening the release no longer depends on reading a state and then acting on it.
 
+## [0.8.0] - 2026-09-09
+
 ### Added
 
 - **The whole system can be rebuilt from the log alone.** The database was
