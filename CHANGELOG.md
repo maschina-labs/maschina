@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-09
+
 ### Added
 
 - **A worker survives its machine dying.** Kill the node mid-objective and start
