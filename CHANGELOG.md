@@ -13,6 +13,27 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **Finishing the work is no longer the same as succeeding.** An objective is
+  judged against the contract that was frozen when it was admitted, one criterion
+  at a time, and the answer is never a yes or a no. It is a verdict per criterion
+  with the evidence behind each one, so partial progress is visible and a worker
+  knows exactly what is left rather than starting again.
+- **A worker cannot mark its own work accomplished.** The authority to judge an
+  objective cannot be given to anyone who worked on it, and if it was given
+  before they started, it stops working the moment they do. Both refusals are
+  written down as prominently as any use.
+- **"We cannot tell" is an answer, and it stops everything.** A single criterion
+  that cannot be judged suspends the objective even when every other one passed.
+  It is never rounded up into success, which is how false completions get into a
+  record that is never edited, and never rounded down into failure, which throws
+  away work that really happened.
+- **A verdict about a commit asks the remote, not the machine that made it.** If
+  the machine reporting success is the one under suspicion, its report is the
+  weakest evidence available rather than the strongest. Claims the world does not
+  support come back empty instead of being believed.
+
 ## [0.6.0] - 2026-09-09
 
 ### Added

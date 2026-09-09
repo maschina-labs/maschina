@@ -23,6 +23,7 @@ export const OBJECTIVE_STATED = "objective.stated";
 export const OBJECTIVE_ADMITTED = "objective.admitted";
 export const OBJECTIVE_REJECTED = "objective.rejected";
 export const OBJECTIVE_AMENDMENT_REFUSED = "objective.amendment_refused";
+export const OBJECTIVE_EVALUATED = "objective.evaluated";
 
 export interface StateObjectiveInput {
 	readonly statement: string;
@@ -191,6 +192,13 @@ export function fold(
 				origin: event.actor,
 			};
 			state = "stated";
+		} else if (event.type === OBJECTIVE_EVALUATED) {
+			// The objective becomes whatever the rollup says, and the rollup is a
+			// pure function in `@maschina/core`. Recomputing it here would let the
+			// stored verdict and the folded state drift apart, and the stored one
+			// is what a human read when they decided something.
+			const outcome = event.payload.outcome;
+			if (typeof outcome === "string") state = outcome as ObjectiveState;
 		} else if (event.type === OBJECTIVE_ADMITTED) {
 			state = "admitted";
 			contractHash = String(event.payload.contractHash);

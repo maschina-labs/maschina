@@ -11,6 +11,7 @@ export type {
 	Limits,
 	ModelClass,
 	ModelOperation,
+	ObjectiveOperation,
 	Operation,
 	RepositoryOperation,
 	ResourceKind,
@@ -31,3 +32,5 @@ export {
 	withinScope,
 	withinScopeOf,
 } from "./scope.ts";
+export type { ObjectiveOutcome, Rollup, Verdict, VerdictResult } from "./verdict.ts";
+export { outcomeFor, remaining, rollup } from "./verdict.ts";

@@ -14,6 +14,7 @@ import {
 	fold,
 	OBJECTIVE_ADMITTED,
 	OBJECTIVE_AMENDMENT_REFUSED,
+	OBJECTIVE_EVALUATED,
 	OBJECTIVE_REJECTED,
 	OBJECTIVE_STATED,
 } from "./objective.ts";
@@ -193,5 +194,79 @@ describe("fold", () => {
 
 	it("carries the contract through untouched", () => {
 		expect(fold([statedEvent()])?.contract).toEqual(CONTRACT);
+	});
+});
+
+describe("fold, on evaluation", () => {
+	const evaluated = (outcome: string, rollupResult = outcome): LogEvent => ({
+		type: OBJECTIVE_EVALUATED,
+		actor: "worker:judge",
+		payload: {
+			v: PAYLOAD_V,
+			objective: "obj_1",
+			evaluator: "worker:judge",
+			contractHash: "frozen",
+			verdicts: [],
+			rollup: rollupResult,
+			outcome,
+			remaining: [],
+		},
+	});
+
+	it("accomplishes an objective whose verdict says so", () => {
+		const objective = fold([statedEvent(), admittedEvent("frozen"), evaluated("accomplished")]);
+		expect(objective?.state).toBe("accomplished");
+	});
+
+	it("suspends rather than deciding when the verdict is indeterminate", () => {
+		// The rule that must not soften. "We cannot tell" is blocking, and any
+		// rounding here puts a false completion, or a discarded success, into a
+		// record that is never edited.
+		const objective = fold([
+			statedEvent(),
+			admittedEvent("frozen"),
+			evaluated("suspended", "indeterminate"),
+		]);
+		expect(objective?.state).toBe("suspended");
+		expect(objective?.state).not.toBe("accomplished");
+		expect(objective?.state).not.toBe("failed");
+	});
+
+	it("leaves a partially satisfied objective active, not failed", () => {
+		// The work that was done is still done. Failing here would throw it away.
+		const objective = fold([
+			statedEvent(),
+			admittedEvent("frozen"),
+			evaluated("active", "partial"),
+		]);
+		expect(objective?.state).toBe("active");
+	});
+
+	it("fails an objective whose criteria cannot be satisfied", () => {
+		const objective = fold([
+			statedEvent(),
+			admittedEvent("frozen"),
+			evaluated("failed", "not_accomplished"),
+		]);
+		expect(objective?.state).toBe("failed");
+	});
+
+	it("takes the most recent verdict when an objective is evaluated twice", () => {
+		// Evaluation runs again after more work. A later verdict is the current
+		// answer, and an earlier one is history rather than a competing claim.
+		const objective = fold([
+			statedEvent(),
+			admittedEvent("frozen"),
+			evaluated("active", "partial"),
+			evaluated("accomplished"),
+		]);
+		expect(objective?.state).toBe("accomplished");
+	});
+
+	it("does not let a verdict move the frozen contract hash", () => {
+		// Evaluation judges the contract. It does not get to change what it is
+		// judging, which is the whole anti-Goodhart control.
+		const objective = fold([statedEvent(), admittedEvent("frozen"), evaluated("accomplished")]);
+		expect(objective?.contractHash).toBe("frozen");
 	});
 });
