@@ -107,16 +107,20 @@ jobs:
           # requires signed commits and a bot pushing over HTTPS signs nothing.
           node .github/ci/release-commit.mjs "$VERSION"
 
-          # Only an OPEN pull request counts. `gh pr view` succeeds on a closed
-          # one, so the first version of this saw a release somebody had closed,
-          # decided a pull request already existed, and quietly opened nothing.
-          # A closed release then blocked its own version forever, with the
-          # workflow reporting success every time.
-          OPEN="$(gh pr list --head "release/v$VERSION" --state open --json number --jq 'length')"
-          if [ "$OPEN" = "0" ]; then
-            gh pr create \
-              --base main \
-              --head "release/v$VERSION" \
-              --title "chore(release): $VERSION" \
-              --body "$(printf 'Cut by .github/workflows/version.yml from the commits since the last tag.\n\nMerging this tags v%s, which publishes the release from the changelog section it just wrote.' "$VERSION")"
+          # Ask GitHub to open it and let GitHub decide whether one exists,
+          # rather than checking first and acting on the answer. Reading the
+          # state and then acting on it is a race, and it lost: the branch had
+          # just been deleted and recreated, the old pull request was closing,
+          # the check still saw it open, and nothing was opened at all.
+          if ! gh pr create \
+            --base main \
+            --head "release/v$VERSION" \
+            --title "chore(release): $VERSION" \
+            --body "$(printf 'Cut by .github/workflows/version.yml from the commits since the last tag.\n\nMerging this tags v%s, which publishes the release from the changelog section it just wrote.' "$VERSION")" 2>/tmp/pr-error; then
+            if grep -q "already exists" /tmp/pr-error; then
+              echo "A release pull request for $VERSION is already open."
+            else
+              cat /tmp/pr-error
+              exit 1
+            fi
           fi
