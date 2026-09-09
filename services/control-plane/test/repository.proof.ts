@@ -26,7 +26,6 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:f
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { serve } from "@hono/node-server";
 import {
 	appPool,
 	checkpointWorkspace,
@@ -43,15 +42,17 @@ import {
 	recover,
 	resolutionFor,
 } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 import { reconcile } from "../src/repository.ts";
 
 const REPO = "maschina-labs/maschina-sandbox";
-const PORT = 8796;
-const BASE = `http://127.0.0.1:${PORT}`;
 const SANDBOX = "/tmp/maschina-slice6-sandbox";
 const run = promisify(execFile);
+
+// Module scoped because the helpers above `main` need it, and the port is not
+// known until the server is listening.
+let BASE = "";
 const child = fileURLToPath(new URL("./repo-child.ts", import.meta.url));
 
 /** Each run gets its own branch, so reruns cannot see each other's commits. */
@@ -84,7 +85,8 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	BASE = server.base;
 
 	console.log("\nSlice 6: effect classes, reconciliation, and the checkpoint procedure\n");
 
@@ -343,7 +345,7 @@ async function main(): Promise<void> {
 	);
 	console.log("      Recorded in ADR-004. The substantive half is checked above.");
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Slice 6 proof");
 }

@@ -1,3 +1,4 @@
+import { serve } from "@hono/node-server";
 /**
  * Shared plumbing for proofs.
  *
@@ -54,4 +55,38 @@ export async function resetLog(): Promise<void> {
 	} finally {
 		await admin.end();
 	}
+}
+
+/**
+ * Start a control plane on a port the operating system picks.
+ *
+ * Every proof used to hardcode one, and a proof that threw before its teardown
+ * left the port held, so the next run died with EADDRINUSE for a reason that had
+ * nothing to do with what it was testing. Port 0 means "any free one".
+ *
+ * **Async, because the port is not known synchronously.** The first version read
+ * `server.address()` right after `serve()` returned, which is null: the socket
+ * is not bound yet. It threw, and the half started server kept the process alive
+ * so the failure looked like a hang instead of an error.
+ *
+ * Returns a `close` that is safe to call twice, so teardown in a `finally` does
+ * not have to know whether it already ran.
+ */
+export function listen(
+	fetch: (request: Request) => Response | Promise<Response>,
+): Promise<{ base: string; close: () => Promise<void> }> {
+	return new Promise((resolve, reject) => {
+		const server = serve({ fetch, port: 0, hostname: "127.0.0.1" }, (info) => {
+			let closed = false;
+			resolve({
+				base: `http://127.0.0.1:${info.port}`,
+				close: async () => {
+					if (closed) return;
+					closed = true;
+					await new Promise<void>((done) => server.close(() => done()));
+				},
+			});
+		});
+		server.on("error", reject);
+	});
 }

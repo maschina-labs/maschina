@@ -19,15 +19,12 @@
  * Run: pnpm proof
  */
 
-import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
 import { appPool, getLease, highestEpoch, read, stateObjective } from "@maschina/db";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { Daemon } from "../../node/src/daemon.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8790;
-const BASE = `http://127.0.0.1:${PORT}`;
 const WORKER = "worker:daemon";
 
 const CONTRACT: Contract = {
@@ -51,7 +48,8 @@ const quiet = () => {
 async function main(): Promise<void> {
 	await resetLog();
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 
 	console.log("\nStage 1 slice 1: something that stays running\n");
 
@@ -187,7 +185,7 @@ async function main(): Promise<void> {
 		daemonSource.includes("readonly run:"),
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Stage 1 slice 1 proof");
 }

@@ -19,15 +19,12 @@
  * Run: pnpm proof
  */
 
-import { serve } from "@hono/node-server";
 import { appPool, getSuspension, read, suspendAsking, suspendUntil } from "@maschina/db";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { Daemon } from "../../node/src/daemon.ts";
 import { stayAwake } from "../../node/src/stay-awake.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8789;
-const BASE = `http://127.0.0.1:${PORT}`;
 const quiet = () => {
 	/* the daemon narrates; the proof does the talking */
 };
@@ -35,7 +32,8 @@ const quiet = () => {
 async function main(): Promise<void> {
 	await resetLog();
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 
 	console.log("\nStage 1 slice 2: waiting for a clock, and waiting for a person\n");
 
@@ -174,7 +172,7 @@ async function main(): Promise<void> {
 		on.capability,
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Stage 1 slice 2 proof");
 }

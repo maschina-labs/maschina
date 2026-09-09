@@ -21,6 +21,18 @@ Versions follow semver.
 
 ### Added
 
+- **Maschina can remember things, and every remembered thing says where it came
+  from.** A fact somebody stated, a generalisation a worker drew, and something a
+  file claimed are three different kinds of thing, and they stay different when
+  they are read back rather than being flattened into the same prose.
+- **What one worker learned does not automatically become what everything
+  believes.** Something read out of a repository stays with the worker that read
+  it until something independent confirms it, and nothing reaches everybody
+  without a person saying so. A worker cannot confirm its own conclusion.
+- **Being wrong is kept.** A belief that turns out to be false is marked as such,
+  with what contradicted it, and stops being offered. It is never deleted,
+  because having believed something false is worth knowing.
+
 - **Several objectives at once.** A machine runs as many workers as you name, each
   with its own place in the queue and its own budget. One losing its place stops
   that one and nothing else.
@@ -57,6 +69,9 @@ Versions follow semver.
   1.0.0 by counting.
 
 ### Fixed
+
+- **Test runs could collide on a port left behind by an earlier one**, failing
+  for a reason unrelated to what they were checking.
 
 - **Two workers could start the same objective.** Checking whether something was
   already taken and then taking it are two steps, and three workers went through

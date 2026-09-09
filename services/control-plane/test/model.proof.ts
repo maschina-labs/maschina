@@ -33,7 +33,6 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
-import { serve } from "@hono/node-server";
 import { appPool, getCapability, grant, read } from "@maschina/db";
 import {
 	EFFECT_INTENDED,
@@ -43,7 +42,7 @@ import {
 	modelExecutor,
 	performEffect,
 } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
 /**
@@ -75,8 +74,6 @@ const scriptedModel = async (request: {
 };
 
 const SANDBOX = "/tmp/maschina-slice4-sandbox";
-const PORT = 8798;
-const BASE = `http://127.0.0.1:${PORT}`;
 
 /** One dollar of list value, in micro-dollars. Enough for a handful of calls. */
 const A_DOLLAR = 1_000_000;
@@ -87,11 +84,8 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({
-		fetch: createApp(pool, scriptedModel).fetch,
-		port: PORT,
-		hostname: "127.0.0.1",
-	});
+	const server = await listen(createApp(pool, scriptedModel).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 4: the model is an effect, not an exception\n");
@@ -328,7 +322,7 @@ async function main(): Promise<void> {
 		wrongClass.performed ? "" : wrongClass.reason,
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Slice 4 proof");
 }

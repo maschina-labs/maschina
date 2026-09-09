@@ -23,7 +23,6 @@ import { execFile } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { serve } from "@hono/node-server";
 import { appPool, grant, read, revoke } from "@maschina/db";
 import {
 	ControlPlaneUnreachable,
@@ -34,13 +33,11 @@ import {
 	performEffect,
 	WORKER_DECIDED,
 } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
 const SANDBOX = "/tmp/maschina-slice2-sandbox";
 const OUTSIDE = "/tmp/maschina-slice2-escaped.txt";
-const PORT = 8799;
-const BASE = `http://127.0.0.1:${PORT}`;
 
 async function main(): Promise<void> {
 	await resetLog();
@@ -52,7 +49,8 @@ async function main(): Promise<void> {
 
 	// The control plane, as a real server on a real port. The worker below
 	// reaches it the same way a node on another machine would.
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 2 and 3: bounded authority across a real network boundary\n");
@@ -272,7 +270,7 @@ async function main(): Promise<void> {
 	// 9. The boundary is real, and the node depends on it.
 	console.log("\n9. With the control plane stopped, the node makes no progress");
 	const logBeforeOutage = (await read(pool)).length;
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 
 	let refusedToProceed = false;
 	let unreachable = false;
