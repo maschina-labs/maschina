@@ -38,6 +38,6 @@
 		"lint-staged": "^16.2.7",
 		"tsx": "^4.19.2",
 		"turbo": "^2.10.0",
-		"typescript": "^5.7.2"
+		"typescript": "^7.0.2"
 	}
 }
