@@ -42,7 +42,9 @@ export {
 	OBJECTIVE_AMENDMENT_REFUSED,
 	OBJECTIVE_REJECTED,
 	OBJECTIVE_STATED,
+	OBJECTIVE_TAKEN,
 	stateObjective,
+	takeObjective,
 } from "./objective.ts";
 export type { DumpedEvent, Snapshot } from "./projection.ts";
 export { dumpLog, restoreLog, snapshot } from "./projection.ts";

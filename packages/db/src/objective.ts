@@ -24,6 +24,15 @@ export const OBJECTIVE_ADMITTED = "objective.admitted";
 export const OBJECTIVE_REJECTED = "objective.rejected";
 export const OBJECTIVE_AMENDMENT_REFUSED = "objective.amendment_refused";
 export const OBJECTIVE_EVALUATED = "objective.evaluated";
+/**
+ * A node has taken this objective and is working on it.
+ *
+ * The difference between `admitted` and `active`, which nothing was writing.
+ * Without it a daemon looking for admitted objectives finds the same one every
+ * time it looks, takes it again, and never reaches the second. Found by running
+ * a daemon for four seconds.
+ */
+export const OBJECTIVE_TAKEN = "objective.taken";
 
 export interface StateObjectiveInput {
 	readonly statement: string;
@@ -243,6 +252,10 @@ export function fold(
 				origin: event.actor,
 			};
 			state = "stated";
+		} else if (event.type === OBJECTIVE_TAKEN) {
+			// Only from admitted. A verdict has already moved a finished objective
+			// somewhere more specific, and taking it again must not walk that back.
+			if (state === "admitted") state = "active";
 		} else if (event.type === OBJECTIVE_EVALUATED) {
 			// The objective becomes whatever the rollup says, and the rollup is a
 			// pure function in `@maschina/core`. Recomputing it here would let the
@@ -301,4 +314,27 @@ export async function list(pool: Pool): Promise<Objective[]> {
 		if (folded) objectives.push({ ...folded, id });
 	}
 	return objectives;
+}
+
+/**
+ * Claim an objective, so nobody else takes it and the taker can find it again.
+ *
+ * Written by whatever is scheduling, not by whatever decides. Taking is not
+ * judgment: it says a node has this one, and nothing about what will happen to
+ * it.
+ */
+export async function takeObjective(
+	pool: Pool,
+	objectiveId: string,
+	worker: string,
+	node: string,
+	epoch = 0n,
+): Promise<void> {
+	await append(pool, {
+		actor: worker,
+		objective: objectiveId,
+		type: OBJECTIVE_TAKEN,
+		epoch,
+		payload: { v: PAYLOAD_V, objective: objectiveId, worker, node },
+	});
 }

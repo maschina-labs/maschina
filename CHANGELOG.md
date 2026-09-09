@@ -21,6 +21,14 @@ Versions follow semver.
 
 ### Added
 
+- **Maschina stays running now.** A node holds its place, looks for work, and
+  picks up objectives without anybody starting each step. Stopping it hands its
+  place back rather than leaving the next one to wait for a timeout.
+- An objective that somebody has started is visibly different from one nobody has
+  touched, so two machines cannot both begin the same work.
+
+### Added
+
 - Tests pinning down how the version number moves, so it cannot quietly reach
   1.0.0 by counting.
 

@@ -39,6 +39,8 @@
 		"test:coverage": "vitest run --coverage",
 		"dev": "pnpm db:up && turbo dev --filter=@maschina/control-plane --filter=@maschina/desktop",
 		"dev:control-plane": "pnpm --filter @maschina/control-plane dev",
+		"node:start": "pnpm --filter @maschina/node start",
+		"node:dev": "pnpm --filter @maschina/node dev",
 		"fix:electron": "node -e \"const p=require.resolve(String.raw`electron`);require(require(String.raw`node:path`).join(require(String.raw`node:path`).dirname(p),String.raw`install.js`))\""
 	},
 	"devDependencies": {

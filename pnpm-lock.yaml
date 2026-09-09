@@ -116,12 +116,28 @@ importers:
         specifier: ^8.13.1
         version: 8.23.0
     devDependencies:
+      '@maschina/node':
+        specifier: workspace:*
+        version: link:../node
       '@maschina/worker':
         specifier: workspace:*
         version: link:../../packages/worker
       '@types/pg':
         specifier: ^8.11.10
         version: 8.23.1
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+
+  services/node:
+    dependencies:
+      '@maschina/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@maschina/worker':
+        specifier: workspace:*
+        version: link:../../packages/worker
+    devDependencies:
       tsx:
         specifier: ^4.19.2
         version: 4.23.13
