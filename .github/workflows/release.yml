@@ -6,6 +6,10 @@ on:
 
 permissions:
   contents: write
+  # Build provenance: a signed statement that this artifact was produced by this
+  # workflow, from this commit. Verifiable with `gh attestation verify`.
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -13,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -35,6 +39,12 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the source tree
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-name: maschina-${{ steps.notes.outputs.version }}
+          subject-digest: sha256:${{ github.sha }}
 
       - name: Create the release
         env:
