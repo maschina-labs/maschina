@@ -32,5 +32,15 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["**/turbo.json", "**/*.jsonc", "**/.vscode/*.json"],
+			"json": {
+				"parser": {
+					"allowComments": true
+				}
+			}
+		}
+	]
 }

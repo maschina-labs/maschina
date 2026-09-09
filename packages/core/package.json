@@ -7,11 +7,13 @@
 	"description": "The six primitives. 02-CORE.",
 	"exports": {
 		".": "./src/index.ts",
-		"./event": "./src/event.ts"
+		"./event": "./src/event.ts",
+		"./objective": "./src/objective.ts",
+		"./contract": "./src/contract.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
-		"test": "echo 'no tests yet' "
+		"test": "vitest run --passWithNoTests"
 	}
 }
