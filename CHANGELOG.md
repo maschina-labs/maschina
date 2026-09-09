@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-09
+
 ### Added
 
 - **Finishing the work is no longer the same as succeeding.** An objective is
