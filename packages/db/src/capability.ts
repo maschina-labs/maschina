@@ -30,7 +30,7 @@ import type {
 	Operation,
 	ResourceKind,
 } from "@maschina/core";
-import { scopeViolationOf, withinScopeOf } from "@maschina/core";
+import { changesTheWorld, scopeViolationOf, withinScopeOf } from "@maschina/core";
 import type { Pool } from "pg";
 import { append, PAYLOAD_V, read } from "./log.ts";
 
@@ -104,23 +104,37 @@ export interface GrantInput {
  * log, because that is the only record of who actually did anything, and a
  * worker's own claim about it is exactly what should not be trusted here.
  *
- * **Evaluating does not count as working on it**, which is not a nicety. An
- * evaluator reaches judgment through the effect path like any other worker, so
- * it records a decision before it is authorised. Counting that, the act of
- * deciding to judge disqualified the judge, and no evaluation could ever
- * succeed. The rule is that a worker may not judge an objective it *executed*.
+ * **Only world effects count.** `03-RUNTIME` §2 separates the decision from the
+ * world effect, and the rule in `09-EVALUATION` §4 is about having *executed* an
+ * objective, not having thought about it.
+ *
+ * Both halves of that were learned the hard way. Counting `worker.decided` meant
+ * the act of deciding to judge disqualified the judge. Then counting the model
+ * call meant an evaluator that used a model to form its opinion had, by that
+ * definition, worked on the objective, and was refused when it went to record
+ * the verdict. An evaluator that may not think cannot judge.
+ *
+ * Writing a file or pushing a commit is working on it. Asking a model and
+ * recording a verdict are not.
  */
 async function executedObjective(
 	pool: Pool,
 	actor: string,
 	objective: string,
 ): Promise<boolean> {
+	// Only effects that changed something outside Maschina. `03-RUNTIME` §2
+	// separates the decision from the world effect, and this is the difference
+	// between having worked on an objective and having thought about it.
+	const worldEffects = (["read", "write", "create", "delete", "commit"] as Operation[]).filter(
+		changesTheWorld,
+	);
+
 	const result = await pool.query<{ n: string }>(
 		`SELECT count(*)::text AS n FROM events
      WHERE actor = $1 AND objective = $2
-       AND type IN ('worker.decided', 'effect.intended', 'effect.outcome')
-       AND coalesce(payload->>'operation', '') <> 'evaluate'`,
-		[actor, objective],
+       AND type IN ('effect.intended', 'effect.outcome')
+       AND payload->>'operation' = ANY($3)`,
+		[actor, objective, worldEffects],
 	);
 	return Number(result.rows[0]?.n ?? "0") > 0;
 }
