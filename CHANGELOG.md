@@ -21,6 +21,12 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   gets retired next year. Containment for a model class is equality and not a
   hierarchy: holding `reasoning` does not quietly also grant `fast`, because an
   ordering invented in code is authority nobody granted.
+- **A proof passed while the thing it tested was not happening.** The check that
+  the file contained what the model decided compared an empty file to an empty
+  answer, so it went green in an environment where no model call worked at all.
+  The slice 4 proof now runs against a scripted provider with known costs, which
+  needs no subscription and makes the budget arithmetic exact, and what the real
+  provider does is proven separately on a machine that has one.
 - **A budget that cannot fund one call is exhausted, even though it is not
   empty.** Found by writing the proof for the exhaustion criterion and watching
   it never exhaust: a worker with a few micro-dollars left attempted a call, the

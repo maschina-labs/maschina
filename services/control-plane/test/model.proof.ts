@@ -1,6 +1,21 @@
 /**
  * Slice 4 proof. The model as an effect.
  *
+ * **The provider here is scripted, and that is deliberate.** Everything this
+ * proves is Maschina's own logic: authority checked at use, a class that does
+ * not reach another class, a reservation held and released, settlement
+ * arithmetic, a budget that refuses to start a call it cannot fund, a denial
+ * recorded as prominently as a use. None of that should need money, a network,
+ * or a credential to demonstrate, and a shared CI runner has no business holding
+ * any of the three.
+ *
+ * A scripted provider also makes the numbers deterministic, so the exhaustion
+ * criterion is tested against a budget that runs out on a known call rather than
+ * on whatever the model happened to charge that afternoon.
+ *
+ * What the real provider does, that its tools are absent and its cost readable,
+ * is `model-live.proof.ts`, which runs on a machine that has one.
+ *
  * STAGE_0_PLAN slice 4:
  *
  *   "The worker decides what to write and writes it. The log shows the model
@@ -31,6 +46,34 @@ import {
 import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
+/**
+ * A provider that answers instantly and charges a known amount.
+ *
+ * Costs the same every call so the budget arithmetic below is exact. The real
+ * one settles around 1,600 for the cheapest class, so this is close enough to
+ * real that the numbers in the proof stay recognisable.
+ */
+const SCRIPTED_COST = 2_000;
+let callsMade = 0;
+
+const scriptedModel = async (request: {
+	modelClass: string;
+	prompt: string;
+	budget: number;
+}) => {
+	callsMade++;
+	return {
+		text: `A scripted answer to a ${request.modelClass} question.`,
+		model: `scripted-${request.modelClass}-v1`,
+		cost: SCRIPTED_COST,
+		inputTokens: 411,
+		outputTokens: 12,
+		cacheCreationTokens: 0,
+		cacheReadTokens: 0,
+		durationMs: 1,
+	};
+};
+
 const SANDBOX = "/tmp/maschina-slice4-sandbox";
 const PORT = 8798;
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -44,7 +87,11 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = serve({
+		fetch: createApp(pool, scriptedModel).fetch,
+		port: PORT,
+		hostname: "127.0.0.1",
+	});
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 4: the model is an effect, not an exception\n");
@@ -99,6 +146,7 @@ async function main(): Promise<void> {
 		modelExecutor(node, "worker:w1"),
 	);
 	check("the model answered", asked.performed && asked.result === "succeeded");
+	check("the provider was actually called", callsMade === 1, `${callsMade} call(s)`);
 	const decided = asked.performed ? String(asked.detail.text ?? "").trim() : "";
 	check("and it said something", decided.length > 0, decided.slice(0, 60));
 
@@ -172,7 +220,10 @@ async function main(): Promise<void> {
 	check("the file is on disk", existsSync(target));
 	check(
 		"containing what the model decided, not something hardcoded",
-		existsSync(target) && readFileSync(target, "utf8").trim() === decided,
+		// The length check is not redundant. Without it this compares an empty
+		// file to an empty answer and passes while the model returned nothing,
+		// which is exactly what it did the first time CI ran this.
+		decided.length > 0 && existsSync(target) && readFileSync(target, "utf8").trim() === decided,
 	);
 	check(
 		"and the model capability could not have written it",

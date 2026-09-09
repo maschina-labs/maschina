@@ -14,7 +14,8 @@
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
 		"test": "vitest run --passWithNoTests",
-		"proof": "tsx --env-file-if-exists=../../.env test/boundary.proof.ts && tsx --env-file-if-exists=../../.env test/model.proof.ts"
+		"proof": "tsx --env-file-if-exists=../../.env test/boundary.proof.ts && tsx --env-file-if-exists=../../.env test/model.proof.ts",
+		"proof:live": "tsx --env-file-if-exists=../../.env test/model-live.proof.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.1.1",

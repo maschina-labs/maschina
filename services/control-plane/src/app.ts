@@ -37,7 +37,7 @@ import {
 } from "@maschina/db";
 import { Hono } from "hono";
 import type { Pool } from "pg";
-
+import type { ModelRequest, ModelResult } from "./model.ts";
 import { invokeModel, ModelCallRefused } from "./model.ts";
 
 /**
@@ -71,7 +71,20 @@ function wireEvent(event: Event): Record<string, unknown> {
  */
 const CALL_ESTIMATE = 20_000;
 
-export function createApp(pool: Pool): Hono {
+/**
+ * How a model call is actually made.
+ *
+ * Injectable for one reason: the real one needs a Claude subscription on the
+ * machine, and a shared CI runner has no subscription and no business holding
+ * one. Everything Maschina does around a model call, the authority check, the
+ * reservation, the settlement arithmetic, the refusal when a budget cannot fund
+ * another call, is Maschina's logic and should not need money or a network to
+ * demonstrate. What the real provider does is proven separately, against the
+ * real provider, by whoever has one.
+ */
+export type ModelInvoker = (request: ModelRequest) => Promise<ModelResult>;
+
+export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono {
 	const app = new Hono();
 
 	app.get("/health", (c) => c.json({ ok: true }));
@@ -192,7 +205,7 @@ export function createApp(pool: Pool): Hono {
 		await reserve(pool, body.capabilityId, body.holder, held);
 
 		try {
-			const result = await invokeModel({
+			const result = await invoke({
 				modelClass: body.modelClass,
 				prompt: body.prompt,
 				budget: available,
