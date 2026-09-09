@@ -105,6 +105,7 @@ async function main(): Promise<void> {
 		scope: "fast",
 		limits: { granted: A_DOLLAR, reserved: 0, settled: 0 },
 		effectClass: "idempotent",
+		checkpoint: "none",
 		approval: "none",
 		delegationDepth: 0,
 		grantedBy: "human:ash",
@@ -115,6 +116,7 @@ async function main(): Promise<void> {
 		operations: ["write", "create"],
 		scope: SANDBOX,
 		effectClass: "idempotent",
+		checkpoint: "none",
 		approval: "none",
 		delegationDepth: 0,
 		grantedBy: "human:ash",
@@ -242,6 +244,7 @@ async function main(): Promise<void> {
 		// when it is told to rather than after a fixed count.
 		limits: { granted: 6_000, reserved: 0, settled: 0 },
 		effectClass: "idempotent",
+		checkpoint: "none",
 		approval: "none",
 		delegationDepth: 0,
 		grantedBy: "human:ash",

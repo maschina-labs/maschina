@@ -37,3 +37,14 @@ export {
 	stateObjective,
 } from "./objective.ts";
 export { applySchema, readSchema } from "./schema.ts";
+export type { Workspace } from "./workspace.ts";
+export {
+	checkpointWorkspace,
+	foldWorkspaces,
+	getWorkspaces,
+	openWorkspace,
+	recordWorkspaceLost,
+	WORKSPACE_CHECKPOINTED,
+	WORKSPACE_LOST,
+	WORKSPACE_OPENED,
+} from "./workspace.ts";

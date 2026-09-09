@@ -45,6 +45,7 @@ import { Hono } from "hono";
 import type { Pool } from "pg";
 import type { ModelRequest, ModelResult } from "./model.ts";
 import { invokeModel, ModelCallRefused } from "./model.ts";
+import { performRepositoryEffect, RepositoryRefused, reconcile } from "./repository.ts";
 
 /**
  * Event ids and epochs are bigints, and JSON has no bigint. They go over the
@@ -289,6 +290,68 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 				return c.json({ granted: true, refused: error.message }, 502);
 			}
 			throw error;
+		}
+	});
+
+	// ── The repository ────────────────────────────────────────────────────────
+
+	/**
+	 * A commit, made by the broker. `05-CAPABILITIES` §5.
+	 *
+	 * The worker sends what it wants written and gets back a commit hash. It
+	 * never sees a token, a key, an agent socket, or a clone, and the node
+	 * process is started without the credential in its environment, so this is
+	 * enforced by absence rather than by restraint.
+	 */
+	app.post("/repository/effect", async (c) => {
+		const body = (await c.req.json()) as {
+			capabilityId: string;
+			holder: string;
+			repository: string;
+			branch: string;
+			path: string;
+			content: string;
+			intentId: string;
+		};
+
+		const authorization = await authorize(pool, {
+			capabilityId: body.capabilityId,
+			holder: body.holder,
+			operation: "commit",
+			// The repository is the target, and containment for a repository is
+			// equality: a capability for the sandbox does not reach anything else.
+			target: body.repository,
+		});
+		if (!authorization.granted) return c.json(authorization, 403);
+
+		try {
+			return c.json(await performRepositoryEffect(body));
+		} catch (error: unknown) {
+			if (error instanceof RepositoryRefused) {
+				return c.json({ refused: error.message }, 502);
+			}
+			throw error;
+		}
+	});
+
+	/**
+	 * Ask the remote whether an effect landed, for recovery.
+	 *
+	 * Not authorised against a capability, because it changes nothing: it is a
+	 * question about the world, asked during recovery, and refusing to answer it
+	 * would leave a crash unresolvable. It reads the remote and nothing else.
+	 */
+	app.get("/repository/reconcile", async (c) => {
+		const { repository, branch, intentId } = c.req.query();
+		if (!repository || !branch || !intentId) {
+			return c.json({ error: "repository, branch and intentId are all required" }, 400);
+		}
+		try {
+			const commit = await reconcile(repository, branch, intentId);
+			return c.json({ landed: commit !== null, commit });
+		} catch (error: unknown) {
+			// Could not ask is not the same answer as did not happen. P8.
+			return c.json({ unknown: true, detail: String(error) }, 503);
 		}
 	});
 

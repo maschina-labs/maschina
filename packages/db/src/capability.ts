@@ -23,6 +23,7 @@ import type {
 	AuthorizationRequest,
 	Capability,
 	CapabilityStatus,
+	CheckpointProcedure,
 	DenialReason,
 	EffectClass,
 	Limits,
@@ -57,6 +58,7 @@ export interface GrantInput {
 	readonly operations: readonly Operation[];
 	readonly scope: string;
 	readonly effectClass: EffectClass;
+	readonly checkpoint: CheckpointProcedure;
 	readonly approval: Approval;
 	readonly delegationDepth: number;
 	readonly parent?: string | null;
@@ -98,6 +100,7 @@ export async function grant(pool: Pool, input: GrantInput): Promise<Capability> 
 			scope: input.scope,
 			limits: input.limits ?? NO_LIMITS,
 			effectClass: input.effectClass,
+			checkpoint: input.checkpoint,
 			approval: input.approval,
 			expiresAt: input.expiresAt ?? null,
 			delegationDepth: input.delegationDepth,
@@ -325,6 +328,7 @@ interface GrantedPayload {
 	scope: string;
 	limits: Limits;
 	effectClass: EffectClass;
+	checkpoint: CheckpointProcedure;
 	approval: Approval;
 	expiresAt: string | null;
 	delegationDepth: number;
@@ -417,6 +421,11 @@ export function foldCapability(
 			settled,
 		},
 		effectClass: granted.effectClass,
+		// Absent on grants written before the field existed (ADR-006 R4). Read as
+		// `none`, which is what those capabilities actually were: a filesystem
+		// write inside a scope is already in the world, and a model call leaves
+		// nothing on the node at all. Not a convenience default.
+		checkpoint: granted.checkpoint ?? "none",
 		approval: granted.approval,
 		expiresAt: granted.expiresAt ?? null,
 		delegationDepth: granted.delegationDepth,

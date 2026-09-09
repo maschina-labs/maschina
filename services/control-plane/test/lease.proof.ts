@@ -77,6 +77,7 @@ async function main(): Promise<void> {
 		operations: ["write", "create"],
 		scope: SANDBOX,
 		effectClass: "idempotent",
+		checkpoint: "none",
 		approval: "none",
 		delegationDepth: 0,
 		grantedBy: "human:ash",

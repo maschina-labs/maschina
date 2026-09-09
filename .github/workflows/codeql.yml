@@ -11,10 +11,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   analyze:
+    permissions:
+      contents: read
+      # Uploads the scan results, and nothing else needs this.
+      security-events: write
     name: Analyze
     runs-on: ubuntu-latest
     timeout-minutes: 20

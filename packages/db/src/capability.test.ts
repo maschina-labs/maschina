@@ -30,6 +30,7 @@ const grantedEvent = (overrides: Record<string, unknown> = {}): LogEvent => ({
 		scope: "/tmp/sandbox",
 		limits: { granted: 0, reserved: 0, settled: 0 },
 		effectClass: "idempotent",
+		checkpoint: "none",
 		approval: "none",
 		expiresAt: null,
 		delegationDepth: 0,
@@ -226,5 +227,31 @@ describe("foldCapability, the three numbers", () => {
 
 	it("refuses a negative amount, which would be a refund nobody granted", () => {
 		expect(() => foldCapability([model(), reserved(-100)])).toThrow(/whole number/);
+	});
+});
+
+describe("the checkpoint procedure", () => {
+	it("is carried through from the grant", () => {
+		const c = foldCapability([grantedEvent({ checkpoint: "commit" })]);
+		expect(c?.checkpoint).toBe("commit");
+	});
+
+	it("reads a grant written before the field existed as none", () => {
+		// ADR-006 R4. Slices 0 to 5 granted only filesystem and model
+		// capabilities, and neither leaves work in progress on a node: a write
+		// inside a scope is already in the world, and a model call leaves nothing
+		// behind at all. So `none` is what those grants actually were, not a
+		// convenient default for a missing field.
+		const payload = { ...grantedEvent().payload };
+		delete payload.checkpoint;
+		const c = foldCapability([{ type: CAPABILITY_GRANTED, payload }]);
+		expect(c?.checkpoint).toBe("none");
+	});
+
+	it("keeps unreplayable rather than smoothing it into none", () => {
+		// The honest option when there is no good one. Recording that work will be
+		// lost is worth more than a field that reads as though nothing is at risk.
+		const c = foldCapability([grantedEvent({ checkpoint: "unreplayable" })]);
+		expect(c?.checkpoint).toBe("unreplayable");
 	});
 });

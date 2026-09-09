@@ -171,3 +171,30 @@ describe("validateContract", () => {
 		expect(problems.some((p) => p.startsWith("criteria[1]"))).toBe(true);
 	});
 });
+
+describe("validateContract, the shape of the contract itself", () => {
+	it("refuses nonGoals that is not a list", () => {
+		// A contract arrives as JSON from outside, so its shape is an assumption
+		// until it is checked. A string here would read as a list of characters
+		// everywhere downstream and never say why.
+		const wrong = { ...contract(), nonGoals: "none" } as unknown as Contract;
+		expect(validateContract(wrong)).toContain("nonGoals must be an array");
+	});
+
+	it("refuses failureConditions that is not a list", () => {
+		const wrong = { ...contract(), failureConditions: "none" } as unknown as Contract;
+		expect(validateContract(wrong)).toContain("failureConditions must be an array");
+	});
+
+	it("reports every problem at once rather than the first one", () => {
+		// Whoever wrote the contract should be able to fix it in one pass. A
+		// validator that stops at the first problem turns one mistake into a
+		// conversation.
+		const wrong = {
+			...contract(),
+			nonGoals: "none",
+			failureConditions: "none",
+		} as unknown as Contract;
+		expect(validateContract(wrong).length).toBeGreaterThanOrEqual(2);
+	});
+});
