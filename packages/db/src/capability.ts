@@ -38,6 +38,25 @@ export const CAPABILITY_GRANTED = "capability.granted";
 export const CAPABILITY_DENIED = "capability.denied";
 export const CAPABILITY_REVOKED = "capability.revoked";
 /**
+ * Approval. `05-CAPABILITIES` §2.
+ *
+ * "This is how autonomy is graduated: trust is raised by changing this field,
+ * not by rewriting anything. It is the mechanism that fills the missing middle
+ * between approving every action and handing over a shell."
+ *
+ * It was a field on every capability that nothing ever read. The authorize path
+ * performed nine checks and this was not one of them, so a capability marked
+ * `every_use` was acted on without anybody being asked, including the root.
+ *
+ * Three events make it real. A use that needs approval and has none is denied
+ * and the request is recorded, so a human has something to answer. An approval
+ * is recorded when they answer. A use that consumed one is recorded, so an
+ * `every_use` approval cannot be spent twice.
+ */
+export const CAPABILITY_APPROVAL_REQUESTED = "capability.approval_requested";
+export const CAPABILITY_APPROVED = "capability.approved";
+export const CAPABILITY_USE_APPROVED = "capability.use_approved";
+/**
  * A reservation is held against an Intent and released at settlement.
  * `05-CAPABILITIES` §3, `10-RESOURCES-AND-ECONOMY` §3.
  *
@@ -84,6 +103,12 @@ export interface GrantInput {
  * Used to refuse evaluation authority to the worker that executed. Read from the
  * log, because that is the only record of who actually did anything, and a
  * worker's own claim about it is exactly what should not be trusted here.
+ *
+ * **Evaluating does not count as working on it**, which is not a nicety. An
+ * evaluator reaches judgment through the effect path like any other worker, so
+ * it records a decision before it is authorised. Counting that, the act of
+ * deciding to judge disqualified the judge, and no evaluation could ever
+ * succeed. The rule is that a worker may not judge an objective it *executed*.
  */
 async function executedObjective(
 	pool: Pool,
@@ -93,7 +118,8 @@ async function executedObjective(
 	const result = await pool.query<{ n: string }>(
 		`SELECT count(*)::text AS n FROM events
      WHERE actor = $1 AND objective = $2
-       AND type IN ('worker.decided', 'effect.intended', 'effect.outcome')`,
+       AND type IN ('worker.decided', 'effect.intended', 'effect.outcome')
+       AND coalesce(payload->>'operation', '') <> 'evaluate'`,
 		[actor, objective],
 	);
 	return Number(result.rows[0]?.n ?? "0") > 0;
@@ -158,6 +184,27 @@ export async function grant(pool: Pool, input: GrantInput): Promise<Capability> 
 	}
 	if (input.delegationDepth < 0) {
 		throw new Error("delegationDepth cannot be negative");
+	}
+	if (input.parent !== undefined && input.parent !== null) {
+		// `04-WORKERS` §5: delegation attenuates only, narrower on every dimension
+		// and with the depth decremented. The field was validated and never
+		// enforced, which made it a number describing an intention.
+		const parentCapability = await get(pool, input.parent);
+		if (parentCapability === null) {
+			throw new Error(`cannot descend from ${input.parent}, which does not exist`);
+		}
+		if (parentCapability.delegationDepth <= 0) {
+			throw new Error(
+				`${input.parent} has no delegation left (depth 0), so it cannot be a parent. ` +
+					"Depth is the bound on how far authority can travel from where it started.",
+			);
+		}
+		if (input.delegationDepth >= parentCapability.delegationDepth) {
+			throw new Error(
+				`a child cannot have depth ${input.delegationDepth} under a parent of depth ` +
+					`${parentCapability.delegationDepth}: delegation attenuates, it does not widen.`,
+			);
+		}
 	}
 	if (input.resource === "objective" && input.operations.includes("evaluate")) {
 		// `09-EVALUATION` §4: "the capability to mark an objective accomplished is
@@ -333,7 +380,65 @@ function meters(resource: ResourceKind): boolean {
  * exhaust. Measured rather than guessed: a contained call to the cheapest model
  * class settles around 1,600, so this is roughly a call and a half.
  */
-const MINIMUM_CHARGE: Partial<Record<ResourceKind, number>> = { model: 2_500 };
+function minimumCharge(resource: ResourceKind): number {
+	// Overridable, because it is a measurement of what a provider charges rather
+	// than a fact about Maschina, and providers change their prices.
+	const configured = process.env.MASCHINA_MINIMUM_MODEL_CHARGE;
+	const floor = configured === undefined || configured === "" ? 2_500 : Number(configured);
+	if (!Number.isInteger(floor) || floor < 1) {
+		throw new Error(
+			`MASCHINA_MINIMUM_MODEL_CHARGE must be a whole number of micro-dollars, got ${configured}`,
+		);
+	}
+	return resource === "model" ? floor : 1;
+}
+
+/**
+ * How many approvals stand against a capability, and how many were spent.
+ *
+ * Read from the log rather than tracked in a column, because a count kept
+ * anywhere else can disagree with the log, and the log is what a human read when
+ * they decided to approve something.
+ */
+async function approvalState(
+	pool: Pool,
+	capabilityId: string,
+): Promise<{ approvals: number; consumed: number }> {
+	const result = await pool.query<{ type: string; n: string }>(
+		`SELECT type, count(*)::text AS n FROM events
+     WHERE payload->>'capabilityId' = $1 AND type IN ($2, $3)
+     GROUP BY type`,
+		[capabilityId, CAPABILITY_APPROVED, CAPABILITY_USE_APPROVED],
+	);
+	let approvals = 0;
+	let consumed = 0;
+	for (const row of result.rows) {
+		if (row.type === CAPABILITY_APPROVED) approvals = Number(row.n);
+		if (row.type === CAPABILITY_USE_APPROVED) consumed = Number(row.n);
+	}
+	return { approvals, consumed };
+}
+
+/**
+ * A human says yes. `05-CAPABILITIES` §2.
+ *
+ * One call authorises one use of an `every_use` capability, or unlocks a
+ * `first_use` one permanently. Deliberately not a flag on the capability: an
+ * approval is something that happened, at a time, by someone, and belongs in the
+ * log like every other fact.
+ */
+export async function approveUse(
+	pool: Pool,
+	capabilityId: string,
+	approver: string,
+	reason: string,
+): Promise<void> {
+	await append(pool, {
+		actor: approver,
+		type: CAPABILITY_APPROVED,
+		payload: { v: PAYLOAD_V, capabilityId, approver, reason },
+	});
+}
 
 export async function authorize(
 	pool: Pool,
@@ -398,13 +503,57 @@ export async function authorize(
 			scopeViolationOf(capability.resource, capability.scope, request.target),
 		);
 	}
+	if (capability.approval !== "none") {
+		const standing = await approvalState(pool, capability.id);
+		const approved =
+			capability.approval === "first_use"
+				? standing.approvals > 0
+				: standing.approvals > standing.consumed;
+
+		if (!approved) {
+			await append(pool, {
+				actor: request.holder,
+				type: CAPABILITY_APPROVAL_REQUESTED,
+				payload: {
+					v: PAYLOAD_V,
+					capabilityId: capability.id,
+					holder: request.holder,
+					operation: request.operation,
+					target: request.target,
+					approval: capability.approval,
+				},
+			});
+			return deny(
+				"approval_required",
+				`${capability.approval} approval is required for ${request.operation} on ${request.target}, ` +
+					"and none is standing",
+			);
+		}
+
+		if (capability.approval === "every_use") {
+			// Spend it, so one answer authorises one action. Recorded before the
+			// authorization returns, so a crash cannot lose the consumption and
+			// hand the same approval out twice.
+			await append(pool, {
+				actor: request.holder,
+				type: CAPABILITY_USE_APPROVED,
+				payload: {
+					v: PAYLOAD_V,
+					capabilityId: capability.id,
+					operation: request.operation,
+					target: request.target,
+				},
+			});
+		}
+	}
+
 	if (meters(capability.resource)) {
 		// Three numbers, not one (`05-CAPABILITIES` §3). A single running balance
 		// loses reservations when a process dies holding them, which is exactly
 		// when the number matters most.
 		const { granted, reserved, settled } = capability.limits;
 		const available = granted - reserved - settled;
-		const floor = MINIMUM_CHARGE[capability.resource] ?? 1;
+		const floor = minimumCharge(capability.resource);
 		if (available < floor) {
 			return deny(
 				"limit_exhausted",
@@ -471,6 +620,68 @@ function amountOf(payload: Record<string, unknown>, field = "amount"): number {
 	return value;
 }
 
+/**
+ * Read a grant payload, checking it rather than asserting it.
+ *
+ * `event.payload as unknown as GrantedPayload` was a lie the compiler believed.
+ * The payload comes out of a JSONB column, so its shape is an assumption until
+ * something looks, and a malformed one folded into a capability with undefined
+ * operations and an undefined scope. That capability would then be compared
+ * against a target and refuse everything, or worse, and nothing would say why.
+ *
+ * ADR-006 already checks the version number. A version is not a shape.
+ */
+function grantedPayload(payload: Record<string, unknown>): GrantedPayload {
+	const wrong = (field: string, saw: unknown): never => {
+		throw new Error(
+			`a capability.granted payload has an unusable ${field} (${String(saw)}). ` +
+				"The log cannot be repaired, so this capability cannot be folded and " +
+				"nothing may act on it (01-PRINCIPLES P8).",
+		);
+	};
+
+	const text = (field: string): string => {
+		const value = payload[field];
+		return typeof value === "string" && value.length > 0 ? value : wrong(field, value);
+	};
+
+	const operations = payload.operations;
+	if (!Array.isArray(operations) || operations.length === 0) wrong("operations", operations);
+	if (!(operations as unknown[]).every((o) => typeof o === "string")) {
+		wrong("operations", operations);
+	}
+
+	const limits = payload.limits;
+	if (limits !== undefined && limits !== null) {
+		const l = limits as Record<string, unknown>;
+		for (const field of ["granted", "reserved", "settled"]) {
+			if (typeof l[field] !== "number") wrong(`limits.${field}`, l[field]);
+		}
+	}
+
+	const depth = payload.delegationDepth;
+	if (typeof depth !== "number" || !Number.isInteger(depth) || depth < 0) {
+		wrong("delegationDepth", depth);
+	}
+
+	return {
+		capabilityId: text("capabilityId"),
+		parent: typeof payload.parent === "string" ? payload.parent : null,
+		holder: text("holder"),
+		resource: text("resource") as GrantedPayload["resource"],
+		operations: operations as GrantedPayload["operations"],
+		scope: text("scope"),
+		limits: (limits ?? NO_LIMITS) as GrantedPayload["limits"],
+		effectClass: text("effectClass") as GrantedPayload["effectClass"],
+		checkpoint: (typeof payload.checkpoint === "string"
+			? payload.checkpoint
+			: "none") as GrantedPayload["checkpoint"],
+		approval: text("approval") as GrantedPayload["approval"],
+		expiresAt: typeof payload.expiresAt === "string" ? payload.expiresAt : null,
+		delegationDepth: depth as number,
+	};
+}
+
 export function foldCapability(
 	events: readonly { type: string; payload: Record<string, unknown> }[],
 	now: Date = new Date(),
@@ -490,7 +701,7 @@ export function foldCapability(
 		}
 
 		if (event.type === CAPABILITY_GRANTED) {
-			granted = event.payload as unknown as GrantedPayload;
+			granted = grantedPayload(event.payload);
 			// Deliberately does NOT reset status. Revocation is terminal: a grant
 			// event arriving for an already-revoked id must not resurrect it.
 			// Otherwise revoking is undone by appending, and since the log is

@@ -18,26 +18,9 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 
 import type { ModelClass } from "@maschina/core";
+import { modelFor } from "./config.ts";
 
 const run = promisify(execFile);
-
-/**
- * Which concrete model answers for a class.
- *
- * The mapping is runtime configuration, which is the whole point of naming a
- * class in the grant: when a provider ships something new one entry changes and
- * no capability ever granted has to be rewritten. The log stays concrete because
- * every Outcome records which model actually answered.
- */
-const MODELS: Partial<Record<ModelClass, string>> = {
-	fast: "claude-haiku-4-5-20251001",
-	reasoning: "claude-opus-5",
-	code: "claude-sonnet-5",
-	long_context: "claude-sonnet-5",
-	// `embedding` is deliberately absent. The CLI does not produce embeddings,
-	// and mapping it to a chat model to avoid an empty cell would answer an
-	// embedding request with prose. Nothing in Stage 0 asks for one.
-};
 
 /**
  * The system prompt, replacing the CLI's own.
@@ -162,7 +145,7 @@ function assertNoToolUse(report: Record<string, unknown>): void {
 }
 
 export async function invokeModel(request: ModelRequest): Promise<ModelResult> {
-	const model = MODELS[request.modelClass];
+	const model = modelFor(request.modelClass);
 	if (model === undefined) {
 		throw new ModelCallRefused(
 			`no model is mapped to the ${request.modelClass} class, so this cannot be answered. ` +

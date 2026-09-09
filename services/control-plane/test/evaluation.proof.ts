@@ -34,10 +34,9 @@ import {
 	getObjective,
 	grant,
 	read,
-	recordEvaluation,
 	stateObjective,
 } from "@maschina/db";
-import { httpControlPlane, performEffect } from "@maschina/worker";
+import { evaluationExecutor, httpControlPlane, performEffect } from "@maschina/worker";
 import { check, verdict as report, resetLog } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
@@ -234,10 +233,42 @@ async function main(): Promise<void> {
 		judgeCap.operations.join(","),
 	);
 
-	const partial = await recordEvaluation(pool, objective.id, "worker:judge", frozen, [
-		aVerdict("c1", "satisfied"),
-		aVerdict("c2", "not_satisfied", "nothing has left the machine yet"),
-	]);
+	// Through the effect path, not straight into the database. An evaluator is a
+	// worker like any other, so judging is authorised, recorded as an Intent,
+	// performed, and recorded as an Outcome. The first version of this proof
+	// called the database directly, which passed while proving less than it read
+	// as: no Intent, the evaluate capability never used, nothing across the node
+	// boundary.
+	const judge = evaluationExecutor(node, "worker:judge");
+	const partialReport = await performEffect(
+		node,
+		{ worker: "worker:judge", objective: objective.id, reasoning: "judging the first pass" },
+		{
+			capabilityId: judgeCap.id,
+			operation: "evaluate",
+			target: objective.id,
+			payload: {
+				contractHash: frozen,
+				verdicts: [
+					aVerdict("c1", "satisfied"),
+					aVerdict("c2", "not_satisfied", "nothing has left yet"),
+				],
+			},
+		},
+		"idempotent",
+		judge,
+	);
+	check("the verdict went through the effect path", partialReport.performed);
+	const evaluationIntents = (await read(pool, { objective: objective.id })).filter(
+		(e) => e.type === "effect.intended" && e.payload.operation === "evaluate",
+	);
+	check("so there is an Intent for it, like any other effect", evaluationIntents.length === 1);
+
+	const partial = (await evaluationsOf(pool, objective.id)).at(-1) ?? {
+		verdicts: [],
+		rollup: "",
+		remaining: [] as string[],
+	};
 	check("the verdict is per criterion, not a single yes or no", partial.verdicts.length === 2);
 	check("it rolled up as partial", partial.rollup === "partial");
 	check(
@@ -252,10 +283,28 @@ async function main(): Promise<void> {
 
 	// 5. Indeterminate suspends. It does not round.
 	console.log("\n5. An indeterminate verdict suspends rather than rounding");
-	const unsure = await recordEvaluation(pool, objective.id, "worker:judge", frozen, [
-		aVerdict("c1", "satisfied"),
-		aVerdict("c2", "indeterminate", "the remote could not be reached, so this is unknown"),
-	]);
+	await performEffect(
+		node,
+		{ worker: "worker:judge", objective: objective.id, reasoning: "judging again" },
+		{
+			capabilityId: judgeCap.id,
+			operation: "evaluate",
+			target: objective.id,
+			payload: {
+				contractHash: frozen,
+				verdicts: [
+					aVerdict("c1", "satisfied"),
+					aVerdict("c2", "indeterminate", "the remote could not be reached"),
+				],
+			},
+		},
+		"idempotent",
+		judge,
+	);
+	const unsure = (await evaluationsOf(pool, objective.id)).at(-1) ?? {
+		verdicts: [],
+		rollup: "",
+	};
 	check(
 		"one criterion that cannot be judged makes the objective unjudged",
 		unsure.rollup === "indeterminate",
@@ -271,10 +320,25 @@ async function main(): Promise<void> {
 
 	// 6. All satisfied, and only then.
 	console.log("\n6. Accomplished only when every criterion is satisfied");
-	const done = await recordEvaluation(pool, objective.id, "worker:judge", frozen, [
-		aVerdict("c1", "satisfied"),
-		aVerdict("c2", "satisfied"),
-	]);
+	await performEffect(
+		node,
+		{ worker: "worker:judge", objective: objective.id, reasoning: "final judgment" },
+		{
+			capabilityId: judgeCap.id,
+			operation: "evaluate",
+			target: objective.id,
+			payload: {
+				contractHash: frozen,
+				verdicts: [aVerdict("c1", "satisfied"), aVerdict("c2", "satisfied")],
+			},
+		},
+		"idempotent",
+		judge,
+	);
+	const done = (await evaluationsOf(pool, objective.id)).at(-1) ?? {
+		rollup: "",
+		contractHash: "",
+	};
 	check("the rollup is accomplished", done.rollup === "accomplished");
 	check(
 		"and the objective is",

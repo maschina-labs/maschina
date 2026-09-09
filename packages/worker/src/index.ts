@@ -2,6 +2,8 @@ export type {
 	CommitRequest,
 	CommitResult,
 	ControlPlane,
+	EvaluateRequest,
+	EvaluateResult,
 	ModelRequest,
 	ModelResult,
 	Reconciliation,
@@ -15,6 +17,7 @@ export type {
 	ProposedEffect,
 } from "./effect.ts";
 export { EFFECT_INTENDED, EFFECT_OUTCOME, performEffect, WORKER_DECIDED } from "./effect.ts";
+export { evaluationExecutor } from "./evaluate.ts";
 export { filesystemExecutor } from "./filesystem.ts";
 export { modelExecutor } from "./model.ts";
 export type { Recovered, Resolution, Unfinished } from "./recovery.ts";

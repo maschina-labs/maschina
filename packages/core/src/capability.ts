@@ -194,7 +194,14 @@ export type DenialReason =
 	 * there is no version of this request that becomes acceptable, because the
 	 * problem is who is asking.
 	 */
-	| "self_evaluation";
+	| "self_evaluation"
+	/**
+	 * A human has not approved this use. `05-CAPABILITIES` §2.
+	 *
+	 * Not a failure and not retryable by the worker: the answer changes only when
+	 * a person answers. The request is recorded so there is something to answer.
+	 */
+	| "approval_required";
 
 export interface AuthorizationRequest {
 	readonly capabilityId: string;

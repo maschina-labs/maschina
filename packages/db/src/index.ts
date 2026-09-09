@@ -1,10 +1,14 @@
 export {
+	approveUse,
 	authorize,
+	CAPABILITY_APPROVAL_REQUESTED,
+	CAPABILITY_APPROVED,
 	CAPABILITY_DENIED,
 	CAPABILITY_GRANTED,
 	CAPABILITY_RESERVED,
 	CAPABILITY_REVOKED,
 	CAPABILITY_SETTLED,
+	CAPABILITY_USE_APPROVED,
 	ensureRoot,
 	foldCapability,
 	get as getCapability,
@@ -40,6 +44,8 @@ export {
 	OBJECTIVE_STATED,
 	stateObjective,
 } from "./objective.ts";
+export type { DumpedEvent, Snapshot } from "./projection.ts";
+export { dumpLog, restoreLog, snapshot } from "./projection.ts";
 export {
 	EMERGENCY_STOP_LIFTED,
 	emergencyStop,
