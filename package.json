@@ -1,6 +1,6 @@
 {
 	"name": "maschina",
-	"version": "0.5.0",
+	"version": "0.5.1",
 	"private": true,
 	"license": "UNLICENSED",
 	"description": "An operating system for delegated work.",
