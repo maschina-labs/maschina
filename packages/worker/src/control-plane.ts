@@ -21,13 +21,49 @@
  *   The effect path is unit testable without a database or a server.
  */
 
-import type { Authorization, AuthorizationRequest, Event, NewEvent } from "@maschina/core";
+import type {
+	Authorization,
+	AuthorizationRequest,
+	Event,
+	ModelClass,
+	NewEvent,
+} from "@maschina/core";
+
+/** What a worker asks for when it wants the model to decide something. */
+export interface ModelRequest {
+	readonly capabilityId: string;
+	readonly holder: string;
+	/** A class, never a vendor's product name. `04-WORKERS` §7. */
+	readonly modelClass: ModelClass;
+	readonly prompt: string;
+}
+
+/** What came back, including what it cost, because a model call is metered. */
+export interface ModelResult {
+	readonly text: string;
+	/** What actually answered, which is not necessarily what was asked for. */
+	readonly model: string;
+	/** List value in micro-dollars. `ADR-009` §3. */
+	readonly cost: number;
+	readonly inputTokens: number;
+	readonly outputTokens: number;
+	readonly durationMs: number;
+}
 
 export interface ControlPlane {
 	/** Append to the log. Throws if the control plane cannot be reached. */
 	append(event: NewEvent): Promise<Event>;
 	/** Check authority, at use. Never cached, on either side. */
 	authorize(request: AuthorizationRequest): Promise<Authorization>;
+	/**
+	 * Ask the model something.
+	 *
+	 * The worker does not know how a model call is made and has no way to make
+	 * one itself. The credential lives on the other side of this method and the
+	 * process that would run is spawned there, which is what `05-CAPABILITIES`
+	 * §5 and `ADR-003` §3 require independently of each other.
+	 */
+	invokeModel(request: ModelRequest): Promise<ModelResult>;
 }
 
 /** Raised when the control plane is unreachable, so it reads that way in a log. */
@@ -94,6 +130,9 @@ export function httpControlPlane(baseUrl: string): ControlPlane {
 		},
 		async authorize(request) {
 			return (await post("/capabilities/authorize", request, "authorize")) as Authorization;
+		},
+		async invokeModel(request) {
+			return (await post("/model/invoke", request, "a model call")) as ModelResult;
 		},
 	};
 }

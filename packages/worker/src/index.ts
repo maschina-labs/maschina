@@ -1,4 +1,4 @@
-export type { ControlPlane } from "./control-plane.ts";
+export type { ControlPlane, ModelRequest, ModelResult } from "./control-plane.ts";
 export { ControlPlaneUnreachable, httpControlPlane } from "./control-plane.ts";
 export type {
 	Decision,
@@ -9,3 +9,4 @@ export type {
 } from "./effect.ts";
 export { EFFECT_INTENDED, EFFECT_OUTCOME, performEffect, WORKER_DECIDED } from "./effect.ts";
 export { filesystemExecutor } from "./filesystem.ts";
+export { modelExecutor } from "./model.ts";

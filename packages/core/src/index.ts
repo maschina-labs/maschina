@@ -23,4 +23,9 @@ export type {
 	ObjectiveState,
 	VerificationStrength,
 } from "./objective.ts";
-export { scopeViolation, withinScope, withinScopeOf } from "./scope.ts";
+export {
+	scopeViolation,
+	scopeViolationOf,
+	withinScope,
+	withinScopeOf,
+} from "./scope.ts";

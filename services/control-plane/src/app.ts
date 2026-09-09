@@ -19,8 +19,9 @@
 import type {
 	AuthorizationRequest,
 	Event,
-	FilesystemOperation,
+	ModelClass,
 	NewEvent,
+	Operation,
 	ReadOptions,
 } from "@maschina/core";
 import {
@@ -30,10 +31,14 @@ import {
 	listCapabilities,
 	append as logAppend,
 	read as logRead,
+	reserve,
 	revoke,
+	settle,
 } from "@maschina/db";
 import { Hono } from "hono";
 import type { Pool } from "pg";
+
+import { invokeModel, ModelCallRefused } from "./model.ts";
 
 /**
  * Event ids and epochs are bigints, and JSON has no bigint. They go over the
@@ -54,6 +59,17 @@ function wireEvent(event: Event): Record<string, unknown> {
 		causation: event.causation === null ? null : event.causation.toString(),
 	};
 }
+
+/**
+ * What one model call is assumed to cost, in micro-dollars of list value, until
+ * it settles. Roughly ten times a small contained call, so an ordinary call
+ * settles well under its reservation rather than over it.
+ *
+ * A constant, not an estimator. `01-PRINCIPLES` P12: an estimator needs a named
+ * problem that exists now, and nothing yet knows enough about a prompt to guess
+ * better than this.
+ */
+const CALL_ESTIMATE = 20_000;
 
 export function createApp(pool: Pool): Hono {
 	const app = new Hono();
@@ -120,7 +136,7 @@ export function createApp(pool: Pool): Hono {
 		const body = (await c.req.json()) as {
 			capabilityId: string;
 			holder: string;
-			operation: FilesystemOperation;
+			operation: Operation;
 			target: string;
 		};
 		const request: AuthorizationRequest = body;
@@ -131,6 +147,68 @@ export function createApp(pool: Pool): Hono {
 		const body = (await c.req.json()) as { actor: string; reason: string };
 		const revoked = await revoke(pool, c.req.param("id"), body.actor, body.reason);
 		return c.json({ revoked });
+	});
+
+	// ── The model ─────────────────────────────────────────────────────────────
+
+	/**
+	 * A model call is an effect, so it takes the same road as any other:
+	 * authorised, metered, and recorded. It runs here rather than on the node
+	 * because the subscription is a credential and workers never hold
+	 * credentials (`05-CAPABILITIES` §5), and because the worker path must be
+	 * incapable of spawning a process (`ADR-003` §3). See `ADR-009`.
+	 */
+	app.post("/model/invoke", async (c) => {
+		const body = (await c.req.json()) as {
+			capabilityId: string;
+			holder: string;
+			modelClass: ModelClass;
+			prompt: string;
+		};
+
+		const authorization = await authorize(pool, {
+			capabilityId: body.capabilityId,
+			holder: body.holder,
+			operation: "invoke",
+			// The class is the target: a capability for `fast` does not reach
+			// `reasoning`, and containment for a model is equality (`scope.ts`).
+			target: body.modelClass,
+		});
+
+		if (!authorization.granted) {
+			// Already in the log, written by authorize. Returned as an ordinary
+			// answer rather than an error because a denial is an outcome.
+			return c.json(authorization, 403);
+		}
+
+		const { granted, reserved, settled } = authorization.capability.limits;
+		const available = granted - reserved - settled;
+
+		// Reserve the smaller of a typical call and everything that is left, so a
+		// nearly empty budget holds what it actually has rather than going
+		// negative and looking like an overspend that never happened.
+		const held = Math.min(CALL_ESTIMATE, available);
+
+		await reserve(pool, body.capabilityId, body.holder, held);
+
+		try {
+			const result = await invokeModel({
+				modelClass: body.modelClass,
+				prompt: body.prompt,
+				budget: available,
+			});
+			await settle(pool, body.capabilityId, body.holder, result.cost, held);
+			return c.json({ granted: true, ...result });
+		} catch (error: unknown) {
+			// The call did not produce a billable answer, so nothing is owed, but
+			// the reservation still has to come back. Settling zero against the
+			// held amount does both, and leaves the attempt visible in the log.
+			await settle(pool, body.capabilityId, body.holder, 0, held);
+			if (error instanceof ModelCallRefused) {
+				return c.json({ granted: true, refused: error.message }, 502);
+			}
+			throw error;
+		}
 	});
 
 	return app;

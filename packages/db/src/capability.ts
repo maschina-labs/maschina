@@ -25,24 +25,36 @@ import type {
 	CapabilityStatus,
 	DenialReason,
 	EffectClass,
-	FilesystemOperation,
 	Limits,
+	Operation,
 	ResourceKind,
 } from "@maschina/core";
-import { scopeViolation, withinScope } from "@maschina/core";
+import { scopeViolationOf, withinScopeOf } from "@maschina/core";
 import type { Pool } from "pg";
 import { append, PAYLOAD_V, read } from "./log.ts";
 
 export const CAPABILITY_GRANTED = "capability.granted";
 export const CAPABILITY_DENIED = "capability.denied";
 export const CAPABILITY_REVOKED = "capability.revoked";
+/**
+ * A reservation is held against an Intent and released at settlement.
+ * `05-CAPABILITIES` §3, `10-RESOURCES-AND-ECONOMY` §3.
+ *
+ * Two events rather than one, because the point of three numbers is that a
+ * process which dies holding a reservation leaves the reservation visible in the
+ * log. A single running balance decremented at the end loses it exactly when it
+ * matters: the crash. This is the same shape as Intent and Outcome, for the same
+ * reason.
+ */
+export const CAPABILITY_RESERVED = "capability.reserved";
+export const CAPABILITY_SETTLED = "capability.settled";
 
 const NO_LIMITS: Limits = { granted: 0, reserved: 0, settled: 0 };
 
 export interface GrantInput {
 	readonly holder: string;
 	readonly resource: ResourceKind;
-	readonly operations: readonly FilesystemOperation[];
+	readonly operations: readonly Operation[];
 	readonly scope: string;
 	readonly effectClass: EffectClass;
 	readonly approval: Approval;
@@ -150,6 +162,77 @@ export async function revoke(
  * put the same fact in the log twice and make "what has been done with this
  * capability" ambiguous about which to count.
  */
+/**
+ * Hold budget against an Intent. `05-CAPABILITIES` §3.
+ *
+ * Taken before the effect runs and released at settlement. The amount is an
+ * estimate, because at this point nobody knows what the call will cost, and
+ * reserving nothing until the bill arrives is how a budget gets overrun by the
+ * one call that mattered.
+ */
+export async function reserve(
+	pool: Pool,
+	capabilityId: string,
+	actor: string,
+	amount: number,
+): Promise<void> {
+	await append(pool, {
+		actor,
+		type: CAPABILITY_RESERVED,
+		payload: { v: PAYLOAD_V, capabilityId, amount },
+	});
+}
+
+/**
+ * Release a reservation and record what was actually consumed.
+ *
+ * Both numbers, because they are different facts. `reserved` says how much to
+ * hand back and `amount` says what it cost, and a settlement carrying only one
+ * of them either leaks the difference out of the budget forever or hides an
+ * overspend. See the tests in `capability.test.ts` for both failures.
+ */
+export async function settle(
+	pool: Pool,
+	capabilityId: string,
+	actor: string,
+	amount: number,
+	reserved: number,
+): Promise<void> {
+	await append(pool, {
+		actor,
+		type: CAPABILITY_SETTLED,
+		payload: { v: PAYLOAD_V, capabilityId, amount, reserved },
+	});
+}
+
+/**
+ * Does this kind of resource cost anything to use?
+ *
+ * A filesystem capability carries zeroes in `limits`, so checking availability
+ * on one would refuse every write: `0 - 0 - 0` is not greater than zero. The
+ * question is about the resource, not about the numbers, so it is asked that
+ * way rather than inferred from a granted value being non zero.
+ */
+function meters(resource: ResourceKind): boolean {
+	return resource === "model";
+}
+
+/**
+ * The least a use of this resource can cost, in micro-dollars of list value.
+ *
+ * A budget with less than this left is exhausted, even though the number is
+ * still positive. Without it a worker holding a few micro-dollars attempts a
+ * call, the provider refuses it for having no budget, the refusal consumes
+ * nothing, the balance is untouched, and the same call can be attempted again
+ * forever. That livelock is what `03-RUNTIME` §5 forbids when it says a budget
+ * failure suspends and escalates rather than being retried.
+ *
+ * Found by writing the proof for the exhaustion criterion and watching it never
+ * exhaust. Measured rather than guessed: a contained call to the cheapest model
+ * class settles around 1,600, so this is roughly a call and a half.
+ */
+const MINIMUM_CHARGE: Partial<Record<ResourceKind, number>> = { model: 2_500 };
+
 export async function authorize(
 	pool: Pool,
 	request: AuthorizationRequest,
@@ -193,8 +276,26 @@ export async function authorize(
 			`${request.operation} is not in {${capability.operations.join(", ")}}`,
 		);
 	}
-	if (!withinScope(capability.scope, request.target)) {
-		return deny("outside_scope", scopeViolation(capability.scope, request.target));
+	if (!withinScopeOf(capability.resource, capability.scope, request.target)) {
+		return deny(
+			"outside_scope",
+			scopeViolationOf(capability.resource, capability.scope, request.target),
+		);
+	}
+	if (meters(capability.resource)) {
+		// Three numbers, not one (`05-CAPABILITIES` §3). A single running balance
+		// loses reservations when a process dies holding them, which is exactly
+		// when the number matters most.
+		const { granted, reserved, settled } = capability.limits;
+		const available = granted - reserved - settled;
+		const floor = MINIMUM_CHARGE[capability.resource] ?? 1;
+		if (available < floor) {
+			return deny(
+				"limit_exhausted",
+				`${available} left, and the cheapest use costs about ${floor}: ` +
+					`granted ${granted}, reserved ${reserved}, settled ${settled}`,
+			);
+		}
 	}
 
 	// Ancestors last: it is the most expensive check and the least likely to
@@ -220,7 +321,7 @@ interface GrantedPayload {
 	parent: string | null;
 	holder: string;
 	resource: ResourceKind;
-	operations: FilesystemOperation[];
+	operations: Operation[];
 	scope: string;
 	limits: Limits;
 	effectClass: EffectClass;
@@ -236,12 +337,31 @@ interface GrantedPayload {
  * capability has no row anywhere, so if this is wrong the authority model is
  * wrong and nothing else would notice.
  */
+/**
+ * Read a whole number of micro-dollars out of a payload.
+ *
+ * Throws rather than defaulting to zero. A reservation event whose amount cannot
+ * be read is not a free reservation, it is an unreadable one, and P8 says
+ * ambiguity blocks. Defaulting would silently hand back budget nobody released.
+ */
+function amountOf(payload: Record<string, unknown>, field = "amount"): number {
+	const value = payload[field];
+	if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+		throw new Error(
+			`${field} in a limits event must be a whole number of micro-dollars, got ${String(value)}`,
+		);
+	}
+	return value;
+}
+
 export function foldCapability(
 	events: readonly { type: string; payload: Record<string, unknown> }[],
 	now: Date = new Date(),
 ): Capability | null {
 	let granted: GrantedPayload | null = null;
 	let status: CapabilityStatus = "active";
+	let reserved = 0;
+	let settled = 0;
 
 	for (const event of events) {
 		const version = typeof event.payload.v === "number" ? event.payload.v : 1;
@@ -263,6 +383,15 @@ export function foldCapability(
 			if (status !== "revoked") status = "active";
 		} else if (event.type === CAPABILITY_REVOKED) {
 			status = "revoked";
+		} else if (event.type === CAPABILITY_RESERVED) {
+			reserved += amountOf(event.payload);
+		} else if (event.type === CAPABILITY_SETTLED) {
+			// The reservation is released and the actual cost moves to settled.
+			// Released by the amount reserved, not by the amount spent: if a call
+			// cost less than reserved the difference has to come back, and if it
+			// cost more the overspend still lands in settled where it is visible.
+			reserved -= amountOf(event.payload, "reserved");
+			settled += amountOf(event.payload);
 		}
 	}
 
@@ -282,7 +411,11 @@ export function foldCapability(
 		resource: granted.resource,
 		operations: granted.operations,
 		scope: granted.scope,
-		limits: granted.limits ?? NO_LIMITS,
+		limits: {
+			granted: (granted.limits ?? NO_LIMITS).granted,
+			reserved,
+			settled,
+		},
 		effectClass: granted.effectClass,
 		approval: granted.approval,
 		expiresAt: granted.expiresAt ?? null,
