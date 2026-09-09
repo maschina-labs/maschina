@@ -21,7 +21,6 @@
  * Run: pnpm proof
  */
 
-import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
 import {
 	adminPool,
@@ -37,11 +36,9 @@ import {
 	stateObjective,
 } from "@maschina/db";
 import { httpControlPlane, performEffect } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8793;
-const BASE = `http://127.0.0.1:${PORT}`;
 const SANDBOX = "/tmp/maschina-slice9-sandbox";
 
 const CONTRACT: Contract = {
@@ -61,7 +58,8 @@ const CONTRACT: Contract = {
 async function main(): Promise<void> {
 	await resetLog();
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 9: the log is the only durable state, or it is not\n");
@@ -216,7 +214,7 @@ async function main(): Promise<void> {
 		"      Nothing is materialised yet, and nothing should be until this number says so.",
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	await rebuiltPool.end();
 	await admin.end();

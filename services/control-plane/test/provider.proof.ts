@@ -16,19 +16,11 @@
  * Run: pnpm proof
  */
 
-import { serve } from "@hono/node-server";
 import { appPool, getSuspension, grant, read } from "@maschina/db";
 import { httpControlPlane, modelExecutor, performEffect } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 import { choose, type ProviderDriver, type ProviderState } from "../src/provider.ts";
-
-const PORT = 8788;
-const BASE = `http://127.0.0.1:${PORT}`;
-// A second port rather than reusing the first: closing a server and binding the
-// same port immediately raced, and the worker called before it was listening.
-const PORT_OUT = 8787;
-const BASE_OUT = `http://127.0.0.1:${PORT_OUT}`;
 
 /** A provider that answers, until it is told to stop. */
 function scripted(
@@ -138,11 +130,8 @@ async function main(): Promise<void> {
 
 	// 3. Through the whole path: the log says who answered.
 	console.log("\n3. The log records which provider answered, every time");
-	const server = serve({
-		fetch: createApp(pool, undefined, [cheap, expensive]).fetch,
-		port: PORT,
-		hostname: "127.0.0.1",
-	});
+	const server = await listen(createApp(pool, undefined, [cheap, expensive]).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	const brain = await grant(pool, {
@@ -190,11 +179,8 @@ async function main(): Promise<void> {
 
 	// 4. Everything out means suspend, not substitute.
 	console.log("\n4. When everything serving a class is out, it waits rather than substituting");
-	const quotaOnly = serve({
-		fetch: createApp(pool, undefined, [outOfQuota, expensive]).fetch,
-		port: PORT_OUT,
-		hostname: "127.0.0.1",
-	});
+	const quotaOnly = await listen(createApp(pool, undefined, [outOfQuota, expensive]).fetch);
+	const BASE_OUT = quotaOnly.base;
 	const node2 = httpControlPlane(BASE_OUT);
 
 	// Its own capability. Using another worker's would be refused at the authority
@@ -280,8 +266,8 @@ async function main(): Promise<void> {
 		asking?.question ?? "",
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
-	await new Promise<void>((resolve) => quotaOnly.close(() => resolve()));
+	await server.close();
+	await quotaOnly.close();
 	await pool.end();
 	verdict("Stage 1 slice 3 proof");
 }

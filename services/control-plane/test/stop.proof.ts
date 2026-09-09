@@ -24,7 +24,6 @@ import { execFile } from "node:child_process";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { serve } from "@hono/node-server";
 import {
 	appPool,
 	approveUse,
@@ -38,11 +37,9 @@ import {
 	ROOT_HOLDER,
 	read,
 } from "@maschina/db";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8794;
-const BASE = `http://127.0.0.1:${PORT}`;
 const SANDBOX = "/tmp/maschina-slice8-sandbox";
 const run = promisify(execFile);
 const child = fileURLToPath(new URL("./stop-child.ts", import.meta.url));
@@ -53,7 +50,8 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 
 	console.log("\nSlice 8: one command, and nothing can act\n");
 
@@ -320,7 +318,7 @@ async function main(): Promise<void> {
 		cannotDelegate.slice(0, 60),
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Slice 8 proof");
 }

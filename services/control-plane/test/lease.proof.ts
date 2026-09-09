@@ -23,19 +23,20 @@ import { execFile } from "node:child_process";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { serve } from "@hono/node-server";
 import { acquireLease, appPool, getLease, grant, highestEpoch, read } from "@maschina/db";
 import { EFFECT_INTENDED, EFFECT_OUTCOME, recover } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
 const SANDBOX = "/tmp/maschina-slice5-sandbox";
-const PORT = 8797;
-const BASE = `http://127.0.0.1:${PORT}`;
 const WORKER = "worker:resumable";
 const OBJECTIVE = "obj_slice5";
 
 const run = promisify(execFile);
+
+// Module scoped because the helpers above `main` need it, and the port is not
+// known until the server is listening.
+let BASE = "";
 const child = fileURLToPath(new URL("./resume-child.ts", import.meta.url));
 
 async function node(
@@ -67,7 +68,8 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	BASE = server.base;
 
 	console.log("\nSlice 5: leases, fencing, and crash recovery\n");
 
@@ -215,7 +217,7 @@ async function main(): Promise<void> {
 		fenced === "fenced",
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Slice 5 proof");
 }

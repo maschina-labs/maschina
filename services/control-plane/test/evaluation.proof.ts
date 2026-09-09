@@ -24,7 +24,6 @@
  * Run: pnpm proof
  */
 
-import { serve } from "@hono/node-server";
 import type { Contract, Verdict } from "@maschina/core";
 import { hashContract } from "@maschina/core";
 import {
@@ -37,11 +36,14 @@ import {
 	stateObjective,
 } from "@maschina/db";
 import { evaluationExecutor, httpControlPlane, performEffect } from "@maschina/worker";
-import { check, verdict as report, resetLog } from "../../../packages/db/test/harness.ts";
+import {
+	check,
+	listen,
+	verdict as report,
+	resetLog,
+} from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8795;
-const BASE = `http://127.0.0.1:${PORT}`;
 const SANDBOX = "/tmp/maschina-slice7-sandbox";
 
 const CONTRACT: Contract = {
@@ -76,7 +78,8 @@ const aVerdict = (id: string, result: Verdict["result"], notes = ""): Verdict =>
 async function main(): Promise<void> {
 	await resetLog();
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 7: execution completed is not objective accomplished\n");
@@ -376,7 +379,7 @@ async function main(): Promise<void> {
 		history.map((h) => h.rollup).join(" -> "),
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	report("Slice 7 proof");
 }

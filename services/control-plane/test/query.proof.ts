@@ -20,7 +20,6 @@
 import { execFile } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { promisify } from "node:util";
-import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
 import {
 	appPool,
@@ -32,11 +31,9 @@ import {
 	stateObjective,
 } from "@maschina/db";
 import { httpControlPlane, performEffect } from "@maschina/worker";
-import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { check, listen, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
-const PORT = 8792;
-const BASE = `http://127.0.0.1:${PORT}`;
 const SANDBOX = "/tmp/maschina-slice10-sandbox";
 const run = promisify(execFile);
 
@@ -70,7 +67,8 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const server = await listen(createApp(pool).fetch);
+	const BASE = server.base;
 	const node = httpControlPlane(BASE);
 
 	console.log("\nSlice 10: seven questions, answered by asking\n");
@@ -267,7 +265,7 @@ async function main(): Promise<void> {
 		(await ask("can", "worker:w1")).length > 0,
 	);
 
-	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await server.close();
 	await pool.end();
 	verdict("Slice 10 proof");
 }
