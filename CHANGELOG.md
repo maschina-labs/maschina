@@ -15,6 +15,34 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **A worker survives its machine dying.** Kill the node mid-objective and start
+  another one. It is given the objective and nothing else, reads what already
+  happened out of the log, skips the steps that finished, retries the one caught
+  in the crash, and completes. No human restates anything, and nothing is stored
+  on the node, because a machine that crashed did not get to write a resume file
+  on the way down.
+- **Two machines cannot run the same worker.** A worker runs under a lease
+  carrying a number that only goes up, every write carries it, and the log
+  refuses a write from an older lease. The machine that lost its lease finds out
+  the next time it writes, and stops. The check lives in the database on purpose:
+  the whole situation is a machine that lost its lease and does not know it, and
+  that machine cannot be the one to check.
+- **What to do after a crash was decided before it.** Every intent records
+  whether repeating the effect is safe, so recovery reads the answer instead of
+  guessing. Anything it does not recognise goes to a human rather than being
+  assumed harmless.
+
+### Changed
+
+- **The first real answer to the question the whole runtime rests on.** A
+  resumed worker reached its objective without duplicating work it did not have
+  to or wavering between approaches. Written up with the reasons it is weaker
+  evidence than it looks: the worker followed a fixed list, so it had no approach
+  to waver between, and the interrupted step was of the kind that is safe to
+  repeat. To be measured again when both of those stop being true.
+
+### Added
+
 - **A model is a resource authority can be held over.** A capability can now say
   "may invoke a fast model, up to this much", with a model class rather than a
   vendor's product name, so a capability granted today does not name a model that

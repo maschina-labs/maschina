@@ -14,7 +14,18 @@ export {
 	settle,
 } from "./capability.ts";
 export { adminPool, appPool } from "./client.ts";
-export { append, head, PAYLOAD_V, read } from "./log.ts";
+export type { Lease } from "./lease.ts";
+export {
+	acquireLease,
+	foldLease,
+	getLease,
+	highestEpoch,
+	LEASE_GRANTED,
+	LEASE_RELEASED,
+	releaseLease,
+	renewLease,
+} from "./lease.ts";
+export { append, Fenced, head, PAYLOAD_V, read } from "./log.ts";
 export {
 	amendContract,
 	get as getObjective,

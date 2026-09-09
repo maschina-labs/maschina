@@ -24,13 +24,19 @@ import type {
 	Operation,
 	ReadOptions,
 } from "@maschina/core";
+import type { Lease } from "@maschina/db";
 import {
+	acquireLease,
 	authorize,
+	Fenced,
 	getCapability,
+	getLease,
 	grant,
 	listCapabilities,
 	append as logAppend,
 	read as logRead,
+	releaseLease,
+	renewLease,
 	reserve,
 	revoke,
 	settle,
@@ -84,6 +90,17 @@ const CALL_ESTIMATE = 20_000;
  */
 export type ModelInvoker = (request: ModelRequest) => Promise<ModelResult>;
 
+/** Epochs are bigints and JSON has none, same as event ids. */
+function wireLease(lease: Lease): Record<string, unknown> {
+	return {
+		worker: lease.worker,
+		node: lease.node,
+		epoch: lease.epoch.toString(),
+		expiresAt: lease.expiresAt.toISOString(),
+		heldSince: lease.heldSince.toISOString(),
+	};
+}
+
 export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono {
 	const app = new Hono();
 
@@ -110,7 +127,18 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 			causation: body.causation == null ? null : BigInt(body.causation),
 		};
 
-		return c.json(wireEvent(await logAppend(pool, event)), 201);
+		try {
+			return c.json(wireEvent(await logAppend(pool, event)), 201);
+		} catch (error: unknown) {
+			// A fenced write is an answer, not a server fault. 409 says "somebody
+			// else owns this now", which is a thing the caller can act on, where a
+			// 500 would read as "try again" and produce exactly the duplicate
+			// execution fencing exists to prevent.
+			if (error instanceof Fenced) {
+				return c.json({ fenced: true, detail: error.message }, 409);
+			}
+			throw error;
+		}
 	});
 
 	app.get("/events", async (c) => {
@@ -160,6 +188,46 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 		const body = (await c.req.json()) as { actor: string; reason: string };
 		const revoked = await revoke(pool, c.req.param("id"), body.actor, body.reason);
 		return c.json({ revoked });
+	});
+
+	// ── Leases ────────────────────────────────────────────────────────────────
+
+	/**
+	 * Take the lease on a worker. `03-RUNTIME` §4.
+	 *
+	 * Granted unconditionally, on purpose. The control plane cannot tell a dead
+	 * node from a partitioned one, and asking would mean guessing. It hands out
+	 * the next epoch and lets the log settle who was right: the previous holder
+	 * finds out on its next write.
+	 */
+	app.post("/leases", async (c) => {
+		const body = (await c.req.json()) as { worker: string; node: string; ttlMs?: number };
+		const lease = await acquireLease(pool, body.worker, body.node, body.ttlMs ?? 30_000);
+		return c.json(wireLease(lease), 201);
+	});
+
+	app.get("/leases/:worker", async (c) => {
+		const lease = await getLease(pool, c.req.param("worker"));
+		return lease === null ? c.json({ held: false }, 404) : c.json(wireLease(lease));
+	});
+
+	app.post("/leases/:worker/renew", async (c) => {
+		const body = (await c.req.json()) as { node: string; epoch: string; ttlMs?: number };
+		const held = await getLease(pool, c.req.param("worker"));
+		if (held === null || held.epoch !== BigInt(body.epoch)) {
+			// Renewing a lease you no longer hold is the same situation as writing
+			// at a stale epoch, and gets the same answer, so a caller has one thing
+			// to handle rather than two.
+			return c.json({ fenced: true, detail: "this lease is no longer held" }, 409);
+		}
+		return c.json(wireLease(await renewLease(pool, held, body.ttlMs ?? 30_000)));
+	});
+
+	app.post("/leases/:worker/release", async (c) => {
+		const body = (await c.req.json()) as { reason: string };
+		const held = await getLease(pool, c.req.param("worker"));
+		if (held !== null) await releaseLease(pool, held, body.reason);
+		return c.json({ released: held !== null });
 	});
 
 	// ── The model ─────────────────────────────────────────────────────────────

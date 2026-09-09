@@ -1,5 +1,5 @@
 export type { ControlPlane, ModelRequest, ModelResult } from "./control-plane.ts";
-export { ControlPlaneUnreachable, httpControlPlane } from "./control-plane.ts";
+export { ControlPlaneUnreachable, httpControlPlane, WorkerFenced } from "./control-plane.ts";
 export type {
 	Decision,
 	EffectReport,
@@ -10,3 +10,5 @@ export type {
 export { EFFECT_INTENDED, EFFECT_OUTCOME, performEffect, WORKER_DECIDED } from "./effect.ts";
 export { filesystemExecutor } from "./filesystem.ts";
 export { modelExecutor } from "./model.ts";
+export type { Recovered, Resolution, Unfinished } from "./recovery.ts";
+export { recover, resolutionFor } from "./recovery.ts";
