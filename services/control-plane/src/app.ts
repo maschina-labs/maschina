@@ -33,7 +33,9 @@ import {
 	getCapability,
 	getLease,
 	getObjective,
+	getSuspension,
 	grant,
+	isDue,
 	listCapabilities,
 	listObjectives,
 	append as logAppend,
@@ -42,6 +44,7 @@ import {
 	releaseLease,
 	renewLease,
 	reserve,
+	resume as resumeWorker,
 	revoke,
 	settle,
 	takeObjective,
@@ -327,6 +330,43 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 	app.get("/objectives/:id", async (c) => {
 		const objective = await getObjective(pool, c.req.param("id"));
 		return objective ? c.json(objective) : c.json({ error: "not found" }, 404);
+	});
+
+	/**
+	 * What is waiting, and what would start it.
+	 *
+	 * `?due=1` is the query a scheduler makes: suspensions whose stated time has
+	 * arrived. A suspension waiting on a person is never due, however long it has
+	 * been waiting, which is the distinction the whole thing turns on.
+	 */
+	app.get("/suspensions", async (c) => {
+		const { due } = c.req.query();
+		const workers = new Set(
+			(await logRead(pool)).filter((e) => e.type === "worker.suspended").map((e) => e.actor),
+		);
+
+		const suspensions = [];
+		for (const worker of workers) {
+			const suspension = await getSuspension(pool, worker);
+			if (suspension === null) continue;
+			if (due === "1" && !isDue(suspension)) continue;
+			suspensions.push({
+				worker: suspension.worker,
+				objective: suspension.objective,
+				kind: suspension.kind,
+				reason: suspension.reason,
+				resumeAt: suspension.resumeAt?.toISOString() ?? null,
+				question: suspension.question,
+				since: suspension.since.toISOString(),
+			});
+		}
+		return c.json(suspensions);
+	});
+
+	app.post("/suspensions/:worker/resume", async (c) => {
+		const body = (await c.req.json()) as { because: string; objective?: string | null };
+		await resumeWorker(pool, c.req.param("worker"), body.objective ?? null, body.because);
+		return c.json({ resumed: true });
 	});
 
 	// ── Judgment ──────────────────────────────────────────────────────────────

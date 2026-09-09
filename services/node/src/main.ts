@@ -15,6 +15,9 @@ const daemon = new Daemon({
 	node: process.env.MASCHINA_NODE ?? "node:local",
 	worker: process.env.MASCHINA_WORKER ?? "worker:local",
 	run: runObjective,
+	// Opt in. Holding somebody's machine awake is a thing to be asked for.
+	// MASCHINA_STAY_AWAKE=1
+	keepAwake: process.env.MASCHINA_STAY_AWAKE === "1",
 });
 
 /**

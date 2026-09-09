@@ -72,6 +72,17 @@ export {
 	liveCapabilities,
 } from "./root.ts";
 export { applySchema, readSchema } from "./schema.ts";
+export type { Suspension, SuspensionKind } from "./suspension.ts";
+export {
+	foldSuspension,
+	getSuspension,
+	isDue,
+	resume,
+	suspendAsking,
+	suspendUntil,
+	WORKER_RESUMED,
+	WORKER_SUSPENDED,
+} from "./suspension.ts";
 export type { Workspace } from "./workspace.ts";
 export {
 	checkpointWorkspace,
