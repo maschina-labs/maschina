@@ -13,11 +13,19 @@ name: Version
 # them.
 
 on:
+  # Releases are cut when somebody asks for one, not after every merge.
+  #
+  # Opening a release on every merge doubled the pull requests, and every one of
+  # them costs a preview build on a host that charges for them, for a change that
+  # only ever touches the changelog and a version number. It also raced the
+  # feature branches: a release rewrites the unreleased section of the changelog,
+  # so any open branch that added to it conflicted, every time.
+  #
+  # One release covering twelve merges is also a better release. It is read by a
+  # person, and twelve of them in an afternoon are read by nobody.
+  workflow_dispatch:
   push:
     branches: [main]
-  # So a release can be re-cut after a failure, or picked up when something
-  # changed outside a merge, without pushing an empty commit to provoke it.
-  workflow_dispatch:
 
 # Read only at the top, so a job that was added without thinking about it gets
 # nothing. The two jobs below ask for exactly what they use.
@@ -62,14 +70,16 @@ jobs:
           git push origin "v$VERSION"
 
   propose:
-    name: Open the release this merge earned
+    name: Open a release, when asked
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Pushes a branch and opens a pull request.
     permissions:
       contents: write
       pull-requests: write
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    # Only when somebody runs it. A push to main computes nothing and opens
+    # nothing; the tag job above is what reacts to a release being merged.
+    if: github.event_name == 'workflow_dispatch'
     env:
       # The secrets context cannot be read from a step-level `if`, so the answer
       # is worked out once here where it can be.
