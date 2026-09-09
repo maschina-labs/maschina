@@ -21,8 +21,18 @@ Versions follow semver.
 
 ### Added
 
+- The first real objective, end to end: a worker reads a repository, decides what
+  to write, commits it without ever holding a credential, and a second worker
+  judges the result against the agreement made at the start.
+
 - Tests pinning down how the version number moves, so it cannot quietly reach
   1.0.0 by counting.
+
+### Fixed
+
+- An evaluator could not judge anything if it thought about it first. Using a
+  model to form an opinion counted as having worked on the objective, so the
+  worker was refused when it went to record its verdict.
 
 ### Changed
 

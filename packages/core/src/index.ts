@@ -16,6 +16,7 @@ export type {
 	RepositoryOperation,
 	ResourceKind,
 } from "./capability.ts";
+export { changesTheWorld } from "./capability.ts";
 export { canonicalContract, hashContract, validateContract } from "./contract.ts";
 export type { Event, NewEvent, ReadOptions } from "./event.ts";
 export type {

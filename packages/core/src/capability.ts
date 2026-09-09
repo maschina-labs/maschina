@@ -115,6 +115,36 @@ export type Operation =
 	| ObjectiveOperation;
 
 /**
+ * Which operations change the world, as opposed to deciding something.
+ *
+ * `03-RUNTIME` §2: a step is one decision effect and **at most one** world
+ * effect. Asking a model and recording a verdict are decisions: they consume
+ * budget and are recorded, but nothing outside Maschina is different afterwards.
+ * Writing a file or pushing a commit changes something that outlives the step.
+ *
+ * The distinction earns its place in `09-EVALUATION` §4, where a worker may not
+ * judge an objective it worked on. Counting decisions as work made judgment
+ * impossible: an evaluator that used a model to form its opinion had, by that
+ * definition, worked on the objective, and was refused when it went to record
+ * the verdict. Found by running a whole objective end to end, which is what the
+ * completion demonstration is for.
+ */
+export function changesTheWorld(operation: Operation): boolean {
+	switch (operation) {
+		case "read":
+		case "write":
+		case "create":
+		case "delete":
+		case "commit":
+			return true;
+		// Deciding. Metered and recorded, but the world is unchanged.
+		case "invoke":
+		case "evaluate":
+			return false;
+	}
+}
+
+/**
  * Metered allowances. Three numbers, not one. `05-CAPABILITIES` §3.
  *
  * Available is `granted - reserved - settled`.

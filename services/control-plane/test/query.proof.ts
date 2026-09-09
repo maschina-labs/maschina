@@ -22,7 +22,15 @@ import { mkdirSync, rmSync } from "node:fs";
 import { promisify } from "node:util";
 import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
-import { appPool, emergencyStop, ensureRoot, grant, read, stateObjective } from "@maschina/db";
+import {
+	appPool,
+	emergencyStop,
+	ensureRoot,
+	grant,
+	liftEmergencyStop,
+	read,
+	stateObjective,
+} from "@maschina/db";
 import { httpControlPlane, performEffect } from "@maschina/worker";
 import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
@@ -246,6 +254,17 @@ async function main(): Promise<void> {
 	check(
 		"after an emergency stop the same question says nothing is live",
 		afterStop.includes("DEAD"),
+	);
+
+	// Lift it. A proof that leaves the system stopped bricks the database for
+	// everything that runs afterwards, which is exactly what happened: an hour
+	// later the first real objective could not grant a capability, and hung
+	// rather than saying so. That the stop stays stopped is proven in
+	// `stop.proof.ts`. Here it is cleanup.
+	await liftEmergencyStop(pool, "human:ash", "the slice 10 proof is finished");
+	check(
+		"and the proof leaves the system usable again",
+		(await ask("can", "worker:w1")).length > 0,
 	);
 
 	await new Promise<void>((resolve) => server.close(() => resolve()));

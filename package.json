@@ -23,6 +23,7 @@
 		"proof:live": "pnpm --filter @maschina/control-plane proof:live",
 		"release:cut": "gh workflow run version.yml",
 		"stop:test": "pnpm --filter @maschina/control-plane stop:test",
+		"first-objective": "pnpm --filter @maschina/control-plane first-objective",
 		"gate": "pnpm check && pnpm typecheck && pnpm test:coverage && node .github/ci/check-node-boundary.mjs && pnpm proof",
 		"lint": "biome lint .",
 		"format": "biome format . --write",
