@@ -19,6 +19,11 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- Tests pinning down how the version number moves, so it cannot quietly reach
+  1.0.0 by counting.
+
 ### Changed
 
 - Releases are cut when somebody asks for one, rather than after every merge.
