@@ -94,6 +94,27 @@ export class Fenced extends Error {
 	}
 }
 
+/**
+ * The epoch a given actor is currently writing at.
+ *
+ * The control plane records plenty of things in a worker's name: a denial, a
+ * reservation, a settlement, a suspension. Written at epoch 0 those are writes
+ * from a generation that has ended, and the fence rejects them, so the moment a
+ * worker took a lease every one of those failed.
+ *
+ * Found by running three workers at once. Anything the control plane writes as a
+ * worker carries the worker's current epoch, and this is where that number comes
+ * from.
+ */
+export async function epochFor(pool: Pool, actor: string): Promise<bigint> {
+	const result = await pool.query<{ max: string | null }>(
+		"SELECT max(epoch)::text AS max FROM events WHERE actor = $1",
+		[actor],
+	);
+	const max = result.rows[0]?.max;
+	return max === null || max === undefined ? 0n : BigInt(max);
+}
+
 export async function append(pool: Pool, event: NewEvent): Promise<Event> {
 	let result: { rows: EventRow[] };
 	try {

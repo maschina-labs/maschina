@@ -32,7 +32,7 @@ import type {
 } from "@maschina/core";
 import { changesTheWorld, scopeViolationOf, withinScopeOf } from "@maschina/core";
 import type { Pool } from "pg";
-import { append, PAYLOAD_V, read } from "./log.ts";
+import { append, epochFor, PAYLOAD_V, read } from "./log.ts";
 
 export const CAPABILITY_GRANTED = "capability.granted";
 export const CAPABILITY_DENIED = "capability.denied";
@@ -341,6 +341,7 @@ export async function reserve(
 ): Promise<void> {
 	await append(pool, {
 		actor,
+		epoch: await epochFor(pool, actor),
 		type: CAPABILITY_RESERVED,
 		payload: { v: PAYLOAD_V, capabilityId, amount },
 	});
@@ -363,6 +364,7 @@ export async function settle(
 ): Promise<void> {
 	await append(pool, {
 		actor,
+		epoch: await epochFor(pool, actor),
 		type: CAPABILITY_SETTLED,
 		payload: { v: PAYLOAD_V, capabilityId, amount, reserved },
 	});
@@ -462,8 +464,16 @@ export async function authorize(
 	const capability = await get(pool, request.capabilityId);
 
 	const deny = async (reason: DenialReason, detail: string): Promise<Authorization> => {
+		// At the holder's current epoch, not at zero.
+		//
+		// A denial is written by the control plane about a worker, in that
+		// worker's name. Written at epoch 0 it is a write from a generation older
+		// than the worker's lease, and the fence rejects it: once any worker held
+		// a lease, every denial for it failed and the request returned a 500.
+		// Found the first time three workers ran at once.
 		await append(pool, {
 			actor: request.holder,
+			epoch: await epochFor(pool, request.holder),
 			type: CAPABILITY_DENIED,
 			payload: {
 				v: PAYLOAD_V,

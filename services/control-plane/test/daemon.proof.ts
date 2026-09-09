@@ -61,7 +61,7 @@ async function main(): Promise<void> {
 	const daemon = new Daemon({
 		controlPlaneUrl: BASE,
 		node: "node:a",
-		worker: WORKER,
+		workers: [WORKER],
 		leaseTtlMs: 5_000,
 		renewEveryMs: 500,
 		pollEveryMs: 200,
@@ -101,8 +101,8 @@ async function main(): Promise<void> {
 	check("and recorded taking it", tookEvents.length === 1);
 	check(
 		"writing at the lease's epoch, so the log can fence it",
-		tookEvents[0]?.epoch === daemon.currentEpoch,
-		`event ${tookEvents[0]?.epoch}, lease ${daemon.currentEpoch}`,
+		tookEvents[0]?.epoch === daemon.epochOf(WORKER),
+		`event ${tookEvents[0]?.epoch}, lease ${daemon.epochOf(WORKER)}`,
 	);
 
 	// 3. It keeps its lease alive without being asked.
@@ -153,7 +153,7 @@ async function main(): Promise<void> {
 	const successor = new Daemon({
 		controlPlaneUrl: BASE,
 		node: "node:b",
-		worker: WORKER,
+		workers: [WORKER],
 		leaseTtlMs: 5_000,
 		renewEveryMs: 500,
 		pollEveryMs: 200,
@@ -166,8 +166,8 @@ async function main(): Promise<void> {
 	check("it holds the lease now", (await getLease(pool, WORKER))?.node === "node:b");
 	check(
 		"at a higher epoch than the one before it",
-		successor.currentEpoch > epochBeforeStop,
-		`${successor.currentEpoch} > ${epochBeforeStop}`,
+		successor.epochOf(WORKER) > epochBeforeStop,
+		`${successor.epochOf(WORKER)} > ${epochBeforeStop}`,
 	);
 	await successor.stop("done");
 

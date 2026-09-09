@@ -421,8 +421,27 @@ export function createApp(
 			return c.json({ taken: false, state: objective.state }, 409);
 		}
 
-		await takeObjective(pool, id, body.worker, body.node, BigInt(body.epoch ?? "0"));
-		return c.json({ taken: true });
+		try {
+			// The state check above is a courtesy, not the guarantee. Two workers
+			// can both pass it; only one wins the insert.
+			const got = await takeObjective(
+				pool,
+				id,
+				body.worker,
+				body.node,
+				BigInt(body.epoch ?? "0"),
+			);
+			return got ? c.json({ taken: true }) : c.json({ taken: false, state: "taken" }, 409);
+		} catch (error: unknown) {
+			// A worker whose lease was reassigned, asking for work. The fence is
+			// right to refuse it, and the answer is "you are fenced" rather than a
+			// server fault. It was a 500 first, which told the worker nothing it
+			// could act on.
+			if (error instanceof Fenced) {
+				return c.json({ taken: false, fenced: true, detail: error.message }, 409);
+			}
+			throw error;
+		}
 	});
 
 	app.get("/objectives/:id", async (c) => {

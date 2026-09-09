@@ -25,7 +25,7 @@
  */
 
 import type { Pool } from "pg";
-import { append, read } from "./log.ts";
+import { append, epochFor, read } from "./log.ts";
 
 export const WORKER_SUSPENDED = "worker.suspended";
 export const WORKER_RESUMED = "worker.resumed";
@@ -61,7 +61,7 @@ export async function suspendUntil(
 	objective: string | null,
 	reason: string,
 	resumeAt: Date,
-	epoch = 0n,
+	epoch?: bigint,
 ): Promise<void> {
 	if (Number.isNaN(resumeAt.getTime())) {
 		throw new Error(
@@ -73,7 +73,7 @@ export async function suspendUntil(
 		actor: worker,
 		objective,
 		type: WORKER_SUSPENDED,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: {
 			v: 1,
 			worker,
@@ -97,7 +97,7 @@ export async function suspendAsking(
 	objective: string | null,
 	reason: string,
 	question: string,
-	epoch = 0n,
+	epoch?: bigint,
 ): Promise<void> {
 	if (question.trim().length === 0) {
 		throw new Error(
@@ -109,7 +109,7 @@ export async function suspendAsking(
 		actor: worker,
 		objective,
 		type: WORKER_SUSPENDED,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: {
 			v: 1,
 			worker,
@@ -126,13 +126,13 @@ export async function resume(
 	worker: string,
 	objective: string | null,
 	because: string,
-	epoch = 0n,
+	epoch?: bigint,
 ): Promise<void> {
 	await append(pool, {
 		actor: worker,
 		objective,
 		type: WORKER_RESUMED,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: { v: 1, worker, because },
 	});
 }
