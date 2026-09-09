@@ -34,6 +34,20 @@ export {
 	renewLease,
 } from "./lease.ts";
 export { append, Fenced, head, PAYLOAD_V, read } from "./log.ts";
+export type { RememberInput } from "./memory.ts";
+export {
+	confirm,
+	deprecate,
+	foldMemory,
+	getMemory,
+	MEMORY_CONFIRMED,
+	MEMORY_DEPRECATED,
+	MEMORY_PROMOTED,
+	MEMORY_WRITTEN,
+	promote,
+	remember,
+	visibleTo,
+} from "./memory.ts";
 export {
 	amendContract,
 	get as getObjective,
