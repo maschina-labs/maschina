@@ -18,6 +18,7 @@
 
 import type { ControlPlane } from "@maschina/worker";
 import { httpControlPlane, WorkerFenced } from "@maschina/worker";
+import { type StayAwake, stayAwake } from "./stay-awake.ts";
 
 export interface DaemonOptions {
 	readonly controlPlaneUrl: string;
@@ -34,6 +35,23 @@ export interface DaemonOptions {
 	/** What to do with an objective. Injected, so the daemon holds no judgment. */
 	readonly run: (objective: string, plane: ControlPlane) => Promise<void>;
 	readonly log?: (line: string) => void;
+	/**
+	 * Hold the machine awake while work is in flight. Opt in.
+	 *
+	 * Prevents idle sleep, not sleep from closing a laptop lid. See
+	 * `stay-awake.ts`, which is honest about what each platform can promise.
+	 */
+	readonly keepAwake?: boolean;
+}
+
+/** Something waiting, and what would start it again. */
+export interface Waiting {
+	readonly worker: string;
+	readonly objective: string | null;
+	readonly kind: string;
+	readonly reason: string;
+	readonly resumeAt: string | null;
+	readonly question: string | null;
 }
 
 export interface Objective {
@@ -49,9 +67,10 @@ export interface Objective {
  * out a TTL for a machine that shut down politely.
  */
 export class Daemon {
-	private readonly options: Required<Omit<DaemonOptions, "run" | "log">> &
-		Pick<DaemonOptions, "run" | "log">;
+	private readonly options: Required<Omit<DaemonOptions, "run" | "log" | "keepAwake">> &
+		Pick<DaemonOptions, "run" | "log" | "keepAwake">;
 	private plane: ControlPlane;
+	private readonly awake: StayAwake;
 	private epoch = 0n;
 	private renewTimer: NodeJS.Timeout | null = null;
 	private running = false;
@@ -70,6 +89,7 @@ export class Daemon {
 			controlPlaneUrl: options.controlPlaneUrl,
 		};
 		this.plane = httpControlPlane(options.controlPlaneUrl);
+		this.awake = stayAwake(options.keepAwake ?? false, (line) => this.say(line));
 	}
 
 	private say(line: string): void {
@@ -161,6 +181,44 @@ export class Daemon {
 		return response.ok;
 	}
 
+	/**
+	 * Anything whose stated time has arrived.
+	 *
+	 * Asked of the control plane rather than worked out here, because whether a
+	 * suspension is due depends on why it was suspended, and that lives with the
+	 * log. A worker waiting on a person is never due, however long it waits.
+	 */
+	private async dueToResume(): Promise<Waiting[]> {
+		const response = await fetch(`${this.options.controlPlaneUrl}/suspensions?due=1`);
+		if (!response.ok) return [];
+		return (await response.json()) as Waiting[];
+	}
+
+	/**
+	 * Wake anything whose time has come.
+	 *
+	 * This is the first thing in Maschina that acts on a clock rather than on an
+	 * event, which is a genuinely new kind of thing. It only ever acts on a time
+	 * somebody wrote down: nothing here decides when a limit lifts, it only
+	 * notices that a stated moment has passed.
+	 */
+	private async wakeWhatIsDue(): Promise<void> {
+		for (const waiting of await this.dueToResume()) {
+			this.say(`${waiting.worker} is due to carry on: ${waiting.reason}`);
+			await fetch(
+				`${this.options.controlPlaneUrl}/suspensions/${encodeURIComponent(waiting.worker)}/resume`,
+				{
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({
+						because: `the time it was waiting for arrived (${waiting.resumeAt})`,
+						objective: waiting.objective,
+					}),
+				},
+			).catch(() => undefined);
+		}
+	}
+
 	async start(): Promise<void> {
 		if (this.running) return;
 		this.running = true;
@@ -180,6 +238,10 @@ export class Daemon {
 	private async loop(): Promise<void> {
 		this.say("looking for work");
 		while (!this.stopping) {
+			// Before looking for new work, carry on with anything that was waiting
+			// for a time that has now arrived.
+			await this.wakeWhatIsDue().catch(() => undefined);
+
 			let objective: string | null = null;
 			try {
 				objective = await this.findWork();
@@ -188,6 +250,8 @@ export class Daemon {
 			}
 
 			if (objective === null) {
+				// Nothing to do, so nothing to stay awake for.
+				this.awake.release();
 				await new Promise((resolve) => setTimeout(resolve, this.options.pollEveryMs));
 				continue;
 			}
@@ -204,6 +268,9 @@ export class Daemon {
 			}
 
 			this.say(`taking ${objective}`);
+			// Held only while there is work. A node that kept a machine awake
+			// while idle would be taking something it was not given.
+			this.awake.hold(`running ${objective}`);
 			try {
 				await this.options.run(objective, this.plane);
 				this.say(`finished ${objective}`);
@@ -238,6 +305,7 @@ export class Daemon {
 			this.renewTimer = null;
 		}
 		await this.finished;
+		this.awake.release();
 		await this.releaseLease(reason);
 		this.running = false;
 		this.say(`stopped: ${reason}`);

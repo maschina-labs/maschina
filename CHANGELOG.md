@@ -21,6 +21,15 @@ Versions follow semver.
 
 ### Added
 
+- **Work that is waiting for a time starts itself again.** A worker stopped
+  because a provider limit lifts at a known hour carries on when it does, with
+  nobody watching a clock. A worker stopped because it needs an answer waits for
+  one, however long that takes, because no amount of time answers a question.
+- **A node can keep the machine awake while it is working, if you ask it to.**
+  Off unless you turn it on, released the moment there is nothing to do, and
+  honest that it prevents an idle machine sleeping rather than surviving a closed
+  laptop lid.
+
 - **Maschina stays running now.** A node holds its place, looks for work, and
   picks up objectives without anybody starting each step. Stopping it hands its
   place back rather than leaving the next one to wait for a timeout.
