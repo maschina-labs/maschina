@@ -1,3 +1,5 @@
+export type { ControlPlane } from "./control-plane.ts";
+export { ControlPlaneUnreachable, httpControlPlane } from "./control-plane.ts";
 export type {
 	Decision,
 	EffectReport,
