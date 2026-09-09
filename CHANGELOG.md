@@ -2,13 +2,34 @@
 
 Everything notable that changes in Maschina gets written down here.
 
-Maschina is pre-release. Until there is a real release process, entries are
-written by hand, in plain language, so that someone who did not write the code can
-tell what changed.
+Entries are written by hand, in plain language, so that someone who did not write
+the code can tell what changed. They are not generated from commit subjects: a
+changelog assembled from commit subjects reads like a commit log, which is the
+thing a changelog exists to save you from reading.
+
+Versions follow semver, and the minor number is the count of Stage 0 slices whose
+proof passes, so the version says where the project actually is. `1.0.0` means all
+ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
 ### Added
+
+- **Objectives, and a contract that cannot move.** You state an objective with a
+  completion contract saying what would count as done. If the contract holds it
+  is admitted and hashed; if it does not, the objective is rejected and the
+  reasons are recorded. A contract cannot say "make the code better": every
+  criterion has to say how it gets checked and how strongly, and self-assessment
+  is not an option the contract can ask for.
+- **The frozen contract is enforced, not requested.** Trying to change the
+  contract of an admitted objective is refused, and the attempt is written to the
+  log along with both the frozen hash and the hash of whatever someone wanted
+  instead. There is no force flag. Changing a contract creates a new objective.
+- **Tests.** 27 unit tests covering contract validation, canonical hashing, and
+  the objective projection, plus a slice proof with 27 checks against a real
+  Postgres. `pnpm test` is pure and fast so it can run constantly; `pnpm proof`
+  needs the database and is never cached, because a cached proof reports a pass
+  for a run that did not happen.
 
 - **The event log.** An append-only `events` table in Postgres, with a CLI that
   writes to it and reads it back in order. This is the only durable state in the

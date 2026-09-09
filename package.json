@@ -1,6 +1,6 @@
 {
 	"name": "maschina",
-	"version": "0.0.0",
+	"version": "0.2.0",
 	"private": true,
 	"license": "UNLICENSED",
 	"description": "An operating system for delegated work.",
@@ -18,7 +18,7 @@
 		"db:init": "pnpm maschina db init",
 		"build": "turbo build",
 		"typecheck": "turbo typecheck",
-		"test": "turbo test",
+		"test": "vitest run",
 		"proof": "turbo proof",
 		"lint": "biome lint .",
 		"format": "biome format . --write",
@@ -29,7 +29,9 @@
 		"ci:local:ci": "act push --workflows .github/workflows/ci.yml",
 		"ci:local:secrets": "act push --workflows .github/workflows/secrets-scan.yml",
 		"state": "node internal/checks/state.mjs",
-		"verify:clean": "node internal/checks/verify-clean.mjs"
+		"verify:clean": "node internal/checks/verify-clean.mjs",
+		"test:watch": "vitest",
+		"release": "node .github/ci/prepare-release.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.6",
@@ -38,6 +40,7 @@
 		"lint-staged": "^16.2.7",
 		"tsx": "^4.19.2",
 		"turbo": "^2.10.0",
-		"typescript": "^5.7.2"
+		"typescript": "^5.7.2",
+		"vitest": "^3.2.7"
 	}
 }

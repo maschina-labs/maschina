@@ -3,14 +3,27 @@
  * forcing function. Anything it can do exists in the control plane, so a later
  * graphical surface cannot discover that half the capability lives in a UI.
  *
- * Slice 0 scope: append an event, print the stream, initialise the schema.
+ * Scope so far: the event log, and objectives with a frozen contract.
  *
  * Argument parsing is done by hand. A CLI framework is not paid for by a named
- * problem yet (01-PRINCIPLES P12) and three commands do not need one.
+ * problem yet (01-PRINCIPLES P12) and a handful of commands do not need one.
  */
 
-import type { NewEvent } from "@maschina/core";
-import { adminPool, append, applySchema, appPool, head, read } from "@maschina/db";
+import { readFile } from "node:fs/promises";
+import type { Contract, NewEvent } from "@maschina/core";
+import { validateContract } from "@maschina/core";
+import {
+	adminPool,
+	amendContract,
+	append,
+	applySchema,
+	appPool,
+	getObjective,
+	head,
+	listObjectives,
+	read,
+	stateObjective,
+} from "@maschina/db";
 
 const USAGE = `maschina, Stage 0
 
@@ -21,6 +34,14 @@ const USAGE = `maschina, Stage 0
     --objective <s>        what this was in service of
     --payload <json>       defaults to {}
     --causation <id>       the event that caused this one
+  objective state          state an objective and admit it if the contract holds
+    --statement <s>        required. the intention, in prose
+    --contract <path>      required. a JSON contract. No contract, no admission
+    --origin <s>           who is stating it. defaults to human:local
+  objective list           every objective and its state
+  objective show <id>      one objective, folded from the log
+  objective amend <id>     try to change a frozen contract. always refused
+    --contract <path>      required. the contract that will not be accepted
   log                      print the stream in order
     --objective <s>        filter
     --actor <s>            filter
@@ -151,6 +172,106 @@ async function logCommand(flags: Map<string, string | true>): Promise<void> {
 	}
 }
 
+async function readContract(path: string): Promise<Contract> {
+	const parsed: unknown = JSON.parse(await readFile(path, "utf8"));
+	if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+		throw new Error(`${path} must contain a JSON object`);
+	}
+	return parsed as Contract;
+}
+
+function printObjective(objective: {
+	id: string;
+	statement: string;
+	state: string;
+	origin: string;
+	contractHash: string | null;
+	rejectedReason: string | null;
+	contract: Contract;
+}): void {
+	console.log(`${objective.id}`);
+	console.log(`  statement  ${objective.statement}`);
+	console.log(`  state      ${objective.state}`);
+	console.log(`  origin     ${objective.origin}`);
+	console.log(`  contract   ${objective.contractHash ?? "not frozen"}`);
+	if (objective.rejectedReason !== null) {
+		console.log(`  rejected   ${objective.rejectedReason}`);
+	}
+	for (const criterion of objective.contract.criteria ?? []) {
+		console.log(`    - [${criterion.strength}] ${criterion.id}: ${criterion.criterion}`);
+	}
+}
+
+async function objectiveState(flags: Map<string, string | true>): Promise<void> {
+	const contract = await readContract(requireString(flags, "contract"));
+
+	// Fail before touching the log if the contract is unusable. The log is
+	// append-only, so a rejection recorded here is permanent, and there is no
+	// reason to make a permanent record of a typo in a file path.
+	const problems = validateContract(contract);
+
+	const pool = appPool();
+	try {
+		const result = await stateObjective(pool, {
+			statement: requireString(flags, "statement"),
+			contract,
+			origin: optionalString(flags, "origin") ?? "human:local",
+		});
+
+		printObjective(result.objective);
+		if (problems.length > 0) {
+			console.log("\nNot admitted:");
+			for (const problem of result.problems) console.log(`  - ${problem}`);
+			process.exitCode = 1;
+		}
+	} finally {
+		await pool.end();
+	}
+}
+
+async function objectiveList(): Promise<void> {
+	const pool = appPool();
+	try {
+		const objectives = await listObjectives(pool);
+		if (objectives.length === 0) {
+			console.log("No objectives yet.");
+			return;
+		}
+		for (const objective of objectives) {
+			console.log(`${objective.state.padEnd(10)} ${objective.id}  ${objective.statement}`);
+		}
+	} finally {
+		await pool.end();
+	}
+}
+
+async function objectiveShow(id: string | undefined): Promise<void> {
+	if (id === undefined) throw new Error("objective show needs an id");
+	const pool = appPool();
+	try {
+		const objective = await getObjective(pool, id);
+		if (!objective) throw new Error(`no such objective: ${id}`);
+		printObjective(objective);
+	} finally {
+		await pool.end();
+	}
+}
+
+async function objectiveAmend(
+	id: string | undefined,
+	flags: Map<string, string | true>,
+): Promise<void> {
+	if (id === undefined) throw new Error("objective amend needs an id");
+	const contract = await readContract(requireString(flags, "contract"));
+
+	const pool = appPool();
+	try {
+		await amendContract(pool, id, contract, "human:local");
+	} finally {
+		await pool.end();
+	}
+}
+
 async function main(): Promise<void> {
 	const argv = process.argv.slice(2);
 	const command = `${argv[0] ?? ""} ${argv[1] ?? ""}`.trim();
@@ -161,6 +282,14 @@ async function main(): Promise<void> {
 			return dbInit();
 		case "event append":
 			return eventAppend(flags);
+		case "objective state":
+			return objectiveState(flags);
+		case "objective list":
+			return objectiveList();
+		case "objective show":
+			return objectiveShow(argv[2]);
+		case "objective amend":
+			return objectiveAmend(argv[2], flags);
 		default:
 			break;
 	}

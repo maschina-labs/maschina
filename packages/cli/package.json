@@ -12,7 +12,7 @@
 		"dev": "tsx --env-file-if-exists=../../.env src/index.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
-		"test": "echo 'no tests yet' "
+		"test": "vitest run --passWithNoTests"
 	},
 	"dependencies": {
 		"@maschina/core": "workspace:*",

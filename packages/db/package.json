@@ -9,13 +9,14 @@
 		".": "./src/index.ts",
 		"./client": "./src/client.ts",
 		"./log": "./src/log.ts",
-		"./schema": "./src/schema.ts"
+		"./schema": "./src/schema.ts",
+		"./objective": "./src/objective.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
-		"test": "echo 'covered by proof' ",
-		"proof": "tsx --env-file-if-exists=../../.env test/append-only.proof.ts"
+		"test": "vitest run --passWithNoTests",
+		"proof": "tsx --env-file-if-exists=../../.env test/append-only.proof.ts && tsx --env-file-if-exists=../../.env test/objective.proof.ts"
 	},
 	"dependencies": {
 		"@maschina/core": "workspace:*",
