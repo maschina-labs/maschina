@@ -33,6 +33,15 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Fixed
 
+- **A worker could be tricked out of its sandbox with a symlink.** The path check
+  is pure string comparison, so a link sitting inside the allowed directory
+  passes it while pointing anywhere on disk. Writes now refuse to follow a
+  symlink at the target, and the refusal says so in the log rather than looking
+  like a disk error. Found by CodeQL, which flagged the write as an insecure
+  temporary file, and it was right.
+- **Files a worker writes are no longer world readable.** They are created owner
+  read and write only, rather than inheriting whatever the umask happened to be
+  in a shared directory.
 - **A revoked capability could be brought back to life.** Appending a grant for an
   already-revoked capability reactivated it, and since the log is append-only that
   made revocation a suggestion rather than a control. Revocation is now terminal;

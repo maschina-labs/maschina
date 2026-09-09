@@ -12,7 +12,7 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { appPool, grant, read, revoke } from "@maschina/db";
 import { check, resetLog, verdict } from "../../db/test/harness.ts";
@@ -133,6 +133,39 @@ async function main(): Promise<void> {
 		!del.performed && del.reason === "operation_not_granted",
 	);
 	check("the file is still there", existsSync(target));
+
+	// 6b. A symlink is inside the scope as a string and points anywhere.
+	console.log("\n6b. A symlink at the target is refused");
+	const lure = `${SANDBOX}/lure.txt`;
+	symlinkSync(OUTSIDE, lure);
+	const viaSymlink = await performEffect(
+		pool,
+		{ worker: "worker:w1", objective: null, reasoning: "write through a symlink" },
+		{
+			capabilityId: cap.id,
+			operation: "write",
+			target: lure,
+			payload: { content: "escaped through a link" },
+		},
+		"idempotent",
+		filesystemExecutor,
+	);
+	check(
+		"authorization passes, because the path is inside the scope",
+		viaSymlink.performed,
+		"the scope check is pure and cannot see the link",
+	);
+	check(
+		"but the write fails rather than following it",
+		viaSymlink.performed && viaSymlink.result === "failed",
+	);
+	check("and nothing was written outside", !existsSync(OUTSIDE));
+	check("the symlink is still just a symlink", lstatSync(lure).isSymbolicLink());
+	const symlinkOutcome = (await read(pool)).filter((e) => e.type === EFFECT_OUTCOME).at(-1);
+	check(
+		"the log says it was refused as a symlink, not as a disk error",
+		String(JSON.stringify(symlinkOutcome?.payload)).includes("symlink"),
+	);
 
 	// 7. Revocation takes effect before the next use, not eventually.
 	console.log("\n7. Revocation works immediately");
