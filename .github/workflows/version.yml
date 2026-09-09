@@ -99,9 +99,13 @@ jobs:
           # requires signed commits and a bot pushing over HTTPS signs nothing.
           node .github/ci/release-commit.mjs "$VERSION"
 
-          # Reopening an existing one rather than stacking duplicates. The
-          # branch name carries the version, so a new version is a new branch.
-          if ! gh pr view "release/v$VERSION" >/dev/null 2>&1; then
+          # Only an OPEN pull request counts. `gh pr view` succeeds on a closed
+          # one, so the first version of this saw a release somebody had closed,
+          # decided a pull request already existed, and quietly opened nothing.
+          # A closed release then blocked its own version forever, with the
+          # workflow reporting success every time.
+          OPEN="$(gh pr list --head "release/v$VERSION" --state open --json number --jq 'length')"
+          if [ "$OPEN" = "0" ]; then
             gh pr create \
               --base main \
               --head "release/v$VERSION" \
