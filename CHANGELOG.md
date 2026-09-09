@@ -13,6 +13,38 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **A worker can change a repository without ever holding the credential.** It
+  describes what it wants to exist and gets back a commit hash. The key, the
+  token and the remote's address all live on the other side of that call, and the
+  worker process is started without them, so this is enforced by the credential
+  not being there rather than by the worker choosing not to use it. The proof
+  greps the worker for it.
+- **A push that might not have landed is settled by asking the remote.** Every
+  commit carries the id of the intent that asked for it, so after a crash the
+  question "did this happen" has a definite answer that comes from the world
+  rather than from anything the crashed process claimed. Crash after the push and
+  it is recorded, not repeated. Crash before it and it re-runs. Either way there
+  is exactly one commit.
+- **Work in progress on a machine now says how it survives that machine.** Every
+  capability declares a checkpoint procedure alongside its effect class, and one
+  that cannot be granted without it. A worker holding a working tree pushes as it
+  goes, so the work is never only in one place, and when a machine dies with
+  unsaved edits the loss is written down instead of being an absence somebody
+  notices weeks later.
+
+### Fixed
+
+- **A required field was accepted and thrown away.** Every capability had to
+  declare how its local state is preserved, the compiler enforced it, and the
+  value was then dropped before it reached the log, so everything read back as
+  though it held nothing. A required field that is silently discarded is worse
+  than an optional one, because the compiler says it is handled.
+- **Committing twice to the same branch failed the second time.** The broker
+  cloned the default branch and forced the target branch on top of it, which
+  looks right and quietly discards every commit already there.
+
 ## [0.5.1] - 2026-09-09
 
 ### Fixed

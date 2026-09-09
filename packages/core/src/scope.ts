@@ -76,6 +76,12 @@ export function withinScopeOf(resource: ResourceKind, scope: string, target: str
 			return withinScope(scope, target);
 		case "model":
 			return scope === target;
+		// A repository scope is `owner/name` and containment is equality, for the
+		// same reason a model class is. There is no prefix relationship worth
+		// having here: `maschina-labs/maschina-sandbox` and
+		// `maschina-labs/maschina` share an owner and nothing else that matters.
+		case "repository":
+			return scope === target;
 	}
 }
 
@@ -96,5 +102,7 @@ export function scopeViolationOf(
 			return scopeViolation(scope, target);
 		case "model":
 			return `this capability is for the ${scope} model class, not ${target}`;
+		case "repository":
+			return `this capability is for ${scope}, not ${target}`;
 	}
 }

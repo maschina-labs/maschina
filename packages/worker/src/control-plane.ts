@@ -50,6 +50,32 @@ export interface ModelResult {
 	readonly durationMs: number;
 }
 
+/** What a worker asks for when it wants something to exist on a remote. */
+export interface CommitRequest {
+	readonly capabilityId: string;
+	readonly holder: string;
+	/** `owner/name`. Checked against the capability's scope on the other side. */
+	readonly repository: string;
+	readonly branch: string;
+	readonly path: string;
+	readonly content: string;
+	/** The Intent this belongs to, written into the commit so it can be found later. */
+	readonly intentId: string;
+}
+
+export interface CommitResult {
+	readonly commit: string;
+	readonly branch: string;
+	readonly repository: string;
+	readonly pushed: boolean;
+}
+
+/** What the remote says about an effect nobody knows the fate of. */
+export interface Reconciliation {
+	readonly landed: boolean;
+	readonly commit: string | null;
+}
+
 export interface ControlPlane {
 	/** Append to the log. Throws if the control plane cannot be reached. */
 	append(event: NewEvent): Promise<Event>;
@@ -64,6 +90,22 @@ export interface ControlPlane {
 	 * §5 and `ADR-003` §3 require independently of each other.
 	 */
 	invokeModel(request: ModelRequest): Promise<ModelResult>;
+	/**
+	 * Ask the broker to put something on a remote.
+	 *
+	 * The worker never learns how. The credential is on the other side of this
+	 * method and the node process does not have it, which is `05-CAPABILITIES` §5
+	 * enforced by absence rather than by restraint.
+	 */
+	commit(request: CommitRequest): Promise<CommitResult>;
+	/**
+	 * Ask the world whether an effect landed, after a crash left it unknown.
+	 *
+	 * Throws rather than guessing when the remote cannot be reached. "I could not
+	 * ask" is not the same answer as "it did not happen", and P8 forbids
+	 * resolving that in whichever direction is convenient.
+	 */
+	reconcile(repository: string, branch: string, intentId: string): Promise<Reconciliation>;
 }
 
 /**
@@ -168,6 +210,24 @@ export function httpControlPlane(baseUrl: string, epoch: bigint = 0n): ControlPl
 		},
 		async invokeModel(request) {
 			return (await post("/model/invoke", request, "a model call")) as ModelResult;
+		},
+		async commit(request) {
+			return (await post("/repository/effect", request, "a commit")) as CommitResult;
+		},
+		async reconcile(repository, branch, intentId) {
+			const query = new URLSearchParams({ repository, branch, intentId });
+			let response: Response;
+			try {
+				response = await fetch(`${baseUrl}/repository/reconcile?${query}`);
+			} catch (cause) {
+				throw new ControlPlaneUnreachable("reconciliation", cause);
+			}
+			if (!response.ok) {
+				throw new Error(
+					`the remote could not be asked whether ${intentId} landed, so it stays unknown`,
+				);
+			}
+			return (await response.json()) as Reconciliation;
 		},
 	};
 }

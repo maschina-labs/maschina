@@ -1,4 +1,11 @@
-export type { ControlPlane, ModelRequest, ModelResult } from "./control-plane.ts";
+export type {
+	CommitRequest,
+	CommitResult,
+	ControlPlane,
+	ModelRequest,
+	ModelResult,
+	Reconciliation,
+} from "./control-plane.ts";
 export { ControlPlaneUnreachable, httpControlPlane, WorkerFenced } from "./control-plane.ts";
 export type {
 	Decision,
@@ -12,3 +19,4 @@ export { filesystemExecutor } from "./filesystem.ts";
 export { modelExecutor } from "./model.ts";
 export type { Recovered, Resolution, Unfinished } from "./recovery.ts";
 export { recover, resolutionFor } from "./recovery.ts";
+export { repositoryExecutor } from "./repository.ts";

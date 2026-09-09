@@ -21,7 +21,7 @@
  */
 
 /** What kind of thing authority is held over. Extended as resources are added. */
-export type ResourceKind = "filesystem" | "model";
+export type ResourceKind = "filesystem" | "model" | "repository";
 
 /**
  * What a capability names when the resource is a model. `04-WORKERS` §7.
@@ -43,6 +43,30 @@ export type ModelClass = "reasoning" | "fast" | "long_context" | "code" | "embed
  * granted, because recovery cannot classify a crash without it.
  */
 export type EffectClass = "idempotent" | "reconcilable" | "unsafe";
+
+/**
+ * How local state a use of this capability creates is preserved when the node it
+ * lives on goes away. `15-OPEN-QUESTIONS` §3 C1.
+ *
+ * `03-RUNTIME` §2 requires a worker to hold no durable state between steps, and
+ * `06-NODES` §6 concludes from that migration is free. A code worker breaks
+ * both: it has a git working tree with uncommitted edits, which exists nowhere
+ * in the log, and migrating would lose it silently.
+ *
+ * The resolution is symmetry with effect classes. A capability that can leave
+ * the world in an unknown state must say how that is reconciled; a capability
+ * that can leave the *node* holding unreconstructible work must say how that is
+ * captured. Both are declared at grant, not decided during an incident.
+ *
+ *   `none`         Nothing this produces is worth keeping. A filesystem write
+ *                  inside a scope is already in the world, not on the node.
+ *   `commit`       Work in progress goes to a branch, and the commit hash is
+ *                  the reference. Cheap, and what a code worker wants.
+ *   `unreplayable` This produces local state with no capture procedure. The
+ *                  loss is recorded rather than being silent, which is the
+ *                  honest option when there is no good one.
+ */
+export type CheckpointProcedure = "none" | "commit" | "unreplayable";
 
 /**
  * How much human confirmation a use needs. `05-CAPABILITIES` §2.
@@ -68,8 +92,16 @@ export type FilesystemOperation = "read" | "write" | "create" | "delete";
  */
 export type ModelOperation = "invoke";
 
+/**
+ * Repository operations. `commit` covers writing and pushing, because from the
+ * worker's side they are one act: it asked for something to exist on the remote.
+ * Splitting them would let a worker hold authority to commit without pushing,
+ * which is authority over a working tree nobody can see.
+ */
+export type RepositoryOperation = "commit";
+
 /** Every operation any capability can grant. */
-export type Operation = FilesystemOperation | ModelOperation;
+export type Operation = FilesystemOperation | ModelOperation | RepositoryOperation;
 
 /**
  * Metered allowances. Three numbers, not one. `05-CAPABILITIES` §3.
@@ -116,6 +148,12 @@ export interface Capability {
 	readonly scope: string;
 	readonly limits: Limits;
 	readonly effectClass: EffectClass;
+	/**
+	 * Required, like `effectClass`, and for the same reason: a capability that
+	 * does not declare one cannot be granted, because nothing can work out during
+	 * a crash what should have been decided before it.
+	 */
+	readonly checkpoint: CheckpointProcedure;
 	readonly approval: Approval;
 	/** ISO 8601. Null means no expiry, which only the root grant should use. */
 	readonly expiresAt: string | null;
