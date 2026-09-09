@@ -15,6 +15,9 @@ name: Version
 on:
   push:
     branches: [main]
+  # So a release can be re-cut after a failure, or picked up when something
+  # changed outside a merge, without pushing an empty commit to provoke it.
+  workflow_dispatch:
 
 permissions:
   contents: write
