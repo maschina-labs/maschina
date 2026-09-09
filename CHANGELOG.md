@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-09
+
 ### Fixed
 
 - **A closed release blocked its own version forever.** The check for an existing
