@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-09
+
 ### Added
 
 - **A release can be re-cut without an empty commit.** The version workflow only
