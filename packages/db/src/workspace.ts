@@ -25,7 +25,7 @@
  */
 
 import type { Pool } from "pg";
-import { append, read } from "./log.ts";
+import { append, epochFor, read } from "./log.ts";
 
 export const WORKSPACE_OPENED = "workspace.opened";
 export const WORKSPACE_CHECKPOINTED = "workspace.checkpointed";
@@ -94,12 +94,12 @@ export async function openWorkspace(
 	capabilityId: string,
 	path: string,
 	node: string,
-	epoch: bigint,
+	epoch?: bigint,
 ): Promise<void> {
 	await append(pool, {
 		actor: worker,
 		type: WORKSPACE_OPENED,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: { v: 1, worker, capabilityId, path, node },
 	});
 }
@@ -111,12 +111,12 @@ export async function checkpointWorkspace(
 	path: string,
 	commit: string,
 	branch: string,
-	epoch: bigint,
+	epoch?: bigint,
 ): Promise<void> {
 	await append(pool, {
 		actor: worker,
 		type: WORKSPACE_CHECKPOINTED,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: { v: 1, worker, path, commit, branch },
 	});
 }
@@ -133,12 +133,12 @@ export async function recordWorkspaceLost(
 	worker: string,
 	path: string,
 	reason: string,
-	epoch: bigint,
+	epoch?: bigint,
 ): Promise<void> {
 	await append(pool, {
 		actor: worker,
 		type: WORKSPACE_LOST,
-		epoch,
+		epoch: epoch ?? (await epochFor(pool, worker)),
 		payload: { v: 1, worker, path, reason },
 	});
 }

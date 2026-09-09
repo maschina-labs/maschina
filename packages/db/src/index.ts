@@ -33,7 +33,7 @@ export {
 	releaseLease,
 	renewLease,
 } from "./lease.ts";
-export { append, Fenced, head, PAYLOAD_V, read } from "./log.ts";
+export { append, epochFor, Fenced, head, PAYLOAD_V, read } from "./log.ts";
 export type { RememberInput } from "./memory.ts";
 export {
 	confirm,
