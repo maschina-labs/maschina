@@ -15,6 +15,24 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **Event payloads carry a version.** The log is append-only, so an event written
+  in the wrong shape is written in the wrong shape permanently. Every payload now
+  carries `v`, readers handle every version they have ever seen, and a reader that
+  meets a version from the future stops rather than folding a partial answer.
+  Decided at eight events rather than eight million (`ADR-006`).
+- **Supply chain hardening.** Every GitHub Action is pinned to an immutable commit
+  SHA rather than a mutable tag, so a compromised tag cannot run with the
+  repository's token. OpenSSF Scorecard runs weekly, dependency review blocks a
+  pull request that introduces a known vulnerability or a copyleft licence, an
+  SBOM is produced on every push to main, and releases carry signed build
+  provenance that can be verified with `gh attestation verify`.
+- **Coverage, with a floor set to reality.** 96% of the pure core, enforced in CI.
+  The database packages are deliberately outside the number: they are covered by
+  proofs against a real Postgres, and mixing the two produces a figure that falls
+  every time real code is written.
+
+### Added
+
 - **Objectives, and a contract that cannot move.** You state an objective with a
   completion contract saying what would count as done. If the contract holds it
   is admitted and hashed; if it does not, the objective is rejected and the

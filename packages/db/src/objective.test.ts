@@ -15,6 +15,7 @@ import {
 	OBJECTIVE_AMENDMENT_REFUSED,
 	OBJECTIVE_REJECTED,
 	OBJECTIVE_STATED,
+	PAYLOAD_V,
 } from "./objective.ts";
 
 const CONTRACT: Contract = {
@@ -155,6 +156,39 @@ describe("fold", () => {
 		]);
 		expect(objective?.constraints).toEqual({});
 		expect(objective?.parent).toBeNull();
+	});
+
+	it("reads an unversioned event as version 1", () => {
+		// ADR-006 R4. Slice 0 and slice 1 wrote events before versioning existed.
+		// Those events are in the log forever and absence means 1, not corruption.
+		const objective = fold([statedEvent(), admittedEvent("frozen")]);
+		expect(objective?.state).toBe("admitted");
+		expect(objective?.contractHash).toBe("frozen");
+	});
+
+	it("reads a current-version event", () => {
+		const objective = fold([
+			{
+				type: OBJECTIVE_STATED,
+				actor: "human:ash",
+				payload: { v: PAYLOAD_V, statement: "Versioned", contract: CONTRACT },
+			},
+		]);
+		expect(objective?.statement).toBe("Versioned");
+	});
+
+	it("refuses a payload version from the future rather than guessing", () => {
+		// 01-PRINCIPLES P8: ambiguity blocks. A reader that meets a shape it does
+		// not understand must stop, not silently fold a partial objective.
+		expect(() =>
+			fold([
+				{
+					type: OBJECTIVE_STATED,
+					actor: "human:ash",
+					payload: { v: PAYLOAD_V + 1, statement: "From the future", contract: CONTRACT },
+				},
+			]),
+		).toThrow(/newer than this reader understands/);
 	});
 
 	it("carries the contract through untouched", () => {

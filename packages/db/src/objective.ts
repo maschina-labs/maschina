@@ -19,6 +19,18 @@ import { hashContract, validateContract } from "@maschina/core";
 import type { Pool } from "pg";
 import { append, read } from "./log.ts";
 
+/**
+ * Payload schema version. ADR-006.
+ *
+ * Every payload carries `v`. A reader handles every version it has ever seen,
+ * because an event written in the wrong shape is written in the wrong shape
+ * permanently: the log is append-only and there is no migration path.
+ *
+ * Bump only for a change a reader cannot handle by ignoring it. Adding an
+ * optional field is not a new version.
+ */
+export const PAYLOAD_V = 1;
+
 export const OBJECTIVE_STATED = "objective.stated";
 export const OBJECTIVE_ADMITTED = "objective.admitted";
 export const OBJECTIVE_REJECTED = "objective.rejected";
@@ -63,6 +75,7 @@ export async function stateObjective(
 		type: OBJECTIVE_STATED,
 		objective: objectiveId,
 		payload: {
+			v: PAYLOAD_V,
 			statement: input.statement,
 			contract: input.contract,
 			constraints,
@@ -78,7 +91,7 @@ export async function stateObjective(
 			type: OBJECTIVE_REJECTED,
 			objective: objectiveId,
 			causation: stated.id,
-			payload: { problems },
+			payload: { v: PAYLOAD_V, problems },
 		});
 	} else {
 		await append(pool, {
@@ -88,7 +101,7 @@ export async function stateObjective(
 			causation: stated.id,
 			// The hash is computed once, here, and never recomputed from a later
 			// contract. Recomputing is how the target moves.
-			payload: { contractHash: hashContract(input.contract) },
+			payload: { v: PAYLOAD_V, contractHash: hashContract(input.contract) },
 		});
 	}
 
@@ -128,6 +141,7 @@ export async function amendContract(
 		type: OBJECTIVE_AMENDMENT_REFUSED,
 		objective: objectiveId,
 		payload: {
+			v: PAYLOAD_V,
 			reason,
 			state: objective.state,
 			frozenHash: objective.contractHash,
@@ -167,6 +181,18 @@ export function fold(
 	let rejectedReason: string | null = null;
 
 	for (const event of events) {
+		// ADR-006 R4: slice 0 and slice 1 wrote events before versioning existed.
+		// Absence means version 1 rather than corruption.
+		const version = typeof event.payload.v === "number" ? event.payload.v : 1;
+		if (version > PAYLOAD_V) {
+			// R2 in reverse: a reader that meets a version from the future must
+			// stop rather than guess. 01-PRINCIPLES P8, ambiguity blocks.
+			throw new Error(
+				`event payload version ${version} is newer than this reader understands (${PAYLOAD_V}). ` +
+					"Update the reader before folding this log.",
+			);
+		}
+
 		if (event.type === OBJECTIVE_STATED) {
 			const p = event.payload as unknown as StatedPayload;
 			stated = {
