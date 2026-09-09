@@ -40,11 +40,24 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Attest the source tree
+      - name: Build the source archive
+        id: archive
+        env:
+          VERSION: ${{ steps.notes.outputs.version }}
+        run: |
+          # Attesting needs something that has a sha256. The commit sha is a
+          # SHA-1 and the attest action rejected it, which is right: a git sha
+          # names a tree, it is not a digest of an artifact anybody downloads.
+          NAME="maschina-$VERSION.tar.gz"
+          git archive --format=tar.gz --prefix="maschina-$VERSION/" -o "$NAME" HEAD
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "digest=$(sha256sum "$NAME" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the source archive
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
-          subject-name: maschina-${{ steps.notes.outputs.version }}
-          subject-digest: sha256:${{ github.sha }}
+          subject-name: ${{ steps.archive.outputs.name }}
+          subject-digest: sha256:${{ steps.archive.outputs.digest }}
 
       - name: Create the release
         env:
@@ -53,4 +66,5 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --notes-file notes.md \
-            --verify-tag
+            --verify-tag \
+            "${{ steps.archive.outputs.name }}"

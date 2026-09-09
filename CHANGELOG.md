@@ -13,6 +13,18 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Releases could not be published at all.** The provenance step fed the git
+  commit sha into a field wanting a sha256 digest, so the first tag ever pushed
+  failed on it. A git sha names a tree and is not the digest of anything anyone
+  downloads. Releases now build a source archive, attest that, and attach it, so
+  the attestation is about an artifact that exists.
+- **The version workflow tried to push to a protected branch.** It now opens a
+  release pull request instead, which goes through the same checks as every other
+  change. The first design gave the bot a bypass on the ruleset; GitHub refused
+  it, and was right to.
+
 ## [0.4.0] - 2026-09-09
 
 ### Added
