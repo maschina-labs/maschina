@@ -1,0 +1,5 @@
+pnpm exec lint-staged
+node .github/ci/check-no-em-dash.mjs
+
+# Local-only checks. Not every clone has these.
+[ -f internal/checks/pre-commit.mjs ] && node internal/checks/pre-commit.mjs || true

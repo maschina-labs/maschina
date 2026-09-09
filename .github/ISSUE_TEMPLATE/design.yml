@@ -1,0 +1,31 @@
+name: Design problem
+description: Something in the architecture looks wrong
+labels: [design]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Finding a design wrong is a success, not a complaint. Most of Maschina is
+        unproven, and the point of building it is to let reality contradict it.
+
+  - type: textarea
+    id: claim
+    attributes:
+      label: Which claim looks wrong
+      description: Quote it, and say where it is written.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why you think it does not hold
+      description: A concrete case where it breaks, if you have one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative
+    attributes:
+      label: What you would do instead
+      description: Optional. Naming the problem is useful on its own.

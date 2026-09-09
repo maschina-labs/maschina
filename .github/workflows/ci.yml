@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # The proofs run against a real Postgres. 01-PRINCIPLES P4: a mock is a
+      # testing tool, never a milestone, and an append-only guarantee enforced
+      # by grants and triggers cannot be verified without the real database.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: maschina
+          POSTGRES_PASSWORD: maschina
+          POSTGRES_DB: maschina
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U maschina -d maschina"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      MASCHINA_ADMIN_URL: postgres://maschina:maschina@localhost:5432/maschina
+      MASCHINA_DATABASE_URL: postgres://maschina_app:maschina_app@localhost:5432/maschina
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          # check-no-attribution reads commit messages, so it needs history.
+          fetch-depth: 50
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check
+        run: pnpm check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Initialise the log
+        run: pnpm maschina db init
+
+      - name: Proof
+        run: pnpm proof

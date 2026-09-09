@@ -1,0 +1,21 @@
+packages:
+  # Human-facing surfaces. One desktop app today; a docs site when there is
+  # something public to document.
+  - "apps/*"
+  # Long-running processes. The control plane lands here at slice 3, when the
+  # node boundary becomes real (ADR-001).
+  - "services/*"
+  # Shared libraries. Anything imported from more than one place lives here,
+  # explicitly so UI is built once, not per app.
+  - "packages/*"
+
+# Postinstall scripts are opt-in. Only these two need one, and both are
+# build-tool binaries rather than anything that ships in the product:
+#   electron: downloads the Electron binary
+#   esbuild:  downloads its native binary, used by Vite and tsx
+allowBuilds:
+  electron: true
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - electron@44.3.0

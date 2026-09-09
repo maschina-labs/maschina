@@ -1,0 +1,58 @@
+name: Pull request
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  title:
+    name: Title is a conventional commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # The PR title becomes the squash commit subject, which becomes
+          # release copy. It has to parse and it has to read well.
+          if ! printf '%s' "$TITLE" | grep -qE '^(feat|fix|docs|chore|refactor|perf|test|build|ci|revert)(\([a-z0-9./-]+\))?!?: .+'; then
+            echo "PR title must be a conventional commit."
+            echo "  got:      $TITLE"
+            echo "  expected: feat(db): add causation index to the event log"
+            exit 1
+          fi
+          if printf '%s' "$TITLE" | grep -q '—'; then
+            echo "No em dashes. Use a colon, a comma, or two sentences."
+            exit 1
+          fi
+
+  changelog:
+    name: Changelog was updated
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          # Every change gets a changelog entry. If a PR genuinely does not
+          # belong in a changelog, label it 'no-changelog' and say why in the
+          # body. The label makes skipping deliberate and visible.
+          if printf '%s' "$LABELS" | grep -q 'no-changelog'; then
+            echo "Skipped: labelled no-changelog."
+            exit 0
+          fi
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -qx 'CHANGELOG.md'; then
+            echo "CHANGELOG.md was updated."
+            exit 0
+          fi
+          echo "CHANGELOG.md was not updated."
+          echo "Add an entry under [Unreleased], or label the PR 'no-changelog'."
+          exit 1

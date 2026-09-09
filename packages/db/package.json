@@ -1,0 +1,27 @@
+{
+	"name": "@maschina/db",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"type": "module",
+	"description": "The event log. Postgres, append-only. 02-CORE §7.",
+	"exports": {
+		".": "./src/index.ts",
+		"./client": "./src/client.ts",
+		"./log": "./src/log.ts",
+		"./schema": "./src/schema.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
+		"test": "echo 'covered by proof' ",
+		"proof": "tsx --env-file-if-exists=../../.env test/append-only.proof.ts"
+	},
+	"dependencies": {
+		"@maschina/core": "workspace:*",
+		"pg": "^8.13.1"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.11.10"
+	}
+}

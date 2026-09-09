@@ -1,0 +1,7 @@
+# Run the GitHub Actions workflows locally with `act`.
+#   pnpm ci:local
+#
+# The default runner image is tiny and lacks node/pnpm, so use the medium image
+# that actually resembles ubuntu-latest.
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+--container-architecture linux/amd64

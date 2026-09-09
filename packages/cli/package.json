@@ -1,0 +1,21 @@
+{
+	"name": "@maschina/cli",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"type": "module",
+	"description": "The maschina CLI. The forcing function for the control plane API (08-ENVIRONMENT §5).",
+	"bin": {
+		"maschina": "./src/index.ts"
+	},
+	"scripts": {
+		"dev": "tsx --env-file-if-exists=../../.env src/index.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
+		"test": "echo 'no tests yet' "
+	},
+	"dependencies": {
+		"@maschina/core": "workspace:*",
+		"@maschina/db": "workspace:*"
+	}
+}

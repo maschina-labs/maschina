@@ -1,0 +1,134 @@
+/*
+ * Working environment shell.
+ *
+ * ADR-003 §7 leaves visual design undecided. This is a neutral dark ground and a
+ * type scale, not a design system, just enough to build against without pretending a
+ * decision has been made.
+ */
+
+:root {
+	--bg: #0c0d10;
+	--bg-raised: #14161b;
+	--border: #22252d;
+	--text: #e6e8ee;
+	--text-dim: #8b90a0;
+	--text-faint: #575c6b;
+	--accent: #6f8cff;
+
+	--mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+	--sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+
+	color-scheme: dark;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--sans);
+	font-size: 13px;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* The draggable strip behind the macOS traffic lights. */
+.titlebar {
+	height: 52px;
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	padding: 0 16px 0 88px;
+	border-bottom: 1px solid var(--border);
+	-webkit-app-region: drag;
+	user-select: none;
+}
+
+.titlebar__mark {
+	font-family: var(--mono);
+	font-size: 12px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--text-dim);
+}
+
+.titlebar__stage {
+	margin-left: 10px;
+	padding: 2px 7px;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	font-family: var(--mono);
+	font-size: 10px;
+	color: var(--text-faint);
+}
+
+.shell {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.body {
+	flex: 1 1 auto;
+	display: grid;
+	place-items: center;
+	padding: 32px;
+}
+
+.empty {
+	max-width: 460px;
+	text-align: center;
+}
+
+.empty__title {
+	margin: 0 0 10px;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.empty__text {
+	margin: 0;
+	color: var(--text-dim);
+}
+
+.empty__next {
+	margin-top: 22px;
+	padding-top: 18px;
+	border-top: 1px solid var(--border);
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--text-faint);
+}
+
+.statusbar {
+	flex: 0 0 auto;
+	display: flex;
+	gap: 18px;
+	align-items: center;
+	padding: 0 16px;
+	height: 28px;
+	border-top: 1px solid var(--border);
+	background: var(--bg-raised);
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--text-faint);
+}
+
+.statusbar__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--text-faint);
+	margin-right: 6px;
+	display: inline-block;
+	vertical-align: middle;
+}

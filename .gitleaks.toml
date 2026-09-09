@@ -1,0 +1,25 @@
+# Gitleaks configuration.
+#
+# Start from the maintained default rule set, then narrow the false positives
+# this repository actually produces.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local development values that are not secrets"
+
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''\.gitleaks\.toml''',
+]
+
+# The local Postgres credentials are literal, identical everywhere, and match
+# docker/docker-compose.yml. They are not a secret: nothing they protect exists
+# outside a developer's machine. ADR-002 covers why real secret custody is not
+# solved yet.
+regexes = [
+  '''postgres://maschina:maschina@localhost''',
+  '''postgres://maschina_app:maschina_app@localhost''',
+  '''POSTGRES_PASSWORD: maschina''',
+]

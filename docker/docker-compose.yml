@@ -1,0 +1,32 @@
+# Stage 0 infrastructure. Postgres and nothing else (ADR-001).
+#
+# If anything is ever added to this file, it needs a named problem that exists
+# now (01-PRINCIPLES P12). The previous implementation ran fourteen containers.
+
+# Pinned so the project name does not follow the directory compose runs from.
+# Without it, moving this file changed the derived project name and Docker
+# refused to start with "container name is already in use".
+name: maschina
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: maschina-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: maschina
+      POSTGRES_PASSWORD: maschina
+      POSTGRES_DB: maschina
+    ports:
+      # 5432 is free on this machine; QuickEngine's Postgres is on 5435.
+      - "5432:5432"
+    volumes:
+      - maschina-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maschina -d maschina"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  maschina-pgdata:

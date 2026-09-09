@@ -1,0 +1,43 @@
+{
+	"name": "maschina",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"description": "An operating system for delegated work.",
+	"packageManager": "pnpm@11.17.0",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"desktop": "pnpm --filter @maschina/desktop dev",
+		"desktop:build": "pnpm --filter @maschina/desktop build",
+		"maschina": "pnpm --filter @maschina/cli dev",
+		"db:up": "docker compose -f docker/docker-compose.yml up -d --wait",
+		"db:down": "docker compose -f docker/docker-compose.yml down",
+		"db:reset": "docker compose -f docker/docker-compose.yml down -v && pnpm db:up && pnpm maschina db init",
+		"db:init": "pnpm maschina db init",
+		"build": "turbo build",
+		"typecheck": "turbo typecheck",
+		"test": "turbo test",
+		"proof": "turbo proof",
+		"lint": "biome lint .",
+		"format": "biome format . --write",
+		"check": "biome check . && pnpm check:no-em-dash",
+		"prepare": "husky",
+		"check:no-em-dash": "node .github/ci/check-no-em-dash.mjs",
+		"ci:local": "act push",
+		"ci:local:ci": "act push --workflows .github/workflows/ci.yml",
+		"ci:local:secrets": "act push --workflows .github/workflows/secrets-scan.yml",
+		"state": "node internal/checks/state.mjs",
+		"verify:clean": "node internal/checks/verify-clean.mjs"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.6",
+		"@types/node": "^22.10.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"tsx": "^4.19.2",
+		"turbo": "^2.10.0",
+		"typescript": "^5.7.2"
+	}
+}

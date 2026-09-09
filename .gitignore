@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+.pnpm-store/
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+out/
+*.tsbuildinfo
+
+# Turborepo
+.turbo
+
+# Testing
+coverage/
+
+# Private working notes, architecture, and plans. Root-anchored so it only
+# matches the folder at the repo root.
+/internal/
+
+# Local runtime state
+.maschina/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys and certificates. Nothing here should ever exist, but if it does, it
+# does not leave the machine.
+*.pem
+*.key
+*.p12
+secrets/

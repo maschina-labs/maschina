@@ -1,0 +1,17 @@
+{
+	"name": "@maschina/core",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"type": "module",
+	"description": "The six primitives. 02-CORE.",
+	"exports": {
+		".": "./src/index.ts",
+		"./event": "./src/event.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
+		"test": "echo 'no tests yet' "
+	}
+}

@@ -1,0 +1,7 @@
+# Everything, by default.
+*       @asherwilson
+
+# The parts where a mistake is expensive and quiet.
+/packages/db/           @asherwilson
+/packages/core/         @asherwilson
+/.github/               @asherwilson
