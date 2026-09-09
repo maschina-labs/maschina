@@ -13,8 +13,17 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-09
+
 ### Added
 
+- **Versions cut themselves.** Merging to main reads the commits since the last
+  tag, works out what they earned, rolls the changelog, bumps the version, commits
+  and tags. A `feat` is a minor, a fix or a dependency bump is a patch, and
+  anything that cannot change behaviour is no release at all. The scheme existed
+  since the first commit and had produced zero tags and zero releases, with the
+  version claiming to be two slices behind where the code was. A release step
+  that only runs when someone remembers is a release step that does not run.
 - **The linter now fails on an unused import instead of shrugging.** Biome's
   recommended preset reports one as a warning, so `pnpm check` printed the
   diagnostic and still exited zero. CodeQL caught one that our own build had
