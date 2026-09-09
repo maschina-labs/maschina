@@ -36,6 +36,13 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Fixed
 
+- **A known vulnerability in the test runner.** Vitest is on 4.1.11, past an
+  advisory allowing arbitrary file reads through the mocker. It was a major
+  version away and dependency updates deliberately do not propose those, so it
+  needed doing on purpose.
+- **Workflows held more power than they used.** Every workflow now starts with
+  read only permission and each job asks for exactly what it needs, so a job
+  added later inherits nothing.
 - **A required field was accepted and thrown away.** Every capability had to
   declare how its local state is preserved, the compiler enforced it, and the
   value was then dropped before it reached the log, so everything read back as

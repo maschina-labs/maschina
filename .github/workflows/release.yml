@@ -4,18 +4,22 @@ on:
   push:
     tags: ["v*"]
 
+# Read only at the top. The one job that publishes asks for the rest.
 permissions:
-  contents: write
-  # Build provenance: a signed statement that this artifact was produced by this
-  # workflow, from this commit. Verifiable with `gh attestation verify`.
-  id-token: write
-  attestations: write
+  contents: read
 
 jobs:
   release:
     name: Publish the release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      # Creates the release and uploads the source archive.
+      contents: write
+      # Build provenance: a signed statement that this artifact was produced by
+      # this workflow, from this commit. Verifiable with `gh attestation verify`.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

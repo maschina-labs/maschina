@@ -113,6 +113,25 @@ describe("withinScopeOf", () => {
 		expect(withinScopeOf("model", "long_context", "code")).toBe(false);
 	});
 
+	it("uses equality for a repository", () => {
+		expect(withinScopeOf("repository", "maschina-labs/sandbox", "maschina-labs/sandbox")).toBe(
+			true,
+		);
+		expect(withinScopeOf("repository", "maschina-labs/sandbox", "maschina-labs/maschina")).toBe(
+			false,
+		);
+	});
+
+	it("does not let a shared owner imply access to a sibling repository", () => {
+		// The reason repository containment is equality and not a prefix. Two
+		// repositories under one owner share an owner and nothing else that
+		// matters, and a prefix rule would hand a sandbox capability the real one.
+		expect(withinScopeOf("repository", "maschina-labs", "maschina-labs/maschina")).toBe(false);
+		expect(
+			withinScopeOf("repository", "maschina-labs/sandbox", "maschina-labs/sandbox-two"),
+		).toBe(false);
+	});
+
 	it("does not treat a model class as a path", () => {
 		// A model scope is not a prefix. If this ever delegated to withinScope,
 		// every model target would be refused for not being absolute, and the
@@ -144,6 +163,12 @@ describe("scopeViolationOf", () => {
 		expect(said).toContain("fast");
 		expect(said).toContain("reasoning");
 		expect(said).not.toContain("absolute path");
+	});
+
+	it("explains a repository refusal by naming both repositories", () => {
+		expect(
+			scopeViolationOf("repository", "maschina-labs/sandbox", "maschina-labs/maschina"),
+		).toBe("this capability is for maschina-labs/sandbox, not maschina-labs/maschina");
 	});
 
 	it("names both the class held and the class asked for", () => {

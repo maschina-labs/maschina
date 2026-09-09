@@ -129,13 +129,21 @@ async function main(): Promise<void> {
 		.filter((f) => f.endsWith(".ts"))
 		.map((f) => readFileSync(`packages/worker/src/${f}`, "utf8"))
 		.join("\n");
+	// One pattern rather than a substring check per thing. The substring version
+	// of the second half was flagged by CodeQL as incomplete URL sanitisation,
+	// and although the taint was wrong (this greps source text, not a URL) the
+	// complaint underneath it was right: `includes` on a host name is weak
+	// evidence that survives no refactor at all.
+	const CREDENTIAL_OR_REMOTE =
+		/SSH_AUTH_SOCK|GIT_ASKPASS|GH_TOKEN|GITHUB_TOKEN|ssh-agent|id_ed25519|github\.com|\bgit@/;
 	check(
-		"and nothing in the worker package mentions a credential",
-		!/SSH_AUTH_SOCK|GIT_ASKPASS|GH_TOKEN|ssh-agent|id_ed25519/.test(workerSource),
+		"nothing in the worker package mentions a credential or a remote",
+		!CREDENTIAL_OR_REMOTE.test(workerSource),
+		CREDENTIAL_OR_REMOTE.exec(workerSource)?.[0] ?? "",
 	);
 	check(
-		"nor does it know the remote's address",
-		!workerSource.includes("git@github.com") && !workerSource.includes("https://github.com"),
+		"and it holds no git machinery at all, so there is nothing to leak into",
+		!/child_process|execFile|spawn\(/.test(workerSource),
 	);
 
 	// 3. Crash after the push landed. Reconciliation must not duplicate it.

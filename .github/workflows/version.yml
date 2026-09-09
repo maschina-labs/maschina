@@ -19,9 +19,10 @@ on:
   # changed outside a merge, without pushing an empty commit to provoke it.
   workflow_dispatch:
 
+# Read only at the top, so a job that was added without thinking about it gets
+# nothing. The two jobs below ask for exactly what they use.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: version
@@ -32,6 +33,9 @@ jobs:
     name: Tag a merged release
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Pushes a tag, nothing else.
+    permissions:
+      contents: write
     if: startsWith(github.event.head_commit.message, 'chore(release):')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -61,6 +65,10 @@ jobs:
     name: Open the release this merge earned
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Pushes a branch and opens a pull request.
+    permissions:
+      contents: write
+      pull-requests: write
     if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
     env:
       # The secrets context cannot be read from a step-level `if`, so the answer
