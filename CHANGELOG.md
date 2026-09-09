@@ -13,6 +13,17 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The release pull request could pass every check and still not merge.** The
+  bot committed with git, which signs nothing, and main requires signed commits.
+  The release commit is now created through GitHub's API, which signs it. The
+  other fix available was dropping the signature requirement, which trades a
+  permanent weakening of every commit on main against a bot that cannot sign.
+- **The tag would have appeared with nothing listening.** It was pushed with the
+  built in token, and a push made with that token starts no workflows, so the
+  release workflow watching for the tag would never have run.
+
 ### Added
 
 - **A release can be re-cut without an empty commit.** The version workflow only

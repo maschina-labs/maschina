@@ -8,6 +8,9 @@ export type {
 	EffectClass,
 	FilesystemOperation,
 	Limits,
+	ModelClass,
+	ModelOperation,
+	Operation,
 	ResourceKind,
 } from "./capability.ts";
 export { canonicalContract, hashContract, validateContract } from "./contract.ts";
@@ -20,4 +23,4 @@ export type {
 	ObjectiveState,
 	VerificationStrength,
 } from "./objective.ts";
-export { scopeViolation, withinScope } from "./scope.ts";
+export { scopeViolation, withinScope, withinScopeOf } from "./scope.ts";

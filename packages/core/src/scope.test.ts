@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scopeViolation, withinScope } from "./scope.ts";
+import { scopeViolation, withinScope, withinScopeOf } from "./scope.ts";
 
 const SANDBOX = "/tmp/maschina-sandbox";
 
@@ -83,5 +83,40 @@ describe("scopeViolation", () => {
 
 	it("explains a relative scope", () => {
 		expect(scopeViolation("sandbox", "/tmp/x")).toContain("not an absolute path");
+	});
+});
+
+describe("withinScopeOf", () => {
+	it("uses path containment for a filesystem", () => {
+		expect(withinScopeOf("filesystem", "/sandbox", "/sandbox/a.txt")).toBe(true);
+		expect(withinScopeOf("filesystem", "/sandbox", "/etc/passwd")).toBe(false);
+	});
+
+	it("carries the filesystem prefix trap through the dispatcher", () => {
+		// The same attack as above, arriving by the other door. A dispatcher that
+		// reimplemented the comparison instead of delegating would pass the direct
+		// test and fail this one.
+		expect(withinScopeOf("filesystem", "/sandbox", "/sandbox-evil/a.txt")).toBe(false);
+	});
+
+	it("uses equality for a model class", () => {
+		expect(withinScopeOf("model", "fast", "fast")).toBe(true);
+		expect(withinScopeOf("model", "fast", "reasoning")).toBe(false);
+	});
+
+	it("does not let a stronger class imply a weaker one", () => {
+		// The widening path this exists to prevent. `reasoning` is the more
+		// capable class, so it reads as though it should cover `fast`. Authority
+		// nobody granted is authority nobody granted, whichever direction it
+		// looks like it flows.
+		expect(withinScopeOf("model", "reasoning", "fast")).toBe(false);
+		expect(withinScopeOf("model", "long_context", "code")).toBe(false);
+	});
+
+	it("does not treat a model class as a path", () => {
+		// A model scope is not a prefix. If this ever delegated to withinScope,
+		// every model target would be refused for not being absolute, and the
+		// failure would look like a permissions bug rather than a wiring bug.
+		expect(withinScopeOf("model", "/fast", "/fast/anything")).toBe(false);
 	});
 });

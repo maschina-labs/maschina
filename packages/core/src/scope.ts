@@ -11,6 +11,8 @@
 
 import { isAbsolute, resolve, sep } from "node:path";
 
+import type { ResourceKind } from "./capability.ts";
+
 /**
  * True when `target` is inside `scope`.
  *
@@ -52,4 +54,27 @@ export function scopeViolation(scope: string, target: string): string {
 		return `target ${target} is not an absolute path, so what it means depends on the working directory`;
 	}
 	return `${resolve(target)} is outside ${resolve(scope)}`;
+}
+
+/**
+ * Containment, for whichever kind of resource the capability is over.
+ *
+ * A filesystem scope is a path prefix and containment is the comparison above.
+ * A model scope is a `ModelClass` and containment is **equality**.
+ *
+ * Equality, and deliberately not a hierarchy. It is tempting to say a capability
+ * for `reasoning` obviously covers `fast`, since fast is the cheaper and weaker
+ * thing. That is a widening path: it hands a holder authority nobody granted,
+ * derived from an ordering invented in code rather than written in the grant.
+ * `04-WORKERS` §5 says delegation attenuates only, and an implicit ordering is
+ * the same mistake one level down. A worker that needs two classes holds two
+ * capabilities, and the log says so.
+ */
+export function withinScopeOf(resource: ResourceKind, scope: string, target: string): boolean {
+	switch (resource) {
+		case "filesystem":
+			return withinScope(scope, target);
+		case "model":
+			return scope === target;
+	}
 }

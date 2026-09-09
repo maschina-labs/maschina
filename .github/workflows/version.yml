@@ -37,18 +37,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          # The tag has to be pushed by a token belonging to a person, because a
+          # push made with GITHUB_TOKEN starts no workflows and release.yml
+          # listens for exactly this tag. Pushed with the built in token, the
+          # tag would appear and nothing would ever publish it.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - name: Tag it
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="$(node -p 'require("./package.json").version')"
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
             echo "v$VERSION already exists."
             exit 0
           fi
-          # Tags are not covered by the branch ruleset, so this needs no bypass.
-          # The tag triggers release.yml, which publishes from the changelog.
+          # Tags are not covered by the branch ruleset, which targets the
+          # default branch, so this needs no bypass and no signature.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "v$VERSION" -m "v$VERSION"
@@ -92,12 +95,9 @@ jobs:
           VERSION: ${{ steps.next.outputs.version }}
         run: |
           node .github/ci/prepare-release.mjs "$VERSION"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "release/v$VERSION"
-          git add CHANGELOG.md package.json
-          git commit -m "chore(release): $VERSION"
-          git push --force origin "release/v$VERSION"
+          # Committed through the API rather than with git, because main
+          # requires signed commits and a bot pushing over HTTPS signs nothing.
+          node .github/ci/release-commit.mjs "$VERSION"
 
           # Reopening an existing one rather than stacking duplicates. The
           # branch name carries the version, so a new version is a new branch.
