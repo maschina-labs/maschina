@@ -59,7 +59,7 @@ async function main(): Promise<void> {
 		"no agent scaffolding is being paid for",
 		// The first version of this cost 18,650 input tokens for a ten token
 		// question, all of it tool definitions, MCP servers and the repository's
-		// own CLAUDE.md. Anything near that number means containment regressed.
+		// own instruction files. Anything near that means containment regressed.
 		answer.inputTokens < 2_000,
 		`${answer.inputTokens} input tokens`,
 	);

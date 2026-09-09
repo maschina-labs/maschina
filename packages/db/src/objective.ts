@@ -161,6 +161,57 @@ interface StatedPayload {
  * objective. The spread version reads nicer and does not typecheck: the result
  * is inferred from a value derived from itself.
  */
+/**
+ * Read a stated payload, checking it rather than asserting it.
+ *
+ * The same fix as `grantedPayload` in `capability.ts`, and it was missed here
+ * when that one was done. `event.payload as unknown as StatedPayload` is a lie
+ * the compiler believes: the payload comes out of a JSONB column, so its shape
+ * is an assumption until something looks.
+ *
+ * An objective is worse to get wrong than a capability, because the contract is
+ * what everything is later judged against. A malformed one folds into an
+ * objective with an undefined contract, and evaluation then judges against
+ * nothing while reporting verdicts as though it judged something.
+ */
+function statedPayload(payload: Record<string, unknown>): StatedPayload {
+	const statement = payload.statement;
+	if (typeof statement !== "string" || statement.length === 0) {
+		throw new Error(
+			`an objective.stated payload has no usable statement (${String(statement)}), ` +
+				"so this objective cannot be folded (01-PRINCIPLES P8).",
+		);
+	}
+
+	const contract = payload.contract;
+	if (typeof contract !== "object" || contract === null || Array.isArray(contract)) {
+		throw new Error(
+			"an objective.stated payload has no usable contract, and the contract is what " +
+				"the objective is judged against. Refusing to fold it.",
+		);
+	}
+	if (!Array.isArray((contract as Record<string, unknown>).criteria)) {
+		throw new Error(
+			"an objective.stated payload has a contract with no criteria array. A contract " +
+				"with nothing to check is how an objective is satisfied vacuously.",
+		);
+	}
+
+	const constraints = payload.constraints;
+	if (constraints !== undefined && (typeof constraints !== "object" || constraints === null)) {
+		throw new Error(
+			`an objective.stated payload has unusable constraints (${String(constraints)})`,
+		);
+	}
+
+	return {
+		statement,
+		contract: contract as StatedPayload["contract"],
+		constraints: (constraints ?? {}) as StatedPayload["constraints"],
+		parent: typeof payload.parent === "string" ? payload.parent : null,
+	};
+}
+
 export function fold(
 	events: readonly { type: string; actor: string; payload: Record<string, unknown> }[],
 ): Objective | null {
@@ -183,7 +234,7 @@ export function fold(
 		}
 
 		if (event.type === OBJECTIVE_STATED) {
-			const p = event.payload as unknown as StatedPayload;
+			const p = statedPayload(event.payload);
 			stated = {
 				statement: p.statement,
 				contract: p.contract,

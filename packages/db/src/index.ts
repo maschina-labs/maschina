@@ -46,6 +46,22 @@ export {
 } from "./objective.ts";
 export type { DumpedEvent, Snapshot } from "./projection.ts";
 export { dumpLog, restoreLog, snapshot } from "./projection.ts";
+export type {
+	CapabilityUse,
+	DecisionProvenance,
+	Denial,
+	ObjectiveCost,
+	WorkerAuthority,
+} from "./queries.ts";
+export {
+	provenanceOf,
+	whatCanWorkerDo,
+	whatDidItCost,
+	whatWasDenied,
+	whatWasDoneWith,
+	whatWouldRevoking,
+	whyDidItDecide,
+} from "./queries.ts";
 export {
 	EMERGENCY_STOP_LIFTED,
 	emergencyStop,

@@ -37,7 +37,8 @@ const SYSTEM_PROMPT =
  * A directory with nothing in it, used as the working directory for every call.
  *
  * Found by probing rather than by reading documentation. Run from the repository
- * the CLI loaded `CLAUDE.md` and the working tree into the call, and answered
+ * the CLI loaded the project's own instruction files and working tree into the
+ * call, and answered
  * questions by citing "the project instructions". That is `07-CONTEXT-MEMORY` §2
  * violated at the source: repository contents are untrusted content, and this
  * was feeding them in as instruction on every call.
