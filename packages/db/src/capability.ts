@@ -99,6 +99,59 @@ async function executedObjective(
 	return Number(result.rows[0]?.n ?? "0") > 0;
 }
 
+/**
+ * The holder of the root capability. Not a worker, and never a worker.
+ *
+ * `12-SECURITY` §5: the root is never held by a worker and never present on a
+ * node. A distinct holder means an ordinary request from any worker fails the
+ * holder check before anything else is considered.
+ */
+export const ROOT_HOLDER = "root";
+
+/**
+ * Find the root, or make it. `03-RUNTIME` §6.
+ *
+ * Idempotent, because a second root is worse than none: the emergency stop would
+ * miss half the system while appearing to work.
+ */
+export async function ensureRoot(pool: Pool): Promise<Capability> {
+	const roots = (await list(pool)).filter((c) => c.holder === ROOT_HOLDER && c.parent === null);
+	const active = roots.find((c) => c.status === "active");
+	if (active !== undefined) return active;
+
+	if (roots.length > 0) {
+		// An emergency stop revoked the root, and this would quietly mint a new
+		// one. That is how a stop stops being a stop: nobody lifts it, the next
+		// grant simply works again, and the system is running while the log says
+		// it was halted.
+		//
+		// Found by proving it. The stop worked, then the very next grant restored
+		// authority with nobody deciding to.
+		throw new Error(
+			"the root capability is revoked, so Maschina is stopped. Granting would " +
+				"silently restart it. Lifting an emergency stop is a deliberate act: " +
+				"call liftEmergencyStop, which records who lifted it and why.",
+		);
+	}
+
+	return grant(pool, {
+		holder: ROOT_HOLDER,
+		resource: "objective",
+		// The root grants nothing usable. It exists to be an ancestor, and giving
+		// it real operations would make the thing nobody may hold also the most
+		// dangerous thing to hold.
+		operations: ["evaluate"],
+		scope: "root",
+		effectClass: "unsafe",
+		checkpoint: "none",
+		approval: "every_use",
+		delegationDepth: 8,
+		grantedBy: "human:ash",
+		// The one capability with no parent. Everything else descends from it.
+		parent: null,
+	});
+}
+
 export async function grant(pool: Pool, input: GrantInput): Promise<Capability> {
 	if (input.operations.length === 0) {
 		throw new Error("a capability with no operations grants nothing; refusing to create it");
@@ -120,6 +173,18 @@ export async function grant(pool: Pool, input: GrantInput): Promise<Capability> 
 		}
 	}
 
+	// Everything descends from the root, so that revoking the root really does
+	// remove all authority (`03-RUNTIME` §6). Omitting a parent attaches to the
+	// root; only the root itself passes `parent: null` on purpose. Before this,
+	// every capability was its own root and the emergency stop would have
+	// revoked exactly one of them.
+	const parent =
+		input.parent === undefined
+			? input.holder === ROOT_HOLDER
+				? null
+				: (await ensureRoot(pool)).id
+			: input.parent;
+
 	const id = `cap_${randomUUID()}`;
 	await append(pool, {
 		actor: input.grantedBy,
@@ -127,7 +192,7 @@ export async function grant(pool: Pool, input: GrantInput): Promise<Capability> 
 		payload: {
 			v: PAYLOAD_V,
 			capabilityId: id,
-			parent: input.parent ?? null,
+			parent,
 			holder: input.holder,
 			resource: input.resource,
 			operations: input.operations,
