@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-09
+
 ### Added
 
 - **A worker can change a repository without ever holding the credential.** It
