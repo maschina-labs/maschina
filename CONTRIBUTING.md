@@ -68,6 +68,20 @@ docs: correct the slice 5 proof steps
 The subject line is release copy. Write it so someone reading a changelog
 understands what changed without opening the diff.
 
+## The changelog
+
+Every change gets an entry under `## [Unreleased]` in `CHANGELOG.md`, in plain
+language, for someone who did not write the code.
+
+**Say what is different, not how it works.** Name the behaviour somebody would
+notice. Two sentences is usually enough. An entry that needs a paragraph to
+explain the mechanism is an entry that should be one line, with the mechanism in
+a decision record instead.
+
+**Never edit an entry that has already shipped.** A changelog is a record.
+Rewriting what it said, even to improve it, makes the whole file worth less than
+no file at all. New rules apply from the next version onward.
+
 ## Pull requests
 
 Keep them small and keep them to one thing. Say what you changed, why, and how

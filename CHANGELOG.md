@@ -1,17 +1,27 @@
 # Changelog
 
-Everything notable that changes in Maschina gets written down here.
+What changed in Maschina, for someone who uses it.
 
-Entries are written by hand, in plain language, so that someone who did not write
-the code can tell what changed. They are not generated from commit subjects: a
+**Entries say what is different, not how it works.** From `0.9.0` onward: a
+changelog that explains the mechanism is a design document with dates on it, and
+this repository is public. The reasoning, the trade-offs and the things that went
+wrong are kept privately, which is where they are useful.
+
+Entries before that are longer and more internal than this rule allows. They stay
+as they were published. A changelog is a record, and editing what it already said
+would make it worth less than no record at all.
+
+Written by hand, in plain language. Not generated from commit subjects: a
 changelog assembled from commit subjects reads like a commit log, which is the
 thing a changelog exists to save you from reading.
 
-Versions follow semver, and the minor number is the count of Stage 0 slices whose
-proof passes, so the version says where the project actually is. `1.0.0` means all
-ten proof criteria hold. See `internal/operations/RELEASING.md`.
+Versions follow semver.
 
 ## [Unreleased]
+
+### Changed
+
+- Releases are cut when somebody asks for one, rather than after every merge.
 
 ## [0.9.0] - 2026-09-09
 
