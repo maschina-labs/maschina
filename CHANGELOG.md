@@ -21,6 +21,14 @@ Versions follow semver.
 
 ### Added
 
+- **More than one model provider, including one running on your own machine.**
+  Which one answers is configuration, and the log always says which did. A local
+  model can be preferred over a paid one without changing any code.
+- **Nothing quietly answers in place of something else.** When the provider a
+  worker asked for cannot answer, the work waits rather than being served by a
+  different one. Falling back is allowed only when it was asked for, and it is
+  recorded as having happened.
+
 - **Work that is waiting for a time starts itself again.** A worker stopped
   because a provider limit lifts at a known hour carries on when it does, with
   nobody watching a clock. A worker stopped because it needs an answer waits for
