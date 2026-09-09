@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-09
+
 ### Added
 
 - **Maschina can be asked questions instead of read.** Seven of them, from the
