@@ -45,7 +45,7 @@ function subjectsSinceLastTag() {
 // that moves without behaviour changing makes the number mean less.
 const PATCH_TYPES = new Set(["fix", "perf", "refactor", "revert"]);
 
-function bumpFor(messages) {
+export function bumpFor(messages) {
 	let bump = null;
 	const rank = { patch: 1, minor: 2, major: 3 };
 	const raise = (next) => {
@@ -77,24 +77,39 @@ function bumpFor(messages) {
 	return bump;
 }
 
-function nextVersion(current, bump) {
+/**
+ * The next version, given the current one and what the commits earned.
+ *
+ * **Version components are integers, not decimal places.** `0.9.0` becomes
+ * `0.10.0`, then `0.11.0`, and so on without limit. Nothing rolls over, because
+ * there is nothing to roll over into: these are three separate numbers that
+ * happen to be written with dots between them.
+ *
+ * `1.0.0` is never reached by arithmetic. While the major is 0 even a breaking
+ * change moves the minor, which is what 0.x means: nothing is promised yet.
+ * Going to 1.0 is a person deciding that the ten proof criteria hold under real
+ * use, and typing it.
+ */
+export function nextVersion(current, bump) {
 	const [major, minor, patch] = current.split(".").map(Number);
-	// 0.x promises nothing, so a break moves the minor. Going to 1.0.0 is a
-	// decision someone makes, not one a commit message makes for them.
 	if (bump === "major") return major === 0 ? `0.${minor + 1}.0` : `${major + 1}.0.0`;
 	if (bump === "minor") return `${major}.${minor + 1}.0`;
 	return `${major}.${minor}.${patch + 1}`;
 }
 
-const current = JSON.parse(readFileSync("package.json", "utf8")).version;
-const bump = bumpFor(subjectsSinceLastTag());
+// Only when run directly. Importing this file, which the test does, must not
+// read package.json or shell out to git.
+if (process.argv[1]?.endsWith("next-version.mjs")) {
+	const current = JSON.parse(readFileSync("package.json", "utf8")).version;
+	const bump = bumpFor(subjectsSinceLastTag());
 
-if (bump === null) {
-	console.error("Nothing since the last tag warrants a release.");
-	process.exit(0);
+	if (bump === null) {
+		console.error("Nothing since the last tag warrants a release.");
+		process.exit(0);
+	}
+
+	const version = nextVersion(current, bump);
+	const output = `bump=${bump}\nversion=${version}\n`;
+	process.stdout.write(output);
+	if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, output);
 }
-
-const version = nextVersion(current, bump);
-const output = `bump=${bump}\nversion=${version}\n`;
-process.stdout.write(output);
-if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, output);
