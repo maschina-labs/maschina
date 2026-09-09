@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-09
+
 ### Fixed
 
 - **A release was built, signed, pushed, and invisible.** The release branch was
