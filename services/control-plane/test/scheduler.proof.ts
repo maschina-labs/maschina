@@ -107,7 +107,7 @@ async function main(): Promise<void> {
 	const daemon = new Daemon({
 		controlPlaneUrl: BASE,
 		node: "node:scheduler",
-		worker: "worker:daemon",
+		workers: ["worker:daemon"],
 		leaseTtlMs: 5_000,
 		renewEveryMs: 500,
 		pollEveryMs: 200,

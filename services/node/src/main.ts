@@ -13,7 +13,9 @@ import { runObjective } from "./worker-loop.ts";
 const daemon = new Daemon({
 	controlPlaneUrl: process.env.MASCHINA_CONTROL_PLANE ?? "http://127.0.0.1:3000",
 	node: process.env.MASCHINA_NODE ?? "node:local",
-	worker: process.env.MASCHINA_WORKER ?? "worker:local",
+	// Named, not counted. Each one is a principal in the log and holds its own
+	// lease, so three names means three objectives at once.
+	workers: (process.env.MASCHINA_WORKERS ?? "worker:local").split(",").map((w) => w.trim()),
 	run: runObjective,
 	// Opt in. Holding somebody's machine awake is a thing to be asked for.
 	// MASCHINA_STAY_AWAKE=1

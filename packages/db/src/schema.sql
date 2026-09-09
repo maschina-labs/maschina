@@ -95,6 +95,22 @@ CREATE TRIGGER events_no_truncate
   BEFORE TRUNCATE ON events
   FOR EACH STATEMENT EXECUTE FUNCTION events_is_append_only();
 
+-- ── One take per objective ───────────────────────────────────────────────────
+--
+-- Several workers look for work at the same time, find the same objective, and
+-- all decide to take it. Checking whether it is taken and then taking it is two
+-- steps with a gap, and three workers went through that gap on the first run:
+-- one objective was taken three times by three different workers.
+--
+-- Enforced here rather than in the route for the same reason append-only and
+-- fencing are: a rule that lives in code is a rule that holds until somebody
+-- writes a second call site. A partial unique index makes the second take fail
+-- at the database, whoever is asking and however they got there.
+
+CREATE UNIQUE INDEX IF NOT EXISTS events_one_take_per_objective
+  ON events (objective)
+  WHERE type = 'objective.taken';
+
 -- ── Fencing: a stale lease cannot write ──────────────────────────────────────
 --
 -- 03-RUNTIME §4. A worker runs on a node under a lease carrying a monotonically

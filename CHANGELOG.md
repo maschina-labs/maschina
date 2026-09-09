@@ -21,6 +21,10 @@ Versions follow semver.
 
 ### Added
 
+- **Several objectives at once.** A machine runs as many workers as you name, each
+  with its own place in the queue and its own budget. One losing its place stops
+  that one and nothing else.
+
 - **More than one model provider, including one running on your own machine.**
   Which one answers is configuration, and the log always says which did. A local
   model can be preferred over a paid one without changing any code.
@@ -53,6 +57,15 @@ Versions follow semver.
   1.0.0 by counting.
 
 ### Fixed
+
+- **Two workers could start the same objective.** Checking whether something was
+  already taken and then taking it are two steps, and three workers went through
+  the gap between them on the first run. Only one can win now, decided by the
+  database rather than by timing.
+- **Recording a refusal failed once a worker had started working.** Anything
+  written on a worker's behalf was filed under a version of that worker that had
+  already moved on, and the log correctly refused it, which turned every refusal
+  into an error.
 
 - An evaluator could not judge anything if it thought about it first. Using a
   model to form an opinion counted as having worked on the objective, so the

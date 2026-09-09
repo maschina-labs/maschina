@@ -14,7 +14,7 @@
 import type { ObjectiveOutcome, Verdict } from "@maschina/core";
 import { outcomeFor, remaining, rollup } from "@maschina/core";
 import type { Pool } from "pg";
-import { append, read } from "./log.ts";
+import { append, epochFor, read } from "./log.ts";
 
 export const OBJECTIVE_EVALUATED = "objective.evaluated";
 
@@ -59,6 +59,7 @@ export async function recordEvaluation(
 	await append(pool, {
 		actor: evaluator,
 		objective,
+		epoch: await epochFor(pool, evaluator),
 		type: OBJECTIVE_EVALUATED,
 		payload: {
 			v: 1,

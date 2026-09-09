@@ -322,6 +322,11 @@ export async function list(pool: Pool): Promise<Objective[]> {
  * Written by whatever is scheduling, not by whatever decides. Taking is not
  * judgment: it says a node has this one, and nothing about what will happen to
  * it.
+ *
+ * Returns whether this caller got it. Losing is ordinary and not an error: two
+ * workers looking at once is normal and one of them has to lose. The database
+ * decides, through a unique index, because checking and then taking is two steps
+ * with a gap and workers went through it.
  */
 export async function takeObjective(
 	pool: Pool,
@@ -329,12 +334,28 @@ export async function takeObjective(
 	worker: string,
 	node: string,
 	epoch = 0n,
-): Promise<void> {
-	await append(pool, {
-		actor: worker,
-		objective: objectiveId,
-		type: OBJECTIVE_TAKEN,
-		epoch,
-		payload: { v: PAYLOAD_V, objective: objectiveId, worker, node },
-	});
+): Promise<boolean> {
+	try {
+		await append(pool, {
+			actor: worker,
+			objective: objectiveId,
+			type: OBJECTIVE_TAKEN,
+			epoch,
+			payload: { v: PAYLOAD_V, objective: objectiveId, worker, node },
+		});
+		return true;
+	} catch (cause: unknown) {
+		// 23505 is a unique violation: somebody else took it between this worker
+		// looking and this worker writing. That is an answer, not a fault. Three
+		// workers went through that gap on the first concurrent run and all three
+		// believed they had it.
+		if (
+			typeof cause === "object" &&
+			cause !== null &&
+			(cause as { code?: string }).code === "23505"
+		) {
+			return false;
+		}
+		throw cause;
+	}
 }
