@@ -78,3 +78,23 @@ export function withinScopeOf(resource: ResourceKind, scope: string, target: str
 			return scope === target;
 	}
 }
+
+/**
+ * Why a target was outside scope, in words a human can act on.
+ *
+ * Split by resource for the same reason the check is: a model refusal explained
+ * in the language of absolute paths reads as a wiring bug rather than as the
+ * denial it is, and a denial nobody understands is a denial nobody acts on.
+ */
+export function scopeViolationOf(
+	resource: ResourceKind,
+	scope: string,
+	target: string,
+): string {
+	switch (resource) {
+		case "filesystem":
+			return scopeViolation(scope, target);
+		case "model":
+			return `this capability is for the ${scope} model class, not ${target}`;
+	}
+}

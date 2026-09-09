@@ -13,6 +13,57 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **A model is a resource authority can be held over.** A capability can now say
+  "may invoke a fast model, up to this much", with a model class rather than a
+  vendor's product name, so a capability granted today does not name a model that
+  gets retired next year. Containment for a model class is equality and not a
+  hierarchy: holding `reasoning` does not quietly also grant `fast`, because an
+  ordering invented in code is authority nobody granted.
+- **A proof passed while the thing it tested was not happening.** The check that
+  the file contained what the model decided compared an empty file to an empty
+  answer, so it went green in an environment where no model call worked at all.
+  The slice 4 proof now runs against a scripted provider with known costs, which
+  needs no subscription and makes the budget arithmetic exact, and what the real
+  provider does is proven separately on a machine that has one.
+- **A budget that cannot fund one call is exhausted, even though it is not
+  empty.** Found by writing the proof for the exhaustion criterion and watching
+  it never exhaust: a worker with a few micro-dollars left attempted a call, the
+  provider refused it for having no budget, the refusal consumed nothing, the
+  balance was untouched, and the same call could be attempted again forever. A
+  budget failure is supposed to suspend and escalate, not spin.
+- **Budgets are three numbers that move.** Granted, reserved and settled, held in
+  the log like everything else. A reservation is taken when an effect is intended
+  and released when it settles, released by the amount reserved rather than the
+  amount spent, so a call that comes in under estimate returns the difference
+  instead of leaking it out of the budget forever. A process that dies holding a
+  reservation leaves it held, which is the safe direction and the entire reason
+  there are three numbers rather than one.
+- **The model runs on a Claude subscription, with no API key anywhere.** Model
+  calls are made by the local Claude Code CLI, in the control plane, never in a
+  worker. Two existing rules put it there before cost was considered: workers
+  never hold credentials, and the worker path must be incapable of spawning a
+  process.
+
+### Fixed
+
+- **A model call could have used tools, and nearly did.** The provider's CLI is
+  an agent, not a model endpoint, and the first version denied its tools by name.
+  Probing found the model reaching straight past that list for an MCP tool from
+  the machine's own configuration, which no list had ever heard of. Tools are now
+  absent rather than denied, and two checks after the fact catch anything that
+  survives without needing to know its name.
+- **Model calls were reading the repository.** Run from the project directory the
+  CLI loaded `CLAUDE.md` and the working tree into every call, and answered
+  questions by citing "the project instructions". Repository contents are
+  untrusted content, so that was an injection path straight into the worker's
+  decisions. Calls now run from an empty directory with the provider's own system
+  prompt replaced.
+- **Model calls cost about twenty times more than they needed to.** The overhead
+  was the agent scaffolding, not the model: 18,650 tokens to answer a ten token
+  question, against 411 once the call is contained.
+
 ## [0.4.1] - 2026-09-09
 
 ### Added
