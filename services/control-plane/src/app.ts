@@ -23,6 +23,7 @@ import type {
 	NewEvent,
 	Operation,
 	ReadOptions,
+	Verdict,
 } from "@maschina/core";
 import type { Lease } from "@maschina/db";
 import {
@@ -35,6 +36,7 @@ import {
 	listCapabilities,
 	append as logAppend,
 	read as logRead,
+	recordEvaluation,
 	releaseLease,
 	renewLease,
 	reserve,
@@ -43,6 +45,7 @@ import {
 } from "@maschina/db";
 import { Hono } from "hono";
 import type { Pool } from "pg";
+import { callEstimate } from "./config.ts";
 import type { ModelRequest, ModelResult } from "./model.ts";
 import { invokeModel, ModelCallRefused } from "./model.ts";
 import { performRepositoryEffect, RepositoryRefused, reconcile } from "./repository.ts";
@@ -66,17 +69,6 @@ function wireEvent(event: Event): Record<string, unknown> {
 		causation: event.causation === null ? null : event.causation.toString(),
 	};
 }
-
-/**
- * What one model call is assumed to cost, in micro-dollars of list value, until
- * it settles. Roughly ten times a small contained call, so an ordinary call
- * settles well under its reservation rather than over it.
- *
- * A constant, not an estimator. `01-PRINCIPLES` P12: an estimator needs a named
- * problem that exists now, and nothing yet knows enough about a prompt to guess
- * better than this.
- */
-const CALL_ESTIMATE = 20_000;
 
 /**
  * How a model call is actually made.
@@ -269,7 +261,7 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 		// Reserve the smaller of a typical call and everything that is left, so a
 		// nearly empty budget holds what it actually has rather than going
 		// negative and looking like an overspend that never happened.
-		const held = Math.min(CALL_ESTIMATE, available);
+		const held = Math.min(callEstimate(), available);
 
 		await reserve(pool, body.capabilityId, body.holder, held);
 
@@ -291,6 +283,47 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 			}
 			throw error;
 		}
+	});
+
+	// ── Judgment ──────────────────────────────────────────────────────────────
+
+	/**
+	 * Record a verdict, for a worker that holds the authority to judge.
+	 *
+	 * The authority check is the whole point of this route existing: an evaluator
+	 * is a worker like any other (`09-EVALUATION` §4), so it reaches judgment the
+	 * same way it reaches a disk, and a worker that executed the objective is
+	 * refused here exactly as it is refused everywhere else.
+	 */
+	app.post("/objectives/evaluate", async (c) => {
+		const body = (await c.req.json()) as {
+			capabilityId: string;
+			holder: string;
+			objective: string;
+			contractHash: string;
+			verdicts: Verdict[];
+		};
+
+		const authorization = await authorize(pool, {
+			capabilityId: body.capabilityId,
+			holder: body.holder,
+			operation: "evaluate",
+			target: body.objective,
+		});
+		if (!authorization.granted) return c.json(authorization, 403);
+
+		const evaluation = await recordEvaluation(
+			pool,
+			body.objective,
+			body.holder,
+			body.contractHash,
+			body.verdicts,
+		);
+		return c.json({
+			rollup: evaluation.rollup,
+			outcome: evaluation.outcome,
+			remaining: evaluation.remaining,
+		});
 	});
 
 	// ── The repository ────────────────────────────────────────────────────────

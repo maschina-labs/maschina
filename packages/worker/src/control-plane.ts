@@ -27,6 +27,7 @@ import type {
 	Event,
 	ModelClass,
 	NewEvent,
+	Verdict,
 } from "@maschina/core";
 
 /** What a worker asks for when it wants the model to decide something. */
@@ -70,6 +71,22 @@ export interface CommitResult {
 	readonly pushed: boolean;
 }
 
+/** What a worker sends when it has judged an objective. */
+export interface EvaluateRequest {
+	readonly capabilityId: string;
+	readonly holder: string;
+	readonly objective: string;
+	/** The contract this judged, so a verdict cannot be read against another one. */
+	readonly contractHash: string;
+	readonly verdicts: readonly Verdict[];
+}
+
+export interface EvaluateResult {
+	readonly rollup: string;
+	readonly outcome: string;
+	readonly remaining: readonly string[];
+}
+
 /** What the remote says about an effect nobody knows the fate of. */
 export interface Reconciliation {
 	readonly landed: boolean;
@@ -106,6 +123,16 @@ export interface ControlPlane {
 	 * resolving that in whichever direction is convenient.
 	 */
 	reconcile(repository: string, branch: string, intentId: string): Promise<Reconciliation>;
+	/**
+	 * Record a verdict.
+	 *
+	 * An evaluator is a worker like any other (`09-EVALUATION` §4), so judging
+	 * takes the same road as writing a file: authorised, recorded as an Intent,
+	 * performed, recorded as an Outcome. It was a direct database call, which
+	 * meant a verdict was written with no Intent, the evaluate capability was
+	 * never exercised, and a worker on a node could not have done it at all.
+	 */
+	evaluate(request: EvaluateRequest): Promise<EvaluateResult>;
 }
 
 /**
@@ -213,6 +240,9 @@ export function httpControlPlane(baseUrl: string, epoch: bigint = 0n): ControlPl
 		},
 		async commit(request) {
 			return (await post("/repository/effect", request, "a commit")) as CommitResult;
+		},
+		async evaluate(request) {
+			return (await post("/objectives/evaluate", request, "a verdict")) as EvaluateResult;
 		},
 		async reconcile(repository, branch, intentId) {
 			const query = new URLSearchParams({ repository, branch, intentId });

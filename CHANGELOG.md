@@ -15,6 +15,45 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **The whole system can be rebuilt from the log alone.** The database was
+  destroyed entirely, the log put back, and every capability, objective,
+  workspace and verdict came back identical, with every causal link still
+  pointing at an event that exists. That is the bet the architecture rests on,
+  now demonstrated rather than believed.
+- **Restoring the log is an operator action, and it works.** The application can
+  never write an event's id or timestamp, which is what makes the order of
+  history unforgeable, and the same rule means it cannot restore a backup either.
+  There is now a restore path for the role that can, and it keeps ids intact,
+  because renumbering would repoint every causal link while leaving the log
+  looking valid.
+- **Approval actually stops things now.** A capability that says a human must
+  approve a use is refused until one does, the request is recorded so there is
+  something to answer, and an approval covering a single use is spent once.
+- **Delegation cannot widen.** Authority passed on must be shallower than what it
+  came from, and something with nothing left to pass on cannot pass anything on.
+
+### Fixed
+
+- **A field that read like a control and was not one.** Every capability declared
+  whether a human had to approve its use, and nothing ever looked. Nine checks
+  ran on every action and that was not one of them, including on the capability
+  that stops the whole system.
+- **Judging was not going through the same path as every other action.** A
+  verdict was written straight to the database, so it had no record of being
+  intended, the authority to judge was never actually exercised, and a worker on
+  another machine could not have recorded one at all.
+- **Deciding to judge disqualified the judge.** Found while fixing the above: a
+  worker records what it decided before it is allowed to act, so the act of
+  deciding to judge counted as having worked on the thing being judged.
+- **Events were trusted to be the right shape.** The version number was checked
+  and the shape was assumed, so a malformed record became a capability that
+  refused everything without ever saying why.
+- **Changing which model answers meant changing code.** The mapping was written
+  into the source, so the abstraction that was supposed to survive a provider
+  retiring a model existed only in the type. It is configuration now.
+
+### Added
+
 - **One command stops everything.** Every capability now descends from a single
   root, and revoking it takes all authority at once. Nothing has to cooperate and
   no machine has to be reachable: authority is checked at the moment it is used

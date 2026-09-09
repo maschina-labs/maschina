@@ -27,6 +27,8 @@ import { promisify } from "node:util";
 import { serve } from "@hono/node-server";
 import {
 	appPool,
+	approveUse,
+	authorize,
 	emergencyStop,
 	ensureRoot,
 	getCapability,
@@ -224,6 +226,98 @@ async function main(): Promise<void> {
 	check(
 		"and a new grant does not resurrect the old authority",
 		(await liveCapabilities(pool)).every((c) => !caps.map((x) => x.id).includes(c.id)),
+	);
+
+	// 10. Approval, which was a field nothing ever read.
+	console.log("\n10. A capability that needs approval does not act without one");
+	const gated = await grant(pool, {
+		holder: "worker:gated",
+		resource: "filesystem",
+		operations: ["write"],
+		scope: SANDBOX,
+		effectClass: "idempotent",
+		checkpoint: "none",
+		approval: "every_use",
+		delegationDepth: 0,
+		grantedBy: "human:ash",
+	});
+
+	const unapproved = await authorize(pool, {
+		capabilityId: gated.id,
+		holder: "worker:gated",
+		operation: "write",
+		target: `${SANDBOX}/gated.txt`,
+	});
+	check("an unapproved use is denied", !unapproved.granted);
+	check(
+		"because approval is required, not for some other reason",
+		!unapproved.granted && unapproved.reason === "approval_required",
+		unapproved.granted ? "" : unapproved.reason,
+	);
+	const asked = (await read(pool)).filter((e) => e.type === "capability.approval_requested");
+	check("and the request is recorded, so there is something to answer", asked.length === 1);
+	check(
+		"naming what was being asked for",
+		String(asked[0]?.payload.target).endsWith("gated.txt"),
+		String(asked[0]?.payload.target),
+	);
+
+	await approveUse(pool, gated.id, "human:ash", "proof");
+	const approved = await authorize(pool, {
+		capabilityId: gated.id,
+		holder: "worker:gated",
+		operation: "write",
+		target: `${SANDBOX}/gated.txt`,
+	});
+	check("once a human answers, it proceeds", approved.granted);
+
+	const secondUse = await authorize(pool, {
+		capabilityId: gated.id,
+		holder: "worker:gated",
+		operation: "write",
+		target: `${SANDBOX}/gated-again.txt`,
+	});
+	check(
+		"and every_use means every use: the next one needs its own answer",
+		!secondUse.granted && secondUse.reason === "approval_required",
+		secondUse.granted ? "" : secondUse.reason,
+	);
+
+	// 11. Delegation attenuates, and the depth is now enforced.
+	console.log("\n11. Delegation cannot widen what it descends from");
+	const leaf = await grant(pool, {
+		holder: "worker:leaf",
+		resource: "filesystem",
+		operations: ["write"],
+		scope: SANDBOX,
+		effectClass: "idempotent",
+		checkpoint: "none",
+		approval: "none",
+		delegationDepth: 0,
+		grantedBy: "human:ash",
+	});
+	let cannotDelegate = "";
+	try {
+		await grant(pool, {
+			holder: "worker:deeper",
+			resource: "filesystem",
+			operations: ["write"],
+			scope: SANDBOX,
+			effectClass: "idempotent",
+			checkpoint: "none",
+			approval: "none",
+			delegationDepth: 0,
+			grantedBy: "worker:leaf",
+			parent: leaf.id,
+		});
+	} catch (error: unknown) {
+		cannotDelegate = error instanceof Error ? error.message : String(error);
+	}
+	check("a capability with no delegation left cannot be a parent", cannotDelegate.length > 0);
+	check(
+		"and it says why",
+		cannotDelegate.includes("no delegation left"),
+		cannotDelegate.slice(0, 60),
 	);
 
 	await new Promise<void>((resolve) => server.close(() => resolve()));
