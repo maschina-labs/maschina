@@ -60,20 +60,66 @@ const COLUMNS = "id, recorded_at, actor, objective, type, payload, epoch, causat
  * The caller cannot supply an id: the column is GENERATED ALWAYS AS IDENTITY,
  * so ordering is the log's to decide and cannot be forged by a caller.
  */
+/** Postgres raises this SQLSTATE from the fencing trigger, and nothing else does. */
+const FENCED = "MZFEN";
+
+interface PgError {
+	code?: string;
+	message?: string;
+}
+
+function isFencedError(cause: unknown): cause is PgError {
+	return typeof cause === "object" && cause !== null && (cause as PgError).code === FENCED;
+}
+
+/**
+ * This writer has lost its lease. `03-RUNTIME` §4.
+ *
+ * Raised when the log refuses a write for carrying an epoch below the highest
+ * seen for that actor, which means a newer lease exists and this process is a
+ * ghost. There is nothing to retry: the write will never succeed, and the work
+ * belongs to somebody else now. The only correct response is to stop.
+ */
+export class Fenced extends Error {
+	constructor(
+		readonly actor: string,
+		readonly epoch: bigint,
+		detail: string,
+	) {
+		super(
+			`${actor} is fenced: it wrote at epoch ${epoch} and a newer lease exists. ` +
+				`This process no longer owns the work and must stop. ${detail}`,
+		);
+		this.name = "Fenced";
+	}
+}
+
 export async function append(pool: Pool, event: NewEvent): Promise<Event> {
-	const result = await pool.query<EventRow>(
-		`INSERT INTO events (actor, objective, type, payload, epoch, causation)
+	let result: { rows: EventRow[] };
+	try {
+		result = await pool.query<EventRow>(
+			`INSERT INTO events (actor, objective, type, payload, epoch, causation)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING ${COLUMNS}`,
-		[
-			event.actor,
-			event.objective ?? null,
-			event.type,
-			JSON.stringify(event.payload ?? {}),
-			(event.epoch ?? 0n).toString(),
-			event.causation?.toString() ?? null,
-		],
-	);
+			[
+				event.actor,
+				event.objective ?? null,
+				event.type,
+				JSON.stringify(event.payload ?? {}),
+				(event.epoch ?? 0n).toString(),
+				event.causation?.toString() ?? null,
+			],
+		);
+	} catch (cause: unknown) {
+		// Fencing is not a database problem, it is an answer: this writer is no
+		// longer the leaseholder. It gets its own type so the worker can halt on
+		// it specifically rather than treating it as one more failed write and
+		// retrying, which is the exact behaviour fencing exists to stop.
+		if (isFencedError(cause)) {
+			throw new Fenced(event.actor, event.epoch ?? 0n, String((cause as PgError).message));
+		}
+		throw cause;
+	}
 
 	const row = result.rows[0];
 	if (!row) {

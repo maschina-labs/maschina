@@ -95,6 +95,49 @@ CREATE TRIGGER events_no_truncate
   BEFORE TRUNCATE ON events
   FOR EACH STATEMENT EXECUTE FUNCTION events_is_append_only();
 
+-- ── Fencing: a stale lease cannot write ──────────────────────────────────────
+--
+-- 03-RUNTIME §4. A worker runs on a node under a lease carrying a monotonically
+-- increasing epoch. Every write carries the writing lease's epoch, and the log
+-- rejects any write below the highest epoch seen for that actor. When a lease is
+-- reassigned the epoch increments, and the old node, if it is alive after all,
+-- finds out on its next write and stops.
+--
+-- **This is in the database on purpose.** The whole scenario is a node that has
+-- lost its lease and does not know it. A node in that state cannot be trusted to
+-- check whether it is still the leaseholder, because it believes it is. The
+-- check has to be somewhere the node cannot reason about, for the same reason
+-- append-only is enforced here rather than by asking callers not to delete.
+--
+-- Equal epochs are allowed. The current leaseholder writes at its own epoch
+-- repeatedly, and only a *lower* epoch means a fenced writer.
+
+CREATE INDEX IF NOT EXISTS events_actor_epoch_idx ON events (actor, epoch DESC);
+
+CREATE OR REPLACE FUNCTION events_fence() RETURNS TRIGGER
+LANGUAGE plpgsql AS $$
+DECLARE
+  highest BIGINT;
+BEGIN
+  SELECT max(epoch) INTO highest FROM events WHERE actor = NEW.actor;
+
+  IF highest IS NOT NULL AND NEW.epoch < highest THEN
+    RAISE EXCEPTION
+      'fenced: % wrote at epoch % but epoch % has been seen (03-RUNTIME 4)',
+      NEW.actor, NEW.epoch, highest
+      USING ERRCODE = 'MZFEN';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS events_fenced ON events;
+
+CREATE TRIGGER events_fenced
+  BEFORE INSERT ON events
+  FOR EACH ROW EXECUTE FUNCTION events_fence();
+
 -- ── Layer 1: the application role holds no destructive grant ─────────────────
 
 GRANT CONNECT ON DATABASE maschina TO maschina_app;

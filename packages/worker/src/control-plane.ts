@@ -66,6 +66,30 @@ export interface ControlPlane {
 	invokeModel(request: ModelRequest): Promise<ModelResult>;
 }
 
+/**
+ * This worker lost its lease and is a ghost. `03-RUNTIME` §4.
+ *
+ * Raised when the log refuses a write for carrying an epoch below the highest
+ * seen. There is nothing to retry: a newer lease exists, the write will never
+ * succeed, and the work belongs to another node now. The only correct response
+ * is to stop, which is why this is a distinct type and not one more failed
+ * write. Treated as ordinary failure it would land in the retry path, and
+ * retrying is precisely what fencing exists to prevent.
+ */
+export class WorkerFenced extends Error {
+	constructor(
+		readonly actor: string,
+		readonly epoch: bigint,
+		detail: string,
+	) {
+		super(
+			`${actor} is fenced at epoch ${epoch}: a newer lease exists, so this process ` +
+				`no longer owns the work and is stopping. ${detail}`,
+		);
+		this.name = "WorkerFenced";
+	}
+}
+
 /** Raised when the control plane is unreachable, so it reads that way in a log. */
 export class ControlPlaneUnreachable extends Error {
 	constructor(operation: string, cause: unknown) {
@@ -101,8 +125,15 @@ function fromWire(wire: WireEvent): Event {
 	};
 }
 
-/** The real one. Talks HTTP to the control plane. */
-export function httpControlPlane(baseUrl: string): ControlPlane {
+/**
+ * The real one. Talks HTTP to the control plane.
+ *
+ * The lease epoch is bound in here rather than passed at every call, so no call
+ * site can forget to carry it. A port is a lease generation: when a worker takes
+ * a new lease it builds a new port, and everything written through the old one
+ * is fenced by the log without anybody remembering to check.
+ */
+export function httpControlPlane(baseUrl: string, epoch: bigint = 0n): ControlPlane {
 	const post = async (path: string, body: unknown, operation: string): Promise<unknown> => {
 		let response: Response;
 		try {
@@ -126,7 +157,11 @@ export function httpControlPlane(baseUrl: string): ControlPlane {
 
 	return {
 		async append(event) {
-			return fromWire((await post("/events", event, "append")) as WireEvent);
+			// Stamped here, not at the call site. An event written without the
+			// lease epoch would slip past the fence, which is the one thing that
+			// must not be possible to do by forgetting.
+			const stamped = { ...event, epoch: event.epoch ?? epoch };
+			return fromWire((await post("/events", stamped, "append")) as WireEvent);
 		},
 		async authorize(request) {
 			return (await post("/capabilities/authorize", request, "authorize")) as Authorization;
