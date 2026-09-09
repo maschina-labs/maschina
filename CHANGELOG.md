@@ -13,6 +13,14 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A closed release blocked its own version forever.** The check for an existing
+  release pull request counted closed ones, so once a release was closed rather
+  than merged, every later attempt at that version found it, decided a pull
+  request already existed, opened nothing, and reported success. Only an open one
+  counts now.
+
 ## [0.5.0] - 2026-09-09
 
 ### Added
