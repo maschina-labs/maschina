@@ -13,6 +13,12 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **A release can be re-cut without an empty commit.** The version workflow only
+  ran on a merge, so a release that failed, or one whose setup landed after the
+  last merge, had nothing to trigger it. It can now be started by hand.
+
 ### Fixed
 
 - **Releases could not be published at all.** The provenance step fed the git
