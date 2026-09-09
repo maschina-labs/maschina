@@ -15,6 +15,38 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **The linter now fails on an unused import instead of shrugging.** Biome's
+  recommended preset reports one as a warning, so `pnpm check` printed the
+  diagnostic and still exited zero. CodeQL caught one that our own build had
+  passed. In a proof a dead import usually means a dead assertion, which is what
+  it meant this time, so `noUnusedImports` and `noUnusedVariables` are errors.
+- **The outage proof asserts the error type, not the wording.** It matched on a
+  phrase in the message, which would have passed for any error containing that
+  phrase and failed the day someone reworded it. It now requires a
+  `ControlPlaneUnreachable`.
+- **The node is separated from the control plane, over HTTP.** The event log, the
+  authority check and the secrets live in one process, and the worker lives in
+  another. The worker talks to it through a two method port and has no database
+  driver at all. CI fails the build if the worker or the desktop app so much as
+  mentions `pg` or the database package, in source or in a manifest, so the
+  boundary is checked rather than remembered. `06-NODES` open question 1 warns
+  about a system that only ever works colocated and discovers at Stage 2 that the
+  separation was never real. It cannot happen if the node has no other option.
+- **A node that cannot reach the control plane stops.** It does not proceed
+  unsupervised, it does not queue work to reconcile later, and it does not write
+  anything to disk. It says which call failed and why, and nothing is recorded,
+  because nothing could be. That is `06-NODES` open question 4 answered in the
+  shape of the code rather than in a policy document.
+- **The control plane is a real service.** A Hono app serving the log, the
+  capability list, the authority decision and revocation. Event ids and epochs are
+  bigints, and JSON has no bigint, so they travel as strings rather than losing
+  precision silently above 2^53.
+- **`pnpm dev` starts everything.** Postgres, the control plane and the desktop
+  app together, so the application can actually be run without knowing the order.
+  `pnpm gate` runs the whole gate, and `pnpm fix:electron` repairs the duplicate
+  Electron copy pnpm's store occasionally leaves behind.
+
+
 - **Capabilities, and the first real effect.** Maschina can now write a file, and
   only where it was told it may. Authority is a held object with an enumerated
   list of operations and a path it is confined to, not a permission looked up
@@ -31,23 +63,6 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   who tried, what they tried, and why it was refused. A denied action produces no
   intent at all, because it never became an attempt.
 
-### Fixed
-
-- **A worker could be tricked out of its sandbox with a symlink.** The path check
-  is pure string comparison, so a link sitting inside the allowed directory
-  passes it while pointing anywhere on disk. Writes now refuse to follow a
-  symlink at the target, and the refusal says so in the log rather than looking
-  like a disk error. Found by CodeQL, which flagged the write as an insecure
-  temporary file, and it was right.
-- **Files a worker writes are no longer world readable.** They are created owner
-  read and write only, rather than inheriting whatever the umask happened to be
-  in a shared directory.
-- **A revoked capability could be brought back to life.** Appending a grant for an
-  already-revoked capability reactivated it, and since the log is append-only that
-  made revocation a suggestion rather than a control. Revocation is now terminal;
-  re-granting means a new capability. Found by writing the test for it.
-
-### Added
 
 - **Event payloads carry a version.** The log is append-only, so an event written
   in the wrong shape is written in the wrong shape permanently. Every payload now
@@ -65,7 +80,6 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   proofs against a real Postgres, and mixing the two produces a figure that falls
   every time real code is written.
 
-### Added
 
 - **Objectives, and a contract that cannot move.** You state an objective with a
   completion contract saying what would count as done. If the contract holds it
@@ -113,6 +127,21 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   problems, a pull request template, code owners, and dependabot.
 
 ### Fixed
+
+- **A worker could be tricked out of its sandbox with a symlink.** The path check
+  is pure string comparison, so a link sitting inside the allowed directory
+  passes it while pointing anywhere on disk. Writes now refuse to follow a
+  symlink at the target, and the refusal says so in the log rather than looking
+  like a disk error. Found by CodeQL, which flagged the write as an insecure
+  temporary file, and it was right.
+- **Files a worker writes are no longer world readable.** They are created owner
+  read and write only, rather than inheriting whatever the umask happened to be
+  in a shared directory.
+- **A revoked capability could be brought back to life.** Appending a grant for an
+  already-revoked capability reactivated it, and since the log is append-only that
+  made revocation a suggestion rather than a control. Revocation is now terminal;
+  re-granting means a new capability. Found by writing the test for it.
+
 
 - **Event ids could be forged.** `GENERATED ALWAYS AS IDENTITY` is not enough on
   its own: any role holding table-level `INSERT` can override it with

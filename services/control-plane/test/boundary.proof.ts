@@ -1,5 +1,13 @@
 /**
- * Slice 2 proof. STAGE_0_PLAN, slice 2:
+ * Slice 2 and 3 proof. Two processes, a real network boundary between them.
+ *
+ * Slice 3, STAGE_0_PLAN:
+ *
+ *   "Two processes in two terminals. Slice 2's effect still works. Stop the
+ *    control plane and confirm the node makes no progress rather than
+ *    proceeding unsupervised."
+ *
+ * Slice 2, which now runs over the wire rather than against the database:
  *
  *   "A file appears on disk in the sandbox. The log shows Decision, Intent,
  *    Outcome. Attempt to write outside the scope and confirm the denial is
@@ -11,16 +19,28 @@
  * Run: pnpm proof
  */
 
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { serve } from "@hono/node-server";
 import { appPool, grant, read, revoke } from "@maschina/db";
-import { check, resetLog, verdict } from "../../db/test/harness.ts";
-import { EFFECT_INTENDED, EFFECT_OUTCOME, WORKER_DECIDED } from "../src/effect.ts";
-import { filesystemExecutor, performEffect } from "../src/index.ts";
+import {
+	ControlPlaneUnreachable,
+	EFFECT_INTENDED,
+	EFFECT_OUTCOME,
+	filesystemExecutor,
+	httpControlPlane,
+	performEffect,
+	WORKER_DECIDED,
+} from "@maschina/worker";
+import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
+import { createApp } from "../src/app.ts";
 
 const SANDBOX = "/tmp/maschina-slice2-sandbox";
 const OUTSIDE = "/tmp/maschina-slice2-escaped.txt";
+const PORT = 8799;
+const BASE = `http://127.0.0.1:${PORT}`;
 
 async function main(): Promise<void> {
 	await resetLog();
@@ -29,7 +49,13 @@ async function main(): Promise<void> {
 	mkdirSync(SANDBOX, { recursive: true });
 
 	const pool = appPool();
-	console.log("\nSlice 2: capability and the first real effect\n");
+
+	// The control plane, as a real server on a real port. The worker below
+	// reaches it the same way a node on another machine would.
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT, hostname: "127.0.0.1" });
+	const node = httpControlPlane(BASE);
+
+	console.log("\nSlice 2 and 3: bounded authority across a real network boundary\n");
 
 	// 1. A capability is granted, and it is a held object with every field set.
 	console.log("1. Authority is a held object, not a permission lookup");
@@ -55,7 +81,7 @@ async function main(): Promise<void> {
 	const target = `${SANDBOX}/hello.txt`;
 	const content = "Maschina wrote this under bounded authority.\n";
 	const done = await performEffect(
-		pool,
+		node,
 		{ worker: "worker:w1", objective: null, reasoning: "slice 2 hardcoded effect" },
 		{ capabilityId: cap.id, operation: "write", target, payload: { content } },
 		"idempotent",
@@ -86,7 +112,7 @@ async function main(): Promise<void> {
 	// 4. Scope. The one that matters.
 	console.log("\n4. Outside the scope is refused, and nothing reaches disk");
 	const escapeAttempt = await performEffect(
-		pool,
+		node,
 		{ worker: "worker:w1", objective: null, reasoning: "try to escape the sandbox" },
 		{
 			capabilityId: cap.id,
@@ -121,7 +147,7 @@ async function main(): Promise<void> {
 	// 6. An operation that was never granted.
 	console.log("\n6. An operation outside the grant is refused");
 	const del = await performEffect(
-		pool,
+		node,
 		{ worker: "worker:w1", objective: null, reasoning: "try to delete" },
 		{ capabilityId: cap.id, operation: "delete", target, payload: {} },
 		"idempotent",
@@ -139,7 +165,7 @@ async function main(): Promise<void> {
 	const lure = `${SANDBOX}/lure.txt`;
 	symlinkSync(OUTSIDE, lure);
 	const viaSymlink = await performEffect(
-		pool,
+		node,
 		{ worker: "worker:w1", objective: null, reasoning: "write through a symlink" },
 		{
 			capabilityId: cap.id,
@@ -171,7 +197,7 @@ async function main(): Promise<void> {
 	console.log("\n7. Revocation works immediately");
 	await revoke(pool, cap.id, "human:ash", "proof: emergency stop rehearsal");
 	const afterRevoke = await performEffect(
-		pool,
+		node,
 		{ worker: "worker:w1", objective: null, reasoning: "write after revocation" },
 		{
 			capabilityId: cap.id,
@@ -186,12 +212,9 @@ async function main(): Promise<void> {
 	check("because it was revoked", !afterRevoke.performed && afterRevoke.reason === "revoked");
 	check("and nothing was written", !existsSync(`${SANDBOX}/after.txt`));
 
-	await pool.end();
-
-	// 8. The crash window. A real kill -9 between Intent and Outcome.
-	console.log("\n8. Killed between Intent and Outcome");
-	const live = appPool();
-	const cap2 = await grant(live, {
+	// 8. The crash window, now with a process boundary between the two halves.
+	console.log("\n8. Killed between Intent and Outcome, across the boundary");
+	const cap2 = await grant(pool, {
 		holder: "worker:doomed",
 		resource: "filesystem",
 		operations: ["write"],
@@ -201,20 +224,30 @@ async function main(): Promise<void> {
 		delegationDepth: 0,
 		grantedBy: "human:ash",
 	});
-	const before = (await read(live)).length;
+	const before = (await read(pool)).length;
 
+	// Async, deliberately. The control plane is serving on this process's event
+	// loop, so a blocking spawn would stop it answering the very requests the
+	// child is making, and the child would hang waiting for a server that cannot
+	// reply until the child exits. That deadlock is the whole reason a node and
+	// a control plane are separate processes in the first place.
 	const child = fileURLToPath(new URL("./crash-child.ts", import.meta.url));
 	let died = false;
 	try {
-		execFileSync("node", ["--import", "tsx", child, cap2.id, `${SANDBOX}/doomed.txt`], {
-			stdio: "ignore",
-		});
+		await promisify(execFile)("node", [
+			"--import",
+			"tsx",
+			child,
+			BASE,
+			cap2.id,
+			`${SANDBOX}/doomed.txt`,
+		]);
 	} catch {
 		died = true;
 	}
-	check("the child process was killed", died);
+	check("the node process was killed", died);
 
-	const post = await read(live);
+	const post = await read(pool);
 	const doomedIntents = post.filter(
 		(e) => e.type === EFFECT_INTENDED && e.actor === "worker:doomed",
 	);
@@ -229,9 +262,63 @@ async function main(): Promise<void> {
 		"the Intent records the effect class, so recovery can classify it",
 		doomedIntents[0]?.payload.effectClass === "idempotent",
 	);
+	check(
+		"the record survived the process that wrote it",
+		doomedIntents[0]?.actor === "worker:doomed",
+	);
 
-	await live.end();
-	verdict("Slice 2 proof");
+	// 9. The boundary is real, and the node depends on it.
+	console.log("\n9. With the control plane stopped, the node makes no progress");
+	const logBeforeOutage = (await read(pool)).length;
+	await new Promise<void>((resolve) => server.close(() => resolve()));
+
+	let refusedToProceed = false;
+	let unreachable = false;
+	let reason = "";
+	try {
+		await performEffect(
+			node,
+			{
+				worker: "worker:w1",
+				objective: null,
+				reasoning: "work while the control plane is down",
+			},
+			{
+				capabilityId: cap2.id,
+				operation: "write",
+				target: `${SANDBOX}/unsupervised.txt`,
+				payload: { content: "written without supervision" },
+			},
+			"idempotent",
+			filesystemExecutor,
+		);
+	} catch (error: unknown) {
+		refusedToProceed = true;
+		// The type, not the wording. Matching on the message would pass for any
+		// error that happened to contain the phrase, and fail the day someone
+		// rewords it, which is the wrong sensitivity in both directions.
+		unreachable = error instanceof ControlPlaneUnreachable;
+		reason = error instanceof Error ? error.message : String(error);
+	}
+
+	check("the worker stopped rather than proceeding", refusedToProceed);
+	check(
+		"and said why, rather than failing obscurely",
+		unreachable && reason.includes("control plane could not be reached"),
+		reason,
+	);
+	check(
+		"nothing was written unsupervised",
+		!existsSync(`${SANDBOX}/unsupervised.txt`),
+		"06-NODES open question 4: the honest default is no",
+	);
+	check(
+		"and nothing was recorded, because nothing could be",
+		(await read(pool)).length === logBeforeOutage,
+	);
+
+	await pool.end();
+	verdict("Slice 2 and 3 proof");
 }
 
 main().catch((error: unknown) => {

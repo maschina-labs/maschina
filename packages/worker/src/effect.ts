@@ -18,8 +18,20 @@
  */
 
 import type { AuthorizationRequest, EffectClass } from "@maschina/core";
-import { append, authorize, PAYLOAD_V } from "@maschina/db";
-import type { Pool } from "pg";
+import type { ControlPlane } from "./control-plane.ts";
+
+/**
+ * Payload schema version. ADR-006.
+ *
+ * Duplicated from `@maschina/db` rather than imported, because importing it
+ * would give the worker a database dependency for the sake of one integer, and
+ * the node boundary is not worth trading for that. The CI boundary check would
+ * reject it anyway.
+ *
+ * If these ever drift, the control plane is the one that decides: it writes the
+ * events.
+ */
+const PAYLOAD_V = 1;
 
 export const WORKER_DECIDED = "worker.decided";
 export const EFFECT_INTENDED = "effect.intended";
@@ -69,7 +81,7 @@ export type EffectReport =
  * time this returns: `authorize` writes it.
  */
 export async function performEffect(
-	pool: Pool,
+	controlPlane: ControlPlane,
 	decision: Decision,
 	effect: ProposedEffect,
 	effectClass: EffectClass,
@@ -78,7 +90,7 @@ export async function performEffect(
 	// The worker chose to attempt something. Recorded before we know whether it
 	// is allowed, because what a worker tried to do is a fact worth keeping even
 	// when the answer is no.
-	const decided = await append(pool, {
+	const decided = await controlPlane.append({
 		actor: decision.worker,
 		type: WORKER_DECIDED,
 		objective: decision.objective,
@@ -92,7 +104,7 @@ export async function performEffect(
 	});
 
 	// Step 4. A denial is recorded inside authorize and stops everything here.
-	const authorization = await authorize(pool, {
+	const authorization = await controlPlane.authorize({
 		capabilityId: effect.capabilityId,
 		holder: decision.worker,
 		operation: effect.operation,
@@ -105,7 +117,7 @@ export async function performEffect(
 
 	// Step 5. The write-ahead point. After this line the world may change, and
 	// the log already says what was about to happen.
-	const intent = await append(pool, {
+	const intent = await controlPlane.append({
 		actor: decision.worker,
 		type: EFFECT_INTENDED,
 		objective: decision.objective,
@@ -135,7 +147,7 @@ export async function performEffect(
 		detail = { error: error instanceof Error ? error.message : String(error) };
 	}
 
-	await append(pool, {
+	await controlPlane.append({
 		actor: decision.worker,
 		type: EFFECT_OUTCOME,
 		objective: decision.objective,
