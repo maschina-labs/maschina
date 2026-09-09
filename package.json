@@ -21,6 +21,7 @@
 		"test": "vitest run",
 		"proof": "turbo proof --concurrency=1",
 		"proof:live": "pnpm --filter @maschina/control-plane proof:live",
+		"stop:test": "pnpm --filter @maschina/control-plane stop:test",
 		"gate": "pnpm check && pnpm typecheck && pnpm test:coverage && node .github/ci/check-node-boundary.mjs && pnpm proof",
 		"lint": "biome lint .",
 		"format": "biome format . --write",

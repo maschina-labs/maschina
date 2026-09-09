@@ -5,10 +5,12 @@ export {
 	CAPABILITY_RESERVED,
 	CAPABILITY_REVOKED,
 	CAPABILITY_SETTLED,
+	ensureRoot,
 	foldCapability,
 	get as getCapability,
 	grant,
 	list as listCapabilities,
+	ROOT_HOLDER,
 	reserve,
 	revoke,
 	settle,
@@ -38,6 +40,13 @@ export {
 	OBJECTIVE_STATED,
 	stateObjective,
 } from "./objective.ts";
+export {
+	EMERGENCY_STOP_LIFTED,
+	emergencyStop,
+	foldCapabilityFromLog,
+	liftEmergencyStop,
+	liveCapabilities,
+} from "./root.ts";
 export { applySchema, readSchema } from "./schema.ts";
 export type { Workspace } from "./workspace.ts";
 export {

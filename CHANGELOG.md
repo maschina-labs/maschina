@@ -13,6 +13,33 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **One command stops everything.** Every capability now descends from a single
+  root, and revoking it takes all authority at once. Nothing has to cooperate and
+  no machine has to be reachable: authority is checked at the moment it is used
+  and never cached, so a worker on a machine nobody can contact simply finds its
+  next action refused. Proven with a worker running in another process that was
+  never signalled and never told, which stopped anyway.
+- **The stop stays stopped.** Nothing can be granted while the system is halted,
+  and starting again is a deliberate act that records who did it and why. Nothing
+  that was revoked comes back with it.
+- **`pnpm stop:test` runs the emergency stop proof on its own.** It is meant to
+  be re-run at every stage boundary, forever. An untested stop is a belief rather
+  than a control.
+
+### Fixed
+
+- **The emergency stop would not have stopped anything.** Two comments in the
+  code said every capability descended from a root and that revoking it removed
+  all authority. Neither was true: every capability was its own root, so the stop
+  would have revoked one of them and left every other worker running. The comment
+  describing an intention as though it were a fact is the worse half of that.
+- **Anything granted after a stop silently restarted the system.** The first
+  grant after a halt created a fresh root and authority resumed, with nobody
+  deciding to lift anything and the log still saying the system was stopped.
+  Found by proving the stop rather than by reading it.
+
 ## [0.7.0] - 2026-09-09
 
 ### Added
