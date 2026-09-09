@@ -15,6 +15,15 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **The linter now fails on an unused import instead of shrugging.** Biome's
+  recommended preset reports one as a warning, so `pnpm check` printed the
+  diagnostic and still exited zero. CodeQL caught one that our own build had
+  passed. In a proof a dead import usually means a dead assertion, which is what
+  it meant this time, so `noUnusedImports` and `noUnusedVariables` are errors.
+- **The outage proof asserts the error type, not the wording.** It matched on a
+  phrase in the message, which would have passed for any error containing that
+  phrase and failed the day someone reworded it. It now requires a
+  `ControlPlaneUnreachable`.
 - **The node is separated from the control plane, over HTTP.** The event log, the
   authority check and the secrets live in one process, and the worker lives in
   another. The worker talks to it through a two method port and has no database

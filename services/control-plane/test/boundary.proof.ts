@@ -273,6 +273,7 @@ async function main(): Promise<void> {
 	await new Promise<void>((resolve) => server.close(() => resolve()));
 
 	let refusedToProceed = false;
+	let unreachable = false;
 	let reason = "";
 	try {
 		await performEffect(
@@ -293,13 +294,17 @@ async function main(): Promise<void> {
 		);
 	} catch (error: unknown) {
 		refusedToProceed = true;
+		// The type, not the wording. Matching on the message would pass for any
+		// error that happened to contain the phrase, and fail the day someone
+		// rewords it, which is the wrong sensitivity in both directions.
+		unreachable = error instanceof ControlPlaneUnreachable;
 		reason = error instanceof Error ? error.message : String(error);
 	}
 
 	check("the worker stopped rather than proceeding", refusedToProceed);
 	check(
 		"and said why, rather than failing obscurely",
-		reason.includes("control plane could not be reached"),
+		unreachable && reason.includes("control plane could not be reached"),
 		reason,
 	);
 	check(
