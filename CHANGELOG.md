@@ -45,6 +45,16 @@ tell what changed.
   its own: any role holding table-level `INSERT` can override it with
   `OVERRIDING SYSTEM VALUE`. Granting `INSERT` per column, with `id` and
   `recorded_at` left out, is what actually closes it.
+- **CI was red on the first commit.** Three separate causes: a lint error hidden
+  among warnings, two em dashes that the repo's own check correctly rejected, and
+  pinned action versions that were two majors out of date. The em dash check also
+  failed on itself, since the pattern it searches for was written literally in the
+  file doing the searching.
+- **Dependency bumps no longer fight the changelog rule.** Bots are exempt from
+  the changelog check, because "typescript 5.9.3 to 5.9.4" is not something a
+  changelog reader cares about, and requiring an entry would train us to skip the
+  check. Dependabot is also grouped weekly instead of opening one pull request per
+  package, and majors on the pinned toolchain are held back for review.
 - **The desktop preload bridge silently did not load.** A sandboxed preload has
   to be CommonJS, and the build was emitting an ES module. The window rendered
   perfectly and every call across the bridge would have quietly returned nothing.

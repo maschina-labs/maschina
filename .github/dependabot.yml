@@ -4,13 +4,42 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+      day: monday
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: chore
+      include: scope
     groups:
-      # One PR for the routine bumps. Separate PRs for everything that is not.
-      minor-and-patch:
+      # One PR a week for the routine bumps, rather than one per package. The
+      # first push produced six separate PRs in ninety seconds, which is noise
+      # for a repository with one person in it.
+      routine:
         update-types: [minor, patch]
+
+    ignore:
+      # Vite 8 is deliberately not taken. electron-vite@5 supports Vite 5 to 7
+      # only, and @vitejs/plugin-react@6 requires Vite 8, so the two cannot
+      # coexist. Recorded in internal/DECISIONS.md. Revisit when electron-vite
+      # supports Vite 8; until then this bump breaks the desktop build.
+      - dependency-name: vite
+        update-types: [version-update:semver-major]
+
+      # Major bumps on the toolchain get read, not merged on a Monday. These
+      # change behaviour in ways a green CI run does not catch.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: electron
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]

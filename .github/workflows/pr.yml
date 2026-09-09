@@ -8,6 +8,13 @@ permissions:
   contents: read
   pull-requests: read
 
+concurrency:
+  # Dependabot edits a PR several times in a row while it opens. Without this,
+  # every edit starts another full set of runs and the first push produced four
+  # duplicate runs of this workflow for a single PR.
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   title:
     name: Title is a conventional commit
@@ -25,7 +32,9 @@ jobs:
             echo "  expected: feat(db): add causation index to the event log"
             exit 1
           fi
-          if printf '%s' "$TITLE" | grep -q '—'; then
+          # Built from its code point so this file does not contain the
+          # character it is looking for and fail the repo's own check.
+          if printf '%s' "$TITLE" | grep -q "$(printf '\u2014')"; then
             echo "No em dashes. Use a colon, a comma, or two sentences."
             exit 1
           fi
@@ -34,25 +43,38 @@ jobs:
     name: Changelog was updated
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Check
         env:
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
         run: |
-          # Every change gets a changelog entry. If a PR genuinely does not
-          # belong in a changelog, label it 'no-changelog' and say why in the
-          # body. The label makes skipping deliberate and visible.
+          # Dependency bumps are not changelog material. The changelog says what
+          # changed for someone using Maschina, and "typescript 5.9.3 to 5.9.4"
+          # is not that. Requiring an entry here would train us to skip the
+          # check, which is worse than not having it.
+          case "$ACTOR" in
+            dependabot[bot]|renovate[bot]|github-actions[bot])
+              echo "Skipped: $ACTOR is a bot."
+              exit 0
+              ;;
+          esac
+
+          # A change that genuinely does not belong in a changelog gets the
+          # 'no-changelog' label, so skipping is deliberate and visible.
           if printf '%s' "$LABELS" | grep -q 'no-changelog'; then
             echo "Skipped: labelled no-changelog."
             exit 0
           fi
+
           if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -qx 'CHANGELOG.md'; then
             echo "CHANGELOG.md was updated."
             exit 0
           fi
+
           echo "CHANGELOG.md was not updated."
           echo "Add an entry under [Unreleased], or label the PR 'no-changelog'."
           exit 1

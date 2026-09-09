@@ -165,7 +165,7 @@ async function main(): Promise<void> {
 		const error = await expectRejected("maschina", "maschina", sql);
 		check(
 			label,
-			error !== null && error.includes("append-only"),
+			Boolean(error?.includes("append-only")),
 			error === null ? "statement succeeded" : error,
 		);
 	}
