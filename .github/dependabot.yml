@@ -17,20 +17,17 @@ updates:
         update-types: [minor, patch]
 
     ignore:
-      # Vite 8 is deliberately not taken. electron-vite@5 supports Vite 5 to 7
-      # only, and @vitejs/plugin-react@6 requires Vite 8, so the two cannot
-      # coexist. Recorded in internal/DECISIONS.md. Revisit when electron-vite
-      # supports Vite 8; until then this bump breaks the desktop build.
-      - dependency-name: vite
-        update-types: [version-update:semver-major]
-
-      # Major bumps on the toolchain get read, not merged on a Monday. These
-      # change behaviour in ways a green CI run does not catch.
-      - dependency-name: typescript
-        update-types: [version-update:semver-major]
-      - dependency-name: electron
-        update-types: [version-update:semver-major]
-      - dependency-name: "@types/node"
+      # No automatic major bumps, for anything.
+      #
+      # An earlier version of this listed packages individually: vite, because
+      # electron-vite@5 supports Vite 5 to 7 only. It missed
+      # @vitejs/plugin-react, whose version 6 requires Vite 8 and would have
+      # broken the desktop build through the back door. An allowlist of things
+      # that can hurt you will always be missing the next one.
+      #
+      # Majors get read and taken deliberately. Minor and patch still arrive
+      # grouped, weekly, and are safe to merge on green.
+      - dependency-name: "*"
         update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions

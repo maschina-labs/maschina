@@ -62,7 +62,7 @@ async function expectRejected(
  * is only acceptable when it demonstrably cannot reach a real one.
  */
 async function resetLog(): Promise<void> {
-	const url = process.env["MASCHINA_ADMIN_URL"] ?? "postgres://localhost";
+	const url = process.env.MASCHINA_ADMIN_URL ?? "postgres://localhost";
 	const host = new URL(url).hostname;
 	if (host !== "localhost" && host !== "127.0.0.1") {
 		throw new Error(

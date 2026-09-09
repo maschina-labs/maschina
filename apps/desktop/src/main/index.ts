@@ -71,7 +71,7 @@ function createWindow(): void {
 		return { action: "deny" };
 	});
 
-	const devServer = process.env["ELECTRON_RENDERER_URL"];
+	const devServer = process.env.ELECTRON_RENDERER_URL;
 	if (isDev && devServer !== undefined) {
 		void window.loadURL(devServer);
 	} else {
