@@ -182,12 +182,27 @@ async function main(): Promise<void> {
 		premature.status === "active",
 	);
 
-	// Then it does the work, which is what disqualifies it.
-	await performEffect(
+	// Then it does the work, which is what disqualifies it. It needs its own
+	// capability to do so: an attempt that was refused changed nothing, and a
+	// worker that changed nothing has not worked on the objective. An earlier
+	// version of this used somebody else's capability, so the write was denied
+	// and this section passed for the wrong reason.
+	const latecomerCap = await grant(pool, {
+		holder: "worker:latecomer",
+		resource: "filesystem",
+		operations: ["write"],
+		scope: SANDBOX,
+		effectClass: "idempotent",
+		checkpoint: "none",
+		approval: "none",
+		delegationDepth: 0,
+		grantedBy: "human:ash",
+	});
+	const helped = await performEffect(
 		node,
 		{ worker: "worker:latecomer", objective: second.id, reasoning: "helping out" },
 		{
-			capabilityId: cap.id,
+			capabilityId: latecomerCap.id,
 			operation: "write",
 			target: `${SANDBOX}/out.txt`,
 			payload: { content: "y" },
@@ -195,6 +210,7 @@ async function main(): Promise<void> {
 		"idempotent",
 		async () => ({ wrote: true }),
 	);
+	check("it really did change something", helped.performed && helped.result === "succeeded");
 
 	const useDenied = await authorize(pool, {
 		capabilityId: premature.id,

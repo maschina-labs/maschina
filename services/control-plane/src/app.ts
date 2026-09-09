@@ -49,6 +49,7 @@ import {
 import { Hono } from "hono";
 import type { Pool } from "pg";
 import { callEstimate } from "./config.ts";
+import { fileOnRemote, recentSubjects } from "./history.ts";
 import type { ModelRequest, ModelResult } from "./model.ts";
 import { invokeModel, ModelCallRefused } from "./model.ts";
 import { performRepositoryEffect, RepositoryRefused, reconcile } from "./repository.ts";
@@ -408,6 +409,37 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 			}
 			throw error;
 		}
+	});
+
+	/**
+	 * Read a repository, for context assembly.
+	 *
+	 * Authorised like anything else, and read only: the operation asked for is
+	 * `commit`, because holding a repository capability at all is what grants
+	 * sight of it, and there is no write path from here.
+	 */
+	app.get("/repository/history", async (c) => {
+		const { capabilityId, holder, repository, count } = c.req.query();
+		if (!capabilityId || !holder || !repository) {
+			return c.json({ error: "capabilityId, holder and repository are all required" }, 400);
+		}
+		const authorization = await authorize(pool, {
+			capabilityId,
+			holder,
+			operation: "commit",
+			target: repository,
+		});
+		if (!authorization.granted) return c.json(authorization, 403);
+
+		return c.json({ subjects: await recentSubjects(repository, Number(count ?? "20")) });
+	});
+
+	app.get("/repository/file", async (c) => {
+		const { repository, branch, path } = c.req.query();
+		if (!repository || !branch || !path) {
+			return c.json({ error: "repository, branch and path are all required" }, 400);
+		}
+		return c.json({ content: await fileOnRemote(repository, branch, path) });
 	});
 
 	/**
