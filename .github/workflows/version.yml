@@ -5,10 +5,12 @@ name: Version
 # title the subject, so the number follows from a rule that is already enforced
 # rather than from someone remembering to run a command.
 #
-# feat is a minor, fix and perf and refactor and revert and dependency bumps are
-# a patch, and anything that cannot change behaviour (docs, ci, test, chore) is
-# no release at all. A version that moves without behaviour changing makes the
-# number mean less.
+# The release lands as a pull request rather than a push to main. Pushing
+# straight to main would need the bot to bypass the branch ruleset, and GitHub
+# refuses to make its own Actions app a bypass actor on a repository ruleset
+# anyway. The pull request is the better answer regardless: the release goes
+# through the same checks as everything else, and nothing gets a way around
+# them.
 
 on:
   push:
@@ -16,22 +18,56 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: version
   cancel-in-progress: false
 
 jobs:
-  version:
-    name: Cut the version this merge earned
+  tag:
+    name: Tag a merged release
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Without this the release commit would trigger this workflow again.
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    timeout-minutes: 5
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+
+      - name: Tag it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p 'require("./package.json").version')"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION already exists."
+            exit 0
+          fi
+          # Tags are not covered by the branch ruleset, so this needs no bypass.
+          # The tag triggers release.yml, which publishes from the changelog.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"
+
+  propose:
+    name: Open the release this merge earned
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    env:
+      # The secrets context cannot be read from a step-level `if`, so the answer
+      # is worked out once here where it can be.
+      HAS_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          # Pushing with GITHUB_TOKEN does not start any workflow, so the
+          # release pull request would sit forever with its required checks
+          # never running. A token that belongs to a person does start them.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
@@ -41,21 +77,31 @@ jobs:
         id: next
         run: node .github/ci/next-version.mjs
 
-      - name: Roll the changelog and bump the version
-        if: steps.next.outputs.version != ''
-        run: node .github/ci/prepare-release.mjs "${{ steps.next.outputs.version }}"
+      - name: Say what is missing
+        if: steps.next.outputs.version != '' && env.HAS_TOKEN != 'true'
+        run: |
+          echo "::warning::${{ steps.next.outputs.version }} is ready, but RELEASE_TOKEN is not set, so the release pull request cannot run its checks. See internal/operations/RELEASING.md."
 
-      - name: Commit and tag
-        if: steps.next.outputs.version != ''
+      - name: Open the release pull request
+        if: steps.next.outputs.version != '' && env.HAS_TOKEN == 'true'
         env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ steps.next.outputs.version }}
         run: |
-          # The identity is the workflow, not a person. Nobody wrote this commit
-          # and pretending otherwise would put a name on a machine's work.
+          node .github/ci/prepare-release.mjs "$VERSION"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "release/v$VERSION"
           git add CHANGELOG.md package.json
           git commit -m "chore(release): $VERSION"
-          git tag -a "v$VERSION" -m "v$VERSION"
-          git push origin main
-          git push origin "v$VERSION"
+          git push --force origin "release/v$VERSION"
+
+          # Reopening an existing one rather than stacking duplicates. The
+          # branch name carries the version, so a new version is a new branch.
+          if ! gh pr view "release/v$VERSION" >/dev/null 2>&1; then
+            gh pr create \
+              --base main \
+              --head "release/v$VERSION" \
+              --title "chore(release): $VERSION" \
+              --body "$(printf 'Cut by .github/workflows/version.yml from the commits since the last tag.\n\nMerging this tags v%s, which publishes the release from the changelog section it just wrote.' "$VERSION")"
+          fi
