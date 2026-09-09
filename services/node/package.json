@@ -1,0 +1,25 @@
+{
+	"name": "@maschina/node",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"type": "module",
+	"description": "The node agent. Holds a lease, looks for work, and stays running. 06-NODES \u00a72.",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+		"start": "tsx --env-file-if-exists=../../.env src/main.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
+		"test": "vitest run --passWithNoTests"
+	},
+	"dependencies": {
+		"@maschina/core": "workspace:*",
+		"@maschina/worker": "workspace:*"
+	},
+	"devDependencies": {
+		"tsx": "^4.19.2"
+	}
+}

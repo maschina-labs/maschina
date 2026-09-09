@@ -32,8 +32,10 @@ import {
 	Fenced,
 	getCapability,
 	getLease,
+	getObjective,
 	grant,
 	listCapabilities,
+	listObjectives,
 	append as logAppend,
 	read as logRead,
 	recordEvaluation,
@@ -42,6 +44,7 @@ import {
 	reserve,
 	revoke,
 	settle,
+	takeObjective,
 } from "@maschina/db";
 import { Hono } from "hono";
 import type { Pool } from "pg";
@@ -283,6 +286,47 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 			}
 			throw error;
 		}
+	});
+
+	/**
+	 * Objectives, so a daemon can find work rather than being handed it.
+	 *
+	 * `?state=admitted` is the query a node actually makes: everything stated,
+	 * admitted, and not yet finished or being worked on by somebody else.
+	 */
+	app.get("/objectives", async (c) => {
+		const { state } = c.req.query();
+		const objectives = await listObjectives(pool);
+		return c.json(
+			state === undefined ? objectives : objectives.filter((o) => o.state === state),
+		);
+	});
+
+	/**
+	 * Claim an objective. Scheduling, not judgment.
+	 *
+	 * Moves it from admitted to active, so the next node to look for work does
+	 * not find it and start again. Refused if somebody already has it, which is
+	 * the answer rather than an error: two nodes asking at once is normal and one
+	 * of them has to lose.
+	 */
+	app.post("/objectives/:id/take", async (c) => {
+		const body = (await c.req.json()) as { worker: string; node: string; epoch?: string };
+		const id = c.req.param("id");
+		const objective = await getObjective(pool, id);
+
+		if (objective === null) return c.json({ error: "not found" }, 404);
+		if (objective.state !== "admitted") {
+			return c.json({ taken: false, state: objective.state }, 409);
+		}
+
+		await takeObjective(pool, id, body.worker, body.node, BigInt(body.epoch ?? "0"));
+		return c.json({ taken: true });
+	});
+
+	app.get("/objectives/:id", async (c) => {
+		const objective = await getObjective(pool, c.req.param("id"));
+		return objective ? c.json(objective) : c.json({ error: "not found" }, 404);
 	});
 
 	// ── Judgment ──────────────────────────────────────────────────────────────

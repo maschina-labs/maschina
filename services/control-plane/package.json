@@ -4,7 +4,7 @@
 	"private": true,
 	"license": "UNLICENSED",
 	"type": "module",
-	"description": "The control plane. Owns the log, the capability check, and the secrets. 06-NODES §3.",
+	"description": "The control plane. Owns the log, the capability check, and the secrets. 06-NODES \u00a73.",
 	"exports": {
 		".": "./src/index.ts"
 	},
@@ -14,7 +14,7 @@
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
 		"test": "vitest run --passWithNoTests",
-		"proof": "tsx --env-file-if-exists=../../.env test/boundary.proof.ts && tsx --env-file-if-exists=../../.env test/model.proof.ts && tsx --env-file-if-exists=../../.env test/lease.proof.ts && tsx --env-file-if-exists=../../.env test/evaluation.proof.ts && tsx --env-file-if-exists=../../.env test/stop.proof.ts && tsx --env-file-if-exists=../../.env test/rebuild.proof.ts && tsx --env-file-if-exists=../../.env test/query.proof.ts",
+		"proof": "tsx --env-file-if-exists=../../.env test/boundary.proof.ts && tsx --env-file-if-exists=../../.env test/model.proof.ts && tsx --env-file-if-exists=../../.env test/lease.proof.ts && tsx --env-file-if-exists=../../.env test/evaluation.proof.ts && tsx --env-file-if-exists=../../.env test/stop.proof.ts && tsx --env-file-if-exists=../../.env test/rebuild.proof.ts && tsx --env-file-if-exists=../../.env test/query.proof.ts && tsx --env-file-if-exists=../../.env test/daemon.proof.ts",
 		"first-objective": "tsx --env-file-if-exists=../../.env test/first-objective.ts",
 		"stop:test": "tsx --env-file-if-exists=../../.env test/stop.proof.ts",
 		"proof:live": "tsx --env-file-if-exists=../../.env test/model-live.proof.ts && tsx --env-file-if-exists=../../.env test/repository.proof.ts"
@@ -29,6 +29,7 @@
 	"devDependencies": {
 		"@types/pg": "^8.11.10",
 		"tsx": "^4.19.2",
-		"@maschina/worker": "workspace:*"
+		"@maschina/worker": "workspace:*",
+		"@maschina/node": "workspace:*"
 	}
 }

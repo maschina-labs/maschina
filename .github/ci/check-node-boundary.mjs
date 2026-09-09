@@ -23,6 +23,11 @@ const BOUNDARIES = [
 		why: "the worker runs on a node and reaches the control plane over HTTP. A node with a database connection is not a node, it is the control plane wearing a hat",
 	},
 	{
+		package: "services/node",
+		forbidden: [/@maschina\/db/, /\bfrom\s+["']pg["']/, /require\(["']pg["']\)/],
+		why: "the node agent is the thing the boundary exists to bound. It is a daemon on somebody's machine, and the whole design depends on it having no way to reach the log except by asking",
+	},
+	{
 		package: "apps/desktop",
 		forbidden: [/@maschina\/db/, /\bfrom\s+["']pg["']/],
 		why: "the desktop app reads the control plane's API. A renderer with database credentials is ambient authority",
@@ -84,4 +89,6 @@ if (problems.length > 0) {
 	process.exit(1);
 }
 
-console.log("Node boundary intact: the worker and the desktop app cannot reach the database.");
+console.log(
+	`Node boundary intact: ${BOUNDARIES.map((b) => b.package).join(", ")} cannot reach the database.`,
+);
