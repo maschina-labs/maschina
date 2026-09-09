@@ -304,6 +304,45 @@ async function main(): Promise<void> {
 		String(losses[0]?.payload.reason),
 	);
 
+	// 7. The mechanical half of A1: judge against what the executor cannot fake.
+	console.log("\n7. Evaluation checks the world, not the executor's report");
+	const claimed = (await read(pool, { objective: "obj_slice6" }))
+		.filter((e) => e.type === "effect.outcome" && e.payload.operation === "commit")
+		.map((e) => ((e.payload.detail ?? {}) as Record<string, unknown>).commit)
+		.filter((c): c is string => typeof c === "string");
+	check("the executor reported at least one commit", claimed.length > 0, `${claimed.length}`);
+
+	// The verdict comes from the remote, not from the line above. `ADR-004` and
+	// `09-EVALUATION` §4: if the node reporting "it worked" is the node under
+	// suspicion, its report is the weakest evidence available, not the strongest.
+	const fromTheWorld = await reconcile(REPO, RUN, cleanTag);
+	check(
+		"and the remote confirms it independently",
+		fromTheWorld !== null,
+		String(fromTheWorld).slice(0, 7),
+	);
+	check(
+		"the two agree, which is what makes the criterion mechanical",
+		fromTheWorld !== null && claimed.includes(fromTheWorld),
+	);
+
+	// The case that matters: a claim with nothing behind it.
+	const fabricated = await reconcile(REPO, RUN, "an-intent-nobody-ever-ran");
+	check(
+		"a claim the world does not support returns nothing, rather than being believed",
+		fabricated === null,
+	);
+	check(
+		"so an executor cannot satisfy a mechanical criterion by reporting that it did",
+		fabricated === null && fromTheWorld !== null,
+	);
+
+	// A1's other half, which Stage 0 cannot satisfy and does not pretend to.
+	console.log(
+		"      A1 placement: one node at Stage 0, so evaluation runs where execution did.",
+	);
+	console.log("      Recorded in ADR-004. The substantive half is checked above.");
+
 	await new Promise<void>((resolve) => server.close(() => resolve()));
 	await pool.end();
 	verdict("Slice 6 proof");

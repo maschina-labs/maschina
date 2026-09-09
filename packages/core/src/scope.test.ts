@@ -132,6 +132,19 @@ describe("withinScopeOf", () => {
 		).toBe(false);
 	});
 
+	it("uses equality for an objective", () => {
+		expect(withinScopeOf("objective", "obj_1", "obj_1")).toBe(true);
+		expect(withinScopeOf("objective", "obj_1", "obj_2")).toBe(false);
+	});
+
+	it("does not let authority to judge one objective reach another", () => {
+		// Evaluation authority is per objective. A capability that judged whatever
+		// it was pointed at would let one legitimate grant settle every objective
+		// in the system.
+		expect(withinScopeOf("objective", "obj_1", "obj_1_extra")).toBe(false);
+		expect(withinScopeOf("objective", "obj", "obj_1")).toBe(false);
+	});
+
 	it("does not treat a model class as a path", () => {
 		// A model scope is not a prefix. If this ever delegated to withinScope,
 		// every model target would be refused for not being absolute, and the
@@ -169,6 +182,12 @@ describe("scopeViolationOf", () => {
 		expect(
 			scopeViolationOf("repository", "maschina-labs/sandbox", "maschina-labs/maschina"),
 		).toBe("this capability is for maschina-labs/sandbox, not maschina-labs/maschina");
+	});
+
+	it("explains an objective refusal by naming both objectives", () => {
+		expect(scopeViolationOf("objective", "obj_1", "obj_2")).toBe(
+			"this capability judges obj_1, not obj_2",
+		);
 	});
 
 	it("names both the class held and the class asked for", () => {

@@ -78,12 +78,46 @@ export interface GrantInput {
  * `03-RUNTIME` §3 cannot classify a crash without it. Making them required
  * arguments means that rule is enforced by the compiler rather than remembered.
  */
+/**
+ * Did this actor work on this objective?
+ *
+ * Used to refuse evaluation authority to the worker that executed. Read from the
+ * log, because that is the only record of who actually did anything, and a
+ * worker's own claim about it is exactly what should not be trusted here.
+ */
+async function executedObjective(
+	pool: Pool,
+	actor: string,
+	objective: string,
+): Promise<boolean> {
+	const result = await pool.query<{ n: string }>(
+		`SELECT count(*)::text AS n FROM events
+     WHERE actor = $1 AND objective = $2
+       AND type IN ('worker.decided', 'effect.intended', 'effect.outcome')`,
+		[actor, objective],
+	);
+	return Number(result.rows[0]?.n ?? "0") > 0;
+}
+
 export async function grant(pool: Pool, input: GrantInput): Promise<Capability> {
 	if (input.operations.length === 0) {
 		throw new Error("a capability with no operations grants nothing; refusing to create it");
 	}
 	if (input.delegationDepth < 0) {
 		throw new Error("delegationDepth cannot be negative");
+	}
+	if (input.resource === "objective" && input.operations.includes("evaluate")) {
+		// `09-EVALUATION` §4: "the capability to mark an objective accomplished is
+		// never held by the worker pursuing it". Never *held*, so the refusal
+		// belongs here rather than only at use. A capability that exists and is
+		// refused every time is a capability somebody will eventually find a way
+		// to use.
+		if (await executedObjective(pool, input.holder, input.scope)) {
+			throw new Error(
+				`${input.holder} worked on ${input.scope}, so it cannot be granted authority to ` +
+					"judge it (09-EVALUATION 4). Evaluation is done by a worker that did not execute.",
+			);
+		}
 	}
 
 	const id = `cap_${randomUUID()}`;
@@ -277,6 +311,20 @@ export async function authorize(
 		return deny(
 			"operation_not_granted",
 			`${request.operation} is not in {${capability.operations.join(", ")}}`,
+		);
+	}
+	if (
+		capability.resource === "objective" &&
+		request.operation === "evaluate" &&
+		(await executedObjective(pool, request.holder, request.target))
+	) {
+		// The same rule again, at use. The grant-time check stops the capability
+		// existing; this stops one that was granted before the holder started
+		// working on the objective from being used afterwards. Neither check
+		// covers the other's case.
+		return deny(
+			"self_evaluation",
+			`${request.holder} worked on ${request.target} and cannot judge it`,
 		);
 	}
 	if (!withinScopeOf(capability.resource, capability.scope, request.target)) {

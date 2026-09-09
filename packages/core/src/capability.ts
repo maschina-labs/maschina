@@ -21,7 +21,7 @@
  */
 
 /** What kind of thing authority is held over. Extended as resources are added. */
-export type ResourceKind = "filesystem" | "model" | "repository";
+export type ResourceKind = "filesystem" | "model" | "repository" | "objective";
 
 /**
  * What a capability names when the resource is a model. `04-WORKERS` §7.
@@ -100,8 +100,19 @@ export type ModelOperation = "invoke";
  */
 export type RepositoryOperation = "commit";
 
+/**
+ * Objective operations. `evaluate` is the authority to record a verdict, and it
+ * is the one capability that cannot be held by the worker it would judge
+ * (`09-EVALUATION` §4).
+ */
+export type ObjectiveOperation = "evaluate";
+
 /** Every operation any capability can grant. */
-export type Operation = FilesystemOperation | ModelOperation | RepositoryOperation;
+export type Operation =
+	| FilesystemOperation
+	| ModelOperation
+	| RepositoryOperation
+	| ObjectiveOperation;
 
 /**
  * Metered allowances. Three numbers, not one. `05-CAPABILITIES` §3.
@@ -176,7 +187,14 @@ export type DenialReason =
 	 * quietly moving to something cheaper is the silent degradation
 	 * `01-PRINCIPLES` forbids.
 	 */
-	| "limit_exhausted";
+	| "limit_exhausted"
+	/**
+	 * The holder worked on this objective, so it may not judge it
+	 * (`09-EVALUATION` §4). Never retried and never escalated into an approval:
+	 * there is no version of this request that becomes acceptable, because the
+	 * problem is who is asking.
+	 */
+	| "self_evaluation";
 
 export interface AuthorizationRequest {
 	readonly capabilityId: string;

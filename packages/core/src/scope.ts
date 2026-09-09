@@ -82,6 +82,10 @@ export function withinScopeOf(resource: ResourceKind, scope: string, target: str
 		// `maschina-labs/maschina` share an owner and nothing else that matters.
 		case "repository":
 			return scope === target;
+		// An objective scope is an objective id, and containment is equality.
+		// Authority to judge one objective is not authority to judge another.
+		case "objective":
+			return scope === target;
 	}
 }
 
@@ -104,5 +108,7 @@ export function scopeViolationOf(
 			return `this capability is for the ${scope} model class, not ${target}`;
 		case "repository":
 			return `this capability is for ${scope}, not ${target}`;
+		case "objective":
+			return `this capability judges ${scope}, not ${target}`;
 	}
 }

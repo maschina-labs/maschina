@@ -14,6 +14,8 @@ export {
 	settle,
 } from "./capability.ts";
 export { adminPool, appPool } from "./client.ts";
+export type { Evaluation } from "./evaluation.ts";
+export { evaluationsOf, OBJECTIVE_EVALUATED, recordEvaluation } from "./evaluation.ts";
 export type { Lease } from "./lease.ts";
 export {
 	acquireLease,
