@@ -38,6 +38,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   workflow comment named a check that was moved out of public view for the same
   reason. Both described the thing they were hiding.
 
+## [0.8.1] - 2026-09-09
+
 ### Fixed
 
 - **A release was built, signed, pushed, and invisible.** The release branch was
