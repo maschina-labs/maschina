@@ -47,14 +47,18 @@ import {
 	resume as resumeWorker,
 	revoke,
 	settle,
+	suspendAsking,
+	suspendUntil,
 	takeObjective,
 } from "@maschina/db";
 import { Hono } from "hono";
 import type { Pool } from "pg";
 import { callEstimate } from "./config.ts";
+import { drivers } from "./drivers.ts";
 import { fileOnRemote, recentSubjects } from "./history.ts";
 import type { ModelRequest, ModelResult } from "./model.ts";
-import { invokeModel, ModelCallRefused } from "./model.ts";
+import { ModelCallRefused } from "./model.ts";
+import { choose, type ProviderDriver } from "./provider.ts";
 import { performRepositoryEffect, RepositoryRefused, reconcile } from "./repository.ts";
 
 /**
@@ -81,7 +85,12 @@ function wireEvent(event: Event): Record<string, unknown> {
  * How a model call is actually made.
  *
  * Injectable for one reason: the real one needs the model provider's credential
- * on the machine, and a shared CI runner has none and no business holding one. Everything Maschina does around a model call, the authority check, the
+ * on the machine, and a shared CI runner has none and no business holding one.
+ *
+ * Since slice 3 the route chooses a provider rather than calling this directly,
+ * so an injected invoker is wrapped as a single provider that always answers.
+ * Without that wrapping a scripted invoker was silently ignored and the proof
+ * that thought it was using a fake reached for the real CLI. Everything Maschina does around a model call, the authority check, the
  * reservation, the settlement arithmetic, the refusal when a budget cannot fund
  * another call, is Maschina's logic and should not need money or a network to
  * demonstrate. What the real provider does is proven separately, against the
@@ -100,7 +109,39 @@ function wireLease(lease: Lease): Record<string, unknown> {
 	};
 }
 
-export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono {
+/** Wrap an injected invoker as a provider, so one code path serves both. */
+function invokerAsProvider(invoke: ModelInvoker): ProviderDriver {
+	return {
+		provider: {
+			id: "injected",
+			kind: "local",
+			models: {
+				fast: "injected",
+				reasoning: "injected",
+				code: "injected",
+				long_context: "injected",
+			},
+			billed: false,
+		},
+		async check() {
+			return { available: true };
+		},
+		async ask(request) {
+			const result = await invoke(request);
+			return { ...result, provider: "injected" };
+		},
+	};
+}
+
+export function createApp(
+	pool: Pool,
+	invoke?: ModelInvoker,
+	providers?: readonly ProviderDriver[],
+): Hono {
+	// Explicit providers win. Otherwise an injected invoker becomes the only
+	// provider, and with neither, whatever this machine actually has.
+	const chosen: readonly ProviderDriver[] =
+		providers ?? (invoke === undefined ? drivers() : [invokerAsProvider(invoke)]);
 	const app = new Hono();
 
 	app.get("/health", (c) => c.json({ ok: true }));
@@ -244,6 +285,8 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 			holder: string;
 			modelClass: ModelClass;
 			prompt: string;
+			/** May a different provider answer? Off unless asked for. */
+			allowFallback?: boolean;
 		};
 
 		const authorization = await authorize(pool, {
@@ -272,11 +315,66 @@ export function createApp(pool: Pool, invoke: ModelInvoker = invokeModel): Hono 
 		await reserve(pool, body.capabilityId, body.holder, held);
 
 		try {
-			const result = await invoke({
+			// Which provider answers is chosen here, not baked into the call. The
+			// capability named a class; the class maps to a provider that can
+			// serve it right now.
+			const choice = await choose(chosen, body.modelClass, {
+				allowFallback: body.allowFallback === true,
+			});
+
+			if (choice.driver === null) {
+				await settle(pool, body.capabilityId, body.holder, 0, held);
+
+				if (choice.retryAt !== null) {
+					// Out of quota, and the world will be different later. Suspend
+					// with the time rather than escalating, which is Q10's whole
+					// point: a person cannot make a quota lift sooner.
+					await suspendUntil(pool, body.holder, null, choice.why, choice.retryAt);
+					return c.json(
+						{ suspended: true, until: choice.retryAt.toISOString(), why: choice.why },
+						503,
+					);
+				}
+
+				// Nothing serves this class at all. No clock fixes that, so it is a
+				// question for a person.
+				await suspendAsking(
+					pool,
+					body.holder,
+					null,
+					choice.why,
+					`which provider should serve the ${body.modelClass} class?`,
+				);
+				return c.json({ suspended: true, why: choice.why }, 503);
+			}
+
+			const result = await choice.driver.ask({
 				modelClass: body.modelClass,
 				prompt: body.prompt,
 				budget: available,
 			});
+
+			// Which provider answered goes in the log, always. An answer from a
+			// different provider than expected is a fact, not a detail, and
+			// `01-PRINCIPLES` forbids a degradation that changes behaviour
+			// unrecorded.
+			await logAppend(pool, {
+				actor: body.holder,
+				type: "model.answered",
+				payload: {
+					v: 1,
+					capabilityId: body.capabilityId,
+					provider: result.provider,
+					model: result.model,
+					modelClass: body.modelClass,
+					// A fallback is a fact, recorded whether or not anybody looks.
+					fellBack: choice.fellBack,
+					insteadOf: choice.instead,
+					billed: choice.driver.provider.billed,
+					cost: result.cost,
+				},
+			});
+
 			await settle(pool, body.capabilityId, body.holder, result.cost, held);
 			return c.json({ granted: true, ...result });
 		} catch (error: unknown) {
