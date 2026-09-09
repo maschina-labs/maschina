@@ -1,5 +1,16 @@
+export {
+	authorize,
+	CAPABILITY_DENIED,
+	CAPABILITY_GRANTED,
+	CAPABILITY_REVOKED,
+	foldCapability,
+	get as getCapability,
+	grant,
+	list as listCapabilities,
+	revoke,
+} from "./capability.ts";
 export { adminPool, appPool } from "./client.ts";
-export { append, head, read } from "./log.ts";
+export { append, head, PAYLOAD_V, read } from "./log.ts";
 export {
 	amendContract,
 	get as getObjective,

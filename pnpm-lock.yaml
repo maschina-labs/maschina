@@ -88,6 +88,25 @@ importers:
         specifier: ^8.11.10
         version: 8.23.1
 
+  packages/worker:
+    dependencies:
+      '@maschina/core':
+        specifier: workspace:*
+        version: link:../core
+      '@maschina/db':
+        specifier: workspace:*
+        version: link:../db
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.23.1
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
+
 packages:
 
   '@ampproject/remapping@2.3.0':
