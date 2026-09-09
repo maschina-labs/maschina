@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scopeViolation, withinScope, withinScopeOf } from "./scope.ts";
+import { scopeViolation, scopeViolationOf, withinScope, withinScopeOf } from "./scope.ts";
 
 const SANDBOX = "/tmp/maschina-sandbox";
 
@@ -118,5 +118,39 @@ describe("withinScopeOf", () => {
 		// every model target would be refused for not being absolute, and the
 		// failure would look like a permissions bug rather than a wiring bug.
 		expect(withinScopeOf("model", "/fast", "/fast/anything")).toBe(false);
+	});
+});
+
+describe("scopeViolationOf", () => {
+	it("explains a filesystem refusal in the language of paths", () => {
+		const said = scopeViolationOf("filesystem", "/sandbox", "/etc/passwd");
+		expect(said).toContain("/etc/passwd");
+		expect(said).toContain("/sandbox");
+	});
+
+	it("carries through the filesystem explanations that are not about containment", () => {
+		expect(scopeViolationOf("filesystem", "sandbox", "/etc/passwd")).toContain(
+			"not an absolute path",
+		);
+		expect(scopeViolationOf("filesystem", "/sandbox", "passwd")).toContain("working directory");
+	});
+
+	it("explains a model refusal in the language of model classes", () => {
+		// The reason this exists. A model refusal phrased as "reasoning is not an
+		// absolute path" reads as a wiring bug rather than as a denial, and a
+		// denial nobody understands is a denial nobody acts on, which makes
+		// recording it as prominently as a use pointless.
+		const said = scopeViolationOf("model", "fast", "reasoning");
+		expect(said).toContain("fast");
+		expect(said).toContain("reasoning");
+		expect(said).not.toContain("absolute path");
+	});
+
+	it("names both the class held and the class asked for", () => {
+		// Whoever reads this has to be able to tell which way round it went, so
+		// they know whether to widen the grant or fix the caller.
+		expect(scopeViolationOf("model", "code", "long_context")).toBe(
+			"this capability is for the code model class, not long_context",
+		);
 	});
 });
