@@ -13,6 +13,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-09
+
 ### Added
 
 - **The whole system can be rebuilt from the log alone.** The database was
