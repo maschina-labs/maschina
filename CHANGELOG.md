@@ -13,6 +13,16 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A release was built, signed, pushed, and invisible.** The release branch was
+  moved onto the latest main and then committed to. For the moment between those
+  two steps it was identical to main, so the open release was closed
+  automatically, and the check for whether to open a replacement read a state
+  that was already out of date and decided one existed. The branch is now made
+  fresh each time, which closes anything stale before anything else happens, and
+  opening the release no longer depends on reading a state and then acting on it.
+
 ### Added
 
 - **The whole system can be rebuilt from the log alone.** The database was

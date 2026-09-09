@@ -50,24 +50,34 @@ if (!headOid) {
 	process.exit(1);
 }
 
-// Point the branch at HEAD. No new commit yet, so nothing here needs signing.
+// Start the branch from scratch every time.
+//
+// The first version force-moved an existing branch to HEAD and then committed
+// onto it. For the instant between those two steps the branch was identical to
+// main, GitHub auto-closed the open release pull request, and the guard that
+// decides whether to open a new one read a state that was already stale and
+// skipped. The release was built, signed, pushed, and nobody could see it.
+//
+// Deleting first makes it deterministic: any stale pull request is closed before
+// anything else happens, and the caller can then rely on there being none.
+const existing = await github(`/repos/${repository}/git/refs/heads/${branch}`);
+if (existing.ok) {
+	const deleted = await github(`/repos/${repository}/git/refs/heads/${branch}`, {
+		method: "DELETE",
+	});
+	if (!deleted.ok && deleted.status !== 404) {
+		console.error(`Could not clear ${branch}:`, deleted.body);
+		process.exit(1);
+	}
+}
+
 const created = await github(`/repos/${repository}/git/refs`, {
 	method: "POST",
 	body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: headOid }),
 });
-
 if (!created.ok) {
-	// Already there from an earlier run for the same version. Move it back to
-	// HEAD so the commit below applies to the same tree the version was
-	// computed from, rather than to whatever a previous attempt left behind.
-	const moved = await github(`/repos/${repository}/git/refs/heads/${branch}`, {
-		method: "PATCH",
-		body: JSON.stringify({ sha: headOid, force: true }),
-	});
-	if (!moved.ok) {
-		console.error(`Could not create or move ${branch}:`, moved.body);
-		process.exit(1);
-	}
+	console.error(`Could not create ${branch}:`, created.body);
+	process.exit(1);
 }
 
 const file = (path) => ({ path, contents: readFileSync(path).toString("base64") });
