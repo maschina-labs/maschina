@@ -35,6 +35,22 @@ function toEvent(row: EventRow): Event {
 	};
 }
 
+/**
+ * Payload schema version. ADR-006.
+ *
+ * Every payload written by any module carries `v`. A reader handles every
+ * version it has ever seen, because an event written in the wrong shape is
+ * written in the wrong shape permanently: the log is append-only and there is no
+ * migration path.
+ *
+ * Bump only for a change a reader cannot handle by ignoring it. Adding an
+ * optional field is not a new version.
+ *
+ * Lives here rather than beside any one primitive because it is a fact about the
+ * log, and every module that appends needs it.
+ */
+export const PAYLOAD_V = 1;
+
 const COLUMNS = "id, recorded_at, actor, objective, type, payload, epoch, causation";
 
 /**

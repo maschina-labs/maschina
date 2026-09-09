@@ -1,0 +1,28 @@
+{
+	"name": "@maschina/worker",
+	"version": "0.0.0",
+	"private": true,
+	"license": "UNLICENSED",
+	"type": "module",
+	"description": "The worker loop. 03-RUNTIME §2.",
+	"exports": {
+		".": "./src/index.ts",
+		"./effect": "./src/effect.ts",
+		"./filesystem": "./src/filesystem.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint .",
+		"test": "vitest run --passWithNoTests",
+		"proof": "tsx --env-file-if-exists=../../.env test/capability.proof.ts"
+	},
+	"dependencies": {
+		"@maschina/core": "workspace:*",
+		"@maschina/db": "workspace:*",
+		"pg": "^8.13.1"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.11.10",
+		"tsx": "^4.19.2"
+	}
+}

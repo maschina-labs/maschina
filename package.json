@@ -19,7 +19,7 @@
 		"build": "turbo build",
 		"typecheck": "turbo typecheck",
 		"test": "vitest run",
-		"proof": "turbo proof",
+		"proof": "turbo proof --concurrency=1",
 		"lint": "biome lint .",
 		"format": "biome format . --write",
 		"check": "biome check . && pnpm check:no-em-dash",

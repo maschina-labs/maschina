@@ -9,7 +9,9 @@
 		".": "./src/index.ts",
 		"./event": "./src/event.ts",
 		"./objective": "./src/objective.ts",
-		"./contract": "./src/contract.ts"
+		"./contract": "./src/contract.ts",
+		"./capability": "./src/capability.ts",
+		"./scope": "./src/scope.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",

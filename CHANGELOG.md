@@ -15,6 +15,31 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ### Added
 
+- **Capabilities, and the first real effect.** Maschina can now write a file, and
+  only where it was told it may. Authority is a held object with an enumerated
+  list of operations and a path it is confined to, not a permission looked up
+  from an identity. Every use is checked against the log at the moment it
+  happens and never cached, so revoking a capability stops the next action rather
+  than eventually.
+- **Nothing reaches the world unrecorded.** An effect is authorised, then written
+  down, then performed, then its outcome is written down. If the process dies
+  after the write-ahead point the log says what was about to happen and the
+  recovery path can tell what to do about it. Proven with an actual `kill -9`
+  between the two records.
+- **Refusals are as visible as successes.** A worker writing outside its path, or
+  attempting an operation it was never granted, produces a recorded denial saying
+  who tried, what they tried, and why it was refused. A denied action produces no
+  intent at all, because it never became an attempt.
+
+### Fixed
+
+- **A revoked capability could be brought back to life.** Appending a grant for an
+  already-revoked capability reactivated it, and since the log is append-only that
+  made revocation a suggestion rather than a control. Revocation is now terminal;
+  re-granting means a new capability. Found by writing the test for it.
+
+### Added
+
 - **Event payloads carry a version.** The log is append-only, so an event written
   in the wrong shape is written in the wrong shape permanently. Every payload now
   carries `v`, readers handle every version they have ever seen, and a reader that

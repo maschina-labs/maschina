@@ -17,6 +17,12 @@
 			"dependsOn": ["^build"]
 		},
 		"proof": {
+			// Run with --concurrency=1 from the root script. Every proof resets the
+			// same real database, so running two at once means one drops the events
+			// table while the other is recreating it. Serialising is not a
+			// workaround: a proof asserts things about a real world, and there is
+			// only one of those.
+			//
 			// Proofs run against a real Postgres and a real filesystem. Caching a
 			// proof would mean reporting a pass for a run that did not happen, which
 			// is the class of false signal 01-PRINCIPLES P4 exists to reject.

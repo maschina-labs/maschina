@@ -1,0 +1,207 @@
+/**
+ * Slice 2 proof. STAGE_0_PLAN, slice 2:
+ *
+ *   "A file appears on disk in the sandbox. The log shows Decision, Intent,
+ *    Outcome. Attempt to write outside the scope and confirm the denial is
+ *    recorded as prominently as a use. Kill the process between Intent and
+ *    Outcome and confirm the Intent is in the log with no Outcome."
+ *
+ * Advances proof criteria 2, 3 and 7 in `14-ROADMAP` §4.
+ *
+ * Run: pnpm proof
+ */
+
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { appPool, grant, read, revoke } from "@maschina/db";
+import { check, resetLog, verdict } from "../../db/test/harness.ts";
+import { EFFECT_INTENDED, EFFECT_OUTCOME, WORKER_DECIDED } from "../src/effect.ts";
+import { filesystemExecutor, performEffect } from "../src/index.ts";
+
+const SANDBOX = "/tmp/maschina-slice2-sandbox";
+const OUTSIDE = "/tmp/maschina-slice2-escaped.txt";
+
+async function main(): Promise<void> {
+	await resetLog();
+	rmSync(SANDBOX, { recursive: true, force: true });
+	rmSync(OUTSIDE, { force: true });
+	mkdirSync(SANDBOX, { recursive: true });
+
+	const pool = appPool();
+	console.log("\nSlice 2: capability and the first real effect\n");
+
+	// 1. A capability is granted, and it is a held object with every field set.
+	console.log("1. Authority is a held object, not a permission lookup");
+	const cap = await grant(pool, {
+		holder: "worker:w1",
+		resource: "filesystem",
+		operations: ["write", "create"],
+		scope: SANDBOX,
+		effectClass: "idempotent",
+		approval: "none",
+		delegationDepth: 0,
+		grantedBy: "human:ash",
+	});
+	check("granted, and active", cap.status === "active");
+	check("scoped to the sandbox", cap.scope === SANDBOX);
+	check("operations enumerated, not a wildcard", cap.operations.join(",") === "write,create");
+	check("effect class declared", cap.effectClass === "idempotent");
+	check("delegation bounded", cap.delegationDepth === 0);
+	check("limits are three numbers", cap.limits.granted === 0 && cap.limits.reserved === 0);
+
+	// 2. The effect actually happens, in the real world.
+	console.log("\n2. A real file, under bounded authority");
+	const target = `${SANDBOX}/hello.txt`;
+	const content = "Maschina wrote this under bounded authority.\n";
+	const done = await performEffect(
+		pool,
+		{ worker: "worker:w1", objective: null, reasoning: "slice 2 hardcoded effect" },
+		{ capabilityId: cap.id, operation: "write", target, payload: { content } },
+		"idempotent",
+		filesystemExecutor,
+	);
+	check("the effect was performed", done.performed);
+	check("the file exists on disk", existsSync(target));
+	check("with the right bytes", existsSync(target) && readFileSync(target, "utf8") === content);
+
+	// 3. Decision, Intent, Outcome, in that order, causally linked.
+	console.log("\n3. Decision, Intent, Outcome");
+	const events = await read(pool);
+	const decided = events.find((e) => e.type === WORKER_DECIDED);
+	const intent = events.find((e) => e.type === EFFECT_INTENDED);
+	const outcome = events.find((e) => e.type === EFFECT_OUTCOME);
+	check("a decision was recorded", decided !== undefined);
+	check("an intent was recorded", intent !== undefined);
+	check("an outcome was recorded", outcome !== undefined);
+	check(
+		"the intent precedes the outcome",
+		intent !== undefined && outcome !== undefined && intent.id < outcome.id,
+	);
+	check("the intent is caused by the decision", intent?.causation === decided?.id);
+	check("the outcome is caused by the intent", outcome?.causation === intent?.id);
+	check("the outcome says it succeeded", outcome?.payload.result === "succeeded");
+	check("the intent names the capability used", intent?.payload.capabilityId === cap.id);
+
+	// 4. Scope. The one that matters.
+	console.log("\n4. Outside the scope is refused, and nothing reaches disk");
+	const escapeAttempt = await performEffect(
+		pool,
+		{ worker: "worker:w1", objective: null, reasoning: "try to escape the sandbox" },
+		{
+			capabilityId: cap.id,
+			operation: "write",
+			target: `${SANDBOX}/../maschina-slice2-escaped.txt`,
+			payload: { content: "should never exist" },
+		},
+		"idempotent",
+		filesystemExecutor,
+	);
+	check("refused", !escapeAttempt.performed);
+	check(
+		"because it is outside the scope",
+		!escapeAttempt.performed && escapeAttempt.reason === "outside_scope",
+		escapeAttempt.performed ? "" : escapeAttempt.reason,
+	);
+	check("and nothing was written outside", !existsSync(OUTSIDE));
+
+	// 5. Denials are recorded as prominently as uses.
+	console.log("\n5. The denial is recorded as prominently as a use");
+	const after = await read(pool);
+	const denials = after.filter((e) => e.type === "capability.denied");
+	check("a denial event exists", denials.length === 1);
+	check("it names who tried", denials[0]?.actor === "worker:w1");
+	check("it names the target", denials[0]?.payload.target !== undefined);
+	check("it explains why", String(denials[0]?.payload.detail).includes("outside"));
+	check(
+		"a denied use produced no Intent, because it never became an attempt",
+		after.filter((e) => e.type === EFFECT_INTENDED).length === 1,
+	);
+
+	// 6. An operation that was never granted.
+	console.log("\n6. An operation outside the grant is refused");
+	const del = await performEffect(
+		pool,
+		{ worker: "worker:w1", objective: null, reasoning: "try to delete" },
+		{ capabilityId: cap.id, operation: "delete", target, payload: {} },
+		"idempotent",
+		filesystemExecutor,
+	);
+	check("refused", !del.performed);
+	check(
+		"because delete was never granted",
+		!del.performed && del.reason === "operation_not_granted",
+	);
+	check("the file is still there", existsSync(target));
+
+	// 7. Revocation takes effect before the next use, not eventually.
+	console.log("\n7. Revocation works immediately");
+	await revoke(pool, cap.id, "human:ash", "proof: emergency stop rehearsal");
+	const afterRevoke = await performEffect(
+		pool,
+		{ worker: "worker:w1", objective: null, reasoning: "write after revocation" },
+		{
+			capabilityId: cap.id,
+			operation: "write",
+			target: `${SANDBOX}/after.txt`,
+			payload: { content: "nope" },
+		},
+		"idempotent",
+		filesystemExecutor,
+	);
+	check("refused", !afterRevoke.performed);
+	check("because it was revoked", !afterRevoke.performed && afterRevoke.reason === "revoked");
+	check("and nothing was written", !existsSync(`${SANDBOX}/after.txt`));
+
+	await pool.end();
+
+	// 8. The crash window. A real kill -9 between Intent and Outcome.
+	console.log("\n8. Killed between Intent and Outcome");
+	const live = appPool();
+	const cap2 = await grant(live, {
+		holder: "worker:doomed",
+		resource: "filesystem",
+		operations: ["write"],
+		scope: SANDBOX,
+		effectClass: "idempotent",
+		approval: "none",
+		delegationDepth: 0,
+		grantedBy: "human:ash",
+	});
+	const before = (await read(live)).length;
+
+	const child = fileURLToPath(new URL("./crash-child.ts", import.meta.url));
+	let died = false;
+	try {
+		execFileSync("node", ["--import", "tsx", child, cap2.id, `${SANDBOX}/doomed.txt`], {
+			stdio: "ignore",
+		});
+	} catch {
+		died = true;
+	}
+	check("the child process was killed", died);
+
+	const post = await read(live);
+	const doomedIntents = post.filter(
+		(e) => e.type === EFFECT_INTENDED && e.actor === "worker:doomed",
+	);
+	const doomedOutcomes = post.filter(
+		(e) => e.type === EFFECT_OUTCOME && e.actor === "worker:doomed",
+	);
+	check("its Intent is in the log", doomedIntents.length === 1);
+	check("with no Outcome", doomedOutcomes.length === 0);
+	check("the log grew, so the write-ahead happened before the crash", post.length > before);
+	check("the effect never reached disk", !existsSync(`${SANDBOX}/doomed.txt`));
+	check(
+		"the Intent records the effect class, so recovery can classify it",
+		doomedIntents[0]?.payload.effectClass === "idempotent",
+	);
+
+	await live.end();
+	verdict("Slice 2 proof");
+}
+
+main().catch((error: unknown) => {
+	console.error(error);
+	process.exitCode = 1;
+});

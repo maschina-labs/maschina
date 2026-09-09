@@ -9,13 +9,13 @@
 
 import type { Contract } from "@maschina/core";
 import { describe, expect, it } from "vitest";
+import { PAYLOAD_V } from "./log.ts";
 import {
 	fold,
 	OBJECTIVE_ADMITTED,
 	OBJECTIVE_AMENDMENT_REFUSED,
 	OBJECTIVE_REJECTED,
 	OBJECTIVE_STATED,
-	PAYLOAD_V,
 } from "./objective.ts";
 
 const CONTRACT: Contract = {

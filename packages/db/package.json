@@ -10,7 +10,8 @@
 		"./client": "./src/client.ts",
 		"./log": "./src/log.ts",
 		"./schema": "./src/schema.ts",
-		"./objective": "./src/objective.ts"
+		"./objective": "./src/objective.ts",
+		"./capability": "./src/capability.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
