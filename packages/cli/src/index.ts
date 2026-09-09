@@ -21,8 +21,15 @@ import {
 	getObjective,
 	head,
 	listObjectives,
+	provenanceOf,
 	read,
 	stateObjective,
+	whatCanWorkerDo,
+	whatDidItCost,
+	whatWasDenied,
+	whatWasDoneWith,
+	whatWouldRevoking,
+	whyDidItDecide,
 } from "@maschina/db";
 
 const USAGE = `maschina, Stage 0
@@ -48,6 +55,16 @@ const USAGE = `maschina, Stage 0
     --after <id>           only events after this id
     --limit <n>            cap the output
     --json                 one JSON object per line
+
+  The seven questions. Answered by asking, not by reading the code.
+
+  can <worker>             what this worker can do right now
+  provenance <cap>         where this capability came from, all the way to root
+  used <cap>               what has been done with this capability
+  denied [holder]          what has been denied, and to whom
+  blast <cap>              what would be revoked if you revoked this
+  cost <objective>         what an objective cost, by resource
+  why <event-id>           why the worker decided what it did
 
 Everything is a projection over the log (02-CORE §7).`;
 
@@ -272,6 +289,186 @@ async function objectiveAmend(
 	}
 }
 
+// ── The seven questions. `05-CAPABILITIES` §10, criterion 9. ─────────────────
+//
+// Each prints something a person can read without knowing the schema. A query
+// surface whose output needs interpreting is a query surface nobody uses, and
+// the criterion is that these are answered by asking rather than by reading the
+// code.
+
+const micro = (amount: number): string => `$${(amount / 1_000_000).toFixed(6)}`;
+
+async function canCommand(worker: string | undefined): Promise<void> {
+	if (!worker) throw new Error("usage: maschina can <worker>");
+	const pool = appPool();
+	try {
+		const held = await whatCanWorkerDo(pool, worker);
+		if (held.length === 0) {
+			console.log(`${worker} holds nothing.`);
+			return;
+		}
+		console.log(
+			`${worker} holds ${held.length} capabilit${held.length === 1 ? "y" : "ies"}:\n`,
+		);
+		for (const { capability, live, available } of held) {
+			const state = live ? "live" : `DEAD (${capability.status})`;
+			console.log(`  ${capability.id}  ${state}`);
+			console.log(
+				`    ${capability.resource}: ${capability.operations.join(", ")} on ${capability.scope}`,
+			);
+			console.log(
+				`    effect class ${capability.effectClass}, checkpoint ${capability.checkpoint}, approval ${capability.approval}`,
+			);
+			if (capability.limits.granted > 0) {
+				console.log(
+					`    budget ${micro(available)} of ${micro(capability.limits.granted)} left`,
+				);
+			}
+			console.log("");
+		}
+	} finally {
+		await pool.end();
+	}
+}
+
+async function provenanceCommand(capabilityId: string | undefined): Promise<void> {
+	if (!capabilityId) throw new Error("usage: maschina provenance <capability-id>");
+	const pool = appPool();
+	try {
+		const chain = await provenanceOf(pool, capabilityId);
+		if (chain.length === 0) {
+			console.log(`No capability ${capabilityId}.`);
+			return;
+		}
+		console.log("From this capability up to the root:\n");
+		chain.forEach((capability, depth) => {
+			const indent = "  ".repeat(depth);
+			console.log(
+				`${indent}${capability.id}  held by ${capability.holder}  [${capability.status}]`,
+			);
+			console.log(
+				`${indent}  ${capability.resource}: ${capability.operations.join(", ")} on ${capability.scope}`,
+			);
+		});
+		console.log(`\n${chain.length} step(s) to root.`);
+	} finally {
+		await pool.end();
+	}
+}
+
+async function usedCommand(capabilityId: string | undefined): Promise<void> {
+	if (!capabilityId) throw new Error("usage: maschina used <capability-id>");
+	const pool = appPool();
+	try {
+		const uses = await whatWasDoneWith(pool, capabilityId);
+		if (uses.length === 0) {
+			console.log(`Nothing has been done with ${capabilityId}.`);
+			return;
+		}
+		for (const use of uses) {
+			const what =
+				use.operation === "" ? use.type : `${use.type}  ${use.operation} ${use.target}`;
+			console.log(
+				`${use.at.toISOString()}  ${use.actor}  ${what}${use.result ? `  -> ${use.result}` : ""}`,
+			);
+		}
+	} finally {
+		await pool.end();
+	}
+}
+
+async function deniedCommand(holder: string | undefined): Promise<void> {
+	const pool = appPool();
+	try {
+		const denials = await whatWasDenied(pool, holder);
+		if (denials.length === 0) {
+			console.log(
+				holder ? `Nothing has been denied to ${holder}.` : "Nothing has been denied.",
+			);
+			return;
+		}
+		for (const denial of denials) {
+			console.log(`${denial.at.toISOString()}  ${denial.holder}`);
+			console.log(`  ${denial.operation} ${denial.target}  REFUSED: ${denial.reason}`);
+			if (denial.detail) console.log(`  ${denial.detail}`);
+		}
+		console.log(`\n${denials.length} denial(s).`);
+	} finally {
+		await pool.end();
+	}
+}
+
+async function blastCommand(capabilityId: string | undefined): Promise<void> {
+	if (!capabilityId) throw new Error("usage: maschina blast <capability-id>");
+	const pool = appPool();
+	try {
+		const doomed = await whatWouldRevoking(pool, capabilityId);
+		if (doomed.length === 0) {
+			console.log(`No capability ${capabilityId}.`);
+			return;
+		}
+		console.log(
+			`Revoking ${capabilityId} would take ${doomed.length} capabilit${doomed.length === 1 ? "y" : "ies"}:\n`,
+		);
+		for (const capability of doomed) {
+			console.log(
+				`  ${capability.id}  ${capability.holder}  ${capability.resource}: ${capability.operations.join(", ")} on ${capability.scope}`,
+			);
+		}
+		const holders = new Set(doomed.map((c) => c.holder));
+		console.log(`\nAffecting ${holders.size} holder(s): ${[...holders].join(", ")}`);
+	} finally {
+		await pool.end();
+	}
+}
+
+async function costCommand(objective: string | undefined): Promise<void> {
+	if (!objective) throw new Error("usage: maschina cost <objective-id>");
+	const pool = appPool();
+	try {
+		const costs = await whatDidItCost(pool, objective);
+		if (costs.length === 0) {
+			console.log(`${objective} has cost nothing that was metered.`);
+			return;
+		}
+		let total = 0;
+		for (const cost of costs) {
+			console.log(
+				`  ${cost.resource.padEnd(12)} ${micro(cost.settled).padStart(12)}  over ${cost.calls} call(s)`,
+			);
+			total += cost.settled;
+		}
+		console.log(`  ${"total".padEnd(12)} ${micro(total).padStart(12)}`);
+		console.log("\nList value of what was consumed, not money billed. See ADR-009.");
+	} finally {
+		await pool.end();
+	}
+}
+
+async function whyCommand(eventId: string | undefined): Promise<void> {
+	if (!eventId) throw new Error("usage: maschina why <event-id>");
+	const pool = appPool();
+	try {
+		const provenance = await whyDidItDecide(pool, BigInt(eventId));
+		if (provenance === null) {
+			console.log(`Event ${eventId} is not a recorded decision.`);
+			return;
+		}
+		console.log(`${provenance.worker} at ${provenance.at.toISOString()}`);
+		console.log(`  objective: ${provenance.objective ?? "none"}`);
+		console.log(`  reasoning: ${provenance.reasoning}`);
+		console.log(`  intent:    ${provenance.intentId ?? "never got that far"}`);
+		console.log(
+			`  outcome:   ${provenance.outcomeId ?? "none"}${provenance.result ? ` (${provenance.result})` : ""}`,
+		);
+		console.log(`  it saw the log up to event ${provenance.sawEventsUpTo}`);
+		console.log(`\n  maschina log --objective ${provenance.objective ?? ""} --limit 50`);
+		console.log("  shows exactly what it was looking at. By reference, not by copy.");
+	} finally {
+		await pool.end();
+	}
+}
+
 async function main(): Promise<void> {
 	const argv = process.argv.slice(2);
 	const command = `${argv[0] ?? ""} ${argv[1] ?? ""}`.trim();
@@ -294,8 +491,28 @@ async function main(): Promise<void> {
 			break;
 	}
 
-	// `log` takes no subcommand.
-	if (argv[0] === "log") return logCommand(flags);
+	// The seven questions, and `log`, all take a bare argument rather than a
+	// subcommand, because they are asked far more often than anything else.
+	switch (argv[0]) {
+		case "log":
+			return logCommand(flags);
+		case "can":
+			return canCommand(argv[1]);
+		case "provenance":
+			return provenanceCommand(argv[1]);
+		case "used":
+			return usedCommand(argv[1]);
+		case "denied":
+			return deniedCommand(argv[1]);
+		case "blast":
+			return blastCommand(argv[1]);
+		case "cost":
+			return costCommand(argv[1]);
+		case "why":
+			return whyCommand(argv[1]);
+		default:
+			break;
+	}
 
 	console.log(USAGE);
 	process.exitCode = argv.length === 0 ? 0 : 1;

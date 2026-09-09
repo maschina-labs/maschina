@@ -13,6 +13,31 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **Maschina can be asked questions instead of read.** Seven of them, from the
+  command line: what a worker can do right now, where a capability came from all
+  the way to the root, what has been done with it, what has been refused and to
+  whom, what would be lost if you revoked something, what an objective cost by
+  resource, and why a worker decided what it did. A record nobody can interrogate
+  is a record nobody reads.
+- **Asking why a worker did something points at what it saw, rather than
+  summarising it.** The answer gives its own recorded reasoning, what the
+  decision led to, and the exact command to read the history it was looking at
+  when it decided. By reference, not by copy, so nobody has to trust a summary
+  written afterwards.
+
+### Fixed
+
+- **Two more places where a record was trusted to be the right shape.** An
+  objective's contract is what everything is later judged against, and a
+  malformed one folded into an objective with no contract while evaluation
+  reported verdicts as though it had judged something.
+- **The repository named its own private notes in public.** A comment in the
+  desktop app pointed at a file that is deliberately not published, and a
+  workflow comment named a check that was moved out of public view for the same
+  reason. Both described the thing they were hiding.
+
 ## [0.8.1] - 2026-09-09
 
 ### Fixed
@@ -239,7 +264,8 @@ ten proof criteria hold. See `internal/operations/RELEASING.md`.
   absent rather than denied, and two checks after the fact catch anything that
   survives without needing to know its name.
 - **Model calls were reading the repository.** Run from the project directory the
-  CLI loaded `CLAUDE.md` and the working tree into every call, and answered
+  CLI loaded the project's own instruction files and working tree into every
+  call, and answered
   questions by citing "the project instructions". Repository contents are
   untrusted content, so that was an injection path straight into the worker's
   decisions. Calls now run from an empty directory with the provider's own system

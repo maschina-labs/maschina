@@ -48,9 +48,9 @@ function createWindow(): void {
 	window.once("ready-to-show", () => window.show());
 
 	// A preload that fails to load leaves the renderer silently powerless: the UI
-	// still paints, and every call through the bridge is undefined. CLAUDE.md
-	// forbids swallowed errors on any authority path, and the preload IS the
-	// renderer's authority path. Make it loud.
+	// still paints, and every call through the bridge is undefined. Nothing on an
+	// authority path may swallow an error, and the preload IS the renderer's
+	// authority path. Make it loud.
 	window.webContents.on("preload-error", (_event, preloadPath, error) => {
 		console.error(`[main] preload failed: ${preloadPath}\n${error.stack ?? error.message}`);
 	});

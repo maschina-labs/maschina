@@ -34,7 +34,7 @@ export function repositoryExecutor(controlPlane: ControlPlane, holder: string): 
 			);
 		}
 
-		return (await controlPlane.commit({
+		const result = await controlPlane.commit({
 			capabilityId: effect.capabilityId,
 			holder,
 			repository: effect.target,
@@ -42,6 +42,15 @@ export function repositoryExecutor(controlPlane: ControlPlane, holder: string): 
 			path,
 			content: String(effect.payload.content ?? ""),
 			intentId,
-		})) as unknown as Record<string, unknown>;
+		});
+
+		// Spread rather than cast. The cast said "trust me" about a shape that is
+		// right here and can be written out.
+		return {
+			commit: result.commit,
+			branch: result.branch,
+			repository: result.repository,
+			pushed: result.pushed,
+		};
 	};
 }

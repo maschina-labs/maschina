@@ -44,7 +44,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # check-no-attribution reads commit messages, so it needs history.
+          # Some checks read recent commit messages, not only the tree.
           fetch-depth: 50
 
       - name: Setup pnpm
