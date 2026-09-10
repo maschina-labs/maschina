@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 to 4. The window reads, answers, allows and stops.
+ * Environment proof, slices 1 to 5. The window reads, answers, allows, stops, and is told.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -190,6 +190,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 4 ───────────────────────────────────────────────────────────────
 	await slice4();
+
+	// ── Slice 5 ───────────────────────────────────────────────────────────────
+	await slice5();
 
 	verdict("Environment proof");
 }
@@ -666,6 +669,97 @@ async function slice4(): Promise<void> {
 		check(
 			"and says plainly that nothing comes back",
 			stopView.includes("not a pause") && stopView.includes("comes back"),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 5: told, not asking.
+ *
+ *   "Two windows on the same objective show the same thing within a second of an
+ *    event being appended."
+ *
+ *   "Watch for: reaching for a websocket layer or a message broker."
+ */
+async function slice5(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 4, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 4}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n17. The database says when something is recorded");
+		const told: number[] = [];
+		const trouble: string[] = [];
+
+		// Two watchers, because the claim is about two windows seeing the same
+		// thing rather than about one window working.
+		const stopA = plane.watch(
+			() => told.push(Date.now()),
+			(p: string) => p !== "" && trouble.push(p),
+		);
+		const stopB = plane.watch(
+			() => told.push(Date.now()),
+			(p: string) => p !== "" && trouble.push(p),
+		);
+		// Both streams need to be connected before anything is appended, or the
+		// test would be measuring how fast they connect.
+		await new Promise((resolve) => setTimeout(resolve, 700));
+
+		const at = Date.now();
+		await append(pool, {
+			actor: "human:ash",
+			objective: null,
+			epoch: 0n,
+			type: "note.made",
+			payload: { v: PAYLOAD_V, text: "something happened" },
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 900));
+		stopA();
+		stopB();
+
+		check("both watchers were told", told.length >= 2, `${told.length} notifications`);
+		check(
+			"within a second of it being recorded",
+			told.every((t) => t - at < 1_000),
+			told.map((t) => `${t - at}ms`).join(", "),
+		);
+		check("and neither reported trouble", trouble.length === 0, trouble.join("; "));
+
+		console.log("\n18. Nothing was added to carry it");
+		const schema = readFileSync(
+			new URL("../../../packages/db/src/schema.sql", import.meta.url).pathname,
+			"utf8",
+		);
+		check(
+			"the database announces it, with a trigger",
+			schema.includes("pg_notify") && schema.includes("events_announced"),
+		);
+		check(
+			"the notification carries an id, not the event",
+			schema.includes("NEW.id::text"),
+			"a notification holding the event would be a second, worse copy of the log",
+		);
+		const manifest = readFileSync(
+			new URL("../../../package.json", import.meta.url).pathname,
+			"utf8",
+		);
+		for (const banned of ["nats", "redis", "socket.io", "ws", "amqp", "kafka"]) {
+			check(`no ${banned}`, !new RegExp(`"${banned}`).test(manifest));
+		}
+
+		console.log("\n19. And the window stopped asking");
+		const reading = readFileSync(join(desktop, "renderer/useLog.ts"), "utf8");
+		check("it reads when it is told", reading.includes("onRecorded"));
+		check(
+			"and keeps a slow interval underneath rather than trusting the stream",
+			/everyMs = 30_000/.test(reading),
+			"a push nobody stored is a push that can be missed",
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));

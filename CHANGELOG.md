@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Changed
+
+- **The window updates the moment something happens, instead of checking every
+  couple of seconds.** Nothing new was added to make that work: the database
+  already knows when something is recorded, so it says so.
+
 ### Added
 
 - **You can allow or refuse what a worker is asking to do.** Anything needing

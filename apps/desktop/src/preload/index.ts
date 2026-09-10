@@ -93,6 +93,22 @@ const api = {
 
 	/** Read the log. There is no write counterpart and there will not be one. */
 	log: {
+		/**
+		 * Be told when the log gains something.
+		 *
+		 * A callback, not a channel: the renderer cannot listen to anything except
+		 * the two things named here, and cannot send on either.
+		 */
+		onRecorded: (listener: () => void): (() => void) => {
+			const handler = () => listener();
+			ipcRenderer.on("log:recorded", handler);
+			return () => ipcRenderer.off("log:recorded", handler);
+		},
+		onTrouble: (listener: (problem: string) => void): (() => void) => {
+			const handler = (_event: unknown, problem: string) => listener(problem);
+			ipcRenderer.on("log:trouble", handler);
+			return () => ipcRenderer.off("log:trouble", handler);
+		},
 		events: (query: LogQuery = {}): Promise<Result<WireEvent[]>> =>
 			ipcRenderer.invoke("log:events", query),
 		health: (): Promise<Result<{ ok: boolean }>> => ipcRenderer.invoke("log:health"),

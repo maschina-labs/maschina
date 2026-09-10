@@ -19,7 +19,7 @@ export {
 	revoke,
 	settle,
 } from "./capability.ts";
-export { adminPool, appPool } from "./client.ts";
+export { adminPool, appPool, connectionString } from "./client.ts";
 export type { Evaluation } from "./evaluation.ts";
 export { evaluationsOf, OBJECTIVE_EVALUATED, recordEvaluation } from "./evaluation.ts";
 export type { Lease } from "./lease.ts";
@@ -107,6 +107,8 @@ export {
 	WORKER_RESUMED,
 	WORKER_SUSPENDED,
 } from "./suspension.ts";
+export type { Watching } from "./watch.ts";
+export { watchEvents } from "./watch.ts";
 export type { Workspace } from "./workspace.ts";
 export {
 	checkpointWorkspace,

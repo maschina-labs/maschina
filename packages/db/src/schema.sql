@@ -130,6 +130,34 @@ CREATE UNIQUE INDEX IF NOT EXISTS events_one_take_per_objective
 
 CREATE INDEX IF NOT EXISTS events_actor_epoch_idx ON events (actor, epoch DESC);
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Saying when something happened, so nothing has to keep asking
+--
+-- Every surface that shows the log was polling for it. Polling is a question
+-- asked over and over by something that has no way of knowing the answer
+-- changed, and the database is the one thing that always knows.
+--
+-- `pg_notify` carries the id only. The payload limit is 8000 bytes and an event
+-- can be larger, so the notification says that something happened and the reader
+-- comes and gets it. Truncating the event into the channel would make the
+-- notification a second, worse copy of the log.
+--
+-- This is not a queue and must never become one. Nothing is stored, nothing is
+-- retried, and a listener that was not connected missed it. Anything that needs
+-- to not miss it reads the log, which is what the log is for.
+CREATE OR REPLACE FUNCTION events_announce() RETURNS TRIGGER
+LANGUAGE plpgsql AS $$
+BEGIN
+  PERFORM pg_notify('maschina_events', NEW.id::text);
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS events_announced ON events;
+CREATE TRIGGER events_announced
+  AFTER INSERT ON events
+  FOR EACH ROW EXECUTE FUNCTION events_announce();
+
 CREATE OR REPLACE FUNCTION events_fence() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
 DECLARE

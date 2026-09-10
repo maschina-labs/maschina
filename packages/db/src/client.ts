@@ -20,7 +20,14 @@ const DEFAULTS = {
 	MASCHINA_DATABASE_URL: "postgres://maschina_app:maschina_app@localhost:5432/maschina",
 } as const;
 
-function connectionString(role: "app" | "admin"): string {
+/**
+ * Where to connect, from one place.
+ *
+ * Exported because the event listener needs its own connection rather than a
+ * pooled one, and a listener pointed at a different database than the queries is
+ * a bug nobody would find quickly.
+ */
+export function connectionString(role: "app" | "admin"): string {
 	const key = role === "admin" ? "MASCHINA_ADMIN_URL" : "MASCHINA_DATABASE_URL";
 	return process.env[key] ?? DEFAULTS[key];
 }
