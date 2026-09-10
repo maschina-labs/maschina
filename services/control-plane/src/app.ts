@@ -480,9 +480,34 @@ export function createApp(
 		return c.json(suspensions);
 	});
 
+	/**
+	 * Answer a suspended worker, and let it carry on.
+	 *
+	 * `answeredBy` is recorded because it is what makes this an instruction
+	 * rather than an observation (`07-CONTEXT-MEMORY` §2). It is an unverified
+	 * claim today, since there are no accounts, and recording it now means the
+	 * history is not anonymous when there are.
+	 */
 	app.post("/suspensions/:worker/resume", async (c) => {
-		const body = (await c.req.json()) as { because: string; objective?: string | null };
-		await resumeWorker(pool, c.req.param("worker"), body.objective ?? null, body.because);
+		const body = (await c.req.json()) as {
+			because: string;
+			objective?: string | null;
+			answeredBy?: string;
+		};
+		if (typeof body.because !== "string" || body.because.trim() === "") {
+			// A worker that suspended on a question resumes on an answer. Resuming
+			// it with nothing is not an answer, and would leave the record saying a
+			// person decided something when nobody did.
+			return c.json({ error: "because is required: a worker resumes on an answer" }, 400);
+		}
+		await resumeWorker(
+			pool,
+			c.req.param("worker"),
+			body.objective ?? null,
+			body.because,
+			undefined,
+			body.answeredBy,
+		);
 		return c.json({ resumed: true });
 	});
 

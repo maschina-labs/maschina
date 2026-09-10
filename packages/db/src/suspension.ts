@@ -120,20 +120,38 @@ export async function suspendAsking(
 	});
 }
 
-/** Carry on, and say what made it possible. */
+/**
+ * Carry on, and say what made it possible.
+ *
+ * `answeredBy` is who said so. A worker suspended on a question resumes because
+ * a person answered it, and `07-CONTEXT-MEMORY` §2 makes that the difference
+ * between instruction and content: the same words in a forge comment are an
+ * observation, and here they are an instruction, because of who they came from
+ * and how they arrived.
+ *
+ * **It is a claim, not an authenticated identity.** There are no accounts yet.
+ * Recording the claim now means the shape is right when there are, rather than
+ * discovering later that every historical resumption is anonymous.
+ */
 export async function resume(
 	pool: Pool,
 	worker: string,
 	objective: string | null,
 	because: string,
 	epoch?: bigint,
+	answeredBy?: string,
 ): Promise<void> {
 	await append(pool, {
 		actor: worker,
 		objective,
 		type: WORKER_RESUMED,
 		epoch: epoch ?? (await epochFor(pool, worker)),
-		payload: { v: 1, worker, because },
+		payload: {
+			v: 1,
+			worker,
+			because,
+			...(answeredBy !== undefined ? { answeredBy } : {}),
+		},
 	});
 }
 

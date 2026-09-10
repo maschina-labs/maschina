@@ -6,10 +6,17 @@
  * is the same boundary a worker crosses, and `check-node-boundary.mjs` fails the
  * build if this package ever imports `@maschina/db` or `pg`.
  *
- * **This surface is read-only, permanently.** There is no append here and there
- * is no write path. A viewer that can write to the event log is not a viewer
- * (`02-CORE` §3.5). Operations that change something arrive later as named
- * effects with their own authority, not by widening this file.
+ * **The window never appends to the log.** There is no append here and there
+ * never will be: a viewer that can write to the event log is not a viewer
+ * (`02-CORE` §3.5).
+ *
+ * It does now carry one named effect. Answering a suspended worker is not a
+ * write to the log, it is asking the control plane to record a person's decision,
+ * which the control plane does under that person's name. `07-CONTEXT-MEMORY` §2
+ * is the reason it belongs here at all: the same words in a forge comment are
+ * untrusted content, and arriving through Maschina from an identified human makes
+ * them instruction. Anything else that changes something arrives the same way, as
+ * a named effect, never as a general write path.
  *
  * Failure is reported, never swallowed. A window that silently shows nothing when
  * the control plane is gone is indistinguishable from a window showing that
@@ -125,6 +132,61 @@ export function objectives(): Promise<Result<WireObjective[]>> {
 
 export function objective(id: string): Promise<Result<WireObjective>> {
 	return read<WireObjective>(`/objectives/${encodeURIComponent(id)}`);
+}
+
+/** A worker that has stopped, and what would start it again. */
+export interface WireSuspension {
+	readonly worker: string;
+	readonly objective: string | null;
+	/** `question` waits on a person. `until` waits on a clock. */
+	readonly kind: string;
+	readonly reason: string;
+	readonly resumeAt: string | null;
+	readonly question: string | null;
+	readonly since: string;
+}
+
+export function suspensions(): Promise<Result<WireSuspension[]>> {
+	return read<WireSuspension[]>("/suspensions");
+}
+
+/**
+ * Answer a suspended worker.
+ *
+ * The one operation on this surface that changes anything. It writes nothing to
+ * the log itself: it asks the control plane to record that a person answered,
+ * and the control plane records who.
+ */
+export async function answer(
+	worker: string,
+	objective: string | null,
+	because: string,
+	answeredBy: string,
+): Promise<Result<{ resumed: boolean }>> {
+	const where = base();
+	try {
+		const response = await fetch(`${where}/suspensions/${encodeURIComponent(worker)}/resume`, {
+			method: "POST",
+			signal: AbortSignal.timeout(TIMEOUT_MS),
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ because, objective, answeredBy }),
+		});
+		if (!response.ok) {
+			const detail = (await response.json().catch(() => ({}))) as { error?: string };
+			return {
+				ok: false,
+				problem: detail.error ?? `The control plane refused the answer (${response.status}).`,
+			};
+		}
+		return { ok: true, value: (await response.json()) as { resumed: boolean } };
+	} catch {
+		// An answer that did not arrive must not look like one that did. The
+		// worker is still stopped and the person needs to know that.
+		return {
+			ok: false,
+			problem: `The answer did not reach ${where}. The worker is still stopped.`,
+		};
+	}
 }
 
 export const controlPlaneUrl = base;

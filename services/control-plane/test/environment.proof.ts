@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 and 2. The window reads the log, and objectives.
+ * Environment proof, slices 1 to 3. The window reads, and answers.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -25,7 +25,16 @@ import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
 import { hashContract } from "@maschina/core";
-import { append, appPool, PAYLOAD_V, recordStep, stateObjective } from "@maschina/db";
+import {
+	append,
+	appPool,
+	getSuspension,
+	PAYLOAD_V,
+	read,
+	recordStep,
+	stateObjective,
+	suspendIfStalled,
+} from "@maschina/db";
 import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
@@ -136,10 +145,20 @@ async function main(): Promise<void> {
 		"the bridge exposes named operations, not a channel",
 		!preload.includes("invoke: (") && !/invoke\(\s*channel/.test(preload),
 	);
+	// This asserted zero writes until slice 3, when answering a suspended worker
+	// became the first thing on this surface that changes anything. The claim
+	// narrows rather than disappearing: one named effect, and nothing that
+	// touches the log.
+	const writes = client.match(/method: "POST"/g) ?? [];
 	check(
-		"there is no write path to the log from this surface",
-		!client.includes('method: "POST"') && !/append/i.test(client),
-		"a viewer that can write to the log is not a viewer",
+		"there is exactly one thing on this surface that changes anything",
+		writes.length === 1,
+		`${writes.length} write(s)`,
+	);
+	check(
+		"and it answers a person's question rather than writing to the log",
+		client.includes("/resume") && !/\/events['"`]/.test(client),
+		"a viewer that can write to the event log is not a viewer",
 	);
 	check(
 		"and the app imports no database package",
@@ -148,6 +167,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 2 ───────────────────────────────────────────────────────────────
 	await slice2();
+
+	// ── Slice 3 ───────────────────────────────────────────────────────────────
+	await slice3();
 
 	verdict("Environment proof");
 }
@@ -293,6 +315,150 @@ async function slice2(): Promise<void> {
 			!satisfiedEvents.some(
 				(e: { payload: { criterionId?: unknown } }) => e.payload.criterionId === "accurate",
 			),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 3: the queue, and answering in place.
+ *
+ *   "Run pnpm stall:live. It leaves a worker suspended after three null steps
+ *    with a real question. The question appears in the window, an answer typed
+ *    there resumes it, and the whole exchange is in the log."
+ *
+ * The live run needs the subscription, so what is proved here is the same
+ * mechanism with the stall produced directly: a real suspension, a real question,
+ * answered through the window's own code path.
+ */
+async function slice3(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 2, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 2}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n8. A worker that stopped reaches the queue as a question");
+		const objective = (
+			await stateObjective(pool, {
+				statement: "Something that cannot be finished",
+				contract: {
+					criteria: [
+						{
+							id: "impossible",
+							criterion: "a thing that cannot happen",
+							verifyBy: "look",
+							strength: "mechanical",
+							evidence: ["nothing"],
+						},
+					],
+					nonGoals: [],
+					failureConditions: [],
+				},
+				origin: "human:ash",
+			})
+		).objective;
+
+		// Three steps that get nowhere, which is what a real stall looks like.
+		for (let i = 0; i < 3; i++) {
+			await recordStep(pool, "worker:stuck", objective.id, {
+				artifacts: [],
+				observations: [],
+				changedTheWorld: false,
+				satisfied: [],
+			});
+		}
+		const stalled = await suspendIfStalled(
+			pool,
+			"worker:stuck",
+			objective.id,
+			["impossible"],
+			"asking for something that does not exist",
+		);
+		check("the worker suspended", stalled);
+
+		const queue = await plane.suspensions();
+		check("the window sees it", queue.ok && queue.value.length === 1);
+		check(
+			"as something waiting on a person, not on a clock",
+			queue.ok && queue.value[0]?.kind === "question",
+			queue.ok ? (queue.value[0]?.kind ?? "") : "",
+		);
+		const question = queue.ok ? (queue.value[0]?.question ?? "") : "";
+		check("with an actual question", question.trim().endsWith("?"), question.slice(0, 70));
+		check(
+			"and separately, why it stopped",
+			queue.ok && (queue.value[0]?.reason ?? "").includes("no artifact"),
+		);
+
+		console.log("\n9. Answering it in the window resumes the worker");
+		const refusedEmpty = await plane.answer(
+			"worker:stuck",
+			objective.id,
+			"   ",
+			"human:operator",
+		);
+		check(
+			"an empty answer is refused",
+			!refusedEmpty.ok,
+			"resuming with nothing would record that a person decided when nobody did",
+		);
+		check(
+			"so the worker is still stopped",
+			(await getSuspension(pool, "worker:stuck")) !== null,
+		);
+
+		const sent = await plane.answer(
+			"worker:stuck",
+			objective.id,
+			"The capability was never granted. Ask for it and carry on.",
+			"human:operator",
+		);
+		check("a real answer is accepted", sent.ok);
+		check(
+			"and the worker is no longer stopped",
+			(await getSuspension(pool, "worker:stuck")) === null,
+		);
+		check(
+			"so the queue empties",
+			((await plane.suspensions()) as { value: unknown[] }).value.length === 0,
+		);
+
+		console.log("\n10. The whole exchange is in the log, including who answered");
+		const events = await read(pool, { objective: objective.id });
+		const resumed = events.find((e) => e.type === "worker.resumed");
+		check("the resumption is recorded", resumed !== undefined);
+		check(
+			"with the answer itself, not a summary of it",
+			String(resumed?.payload.because ?? "").startsWith("The capability was never granted"),
+		);
+		check(
+			"and who gave it, which is what makes it instruction rather than content",
+			resumed?.payload.answeredBy === "human:operator",
+			String(resumed?.payload.answeredBy ?? "nobody"),
+		);
+		check(
+			"the suspension is still in the log too, because nothing is deleted",
+			events.some((e) => e.type === "worker.suspended"),
+		);
+
+		console.log("\n11. The question is answerable where it is asked");
+		const queueView = readFileSync(join(desktop, "renderer/Queue.tsx"), "utf8");
+		check(
+			"the queue shows the question, not a status",
+			queueView.includes("suspension.question") && !queueView.includes("is stuck"),
+		);
+		check(
+			"with a box to answer it in",
+			queueView.includes("textarea") && queueView.includes("queue.answer"),
+			"ADR-011 section 6: everything shown is actionable where it is shown",
+		);
+		check(
+			"and an answer that failed to send never looks like one that worked",
+			queueView.includes("setRefused") && queueView.includes("still stopped"),
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));
