@@ -21,6 +21,11 @@ Versions follow semver.
 
 ### Changed
 
+- **The app icon again.** Same shape, cleaner contrast between the ring and the
+  ground.
+
+### Changed
+
 - **The app icon is the newer artwork.** The mark is light on a lighter ground
   now, so it reads at the size a dock actually shows it.
 - **The application is called Maschina.** It was calling itself Electron in the
