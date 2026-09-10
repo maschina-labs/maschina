@@ -115,13 +115,21 @@ async function main(): Promise<void> {
 		);
 	}
 
-	const workersThatWorked = new Set(
-		allEvents.filter((e) => e.type === "objective.taken").map((e) => e.actor),
+	// Which worker wins a race is not something concurrency promises. This
+	// asserted a spread across all three and failed on a fast runner where one
+	// worker won every race, which is correct behaviour: the assertion was wrong,
+	// not the system. What is guaranteed is that a take belongs to a worker that
+	// is really running, and that nothing was taken that was not offered.
+	const takes = allEvents.filter((e) => e.type === "objective.taken");
+	check(
+		"every take belongs to one of the running workers",
+		takes.every((t) => WORKERS.includes(t.actor)),
+		[...new Set(takes.map((t) => t.actor))].join(", "),
 	);
 	check(
-		"and the work was spread across workers rather than done by one",
-		workersThatWorked.size > 1,
-		[...workersThatWorked].join(", "),
+		"and there are exactly as many takes as objectives",
+		takes.length === objectives.length,
+		`${takes.length} take(s) for ${objectives.length} objective(s)`,
 	);
 
 	// 3. The log interleaves cleanly.
