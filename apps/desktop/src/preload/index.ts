@@ -82,6 +82,30 @@ export interface WireApproval {
 	readonly askedAt: string;
 }
 
+export interface WireVerdict {
+	readonly criterionId: string;
+	readonly result: string;
+	readonly evidence: readonly string[];
+	readonly method: string;
+	readonly notes: string;
+}
+
+export interface WireEvaluation {
+	readonly objective: string;
+	readonly evaluator: string;
+	readonly verdicts: readonly WireVerdict[];
+	readonly rollup: string;
+	readonly outcome: string;
+	readonly remaining: readonly string[];
+	readonly contractHash: string;
+}
+
+export interface WireCost {
+	readonly resource: string;
+	readonly settled: number;
+	readonly calls: number;
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -160,6 +184,10 @@ const api = {
 		list: (): Promise<Result<WireObjective[]>> => ipcRenderer.invoke("objectives:list"),
 		one: (id: string): Promise<Result<WireObjective>> =>
 			ipcRenderer.invoke("objectives:one", id),
+		evaluations: (id: string): Promise<Result<WireEvaluation[]>> =>
+			ipcRenderer.invoke("objectives:evaluations", id),
+		cost: (id: string): Promise<Result<WireCost[]>> =>
+			ipcRenderer.invoke("objectives:cost", id),
 	},
 } as const;
 

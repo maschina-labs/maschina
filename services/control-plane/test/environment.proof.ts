@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 to 5. The window reads, answers, allows, stops, and is told.
+ * Environment proof, slices 1 to 6. The window reads, answers, allows, stops, is told, and shows what things cost.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -33,9 +33,13 @@ import {
 	grant,
 	PAYLOAD_V,
 	read,
+	recordEvaluation,
 	recordStep,
+	reserve,
+	settle,
 	stateObjective,
 	suspendIfStalled,
+	whatDidItCost,
 } from "@maschina/db";
 import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
@@ -204,6 +208,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 5 ───────────────────────────────────────────────────────────────
 	await slice5();
+
+	// ── Slice 6 ───────────────────────────────────────────────────────────────
+	await slice6();
 
 	verdict("Environment proof");
 }
@@ -785,6 +792,156 @@ async function slice5(): Promise<void> {
 			"and keeps a slow interval underneath rather than trusting the stream",
 			/everyMs = 30_000/.test(reading),
 			"a push nobody stored is a push that can be missed",
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 6: what finished, and what it cost.
+ *
+ *   "A verdict opens the thing it judged: the commit, the file, the remote state
+ *    that was checked. The cost matches `maschina cost` to the micro-dollar."
+ *
+ *   "Watch for: showing the executor's account of its own work."
+ */
+async function slice6(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 5, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 5}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n20. A verdict reaches the window with its evidence");
+		const objective = (
+			await stateObjective(pool, {
+				statement: "Something somebody judged",
+				contract: {
+					criteria: [
+						{
+							id: "exists",
+							criterion: "the file is on the remote",
+							verifyBy: "query the git remote",
+							strength: "mechanical",
+							evidence: ["the file, read back"],
+						},
+						{
+							id: "accurate",
+							criterion: "it says what the history shows",
+							verifyBy: "somebody who did not do the work reads both",
+							strength: "independent",
+							evidence: ["the commits"],
+						},
+					],
+					nonGoals: [],
+					failureConditions: [],
+				},
+				origin: "human:ash",
+			})
+		).objective;
+
+		await recordEvaluation(pool, objective.id, "worker:judge", objective.contractHash ?? "", [
+			{
+				criterionId: "exists",
+				result: "satisfied",
+				evidence: ["9152449cc9ed on main", "the file, read back from the remote"],
+				method: "mechanical",
+				notes: "the remote has it",
+			},
+			{
+				criterionId: "accurate",
+				result: "not_satisfied",
+				evidence: ["the commit subjects"],
+				method: "independent",
+				notes: "it describes something the history does not show",
+			},
+		]);
+
+		const judged = await plane.evaluations(objective.id);
+		check("the window sees the evaluation", judged.ok && judged.value.length === 1);
+		check(
+			"with a verdict for each criterion",
+			judged.ok && judged.value[0]?.verdicts.length === 2,
+		);
+		check(
+			"and the evidence each rested on",
+			judged.ok &&
+				(judged.value[0]?.verdicts[0]?.evidence ?? []).includes("9152449cc9ed on main"),
+			"a verdict that does not say what it was checked against cannot be audited later",
+		);
+		check(
+			"and which verification strength was actually used",
+			judged.ok &&
+				judged.value[0]?.verdicts[0]?.method === "mechanical" &&
+				judged.value[0]?.verdicts[1]?.method === "independent",
+			"09-EVALUATION section 3: mechanical, independent and judgement are not the same claim",
+		);
+		check(
+			"naming who judged, which is never the worker that did the work",
+			judged.ok && judged.value[0]?.evaluator === "worker:judge",
+		);
+		check(
+			"and what is still outstanding",
+			judged.ok && (judged.value[0]?.remaining ?? []).includes("accurate"),
+		);
+
+		console.log("\n21. And what it cost, from settlements");
+		const brain = await grant(pool, {
+			holder: "worker:doing",
+			resource: "model",
+			operations: ["invoke"],
+			scope: "fast",
+			limits: { granted: 1_000_000, reserved: 0, settled: 0 },
+			effectClass: "idempotent",
+			checkpoint: "none",
+			approval: "none",
+			delegationDepth: 0,
+			grantedBy: "human:ash",
+		});
+		// Cost is attributed through the objective's own effects, so there has to be
+		// one. A reservation with nothing spending it belongs to no objective, which
+		// is correct: money is attributed to what caused it.
+		await append(pool, {
+			actor: "worker:doing",
+			objective: objective.id,
+			epoch: 0n,
+			type: "effect.intended",
+			payload: { v: PAYLOAD_V, capabilityId: brain.id, operation: "invoke", target: "fast" },
+		});
+		await reserve(pool, brain.id, "worker:doing", 50_000);
+		await settle(pool, brain.id, "worker:doing", 3_412, 50_000);
+
+		const spent = await plane.cost(objective.id);
+		check("the window sees the cost", spent.ok && spent.value.length === 1);
+		check(
+			"to the micro-dollar, matching what the query says",
+			spent.ok &&
+				spent.value[0]?.settled === (await whatDidItCost(pool, objective.id))[0]?.settled,
+			spent.ok ? String(spent.value[0]?.settled) : "",
+		);
+		check(
+			"broken down by resource",
+			spent.ok && spent.value[0]?.resource === "model",
+			spent.ok ? (spent.value[0]?.resource ?? "") : "",
+		);
+
+		console.log("\n22. Shown as evidence, not as the worker's account of itself");
+		const view = readFileSync(join(desktop, "renderer/Objectives.tsx"), "utf8");
+		check(
+			"the window shows the evidence a verdict rested on",
+			view.includes("checked against") && view.includes("verdict.evidence"),
+		);
+		check(
+			"and who judged",
+			view.includes("evaluation.evaluator"),
+			"09-EVALUATION section 4: a worker may not evaluate its own objective",
+		);
+		check(
+			"and says the cost came from settlements",
+			view.includes("not from anything a worker reported"),
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));

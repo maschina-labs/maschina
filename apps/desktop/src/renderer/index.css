@@ -778,3 +778,35 @@ body {
 	line-height: 1.6;
 	color: var(--text);
 }
+
+/* ── What it cost ─────────────────────────────────────────────────────────── */
+
+.cost {
+	width: 100%;
+	border-collapse: collapse;
+	font-family: var(--mono);
+	font-size: 11px;
+}
+
+.cost td {
+	padding: 4px 0;
+	border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+}
+
+.cost__amount {
+	text-align: right;
+	color: var(--text);
+}
+
+.cost__note {
+	margin: 8px 0 0;
+	font-family: var(--mono);
+	font-size: 10px;
+	line-height: 1.6;
+	color: var(--text-faint);
+}
+
+.strength--met,
+.strength--mechanical {
+	color: #4ea36b;
+}

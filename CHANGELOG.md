@@ -19,6 +19,14 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **You can see what was judged, and on what.** Each requirement shows whether it
+  was met, what it was checked against, and how strong that check was, along with
+  who did the judging, which is never the worker that did the work.
+- **And what it cost.** Per objective, broken down by what was used, read from
+  what was actually settled rather than from anything a worker said about itself.
+
 ### Fixed
 
 - **The stop confirmation can be typed in, and left.** It could not be: it sat
