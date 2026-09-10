@@ -148,7 +148,10 @@ async function run(pool: Pool, node: ControlPlane): Promise<void> {
 
 	say("Working, one step at a time, until it gets somewhere or stops");
 	let stopped = false;
-	let lastAttempt = "reading the repository history";
+	// What the stall report will say was tried last. Constant because every step
+	// of this loop tries the same thing, which is the whole point: a worker with
+	// one move left, making it over and over.
+	const lastAttempt = "asking the model to write the file from the repository history";
 
 	for (let step = 2; step <= MAX_STEPS && !stopped; step++) {
 		const prompt =
@@ -161,7 +164,6 @@ async function run(pool: Pool, node: ControlPlane): Promise<void> {
 			"INSUFFICIENT: followed by one sentence saying what is missing. " +
 			"Otherwise reply with the file contents and nothing else.";
 
-		lastAttempt = "asking the model to write the file from the repository history";
 		const decided = await performEffect(
 			node,
 			{
