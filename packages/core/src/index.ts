@@ -37,6 +37,8 @@ export type {
 	ObjectiveState,
 	VerificationStrength,
 } from "./objective.ts";
+export type { RankOptions, Relevance, Scored, Weights } from "./retrieval.ts";
+export { bySharedWords, EVEN, rank, recencyOf, reliabilityOf } from "./retrieval.ts";
 export {
 	scopeViolation,
 	scopeViolationOf,

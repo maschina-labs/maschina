@@ -21,6 +21,15 @@ Versions follow semver.
 
 ### Added
 
+- **You can ask why a worker was shown one thing and not another.** Everything
+  considered is scored on three counts, how relevant it is, how recent, and how
+  much it is worth trusting, and the whole ranking is kept, including what was
+  rejected and by how much. A retrieval that only recorded its winners could not
+  answer the question.
+- **No single one of those three decides.** Something a person stated outranks a
+  more colourful guess about the same subject, and something written today does
+  not beat something older that actually answers the question.
+
 - **Maschina can remember things, and every remembered thing says where it came
   from.** A fact somebody stated, a generalisation a worker drew, and something a
   file claimed are three different kinds of thing, and they stay different when

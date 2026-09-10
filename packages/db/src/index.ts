@@ -78,6 +78,8 @@ export {
 	whatWouldRevoking,
 	whyDidItDecide,
 } from "./queries.ts";
+export type { RankingEntry, RecordedRetrieval, Retrieval, RetrieveInput } from "./retrieval.ts";
+export { MEMORY_RETRIEVED, retrieve, whyThatContext } from "./retrieval.ts";
 export {
 	EMERGENCY_STOP_LIFTED,
 	emergencyStop,
