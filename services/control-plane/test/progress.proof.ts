@@ -88,11 +88,40 @@ async function main(): Promise<void> {
 	check("with nothing stalled", partial.consecutiveNulls === 0);
 
 	// 2. Slow is not stuck.
+	//
+	// The observations have to differ, and that is the point rather than a
+	// detail. An earlier version of this section repeated one sentence with the
+	// index changed, which is a worker restating a single finding twenty times.
+	// That now stalls, correctly, and it is what the first live run of this
+	// criterion caught: a model reworded the same refusal every step and the
+	// counter never moved.
 	console.log("\n2. Twenty careful steps is work, not a stall");
-	for (let i = 0; i < 20; i++) {
+	const findings = [
+		"the target file is held by another process",
+		"the lock belongs to pid 4021",
+		"pid 4021 is the editor, not a build",
+		"killing it would lose unsaved work",
+		"there is a second copy under a temp path",
+		"the temp copy is three commits behind",
+		"the branch protection rule blocks direct pushes",
+		"the required check is named Validate",
+		"Validate needs a database that is not running",
+		"the compose file binds port 5432",
+		"something else already listens there",
+		"it is a Postgres from another project",
+		"that project has its own compose file",
+		"stopping it would break the other project",
+		"an alternative port is configurable",
+		"the connection string is read from an env file",
+		"the env file is gitignored",
+		"a sample env file exists with the wrong port",
+		"the sample has not been updated since March",
+		"nobody else on the team has hit this",
+	];
+	for (const finding of findings) {
 		await recordStep(pool, "worker:busy", working.id, {
 			artifacts: [],
-			observations: [`checked approach ${i} and it will not work because of the lock`],
+			observations: [finding],
 			changedTheWorld: false,
 			satisfied: [],
 		});
@@ -111,6 +140,41 @@ async function main(): Promise<void> {
 	check(
 		"because a step that learned something is progress, even a failed one",
 		(await getSuspension(pool, "worker:busy")) === null,
+	);
+
+	// 2b. Saying the same thing again is not learning it again.
+	console.log("\n2b. But rewording one finding twenty times is not twenty findings");
+	const rewordings = [
+		"the deployment target refuses connections on every port that was tried",
+		"every port tried on the deployment target refuses the connection",
+		"connections to the deployment target are refused on all ports tried",
+	];
+	const repeater = (
+		await stateObjective(pool, {
+			statement: "An objective whose worker repeats itself",
+			contract: CONTRACT,
+			origin: "human:ash",
+		})
+	).objective;
+	for (const wording of rewordings) {
+		await recordStep(pool, "worker:parrot", repeater.id, {
+			artifacts: [],
+			observations: [wording],
+			changedTheWorld: false,
+			satisfied: [],
+		});
+	}
+	const parroted = await progressOf(pool, repeater.id);
+	check("three steps were taken", parroted.steps === 3, `${parroted.steps}`);
+	check(
+		"and only the first said anything new",
+		parroted.consecutiveNulls === 2,
+		`${parroted.consecutiveNulls} of them got nowhere`,
+	);
+	check(
+		"which the worker never got to decide for itself",
+		true,
+		"novelty is folded from the log, not reported by the worker",
 	);
 
 	// 3. An objective it cannot finish.
