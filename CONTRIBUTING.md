@@ -94,28 +94,22 @@ has to pass.
 
 Do not open an issue for a vulnerability. See [SECURITY.md](SECURITY.md).
 
-## Licensing
+## Licensing, and contributions
 
-Maschina is under the **Business Source License 1.1**, and every version becomes
-**Apache 2.0** four years after its release. `LICENSE` governs; `NOTICE` is the
-short version.
+**Maschina is proprietary. All rights reserved.** See `LICENSE`.
 
-What that means for you, in plain language:
+The repository is public because continuous integration is free on public
+repositories and metered on private ones. That is the whole reason. Public
+visibility is not a licence.
 
-| | |
-| --- | --- |
-| Read the source | yes |
-| Run it on your own machines, for yourself or your company | yes |
-| Modify it | yes |
-| Build software with it and sell that software | yes |
-| Sell Maschina itself to other people as a hosted service | no |
-| After 2030-09-10 | everything released today is Apache 2.0 |
+**Contributions are not being accepted at this time.** Not because they are
+unwelcome in principle, but because accepting one without an agreement in place
+would leave its author holding copyright on part of the codebase, which would
+constrain every future licensing decision. Until the licence is settled, a pull
+request from outside cannot be merged.
 
-It is source-available rather than OSI open source, and that is deliberate rather
-than an accident. The reasoning is recorded in `ADR-012`.
+Issues and discussion are welcome. The public roadmap is at
+https://github.com/orgs/maschina-labs/projects/1 and every planned piece of work
+is an issue there.
 
-**Contributions need a signed CLA**, once per person, covering everything you
-send. It is in `.github/CLA.md` and it takes one line on your first pull request.
-It exists so the project keeps the ability to change its own licence later, which
-one unreachable contributor could otherwise block permanently.
-
+The licence is deliberately undecided and recorded that way in `ADR-013`.

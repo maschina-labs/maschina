@@ -21,10 +21,10 @@ Versions follow semver.
 
 ### Added
 
-- **Maschina has a licence.** You can read the source, run it on your own
-  machines, change it, and build and sell your own software with it. You cannot
-  sell Maschina itself to other people as a hosted service. Four years after any
-  version is released, that version becomes Apache 2.0 automatically.
+- **Maschina is proprietary, and says so.** All rights reserved. The repository is
+  public because continuous integration is free on public repositories, and that
+  is the only reason. Reading the source is permitted and nothing further is. The
+  licensing is deliberately undecided for now.
 
 ### Added
 
