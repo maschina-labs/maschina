@@ -33,6 +33,7 @@ import {
 	authorize,
 	CAPABILITY_APPROVAL_REQUESTED,
 	CAPABILITY_APPROVED,
+	connectionString,
 	emergencyStop,
 	Fenced,
 	getCapability,
@@ -55,8 +56,10 @@ import {
 	suspendAsking,
 	suspendUntil,
 	takeObjective,
+	watchEvents,
 } from "@maschina/db";
 import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
 import type { Pool } from "pg";
 import { callEstimate } from "./config.ts";
 import { drivers } from "./drivers.ts";
@@ -185,6 +188,46 @@ export function createApp(
 			throw error;
 		}
 	});
+
+	/**
+	 * Say when something is recorded, so nothing has to keep asking.
+	 *
+	 * Server-sent events, which is the smallest thing that does this. Not a
+	 * websocket and not a broker: `CLAUDE.md` forbids adding one, and there is
+	 * nothing here that needs two-way traffic. The window reads over HTTP and is
+	 * told over HTTP.
+	 *
+	 * Each message carries an event id and nothing else. A reader that wants the
+	 * event asks for it, which keeps this from becoming a second, worse copy of
+	 * the log.
+	 */
+	app.get("/events/stream", (c) =>
+		streamSSE(c, async (stream) => {
+			const send = (id: string) => void stream.writeSSE({ event: "recorded", data: id });
+
+			// The listener outlives no request but this one, so it is opened per
+			// connection and closed with it. One window, one connection, one
+			// listener, and nothing left behind when the window closes.
+			const watching = await watchEvents(
+				// Same default the pool uses, from one place, so the listener and the
+				// queries can never end up pointed at different databases.
+				connectionString("app"),
+				send,
+				(problem) => void stream.writeSSE({ event: "trouble", data: problem }),
+			);
+
+			stream.onAbort(() => void watching.stop());
+
+			// Hold the connection open. A heartbeat keeps proxies and sleeping
+			// laptops from quietly dropping it, and tells the window the stream is
+			// alive during a long stretch where nothing happens, which is normal.
+			while (!stream.aborted) {
+				await stream.sleep(20_000);
+				if (!stream.aborted) await stream.writeSSE({ event: "alive", data: "" });
+			}
+			await watching.stop();
+		}),
+	);
 
 	app.get("/events", async (c) => {
 		const { objective, actor, after, limit } = c.req.query();

@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 to 4. The window reads, answers, allows and stops.
+ * Environment proof, slices 1 to 5. The window reads, answers, allows, stops, and is told.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -143,12 +143,23 @@ async function main(): Promise<void> {
 	// were found by trying them.
 	const style = readFileSync(join(desktop, "renderer/index.css"), "utf8");
 	if (style.includes("-webkit-app-region: drag")) {
+		// Blanket, not per control. The tabs shipped broken this way and then the
+		// stop dialog did, because it renders inside the header and inherited the
+		// drag region: the overlay could not be typed in or dismissed. Checking one
+		// class at a time would have caught the first and missed the second.
 		check(
-			"anything clickable in the title bar opts out of the drag region",
-			/\.tab\s*\{[^}]*-webkit-app-region:\s*no-drag/.test(style),
-			"a drag region swallows clicks from everything inside it",
+			"everything inside the title bar opts out of the drag region",
+			/\.titlebar\s\*\s*\{[^}]*-webkit-app-region:\s*no-drag/.test(style),
+			"a drag region swallows clicks and keystrokes from everything inside it",
 		);
 	}
+
+	const stopView = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
+	check(
+		"and the dialog can always be left",
+		stopView.includes("Escape") && stopView.includes("stopping__backdrop"),
+		"nobody should ever be stuck in a dialog, least of all this one",
+	);
 
 	check(
 		"the renderer never calls fetch itself",
@@ -190,6 +201,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 4 ───────────────────────────────────────────────────────────────
 	await slice4();
+
+	// ── Slice 5 ───────────────────────────────────────────────────────────────
+	await slice5();
 
 	verdict("Environment proof");
 }
@@ -652,7 +666,7 @@ async function slice4(): Promise<void> {
 		);
 
 		console.log("\n16. And it is reachable, and honest about not being a pause");
-		const stopView = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
+		const stopSource = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
 		const shell = readFileSync(join(desktop, "renderer/App.tsx"), "utf8");
 		check(
 			"the stop is in the title bar, so it is visible from every view",
@@ -661,11 +675,116 @@ async function slice4(): Promise<void> {
 		);
 		check(
 			"it asks before it acts",
-			stopView.includes("Stop everything?") && stopView.includes("setAsking"),
+			stopSource.includes("Stop everything?") && stopSource.includes("setAsking"),
 		);
 		check(
 			"and says plainly that nothing comes back",
-			stopView.includes("not a pause") && stopView.includes("comes back"),
+			stopSource.includes("not a pause") && stopSource.includes("comes back"),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 5: told, not asking.
+ *
+ *   "Two windows on the same objective show the same thing within a second of an
+ *    event being appended."
+ *
+ *   "Watch for: reaching for a websocket layer or a message broker."
+ */
+async function slice5(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 4, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 4}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n17. The database says when something is recorded");
+		const told: number[] = [];
+		const trouble: string[] = [];
+
+		// Two watchers, because the claim is about two windows seeing the same
+		// thing rather than about one window working.
+		const stopA = plane.watch(
+			() => told.push(Date.now()),
+			(p: string) => p !== "" && trouble.push(p),
+		);
+		const stopB = plane.watch(
+			() => told.push(Date.now()),
+			(p: string) => p !== "" && trouble.push(p),
+		);
+		// Both streams need to be connected before anything is appended, or the
+		// test would be measuring how fast they connect.
+		await new Promise((resolve) => setTimeout(resolve, 700));
+
+		const at = Date.now();
+		await append(pool, {
+			actor: "human:ash",
+			objective: null,
+			epoch: 0n,
+			type: "note.made",
+			payload: { v: PAYLOAD_V, text: "something happened" },
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 900));
+		stopA();
+		stopB();
+
+		check("both watchers were told", told.length >= 2, `${told.length} notifications`);
+		check(
+			"within a second of it being recorded",
+			told.every((t) => t - at < 1_000),
+			told.map((t) => `${t - at}ms`).join(", "),
+		);
+		check("and neither reported trouble", trouble.length === 0, trouble.join("; "));
+
+		console.log("\n18. Nothing was added to carry it");
+		const schema = readFileSync(
+			new URL("../../../packages/db/src/schema.sql", import.meta.url).pathname,
+			"utf8",
+		);
+		check(
+			"the database announces it, with a trigger",
+			schema.includes("pg_notify") && schema.includes("events_announced"),
+		);
+		check(
+			"the notification carries an id, not the event",
+			schema.includes("NEW.id::text"),
+			"a notification holding the event would be a second, worse copy of the log",
+		);
+		// Dependency names, not a substring search of the file. Grepping for "ws
+		// would also match "wsl-tools", and a check that can be satisfied by
+		// coincidence is not a check.
+		const manifest = JSON.parse(
+			readFileSync(new URL("../../../package.json", import.meta.url).pathname, "utf8"),
+		) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+		const installed = new Set([
+			...Object.keys(manifest.dependencies ?? {}),
+			...Object.keys(manifest.devDependencies ?? {}),
+		]);
+		for (const banned of [
+			"nats",
+			"redis",
+			"ioredis",
+			"socket.io",
+			"ws",
+			"amqplib",
+			"kafkajs",
+		]) {
+			check(`no ${banned}`, !installed.has(banned));
+		}
+
+		console.log("\n19. And the window stopped asking");
+		const reading = readFileSync(join(desktop, "renderer/useLog.ts"), "utf8");
+		check("it reads when it is told", reading.includes("onRecorded"));
+		check(
+			"and keeps a slow interval underneath rather than trusting the stream",
+			/everyMs = 30_000/.test(reading),
+			"a push nobody stored is a push that can be missed",
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));

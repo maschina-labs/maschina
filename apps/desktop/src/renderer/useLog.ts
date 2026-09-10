@@ -17,8 +17,21 @@ export type Connection =
 
 type Reader<T> = () => Promise<{ ok: true; value: T } | { ok: false; problem: string }>;
 
-/** Poll something readable. Slice 5 replaces the interval with a server push. */
-export function useReading<T>(read: Reader<T>, everyMs = 2_000) {
+/**
+ * Read something, and read it again when the log changes.
+ *
+ * It used to poll every two seconds, which meant the window was a second behind
+ * on average and asked a hundred and eighty questions an hour to learn nothing.
+ * The control plane says when the log gains something, so this reads on being
+ * told.
+ *
+ * A slow interval stays underneath as a floor, because being told is not a
+ * guarantee: `07-CONTEXT-MEMORY` has no bearing here but the same instinct does,
+ * that a push nobody stored is a push that can be missed. If the stream drops
+ * and reconnects, the next read catches whatever happened in between anyway,
+ * since the read is of current state rather than of a delta.
+ */
+export function useReading<T>(read: Reader<T>, everyMs = 30_000) {
 	const [value, setValue] = useState<T | null>(null);
 	const [connection, setConnection] = useState<Connection>({ state: "connecting" });
 
@@ -44,7 +57,11 @@ export function useReading<T>(read: Reader<T>, everyMs = 2_000) {
 	useEffect(() => {
 		void refresh();
 		const timer = setInterval(() => void refresh(), everyMs);
-		return () => clearInterval(timer);
+		const stop = window.maschina?.log.onRecorded(() => void refresh());
+		return () => {
+			clearInterval(timer);
+			stop?.();
+		};
 	}, [refresh, everyMs]);
 
 	return { value, connection, refresh } as const;

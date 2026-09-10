@@ -33,6 +33,7 @@ import {
 	objectives,
 	stopEverything,
 	suspensions,
+	watch,
 } from "./control-plane.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -59,6 +60,15 @@ function createWindow(): void {
 			sandbox: true,
 		},
 	});
+
+	// The window is told when the log gains something, rather than asking. One
+	// watcher per window, stopped when the window goes, so closing a window does
+	// not leave a stream open against the control plane.
+	const unwatch = watch(
+		() => window.webContents.send("log:recorded"),
+		(problem) => window.webContents.send("log:trouble", problem),
+	);
+	window.on("closed", unwatch);
 
 	// Show only once painted, so there is no white flash before the dark theme.
 	window.once("ready-to-show", () => window.show());

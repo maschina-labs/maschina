@@ -15,7 +15,7 @@
  * know it is not undo.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const ACTOR = "human:operator";
 
@@ -24,6 +24,22 @@ export function Stop() {
 	const [reason, setReason] = useState("");
 	const [sending, setSending] = useState(false);
 	const [outcome, setOutcome] = useState<string | null>(null);
+	const box = useRef<HTMLTextAreaElement>(null);
+
+	// Escape closes it, and the box has focus when it opens. Nobody should ever be
+	// stuck inside a dialog, least of all this one.
+	useEffect(() => {
+		if (!asking) return;
+		box.current?.focus();
+		const onEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setAsking(false);
+				setOutcome(null);
+			}
+		};
+		document.addEventListener("keydown", onEscape);
+		return () => document.removeEventListener("keydown", onEscape);
+	}, [asking]);
 
 	const stop = async () => {
 		const why = reason.trim();
@@ -57,6 +73,17 @@ export function Stop() {
 
 	return (
 		<div className="stopping">
+			{/* The backdrop dismisses. A button, not a div with a handler, so it is
+			    reachable by keyboard as well, and Escape does the same thing. */}
+			<button
+				type="button"
+				className="stopping__backdrop"
+				aria-label="Close"
+				onClick={() => {
+					setAsking(false);
+					setOutcome(null);
+				}}
+			/>
 			<div className="stopping__box">
 				<h2 className="stopping__title">Stop everything?</h2>
 				<p className="stopping__text">
@@ -69,6 +96,7 @@ export function Stop() {
 				</p>
 
 				<textarea
+					ref={box}
 					className="answer__box"
 					value={reason}
 					placeholder="Why you are stopping. This is recorded."

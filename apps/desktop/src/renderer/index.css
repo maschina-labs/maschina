@@ -53,6 +53,19 @@ body {
 	user-select: none;
 }
 
+/* Everything inside the title bar opts out of dragging.
+ *
+ * A drag region swallows clicks and keystrokes from everything inside it. The
+ * tabs shipped broken this way, then the stop dialog did, which renders inside
+ * the header and inherited it: the overlay could not be typed in or dismissed.
+ *
+ * Doing it here rather than per control means the next thing added to the title
+ * bar is not broken by default. The window still drags by its empty space. */
+.titlebar * {
+	-webkit-app-region: no-drag;
+	user-select: none;
+}
+
 .titlebar__mark {
 	font-family: var(--mono);
 	font-size: 12px;
@@ -271,10 +284,6 @@ body {
 }
 
 .tab {
-	/* The title bar is a drag region, and a drag region swallows clicks. Anything
-	   interactive inside it has to opt out or it simply does not respond, which
-	   looks exactly like a broken button. */
-	-webkit-app-region: no-drag;
 	padding: 3px 10px;
 	border: 0;
 	border-radius: 5px;
@@ -727,7 +736,16 @@ body {
 	background: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
+.stopping__backdrop {
+	position: absolute;
+	inset: 0;
+	border: 0;
+	background: transparent;
+	cursor: default;
+}
+
 .stopping__box {
+	position: relative;
 	width: min(520px, 100%);
 	padding: 22px 24px;
 	border: 1px solid color-mix(in srgb, #d0603a 45%, var(--border));

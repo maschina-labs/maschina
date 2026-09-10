@@ -269,3 +269,66 @@ export async function answer(
 }
 
 export const controlPlaneUrl = base;
+
+/**
+ * Be told when something is recorded.
+ *
+ * The window polled every two seconds, which is a question asked repeatedly by
+ * something with no way of knowing the answer changed. This reads the control
+ * plane's stream instead and calls back when the log gains something.
+ *
+ * Parsed by hand rather than with `EventSource`, which Node still marks
+ * experimental. The format is three fields and a blank line; a dependency for
+ * that would cost more than it saves.
+ */
+export function watch(
+	onRecorded: () => void,
+	onTrouble: (problem: string) => void,
+): () => void {
+	const controller = new AbortController();
+	let closed = false;
+
+	const run = async (): Promise<void> => {
+		while (!closed) {
+			try {
+				const response = await fetch(`${base()}/events/stream`, {
+					signal: controller.signal,
+					headers: { accept: "text/event-stream" },
+				});
+				if (response.body === null) throw new Error("the stream had no body");
+
+				onTrouble("");
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+				let buffer = "";
+
+				while (!closed) {
+					const { done, value } = await reader.read();
+					if (done) break;
+					buffer += decoder.decode(value, { stream: true });
+
+					// Messages are separated by a blank line. Anything after the last
+					// one is a partial message and waits for the rest.
+					const messages = buffer.split("\n\n");
+					buffer = messages.pop() ?? "";
+					for (const message of messages) {
+						if (message.includes("event: recorded")) onRecorded();
+					}
+				}
+			} catch {
+				if (closed) return;
+				// The control plane restarted, or the machine slept. Say so and try
+				// again rather than going quiet, because a stream that died silently
+				// looks exactly like a system where nothing is happening.
+				onTrouble("Not being told about new events. Trying to reconnect.");
+			}
+			if (!closed) await new Promise((resolve) => setTimeout(resolve, 1_000));
+		}
+	};
+
+	void run();
+	return () => {
+		closed = true;
+		controller.abort();
+	};
+}

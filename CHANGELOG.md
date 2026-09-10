@@ -19,6 +19,19 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The stop confirmation can be typed in, and left.** It could not be: it sat
+  inside the strip you drag the window by, which swallows clicks and keystrokes,
+  so the box would not take text and neither button worked. Escape and clicking
+  away close it now.
+
+### Changed
+
+- **The window updates the moment something happens, instead of checking every
+  couple of seconds.** Nothing new was added to make that work: the database
+  already knows when something is recorded, so it says so.
+
 ### Added
 
 - **You can allow or refuse what a worker is asking to do.** Anything needing
