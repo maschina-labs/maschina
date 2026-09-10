@@ -36,6 +36,7 @@ import {
 	objective,
 	objectives,
 	state,
+	stats,
 	stopEverything,
 	suspensions,
 	watch,
@@ -138,6 +139,7 @@ function serveTheRenderer(): void {
 			draft(input.statement, input.capabilityId),
 	);
 	ipcMain.handle("objectives:drafters", () => modelCapabilities());
+	ipcMain.handle("stats:read", () => stats());
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(

@@ -26,6 +26,7 @@ import type {
 	ReadOptions,
 	Verdict,
 } from "@maschina/core";
+import { scoreboard } from "@maschina/core";
 import type { Lease } from "@maschina/db";
 import {
 	acquireLease,
@@ -548,6 +549,18 @@ export function createApp(
 	 * `?state=admitted` is the query a node actually makes: everything stated,
 	 * admitted, and not yet finished or being worked on by somebody else.
 	 */
+	/**
+	 * What has been done, counted.
+	 *
+	 * A fold over the log, computed on request and stored nowhere. `02-CORE` §7:
+	 * a projection is derived, deletable and rebuildable, so a scoreboard cannot
+	 * drift from the record because it has no record of its own.
+	 *
+	 * **Nothing on a worker's path reaches this route.** A worker that can see a
+	 * number it is judged on optimises for the number.
+	 */
+	app.get("/stats", async (c) => c.json(scoreboard(await logRead(pool))));
+
 	app.get("/objectives", async (c) => {
 		const { state } = c.req.query();
 		const objectives = await listObjectives(pool);

@@ -10,9 +10,10 @@ import { useCallback, useState } from "react";
 import { Log } from "./Log.tsx";
 import { Objectives } from "./Objectives.tsx";
 import { Queue } from "./Queue.tsx";
+import { Stats } from "./Stats.tsx";
 import { Stop } from "./Stop.tsx";
 
-type View = "queue" | "objectives" | "log";
+type View = "queue" | "objectives" | "log" | "stats";
 
 export function App() {
 	// The queue opens first. 08-ENVIRONMENT section 1: the primary surface is what
@@ -39,6 +40,9 @@ export function App() {
 					<Tab now={view} is="log" onPick={setView}>
 						log
 					</Tab>
+					<Tab now={view} is="stats" onPick={setView}>
+						done
+					</Tab>
 				</nav>
 				<Stop />
 			</header>
@@ -48,6 +52,7 @@ export function App() {
 				{view === "queue" && <Queue onProblem={reportProblem} />}
 				{view === "objectives" && <Objectives onProblem={reportProblem} />}
 				{view === "log" && <Log onProblem={reportProblem} onCount={reportCount} />}
+				{view === "stats" && <Stats onProblem={reportProblem} />}
 			</main>
 
 			<footer className="statusbar">

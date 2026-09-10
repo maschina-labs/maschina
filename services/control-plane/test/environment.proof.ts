@@ -36,8 +36,10 @@ import {
 	recordEvaluation,
 	recordStep,
 	reserve,
+	resume,
 	settle,
 	stateObjective,
+	suspendAsking,
 	suspendIfStalled,
 	whatDidItCost,
 } from "@maschina/db";
@@ -214,6 +216,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 7 ───────────────────────────────────────────────────────────────
 	await slice7();
+
+	// ── Slice 8 ───────────────────────────────────────────────────────────────
+	await slice8();
 
 	verdict("Environment proof");
 }
@@ -1088,6 +1093,139 @@ async function slice7(): Promise<void> {
 		check(
 			"and the form says the contract is about to be frozen",
 			form.includes("frozen once stated"),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 8: stats, levels and the heatmap.
+ *
+ *   "Delete every projection, rebuild, and the numbers are identical. And a test
+ *    fails if any scoreboard value can reach anything a worker is given."
+ *
+ *   "Watch for: making it the front door."
+ */
+async function slice8(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 7, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 7}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n27. Everything counted is something that happened");
+		const objective = (
+			await stateObjective(pool, {
+				statement: "Something to count",
+				contract: {
+					criteria: [
+						{
+							id: "one",
+							criterion: "it happened",
+							verifyBy: "the log",
+							strength: "mechanical",
+							evidence: ["events"],
+						},
+					],
+					nonGoals: [],
+					failureConditions: [],
+				},
+				origin: "human:ash",
+			})
+		).objective;
+
+		await recordStep(pool, "worker:counted", objective.id, {
+			artifacts: ["a file"],
+			observations: [],
+			changedTheWorld: true,
+			satisfied: ["one"],
+		});
+		await recordStep(pool, "worker:counted", objective.id, {
+			artifacts: [],
+			observations: [],
+			changedTheWorld: false,
+			satisfied: [],
+		});
+		await suspendAsking(pool, "worker:counted", objective.id, "stuck", "what now?");
+		await resume(pool, "worker:counted", objective.id, "carry on", undefined, "human:operator");
+
+		const board = await plane.stats();
+		check("the window sees the scoreboard", board.ok);
+		check("one objective stated", board.ok && board.value.objectivesStated === 1);
+		check("one criterion satisfied", board.ok && board.value.criteriaSatisfied === 1);
+		check(
+			"one step that got nowhere, counted rather than hidden",
+			board.ok && board.value.nullSteps === 1,
+			"a null step is how a worker notices it is stuck, not a failure",
+		);
+		check("one question asked", board.ok && board.value.questionsAsked === 1);
+		check(
+			"and one answered, because somebody answered it",
+			board.ok && board.value.questionsAnswered === 1,
+		);
+		check(
+			"days have something in them",
+			board.ok && board.value.days.length >= 1 && board.value.streak >= 1,
+		);
+
+		console.log("\n28. There is nothing to rebuild, which is stronger");
+		const before = await plane.stats();
+		const after = await plane.stats();
+		check(
+			"reading it twice gives the same answer",
+			before.ok && after.ok && JSON.stringify(before.value) === JSON.stringify(after.value),
+			"nothing accumulates, because nothing is kept",
+		);
+		const schema = readFileSync(
+			new URL("../../../packages/db/src/schema.sql", import.meta.url).pathname,
+			"utf8",
+		);
+		// "stat" is inside "state" and "statement", which are all over the schema,
+		// so the first version of this check failed on words rather than on tables.
+		// What it meant to say is that the fold writes nothing.
+		const fold = readFileSync(
+			new URL("../../../packages/core/src/scoreboard.ts", import.meta.url).pathname,
+			"utf8",
+		);
+		check(
+			"the fold writes nothing anywhere",
+			!/append|INSERT|pool|Pool/.test(fold),
+			"a scoreboard cannot drift from the record because it has no record of its own",
+		);
+		check(
+			"events is still the only table",
+			(schema.match(/CREATE TABLE/gi) ?? []).length === 1,
+			`${(schema.match(/CREATE TABLE/gi) ?? []).length} tables`,
+		);
+
+		console.log("\n29. No worker can see any of it");
+		const source = (file: string) =>
+			readFileSync(new URL(`../../../${file}`, import.meta.url).pathname, "utf8")
+				.replace(/\/\*[\s\S]*?\*\//g, "")
+				.replace(/^\s*\/\/.*$/gm, "");
+
+		for (const file of [
+			"packages/worker/src/index.ts",
+			"packages/worker/src/model.ts",
+			"packages/core/src/memory.ts",
+			"packages/core/src/retrieval.ts",
+		]) {
+			check(
+				`${file.split("/").pop()} cannot reach the scoreboard`,
+				!/scoreboard|\/stats/.test(source(file)),
+				"a worker that can see a number it is judged on optimises for the number",
+			);
+		}
+
+		console.log("\n30. And it is not the front door");
+		const shell = source("apps/desktop/src/renderer/App.tsx");
+		check(
+			"the window still opens on what needs a person",
+			/useState<View>\("queue"\)/.test(shell),
+			"08-ENVIRONMENT section 1: the queue is what needs you, this is what happened",
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));
