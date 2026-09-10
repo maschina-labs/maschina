@@ -93,23 +93,3 @@ has to pass.
 ## Security
 
 Do not open an issue for a vulnerability. See [SECURITY.md](SECURITY.md).
-
-## Licensing, and contributions
-
-**Maschina is proprietary. All rights reserved.** See `LICENSE`.
-
-The repository is public because continuous integration is free on public
-repositories and metered on private ones. That is the whole reason. Public
-visibility is not a licence.
-
-**Contributions are not being accepted at this time.** Not because they are
-unwelcome in principle, but because accepting one without an agreement in place
-would leave its author holding copyright on part of the codebase, which would
-constrain every future licensing decision. Until the licence is settled, a pull
-request from outside cannot be merged.
-
-Issues and discussion are welcome. The public roadmap is at
-https://github.com/orgs/maschina-labs/projects/1 and every planned piece of work
-is an issue there.
-
-The licence is deliberately undecided and recorded that way in `ADR-013`.

@@ -107,8 +107,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues go to
 
 ## Licence
 
-**Proprietary. All rights reserved.** See [LICENSE](LICENSE).
-
-This repository is public because CI is free on public repositories. That is the
-only reason. No rights are granted, and the licensing is deliberately undecided
-for now.
+Not yet chosen. Until then, all rights reserved.

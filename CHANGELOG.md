@@ -21,13 +21,6 @@ Versions follow semver.
 
 ### Added
 
-- **Maschina is proprietary, and says so.** All rights reserved. The repository is
-  public because continuous integration is free on public repositories, and that
-  is the only reason. Reading the source is permitted and nothing further is. The
-  licensing is deliberately undecided for now.
-
-### Added
-
 - **The roadmap is public.** Every planned piece of Maschina is an issue, grouped
   by the stage it belongs to, with the gates that hold each stage back written
   down as issues of their own rather than living in someone's head. A weekly
