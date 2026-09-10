@@ -941,3 +941,106 @@ body {
 	border-radius: 2px;
 	background: var(--accent);
 }
+
+/* ── The tree and the editor ──────────────────────────────────────────────── */
+
+.files {
+	display: grid;
+	grid-template-columns: minmax(200px, 260px) 1fr;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tree {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	border-right: 1px solid var(--border);
+}
+
+.tree__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--border);
+	font-family: var(--mono);
+	font-size: 11px;
+}
+
+.tree__root {
+	flex: 1 1 auto;
+	color: var(--text);
+}
+
+.tree__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow-y: auto;
+}
+
+.tree__entry {
+	display: flex;
+	gap: 6px;
+	width: 100%;
+	padding: 3px 8px;
+	border: 0;
+	background: transparent;
+	color: var(--text-dim);
+	text-align: left;
+	font-family: var(--mono);
+	font-size: 11.5px;
+	cursor: default;
+	white-space: nowrap;
+}
+
+.tree__entry:hover {
+	background: color-mix(in srgb, var(--accent) 7%, transparent);
+	color: var(--text);
+}
+
+.tree__entry--open {
+	background: color-mix(in srgb, var(--accent) 13%, transparent);
+	color: var(--text);
+}
+
+.editor {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.editor__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--border);
+	font-family: var(--mono);
+	font-size: 11px;
+}
+
+.editor__path {
+	flex: 1 1 auto;
+	color: var(--text-dim);
+}
+
+/* Saving writes straight to the real path. No copy, no backup, no sidecar. */
+.editor__text {
+	flex: 1 1 auto;
+	width: 100%;
+	padding: 12px 14px;
+	border: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--mono);
+	font-size: 12px;
+	line-height: 1.65;
+	resize: none;
+	tab-size: 2;
+}
+
+.editor__text:focus-visible {
+	outline: 0;
+}

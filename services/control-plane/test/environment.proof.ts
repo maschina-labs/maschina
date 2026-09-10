@@ -220,6 +220,9 @@ async function main(): Promise<void> {
 	// ── Slice 8 ───────────────────────────────────────────────────────────────
 	await slice8();
 
+	// ── Slice 9 ───────────────────────────────────────────────────────────────
+	await slice9();
+
 	verdict("Environment proof");
 }
 
@@ -1230,6 +1233,100 @@ async function slice8(): Promise<void> {
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));
 		await pool.end();
+	}
+}
+
+/**
+ * Slice 9: the tree and the editor.
+ *
+ *   "The delete test from ADR-011 section 3: remove Maschina from the machine and
+ *    confirm nothing about the project is harder than before Maschina existed.
+ *    The same directory opens in another editor, at the same time, with plain git
+ *    history."
+ *
+ *   "Watch for: every reasonable-sounding request that is really make it more
+ *    like VS Code."
+ */
+async function slice9(): Promise<void> {
+	console.log("\n31. The tree is the operator's, not a worker's");
+
+	const source = (file: string) =>
+		readFileSync(new URL(`../../../${file}`, import.meta.url).pathname, "utf8")
+			.replace(/\/\*[\s\S]*?\*\//g, "")
+			.replace(/^\s*\/\/.*$/gm, "");
+
+	const human = source("apps/desktop/src/main/workspace.ts");
+	const worker = source("packages/worker/src/filesystem.ts");
+
+	check(
+		"the two filesystem paths share no module",
+		!human.includes("@maschina/worker") && !human.includes("filesystem.ts"),
+		"ADR-003 section 3.2: separate modules, separate call sites",
+	);
+	check(
+		"and no shared path resolver",
+		!worker.includes("workspace"),
+		"a shared resolver is where the scope check eventually gets skipped",
+	);
+	check(
+		"the human path holds no capability check, because a person is not a worker",
+		!/authorize|capability/i.test(human),
+		"a worker's file access is granted and revocable; a person opening their own files is not",
+	);
+
+	console.log("\n32. Nothing outside the opened directory is expressible");
+	check(
+		"paths are resolved before they are compared, not inspected as strings",
+		human.includes("resolve(root, path)") && human.includes("startsWith(root + sep)"),
+		"inspecting strings is how traversal defences get bypassed",
+	);
+	check(
+		"and the renderer only ever sends relative paths",
+		source("apps/desktop/src/renderer/Files.tsx").includes("entry.path") &&
+			!source("apps/desktop/src/renderer/Files.tsx").includes("/Users"),
+	);
+
+	console.log("\n33. The delete test: hosting, not replacing");
+	check(
+		"nothing writes a sidecar, an index or a lockfile",
+		!/\.maschina|sidecar|\.lock|writeFile\([^)]*meta/i.test(human),
+		"ADR-011 section 3: delete Maschina and the directory is exactly as it was",
+	);
+	check(
+		"a save goes straight to the real path",
+		human.includes("await writeFile(file, text") && !human.includes("copyFile"),
+		"no copy, no backup, so anything else watching that directory sees the change",
+	);
+	// A first version of this matched /git/i, which hits ".git" in the skip list.
+	// What it meant is that this module runs nothing: no git, no build, no
+	// anything. It reads and writes files and that is the whole of it.
+	check(
+		"it runs no processes at all",
+		!/child_process|execFile|spawn\(|exec\(/.test(human),
+		"the history stays plain git precisely because nothing here goes near it",
+	);
+	check(
+		"and .git is not even listed",
+		human.includes('".git"'),
+		"a tree that offers to edit .git is a tree that owns the repository",
+	);
+
+	console.log("\n34. And it is deliberately small");
+	const editor = source("apps/desktop/src/renderer/Files.tsx");
+	check(
+		"no editor library was added",
+		!/monaco|codemirror|ace-builds/i.test(editor),
+		"ADR-011 section 8: if it starts trying to be VS Code it gets deleted, not improved",
+	);
+	const manifest = JSON.parse(
+		readFileSync(
+			new URL("../../../apps/desktop/package.json", import.meta.url).pathname,
+			"utf8",
+		),
+	) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+	const installed = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies });
+	for (const heavy of ["monaco-editor", "@monaco-editor/react", "codemirror"]) {
+		check(`no ${heavy}`, !installed.includes(heavy));
 	}
 }
 
