@@ -21,6 +21,10 @@ Versions follow semver.
 
 ### Added
 
+- **Maschina has an icon.** It shows in the dock while running.
+
+### Added
+
 - **You can see what was judged, and on what.** Each requirement shows whether it
   was met, what it was checked against, and how strong that check was, along with
   who did the judging, which is never the worker that did the work.
