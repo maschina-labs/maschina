@@ -26,6 +26,7 @@ import * as address from "./address.ts";
 import {
 	answer,
 	approvals,
+	capabilities,
 	cost,
 	decide,
 	draft,
@@ -37,6 +38,7 @@ import {
 	objective,
 	objectives,
 	pointAt,
+	revokeCapability,
 	state,
 	stats,
 	stopEverything,
@@ -161,6 +163,16 @@ function serveTheRenderer(): void {
 	);
 	ipcMain.handle("objectives:drafters", () => modelCapabilities());
 	ipcMain.handle("stats:read", () => stats());
+
+	// Authority, seen and taken away. `01-PRINCIPLES` P3 does not yield, so
+	// revocation is on this surface rather than only in a terminal: a revocation
+	// nobody can reach is not one.
+	ipcMain.handle("authority:list", () => capabilities());
+	ipcMain.handle(
+		"authority:revoke",
+		(_event, input: { id: string; actor: string; reason: string }) =>
+			revokeCapability(input.id, input.actor, input.reason),
+	);
 
 	// Where the control plane is. Read, set, forget. The client is told every
 	// time it changes, because a saved address nothing was told about is a

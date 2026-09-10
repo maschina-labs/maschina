@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { Authority } from "./Authority.tsx";
 import { Files } from "./Files.tsx";
 import { Git } from "./Git.tsx";
 import { Log } from "./Log.tsx";
@@ -17,7 +18,7 @@ import { Stats } from "./Stats.tsx";
 import { Stop } from "./Stop.tsx";
 import { Terminal } from "./Terminal.tsx";
 
-type View = "queue" | "objectives" | "files" | "git" | "shell" | "log" | "stats";
+type View = "queue" | "objectives" | "authority" | "files" | "git" | "shell" | "log" | "stats";
 
 export function App() {
 	// The queue opens first. 08-ENVIRONMENT section 1: the primary surface is what
@@ -47,6 +48,9 @@ export function App() {
 					</Tab>
 					<Tab now={view} is="objectives" onPick={setView}>
 						objectives
+					</Tab>
+					<Tab now={view} is="authority" onPick={setView}>
+						authority
 					</Tab>
 					<Tab now={view} is="files" onPick={setView}>
 						files
@@ -79,6 +83,7 @@ export function App() {
 				{view === "queue" && <Queue onProblem={reportProblem} />}
 				{view === "objectives" && <Objectives onProblem={reportProblem} />}
 				{view === "log" && <Log onProblem={reportProblem} onCount={reportCount} />}
+				{view === "authority" && <Authority onProblem={reportProblem} />}
 				{view === "files" && <Files />}
 				{view === "git" && <Git />}
 				{view === "shell" && <Terminal cwd={null} />}

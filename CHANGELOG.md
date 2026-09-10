@@ -21,6 +21,14 @@ Versions follow semver.
 
 ### Added
 
+- **An authority tab.** Every capability that has been granted: who holds it,
+  what it lets them do, where, how much budget is left and when it expires.
+  Revoked ones stay in the list rather than disappearing.
+- **Revoke from the window.** Before you do, it tells you what else goes with it,
+  because anything granted from a capability dies with it. It does not ask twice.
+
+### Added
+
 - **A real editor.** Files open with syntax highlighting, in Monaco, the editor
   from VS Code. Find, folding, multiple cursors and the usual keys work.
 
