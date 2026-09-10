@@ -16,10 +16,40 @@
  *     viewer never writes to the event log (02-CORE §3.5).
  */
 
-import { contextBridge } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
+
+/** Mirrors main/control-plane.ts. Kept here so the renderer has no import into main. */
+interface Unreachable {
+	readonly ok: false;
+	readonly problem: string;
+}
+type Result<T> = { readonly ok: true; readonly value: T } | Unreachable;
+
+export interface WireEvent {
+	readonly id: string;
+	readonly recordedAt: string;
+	readonly actor: string;
+	readonly objective: string | null;
+	readonly type: string;
+	readonly epoch: string;
+	readonly payload: Record<string, unknown>;
+}
+
+export interface LogQuery {
+	readonly objective?: string;
+	readonly actor?: string;
+	readonly limit?: number;
+}
 
 const api = {
 	version: process.versions.electron,
+
+	/** Read the log. There is no write counterpart and there will not be one. */
+	log: {
+		events: (query: LogQuery = {}): Promise<Result<WireEvent[]>> =>
+			ipcRenderer.invoke("log:events", query),
+		health: (): Promise<Result<{ ok: boolean }>> => ipcRenderer.invoke("log:health"),
+	},
 } as const;
 
 export type MaschinaApi = typeof api;
