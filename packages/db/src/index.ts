@@ -60,6 +60,14 @@ export {
 	stateObjective,
 	takeObjective,
 } from "./objective.ts";
+export {
+	CRITERION_SATISFIED,
+	progressOf,
+	recordStep,
+	STEP_COMPLETED,
+	satisfiedWhen,
+	suspendIfStalled,
+} from "./progress.ts";
 export type { DumpedEvent, Snapshot } from "./projection.ts";
 export { dumpLog, restoreLog, snapshot } from "./projection.ts";
 export type {
@@ -78,6 +86,8 @@ export {
 	whatWouldRevoking,
 	whyDidItDecide,
 } from "./queries.ts";
+export type { RankingEntry, RecordedRetrieval, Retrieval, RetrieveInput } from "./retrieval.ts";
+export { MEMORY_RETRIEVED, retrieve, whyThatContext } from "./retrieval.ts";
 export {
 	EMERGENCY_STOP_LIFTED,
 	emergencyStop,

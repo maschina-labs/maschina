@@ -21,6 +21,27 @@ Versions follow semver.
 
 ### Added
 
+- **A worker that is getting nowhere stops and asks you something you can answer
+  in one reply.** The question names what is already done, what is still
+  outstanding, and the last thing that was tried, so answering it does not start
+  with working out what happened.
+- **Taking a long time is not the same as being stuck.** Twenty careful steps
+  that keep learning something are twenty steps of work. What counts against a
+  worker is producing nothing at all: no result, nothing learned, nothing
+  changed.
+- **A requirement met early is recorded when it is met**, rather than being
+  rediscovered at the end, so you can ask when something was satisfied and get
+  the moment back.
+
+- **You can ask why a worker was shown one thing and not another.** Everything
+  considered is scored on three counts, how relevant it is, how recent, and how
+  much it is worth trusting, and the whole ranking is kept, including what was
+  rejected and by how much. A retrieval that only recorded its winners could not
+  answer the question.
+- **No single one of those three decides.** Something a person stated outranks a
+  more colourful guess about the same subject, and something written today does
+  not beat something older that actually answers the question.
+
 - **Maschina can remember things, and every remembered thing says where it came
   from.** A fact somebody stated, a generalisation a worker drew, and something a
   file claimed are three different kinds of thing, and they stay different when
