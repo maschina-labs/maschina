@@ -19,6 +19,11 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The app icon is the right size in the dock.** It was drawn edge to edge, so
+  it sat larger than every other application next to it.
+
 ### Added
 
 - **Maschina has an icon.** It shows in the dock while running.
