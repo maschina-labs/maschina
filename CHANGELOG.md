@@ -19,6 +19,11 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The tabs at the top of the window now respond.** They rendered and did
+  nothing, because they sat inside the strip you drag the window by.
+
 ### Added
 
 - **A worker that stopped to ask you something now asks you in the window.** The
