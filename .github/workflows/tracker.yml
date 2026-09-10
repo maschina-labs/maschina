@@ -56,11 +56,27 @@ jobs:
             ARGS=""
           fi
 
-          # A missing scope is a configuration problem, not a broken build.
-          node internal/operations/sync-board.mjs $ARGS || {
-            echo "Board sync failed. Usually a token without the project scope."
-            exit 0
-          }
+          # Say what actually went wrong. An earlier version printed a guess
+          # ("usually a token without the project scope") and swallowed the real
+          # error, which is the one thing this repository's own rules forbid on
+          # an authority path. It cost two runs of not knowing why.
+          set +e
+          node internal/operations/sync-board.mjs $ARGS
+          STATUS=$?
+          set -e
+
+          if [ $STATUS -ne 0 ]; then
+            echo
+            echo "Board sync exited $STATUS. The error above is the real one."
+            echo "Token scopes seen by this run:"
+            gh api -i user 2>/dev/null | grep -i "^x-oauth-scopes:" || echo "  could not read scopes"
+            echo
+            echo "It needs 'project'. Reading issues on a public repository needs"
+            echo "nothing, so a token that lists issues may still fail to write."
+          fi
+
+          # Configuration is not a broken build, so this never fails CI.
+          exit 0
 
   drift:
     name: Check for drift
