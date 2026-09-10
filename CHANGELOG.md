@@ -19,6 +19,11 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Changed
+
+- **A pull request that closes no issue is refused.** The roadmap is meant to
+  show what is shipping, and it only does that if every change is on it.
+
 ### Added
 
 - **An authority tab.** Every capability that has been granted: who holds it,
