@@ -19,6 +19,13 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **The roadmap is public.** Every planned piece of Maschina is an issue, grouped
+  by the stage it belongs to, with the gates that hold each stage back written
+  down as issues of their own rather than living in someone's head. A weekly
+  check reports anything that has drifted out of step.
+
 ### Fixed
 
 - **A worker that keeps saying the same thing in different words now stops and
