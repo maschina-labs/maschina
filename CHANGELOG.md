@@ -19,6 +19,16 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **The window shows your objectives.** Each one with its state, and opening it
+  shows what you asked for, what has to be true for it to count as done, how each
+  of those will be checked, which are met already, and everything that has
+  happened on it so far.
+- **What was agreed cannot be quietly rewritten.** The terms of an objective are
+  fixed when it is accepted, and the window shows them as fixed rather than as
+  something you could edit.
+
 ### Fixed
 
 - **The weekly roadmap check now runs.** It had never worked: the check was
