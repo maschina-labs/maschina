@@ -136,6 +136,18 @@ async function main(): Promise<void> {
 	check("context isolation is on", main.includes("contextIsolation: true"));
 	check("node integration is off", main.includes("nodeIntegration: false"));
 	check("the renderer is sandboxed", main.includes("sandbox: true"));
+	// A control inside a drag region receives no clicks on macOS, and looks
+	// exactly like a control that is simply broken. The tabs shipped that way and
+	// were found by trying them.
+	const style = readFileSync(join(desktop, "renderer/index.css"), "utf8");
+	if (style.includes("-webkit-app-region: drag")) {
+		check(
+			"anything clickable in the title bar opts out of the drag region",
+			/\.tab\s*\{[^}]*-webkit-app-region:\s*no-drag/.test(style),
+			"a drag region swallows clicks from everything inside it",
+		);
+	}
+
 	check(
 		"the renderer never calls fetch itself",
 		!app.includes("fetch("),
