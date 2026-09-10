@@ -37,6 +37,8 @@ export type {
 	ObjectiveState,
 	VerificationStrength,
 } from "./objective.ts";
+export type { Progress, Stall, StepOutcome } from "./progress.ts";
+export { foldProgress, isNullStep, NULL_STEP_LIMIT, stalled } from "./progress.ts";
 export type { RankOptions, Relevance, Scored, Weights } from "./retrieval.ts";
 export { bySharedWords, EVEN, rank, recencyOf, reliabilityOf } from "./retrieval.ts";
 export {

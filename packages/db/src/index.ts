@@ -60,6 +60,14 @@ export {
 	stateObjective,
 	takeObjective,
 } from "./objective.ts";
+export {
+	CRITERION_SATISFIED,
+	progressOf,
+	recordStep,
+	STEP_COMPLETED,
+	satisfiedWhen,
+	suspendIfStalled,
+} from "./progress.ts";
 export type { DumpedEvent, Snapshot } from "./projection.ts";
 export { dumpLog, restoreLog, snapshot } from "./projection.ts";
 export type {
