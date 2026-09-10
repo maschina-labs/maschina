@@ -21,6 +21,12 @@ Versions follow semver.
 
 ### Added
 
+- **Maschina builds into an application.** `pnpm package` produces a real
+  Maschina.app you can double-click, with its own name and icon. It is not signed
+  yet, so it runs on the machine that built it and not on anybody else's.
+
+### Added
+
 - **Git, in one place.** What changed, what is staged, the diff for any file, a
   commit and a push, on the project you have open. It runs real git on the real
   repository, so anything else you use on that directory sees exactly what it

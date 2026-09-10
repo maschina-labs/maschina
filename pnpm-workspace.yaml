@@ -18,6 +18,9 @@ packages:
 #             terminal's mechanism. It never runs on a worker's path.
 allowBuilds:
   electron: true
+  # Windows installer tooling, pulled in by electron-builder. Nothing here builds
+  # for Windows, so it has no reason to run anything.
+  electron-winstaller: false
   esbuild: true
   node-pty: true
 

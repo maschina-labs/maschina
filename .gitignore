@@ -36,3 +36,6 @@ Thumbs.db
 *.key
 *.p12
 secrets/
+
+# Packaged applications. 300MB of Electron per build, rebuilt by `pnpm package`.
+release/

@@ -46,7 +46,8 @@
 		"stall:live": "pnpm --filter @maschina/control-plane stall:live",
 		"tracker": "node .github/ci/check-tracker.mjs",
 		"tracker:sync": "node .github/ci/sync-issues.mjs && node .github/ci/sync-board.mjs",
-		"backup": "bash internal/checks/backup.sh"
+		"backup": "bash internal/checks/backup.sh",
+		"package": "pnpm --filter @maschina/desktop package"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.6",
