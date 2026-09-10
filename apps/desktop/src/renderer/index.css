@@ -810,3 +810,74 @@ body {
 .strength--mechanical {
 	color: #4ea36b;
 }
+
+/* ── Stating an objective ─────────────────────────────────────────────────── */
+
+.stating {
+	padding: 18px 20px 32px;
+	max-width: 720px;
+	width: 100%;
+	margin: 0 auto;
+	overflow-y: auto;
+}
+
+.objective--new {
+	color: var(--text-dim);
+}
+
+.field {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.field__label {
+	display: block;
+	margin-bottom: 6px;
+	font-family: var(--mono);
+	font-size: 10.5px;
+	color: var(--text-faint);
+}
+
+.field__row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.field__input {
+	display: block;
+	width: 100%;
+	margin-bottom: 6px;
+	padding: 7px 10px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg);
+	color: var(--text);
+	font-family: inherit;
+	font-size: 12.5px;
+}
+
+.field__input:focus-visible {
+	outline: 1px solid var(--accent);
+	outline-offset: -1px;
+}
+
+.field__input--short {
+	width: auto;
+	flex: 1 1 0;
+	margin-bottom: 0;
+	font-family: var(--mono);
+	font-size: 11px;
+}
+
+/* Refusal is an answer, so it reads as one rather than as an error. */
+.problems {
+	margin: 12px 0 0;
+	padding: 10px 12px 10px 28px;
+	border: 1px solid color-mix(in srgb, #d0603a 45%, var(--border));
+	border-radius: 7px;
+	background: color-mix(in srgb, #d0603a 8%, transparent);
+	font-size: 12px;
+	line-height: 1.6;
+	color: #f0a58a;
+}
