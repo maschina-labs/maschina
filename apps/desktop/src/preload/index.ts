@@ -127,6 +127,18 @@ export interface WireStats {
 	readonly streak: number;
 }
 
+export interface Entry {
+	readonly name: string;
+	readonly path: string;
+	readonly directory: boolean;
+}
+
+interface Done<T> {
+	readonly ok: boolean;
+	readonly value?: T;
+	readonly problem?: string;
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -184,6 +196,26 @@ const api = {
 			reason: string;
 			approver: string;
 		}): Promise<Result<{ granted: boolean }>> => ipcRenderer.invoke("queue:decide", input),
+	},
+
+	/**
+	 * The operator's own files.
+	 *
+	 * Not a worker's. `ADR-003` §3.2: a human surface having access to a path
+	 * never confers that access on a worker, and the two share no module. A
+	 * worker's file access is a capability; this is a person opening their own
+	 * files.
+	 */
+	workspace: {
+		open: (): Promise<Done<{ root: string; name: string }>> =>
+			ipcRenderer.invoke("workspace:open"),
+		opened: (): Promise<string | null> => ipcRenderer.invoke("workspace:opened"),
+		list: (within: string): Promise<Done<Entry[]>> =>
+			ipcRenderer.invoke("workspace:list", within),
+		read: (path: string): Promise<Done<{ text: string; path: string }>> =>
+			ipcRenderer.invoke("workspace:read", path),
+		write: (input: { path: string; text: string }): Promise<Done<{ path: string }>> =>
+			ipcRenderer.invoke("workspace:write", input),
 	},
 
 	/** What has been done, counted. Never shown to a worker. */

@@ -41,6 +41,7 @@ import {
 	suspensions,
 	watch,
 } from "./control-plane.ts";
+import * as workspace from "./workspace.ts";
 
 // Before anything reads it. Electron takes the name from productName in
 // package.json when packaged, and shows "Electron" when run from source, which
@@ -140,6 +141,17 @@ function serveTheRenderer(): void {
 	);
 	ipcMain.handle("objectives:drafters", () => modelCapabilities());
 	ipcMain.handle("stats:read", () => stats());
+
+	// The operator's own files. Named operations on a directory they chose, and
+	// no path outside it is expressible: the renderer sends relative paths and
+	// workspace.ts is the only place they become absolute.
+	ipcMain.handle("workspace:open", () => workspace.open());
+	ipcMain.handle("workspace:opened", () => workspace.opened());
+	ipcMain.handle("workspace:list", (_event, within: string) => workspace.list(within));
+	ipcMain.handle("workspace:read", (_event, path: string) => workspace.read(path));
+	ipcMain.handle("workspace:write", (_event, input: { path: string; text: string }) =>
+		workspace.write(input.path, input.text),
+	);
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(

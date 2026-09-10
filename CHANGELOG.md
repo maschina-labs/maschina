@@ -21,6 +21,12 @@ Versions follow semver.
 
 ### Added
 
+- **Open a project and read its files.** Pick a directory you already work in,
+  browse it, open a file, change it, save it. It is written in place, so whatever
+  else you have open on that directory keeps working exactly as it did.
+
+### Added
+
 - **A page for what you have done.** A level that goes up as things actually get
   finished, a square for every day of the last few months, and counts of what was
   stated, satisfied, asked, answered and spent.
