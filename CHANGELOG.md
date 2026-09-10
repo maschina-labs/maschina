@@ -21,6 +21,13 @@ Versions follow semver.
 
 ### Added
 
+- **Maschina has a licence.** You can read the source, run it on your own
+  machines, change it, and build and sell your own software with it. You cannot
+  sell Maschina itself to other people as a hosted service. Four years after any
+  version is released, that version becomes Apache 2.0 automatically.
+
+### Added
+
 - **The roadmap is public.** Every planned piece of Maschina is an issue, grouped
   by the stage it belongs to, with the gates that hold each stage back written
   down as issues of their own rather than living in someone's head. A weekly
