@@ -1,0 +1,67 @@
+# Does GitHub still agree with the repository?
+#
+# Drift is quiet, and it is the failure this project exists to avoid. The
+# previous implementation marked roughly sixty capabilities built while its own
+# logs showed nothing had ever run. A roadmap nobody prunes fails the same way,
+# just more slowly.
+#
+# Runs weekly, and files one issue when it finds something. Never fails a build.
+name: Tracker
+
+on:
+  schedule:
+    # Monday morning, so the week starts with an honest list.
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    name: Check for drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Look for drift
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          node internal/operations/check-tracker.mjs > drift.txt 2>&1
+          echo "drifted=$?" >> "$GITHUB_OUTPUT"
+          cat drift.txt
+
+      # One open issue at a time. A weekly job that opens a new issue every week
+      # is a weekly job nobody reads by March.
+      - name: File it, or update the one already open
+        if: steps.check.outputs.drifted != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "The tracker and the repository disagree. Each line below is either"
+            echo "something to fix or something to decide."
+            echo
+            echo '```'
+            cat drift.txt
+            echo '```'
+            echo
+            echo "Found by \`internal/operations/check-tracker.mjs\`, which runs every Monday."
+          } > body.md
+
+          EXISTING=$(gh issue list --state open --label repo \
+            --search "Tracker drift in:title" --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file body.md
+          else
+            gh issue create --title "Tracker drift" --body-file body.md --label repo
+          fi
