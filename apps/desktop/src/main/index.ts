@@ -41,6 +41,7 @@ import {
 	suspensions,
 	watch,
 } from "./control-plane.ts";
+import * as git from "./git.ts";
 import * as terminal from "./terminal.ts";
 import * as workspace from "./workspace.ts";
 
@@ -177,6 +178,40 @@ function serveTheRenderer(): void {
 		terminal.resize(input.id, input.cols, input.rows),
 	);
 	ipcMain.on("terminal:stop", (_event, id: string) => terminal.stop(id));
+
+	// The operator's git, on the directory they opened. Not the repository
+	// capability, which is how a worker commits: brokered, recorded, revocable.
+	const where = () => workspace.opened();
+	const noProject = { ok: false, problem: "No project is open." } as const;
+
+	ipcMain.handle("git:status", () => {
+		const cwd = where();
+		return cwd === null ? noProject : git.status(cwd);
+	});
+	ipcMain.handle("git:diff", (_event, path?: string) => {
+		const cwd = where();
+		return cwd === null ? noProject : git.diff(cwd, path);
+	});
+	ipcMain.handle("git:branches", () => {
+		const cwd = where();
+		return cwd === null ? noProject : git.branches(cwd);
+	});
+	ipcMain.handle("git:stage", (_event, paths: string[]) => {
+		const cwd = where();
+		return cwd === null ? noProject : git.stage(cwd, paths);
+	});
+	ipcMain.handle("git:unstage", (_event, paths: string[]) => {
+		const cwd = where();
+		return cwd === null ? noProject : git.unstage(cwd, paths);
+	});
+	ipcMain.handle("git:commit", (_event, message: string) => {
+		const cwd = where();
+		return cwd === null ? noProject : git.commit(cwd, message);
+	});
+	ipcMain.handle("git:push", () => {
+		const cwd = where();
+		return cwd === null ? noProject : git.push(cwd);
+	});
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(

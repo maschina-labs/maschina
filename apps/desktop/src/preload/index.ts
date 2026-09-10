@@ -139,6 +139,20 @@ interface Done<T> {
 	readonly problem?: string;
 }
 
+export interface Change {
+	readonly code: string;
+	readonly path: string;
+	readonly staged: boolean;
+}
+
+export interface Status {
+	readonly branch: string;
+	readonly upstream: string | null;
+	readonly ahead: number;
+	readonly behind: number;
+	readonly changes: readonly Change[];
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -216,6 +230,30 @@ const api = {
 			ipcRenderer.invoke("workspace:read", path),
 		write: (input: { path: string; text: string }): Promise<Done<{ path: string }>> =>
 			ipcRenderer.invoke("workspace:write", input),
+	},
+
+	/**
+	 * The operator's git, on the directory they opened.
+	 *
+	 * Not the repository capability. A worker commits through a broker so it
+	 * never sees a credential, and every commit is an Intent and an Outcome. This
+	 * is a person running git on their own repository, and the history it makes
+	 * is indistinguishable from history made in any terminal.
+	 *
+	 * There is no force-push here and there is no argument that could produce
+	 * one.
+	 */
+	git: {
+		status: (): Promise<Done<Status>> => ipcRenderer.invoke("git:status"),
+		diff: (path?: string): Promise<Done<string>> => ipcRenderer.invoke("git:diff", path),
+		branches: (): Promise<Done<string[]>> => ipcRenderer.invoke("git:branches"),
+		stage: (paths: readonly string[]): Promise<Done<null>> =>
+			ipcRenderer.invoke("git:stage", paths),
+		unstage: (paths: readonly string[]): Promise<Done<null>> =>
+			ipcRenderer.invoke("git:unstage", paths),
+		commit: (message: string): Promise<Done<string>> =>
+			ipcRenderer.invoke("git:commit", message),
+		push: (): Promise<Done<string>> => ipcRenderer.invoke("git:push"),
 	},
 
 	/**

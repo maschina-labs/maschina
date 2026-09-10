@@ -1059,3 +1059,76 @@ body {
 	flex: 1 1 auto;
 	min-height: 0;
 }
+
+/* ── Git ──────────────────────────────────────────────────────────────────── */
+
+.git {
+	padding: 18px 20px 32px;
+	max-width: 760px;
+	width: 100%;
+	margin: 0 auto;
+	overflow-y: auto;
+}
+
+.git__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 8px;
+	font-family: var(--mono);
+	font-size: 11px;
+}
+
+.git__branch {
+	color: var(--accent);
+}
+
+.changes {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.change {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 4px 0;
+	border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+	font-family: var(--mono);
+	font-size: 11.5px;
+}
+
+.change__code {
+	width: 22px;
+	color: var(--text-faint);
+}
+
+.change__path {
+	flex: 1 1 auto;
+	border: 0;
+	background: transparent;
+	color: var(--text-dim);
+	text-align: left;
+	font-family: inherit;
+	font-size: inherit;
+	cursor: default;
+}
+
+.change__path:hover {
+	color: var(--text);
+}
+
+.diff {
+	margin: 6px 0 10px;
+	padding: 10px 12px;
+	max-height: 320px;
+	overflow: auto;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg-raised);
+	font-size: 11px;
+	line-height: 1.55;
+	color: var(--text-dim);
+	white-space: pre;
+}
