@@ -21,7 +21,7 @@
 
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
 import {
 	answer,
 	approvals,
@@ -143,6 +143,14 @@ function serveTheRenderer(): void {
 }
 
 app.whenReady().then(() => {
+	// The dock icon while running from source. A packaged application takes its
+	// icon from build/icon.icns and never reaches this, but unpackaged Electron
+	// shows its own icon and there is no way to set that except at runtime.
+	if (process.platform === "darwin" && isDev) {
+		const icon = nativeImage.createFromPath(join(dirname, "../../build/icon.png"));
+		if (!icon.isEmpty()) app.dock?.setIcon(icon);
+	}
+
 	serveTheRenderer();
 	createWindow();
 
