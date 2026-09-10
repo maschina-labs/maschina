@@ -6,7 +6,7 @@
  * disagrees with this view is the projection that is wrong.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { WireEvent } from "../preload/index.ts";
 import { useReading } from "./useLog.ts";
 
@@ -28,8 +28,11 @@ export function Log({
 	const { value, connection } = useReading(read);
 	const events = value ?? [];
 
-	onProblem(connection.state === "lost" ? connection.problem : null);
-	onCount(events.length);
+	// After the render, never during it. See Objectives.tsx.
+	const problem = connection.state === "lost" ? connection.problem : null;
+	const count = events.length;
+	useEffect(() => onProblem(problem), [onProblem, problem]);
+	useEffect(() => onCount(count), [onCount, count]);
 
 	if (events.length === 0 && connection.state === "connected") {
 		return (

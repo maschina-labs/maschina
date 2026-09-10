@@ -6,7 +6,7 @@
  * viewer are exactly that.
  */
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Log } from "./Log.tsx";
 import { Objectives } from "./Objectives.tsx";
 
@@ -16,6 +16,10 @@ export function App() {
 	const [view, setView] = useState<View>("objectives");
 	const [problem, setProblem] = useState<string | null>(null);
 	const [count, setCount] = useState(0);
+
+	// Stable, so the effects reporting into them do not fire on every render.
+	const reportProblem = useCallback((p: string | null) => setProblem(p), []);
+	const reportCount = useCallback((n: number) => setCount(n), []);
 
 	return (
 		<div className="shell">
@@ -34,9 +38,9 @@ export function App() {
 			<main className="body">
 				{problem !== null && <Lost problem={problem} />}
 				{view === "objectives" ? (
-					<Objectives onProblem={setProblem} />
+					<Objectives onProblem={reportProblem} />
 				) : (
-					<Log onProblem={setProblem} onCount={setCount} />
+					<Log onProblem={reportProblem} onCount={reportCount} />
 				)}
 			</main>
 

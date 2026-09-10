@@ -11,7 +11,7 @@
  * anything a worker said about itself.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { WireEvent } from "../preload/index.ts";
 import { useReading } from "./useLog.ts";
 
@@ -27,7 +27,11 @@ export function Objectives({ onProblem }: { readonly onProblem: (p: string | nul
 	const { value, connection } = useReading(readList);
 	const objectives = value ?? [];
 
-	onProblem(connection.state === "lost" ? connection.problem : null);
+	// Telling the parent has to happen after the render, not during it. React
+	// refuses a state update in another component while this one is rendering,
+	// and the whole view went blank rather than saying so.
+	const problem = connection.state === "lost" ? connection.problem : null;
+	useEffect(() => onProblem(problem), [onProblem, problem]);
 
 	if (objectives.length === 0 && connection.state === "connected") {
 		return (
