@@ -82,6 +82,26 @@ export interface WireSuspension {
 	readonly since: string;
 }
 
+export interface WireCapability {
+	readonly id: string;
+	readonly parent: string | null;
+	readonly holder: string;
+	readonly resource: string;
+	readonly operations: readonly string[];
+	readonly scope: string;
+	readonly limits: {
+		readonly granted: number;
+		readonly reserved: number;
+		readonly settled: number;
+	};
+	readonly effectClass: string;
+	readonly checkpoint: string;
+	readonly approval: string;
+	readonly expiresAt: string | null;
+	readonly delegationDepth: number;
+	readonly status: string;
+}
+
 export interface WireApproval {
 	readonly capabilityId: string;
 	readonly holder: string;
@@ -316,6 +336,23 @@ const api = {
 		suggested: (): Promise<string> => ipcRenderer.invoke("plane:suggested"),
 		save: (url: string): Promise<Saved> => ipcRenderer.invoke("plane:save", url),
 		forget: (): Promise<Saved> => ipcRenderer.invoke("plane:forget"),
+	},
+
+	/**
+	 * Authority: what has been granted, and taking it away.
+	 *
+	 * `01-PRINCIPLES` P3 never yields, so revoking is reachable from the window
+	 * rather than only from a terminal. It is the second thing on this bridge that
+	 * changes anything, and like the first it changes it by asking the control
+	 * plane to record what a person decided.
+	 */
+	authority: {
+		list: (): Promise<Result<WireCapability[]>> => ipcRenderer.invoke("authority:list"),
+		revoke: (input: {
+			id: string;
+			actor: string;
+			reason: string;
+		}): Promise<Result<{ revoked: boolean }>> => ipcRenderer.invoke("authority:revoke", input),
 	},
 
 	/** What has been done, counted. Never shown to a worker. */

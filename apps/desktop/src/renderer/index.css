@@ -1170,3 +1170,71 @@ body {
 	min-height: 0;
 	overflow: hidden;
 }
+
+/*
+ * Authority. One row per capability, with what it permits readable without
+ * opening anything: 05-CAPABILITIES section 0 asks whether the worst a holder
+ * can do is answerable by reading a structure rather than the whole codebase,
+ * and the same test applies to the surface that shows it.
+ */
+.authority {
+	padding: 12px 16px;
+	overflow: auto;
+}
+
+.grants {
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+}
+
+.grant {
+	margin-bottom: 8px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: var(--bg-raised);
+}
+
+.grant--gone {
+	opacity: 0.55;
+}
+
+.grant__head {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.grant__holder {
+	font-family: var(--mono);
+	font-size: 12px;
+	color: var(--text);
+}
+
+.grant__resource {
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--accent) 18%, transparent);
+	font-size: 11px;
+	color: var(--accent);
+}
+
+.grant__ops,
+.grant__scope {
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--text-dim);
+}
+
+.grant__scope {
+	margin-left: auto;
+	color: var(--text-faint);
+}
+
+.grant__revoke {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--border);
+}

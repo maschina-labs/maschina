@@ -507,6 +507,57 @@ export async function draft(
 }
 
 /** Every model capability somebody could draft with, so the window can say what is missing. */
+/** A capability, as the control plane serves it. `05-CAPABILITIES` section 3. */
+export interface WireCapability {
+	readonly id: string;
+	readonly parent: string | null;
+	readonly holder: string;
+	readonly resource: string;
+	readonly operations: readonly string[];
+	readonly scope: string;
+	readonly limits: {
+		readonly granted: number;
+		readonly reserved: number;
+		readonly settled: number;
+	};
+	readonly effectClass: string;
+	readonly checkpoint: string;
+	readonly approval: string;
+	readonly expiresAt: string | null;
+	readonly delegationDepth: number;
+	readonly status: string;
+}
+
+/**
+ * Every capability, whatever its state.
+ *
+ * Revoked and expired ones are included rather than filtered out. `05-CAPABILITIES`
+ * section 10: a denial is as much a fact as a use, and a list that quietly drops
+ * what was taken away cannot answer "what changed" or "why was this refused".
+ */
+export function capabilities(): Promise<Result<WireCapability[]>> {
+	return read<WireCapability[]>("/capabilities");
+}
+
+/**
+ * Take it away.
+ *
+ * `01-PRINCIPLES` P3 does not yield: revocation always works, and it takes every
+ * capability attenuated from this one with it. Nothing about this asks the holder
+ * for cooperation, because a revocation a worker could decline is not one.
+ */
+export function revokeCapability(
+	id: string,
+	actor: string,
+	reason: string,
+): Promise<Result<{ revoked: boolean }>> {
+	return act(
+		`/capabilities/${encodeURIComponent(id)}/revoke`,
+		{ actor, reason },
+		"The revocation did not arrive, so assume the capability is still held.",
+	);
+}
+
 export async function modelCapabilities(): Promise<Result<{ id: string; holder: string }[]>> {
 	const all =
 		await read<{ id: string; holder: string; resource: string; status: string }[]>(

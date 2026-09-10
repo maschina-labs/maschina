@@ -235,6 +235,9 @@ async function main(): Promise<void> {
 	// ── Where the control plane is (#278) ─────────────────────────────────────
 	await addressing();
 
+	// ── Authority, seen and taken away (#199) ─────────────────────────────────
+	await authority();
+
 	verdict("Environment proof");
 }
 
@@ -1736,6 +1739,166 @@ async function addressing(): Promise<void> {
 	);
 	const events = await read(pool);
 	check("and setting one recorded nothing", events.length === 0, `${events.length} event(s)`);
+
+	if (previous !== undefined) process.env.MASCHINA_CONTROL_PLANE_URL = previous;
+	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await pool.end();
+}
+
+/**
+ * Authority, on the surface that a person actually has open.
+ *
+ * `08-ENVIRONMENT` §6 asks the environment to answer "what would break if I
+ * revoked this capability". Until now the whole authority model, which is the
+ * product, was reachable only from a terminal: the window could approve one use
+ * and could not see, let alone take back, a grant.
+ *
+ * `01-PRINCIPLES` P3 never yields, and a revocation nobody can reach is not one.
+ */
+async function authority(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 9, hostname: "127.0.0.1" });
+
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+	const previous = process.env.MASCHINA_CONTROL_PLANE_URL;
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 9}`;
+
+	console.log("\n51. Every grant reaches the window");
+	const parent = await grant(pool, {
+		holder: "worker:parent",
+		resource: "filesystem",
+		operations: ["read", "write"],
+		scope: "/tmp/authority",
+		effectClass: "idempotent",
+		checkpoint: "none",
+		approval: "none",
+		delegationDepth: 2,
+		grantedBy: "human:ash",
+	});
+	const child = await grant(pool, {
+		parent: parent.id,
+		holder: "worker:child",
+		resource: "filesystem",
+		operations: ["read"],
+		scope: "/tmp/authority/inner",
+		effectClass: "idempotent",
+		checkpoint: "none",
+		approval: "none",
+		delegationDepth: 1,
+		grantedBy: "worker:parent",
+	});
+
+	const seen = await plane.capabilities();
+	check("the window can read what has been granted", seen.ok, JSON.stringify(seen));
+	if (!seen.ok) throw new Error("nothing further is provable");
+	// Three, not two: `grant` creates the root capability on first use and
+	// everything descends from it, so the window sees the root as well. That is
+	// correct and worth showing. This asserted two because it had forgotten the
+	// root exists, which is the assertion being wrong rather than a finding.
+	check(
+		"both the grant and what was delegated from it",
+		seen.value.some((c) => c.id === parent.id) && seen.value.some((c) => c.id === child.id),
+		`${seen.value.length} capabilities: ${seen.value.map((c) => c.holder).join(", ")}`,
+	);
+	check(
+		"and the root everything descends from",
+		seen.value.some((c) => c.parent === null),
+	);
+	const shown = seen.value.find((c) => c.id === parent.id);
+	check(
+		"with what it permits readable without opening anything",
+		shown?.operations.join(",") === "read,write" && shown.scope === "/tmp/authority",
+		`${shown?.operations.join(",")} on ${shown?.scope}`,
+	);
+	check(
+		"and the three numbers, never one running balance",
+		shown !== undefined &&
+			typeof shown.limits.granted === "number" &&
+			typeof shown.limits.reserved === "number" &&
+			typeof shown.limits.settled === "number",
+	);
+	check(
+		"the delegated one knows what it came from",
+		seen.value.find((c) => c.id === child.id)?.parent === parent.id,
+	);
+
+	console.log("\n52. Revoking from the window works, and is recorded");
+	const before = await authorize(pool, {
+		capabilityId: child.id,
+		holder: "worker:child",
+		operation: "read",
+		target: "/tmp/authority/inner/x",
+	});
+	check("the delegated capability works beforehand", before.granted, JSON.stringify(before));
+
+	const taken = await plane.revokeCapability(parent.id, "human:ash", "the proof took it back");
+	check("the window can revoke", taken.ok && taken.value.revoked, JSON.stringify(taken));
+
+	console.log("\n53. And it takes what was delegated from it");
+	const after = await authorize(pool, {
+		capabilityId: child.id,
+		holder: "worker:child",
+		operation: "read",
+		target: "/tmp/authority/inner/x",
+	});
+	check("the delegated capability stops too", !after.granted);
+	// `revoked`, not `ancestor_revoked`: revoking cascades and marks everything
+	// below it revoked outright rather than leaving them active and refusing on a
+	// walk up the chain at use time. That is the stronger of the two behaviours.
+	check(
+		"refused because it was revoked, not for something incidental",
+		!after.granted && after.reason === "revoked",
+		after.granted ? "it was granted, which it cannot have been" : after.reason,
+	);
+
+	console.log("\n54. What was taken away is still shown");
+	const later = await plane.capabilities();
+	check(
+		"revoked capabilities are not filtered out of the list",
+		later.ok &&
+			later.value.some((c) => c.id === parent.id) &&
+			later.value.some((c) => c.id === child.id),
+	);
+	check(
+		"and the revoked one says so",
+		later.ok && later.value.find((c) => c.id === parent.id)?.status === "revoked",
+		later.ok ? String(later.value.find((c) => c.id === parent.id)?.status) : "",
+	);
+	// `05-CAPABILITIES` §10. A list that quietly drops what was taken away cannot
+	// answer why something was refused ten minutes ago.
+	const log = await read(pool);
+	check(
+		"the revocation is in the log under the person who did it",
+		log.some((e) => e.type.includes("revoke") && e.actor === "human:ash"),
+		log
+			.filter((e) => e.type.includes("revoke"))
+			.map((e) => `${e.type} by ${e.actor}`)
+			.join("; "),
+	);
+	check(
+		"and the denial that followed it is recorded too",
+		log.some((e) => e.type.includes("denied")),
+		log
+			.filter((e) => e.type.includes("denied"))
+			.map((e) => e.type)
+			.join("; "),
+	);
+
+	console.log("\n55. The window still cannot grant itself anything");
+	// The bridge gained a second operation that changes something. It changes it
+	// by asking the control plane to record a person's decision, and there is
+	// deliberately no grant on this surface: `05-CAPABILITIES` §0 asks whether the
+	// worst a holder can do is readable from one structure, and that answer stays
+	// short only if it stays short.
+	const bridge = readFileSync(join(desktop, "preload/index.ts"), "utf8")
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/^\s*\/\/.*$/gm, "");
+	check("there is no grant on the bridge", !/authority:\s*\{[\s\S]*?grant:/.test(bridge));
+	check(
+		"only list and revoke",
+		/authority:\s*\{[\s\S]*?list:[\s\S]*?revoke:[\s\S]*?\}/.test(bridge),
+	);
 
 	if (previous !== undefined) process.env.MASCHINA_CONTROL_PLANE_URL = previous;
 	await new Promise<void>((resolve) => server.close(() => resolve()));
