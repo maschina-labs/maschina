@@ -21,6 +21,12 @@ Versions follow semver.
 
 ### Fixed
 
+- **Merges bump the version again.** Releases had silently stopped: the version
+  was being read from a file that nothing updates any more, so every merge
+  computed a number that already existed and did nothing.
+
+### Fixed
+
 - **The tabs at the top of the window now respond.** They rendered and did
   nothing, because they sat inside the strip you drag the window by.
 

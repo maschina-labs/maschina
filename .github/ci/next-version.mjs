@@ -20,10 +20,29 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync } from "node:fs";
 
 const git = (...args) =>
 	execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+
+/**
+ * The version we are on, from the tags rather than from a file.
+ *
+ * It used to come from `package.json`, which worked only while a release commit
+ * bumped that file. Nothing commits back to main any more, so that number froze
+ * and every merge computed the same next version, saw the tag already existed,
+ * and did nothing. Nine merges produced no releases before anyone noticed.
+ *
+ * The tag is the version. Reading it from anywhere else is reading a copy.
+ */
+function currentVersion() {
+	try {
+		return git("describe", "--tags", "--abbrev=0", "--match", "v*").replace(/^v/, "");
+	} catch {
+		// No tags at all. The first release is whatever the first bump makes it.
+		return "0.0.0";
+	}
+}
 
 /** Commit subjects since the last `v*` tag, or the whole history if there is none. */
 function subjectsSinceLastTag() {
@@ -100,7 +119,7 @@ export function nextVersion(current, bump) {
 // Only when run directly. Importing this file, which the test does, must not
 // read package.json or shell out to git.
 if (process.argv[1]?.endsWith("next-version.mjs")) {
-	const current = JSON.parse(readFileSync("package.json", "utf8")).version;
+	const current = currentVersion();
 	const bump = bumpFor(subjectsSinceLastTag());
 
 	if (bump === null) {
