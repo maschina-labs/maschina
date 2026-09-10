@@ -39,6 +39,44 @@ jobs:
             exit 1
           fi
 
+  issue:
+    name: Closes an issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          # CLAUDE.md: every change closes its issue, and a change nobody could
+          # have found on the roadmap arrived by accident. That rule existed for
+          # months and was followed four times in forty pull requests, which is
+          # what a rule with nothing enforcing it is worth. The result was 57
+          # open issues in one milestone, many of them shipped.
+          case "$ACTOR" in
+            dependabot[bot]|renovate[bot]|github-actions[bot])
+              echo "Skipped: $ACTOR is a bot."
+              exit 0
+              ;;
+          esac
+
+          # Deliberate and visible, the same way no-changelog is.
+          if printf '%s' "$LABELS" | grep -q 'no-issue'; then
+            echo "Skipped: labelled no-issue."
+            exit 0
+          fi
+
+          if printf '%s' "$BODY" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+'; then
+            echo "Links an issue."
+            exit 0
+          fi
+
+          echo "This pull request closes no issue."
+          echo "Add 'Closes #N' to the body. If the work had no issue, open one first."
+          echo "If it genuinely closes nothing, label the PR 'no-issue'."
+          exit 1
+
   changelog:
     name: Changelog was updated
     runs-on: ubuntu-latest

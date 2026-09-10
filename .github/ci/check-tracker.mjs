@@ -88,6 +88,34 @@ for (const issue of issues) {
 	}
 }
 
+// 6. A merged pull request that closed nothing. The rule that every change
+//    closes its issue existed for months with nothing enforcing it, and was
+//    followed four times in forty pull requests. The result was 57 open issues
+//    in one milestone, 22 of them describing work that had already shipped.
+//    A check on the pull request itself blocks this now; this catches the
+//    label bypass and anything merged around it.
+const merged = JSON.parse(
+	gh([
+		"pr",
+		"list",
+		"--repo",
+		REPO,
+		"--state",
+		"merged",
+		"--limit",
+		"30",
+		"--json",
+		"number,title,body,author",
+	]),
+);
+const BOTS = new Set(["dependabot", "renovate", "github-actions"]);
+for (const pr of merged) {
+	if (BOTS.has(pr.author?.login?.replace(/\[bot\]$/, "") ?? "")) continue;
+	if (!/(close[sd]?|fix(e[sd])?|resolve[sd]?) #\d+/i.test(pr.body ?? "")) {
+		note("unlinked", `#${pr.number} ${pr.title}`);
+	}
+}
+
 const byKind = {};
 for (const d of drift) {
 	byKind[d.kind] ??= [];
@@ -100,6 +128,7 @@ const EXPLAIN = {
 	thin: "Body too short to act on. An issue nobody else can pick up is a note",
 	"milestone-done": "Every issue closed. Close the milestone",
 	"stale-gate": "A gate nobody has revisited. Decide, or say why not yet",
+	unlinked: "Merged without closing an issue. The roadmap cannot show what shipped",
 };
 
 if (drift.length === 0) {
