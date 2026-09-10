@@ -93,29 +93,3 @@ has to pass.
 ## Security
 
 Do not open an issue for a vulnerability. See [SECURITY.md](SECURITY.md).
-
-## Licensing
-
-Maschina is under the **Business Source License 1.1**, and every version becomes
-**Apache 2.0** four years after its release. `LICENSE` governs; `NOTICE` is the
-short version.
-
-What that means for you, in plain language:
-
-| | |
-| --- | --- |
-| Read the source | yes |
-| Run it on your own machines, for yourself or your company | yes |
-| Modify it | yes |
-| Build software with it and sell that software | yes |
-| Sell Maschina itself to other people as a hosted service | no |
-| After 2030-09-10 | everything released today is Apache 2.0 |
-
-It is source-available rather than OSI open source, and that is deliberate rather
-than an accident. The reasoning is recorded in `ADR-012`.
-
-**Contributions need a signed CLA**, once per person, covering everything you
-send. It is in `.github/CLA.md` and it takes one line on your first pull request.
-It exists so the project keeps the ability to change its own licence later, which
-one unreachable contributor could otherwise block permanently.
-
