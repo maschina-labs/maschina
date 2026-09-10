@@ -61,7 +61,7 @@ jobs:
           # error, which is the one thing this repository's own rules forbid on
           # an authority path. It cost two runs of not knowing why.
           set +e
-          node internal/operations/sync-board.mjs $ARGS
+          node .github/ci/sync-board.mjs $ARGS
           STATUS=$?
           set -e
 
@@ -94,7 +94,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          node internal/operations/check-tracker.mjs > drift.txt 2>&1
+          node .github/ci/check-tracker.mjs > drift.txt 2>&1
           echo "drifted=$?" >> "$GITHUB_OUTPUT"
           cat drift.txt
 
@@ -113,7 +113,7 @@ jobs:
             cat drift.txt
             echo '```'
             echo
-            echo "Found by \`internal/operations/check-tracker.mjs\`, which runs every Monday."
+            echo "Found by \`.github/ci/check-tracker.mjs\`, which runs every Monday."
           } > body.md
 
           EXISTING=$(gh issue list --state open --label repo \
