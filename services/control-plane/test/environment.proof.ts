@@ -20,7 +20,7 @@
  * Run: pnpm proof
  */
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import type { Contract } from "@maschina/core";
@@ -222,6 +222,12 @@ async function main(): Promise<void> {
 
 	// ── Slice 9 ───────────────────────────────────────────────────────────────
 	await slice9();
+
+	// ── Slice 10 ──────────────────────────────────────────────────────────────
+	slice10();
+
+	// ── Slice 11 ──────────────────────────────────────────────────────────────
+	slice11();
 
 	verdict("Environment proof");
 }
@@ -1328,6 +1334,144 @@ async function slice9(): Promise<void> {
 	for (const heavy of ["monaco-editor", "@monaco-editor/react", "codemirror"]) {
 		check(`no ${heavy}`, !installed.includes(heavy));
 	}
+}
+
+/**
+ * Slice 10: the terminal.
+ *
+ *   "A test proves the worker execution path cannot spawn an unsandboxed
+ *    process, and that the two paths share no module."
+ *
+ *   "Watch for: a shared path-resolution helper. Both terminals being on screen
+ *    at once makes this more tempting to break, not less."
+ *
+ * This is the constraint `ADR-003` marks as never reopening, so the checks are
+ * about what cannot happen rather than about what works.
+ */
+function slice10(): void {
+	console.log("\n35. The human shell and the worker path share nothing");
+
+	const source = (file: string) =>
+		readFileSync(new URL(`../../../${file}`, import.meta.url).pathname, "utf8")
+			.replace(/\/\*[\s\S]*?\*\//g, "")
+			.replace(/^\s*\/\/.*$/gm, "");
+
+	const human = source("apps/desktop/src/main/terminal.ts");
+
+	check(
+		"the human terminal is its own module",
+		human.includes('from "node-pty"'),
+		"ADR-003 section 3.1: separate modules with separate call sites",
+	);
+	check("and imports nothing from the worker", !human.includes("@maschina/worker"));
+	check(
+		"it is not one invocation behind a flag",
+		!/isWorker|forWorker|sandboxed\s*[?:]/.test(human),
+		"a flag will eventually be passed wrong",
+	);
+
+	console.log("\n36. The worker path cannot reach a pseudoterminal at all");
+
+	const workerFiles = readdirSync(
+		new URL("../../../packages/worker/src", import.meta.url).pathname,
+	).filter((f) => f.endsWith(".ts"));
+
+	for (const file of workerFiles) {
+		const text = source(`packages/worker/src/${file}`);
+		check(
+			`${file} cannot spawn a shell`,
+			!/node-pty|child_process|execFile|spawn\(/.test(text),
+			"a pseudoterminal on the operator's shell has no isolation boundary at all",
+		);
+	}
+
+	const manifest = JSON.parse(
+		readFileSync(
+			new URL("../../../packages/worker/package.json", import.meta.url).pathname,
+			"utf8",
+		),
+	) as { dependencies?: Record<string, string> };
+	check(
+		"and node-pty is not even a dependency of the worker package",
+		!Object.keys(manifest.dependencies ?? {}).includes("node-pty"),
+		"physically incapable, rather than careful",
+	);
+
+	console.log("\n37. It is the operator's own shell, unbounded on purpose");
+	check(
+		"it starts their login shell, not a chosen one",
+		human.includes("process.env.SHELL"),
+		"a terminal that starts a different shell behaves unlike every other on the machine",
+	);
+	check(
+		"there is no command allowlist",
+		!/allowlist|allowed|permitted|forbidden/i.test(human),
+		"05-CAPABILITIES section 7: allowlisted commands compose into arbitrary behaviour",
+	);
+	check(
+		"resizing is handled, so anything that draws its own interface draws right",
+		human.includes("resize"),
+	);
+	check(
+		"and no shell outlives the window",
+		source("apps/desktop/src/main/index.ts").includes("terminal.stopAll()"),
+	);
+}
+
+/**
+ * Slice 11: git in one place.
+ *
+ *   "Watch for: blurring the operator's git with the worker's capability. A
+ *    worker committing is brokered, recorded and revocable. A human committing
+ *    is a human committing."
+ */
+function slice11(): void {
+	console.log("\n38. The operator's git is not the worker's capability");
+
+	const source = (file: string) =>
+		readFileSync(new URL(`../../../${file}`, import.meta.url).pathname, "utf8")
+			.replace(/\/\*[\s\S]*?\*\//g, "")
+			.replace(/^\s*\/\/.*$/gm, "");
+
+	const human = source("apps/desktop/src/main/git.ts");
+	const worker = source("packages/worker/src/repository.ts");
+
+	check("the two share no module", !human.includes("@maschina/worker"));
+	check("and the worker knows nothing of this one", !worker.includes("main/git"));
+	check(
+		"the human path has no capability, because a person is not a worker",
+		!/capabilityId|authorize/.test(human),
+		"a worker commits through a broker and never sees a credential; a person just commits",
+	);
+	check(
+		"and it holds no credential of its own either",
+		!/token|password|GITHUB_TOKEN|Authorization/i.test(human),
+		"it runs git, and git already knows how to authenticate as the person",
+	);
+
+	console.log("\n39. It runs real git, so the history is ordinary");
+	check(
+		"the real binary, on the real repository",
+		human.includes("execFile") && human.includes('"git"'),
+		"08-ENVIRONMENT section 2 lists git as never replaced, and ADR-011 did not reverse it",
+	);
+	check(
+		"arguments are an array, never a string",
+		!/execFile\(\s*`/.test(human) && human.includes("[...args]"),
+		"a filename with a space in it is a filename, not a second command",
+	);
+
+	console.log("\n40. And there is no force-push");
+	check(
+		"force appears nowhere",
+		!/--force|-f\b|forceWithLease/.test(human),
+		"03-RUNTIME section 5: an unsafe effect escalates rather than being made easy",
+	);
+	check(
+		"push takes no arguments that could add one",
+		/export async function push\(cwd: string\)/.test(human),
+		"if somebody needs to force-push, they have a terminal",
+	);
 }
 
 main().catch((error: unknown) => {

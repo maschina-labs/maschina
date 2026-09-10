@@ -9,6 +9,12 @@ export default defineConfig({
 		build: {
 			outDir: "out/main",
 			lib: { entry: resolve(src, "main/index.ts") },
+			rollupOptions: {
+				// node-pty is a native module: a pseudoterminal is a kernel feature,
+				// so part of it is a compiled binary that cannot be bundled into
+				// JavaScript. It is required at runtime from node_modules instead.
+				external: ["node-pty"],
+			},
 		},
 	},
 	preload: {

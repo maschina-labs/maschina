@@ -139,6 +139,20 @@ interface Done<T> {
 	readonly problem?: string;
 }
 
+export interface Change {
+	readonly code: string;
+	readonly path: string;
+	readonly staged: boolean;
+}
+
+export interface Status {
+	readonly branch: string;
+	readonly upstream: string | null;
+	readonly ahead: number;
+	readonly behind: number;
+	readonly changes: readonly Change[];
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -216,6 +230,64 @@ const api = {
 			ipcRenderer.invoke("workspace:read", path),
 		write: (input: { path: string; text: string }): Promise<Done<{ path: string }>> =>
 			ipcRenderer.invoke("workspace:write", input),
+	},
+
+	/**
+	 * The operator's git, on the directory they opened.
+	 *
+	 * Not the repository capability. A worker commits through a broker so it
+	 * never sees a credential, and every commit is an Intent and an Outcome. This
+	 * is a person running git on their own repository, and the history it makes
+	 * is indistinguishable from history made in any terminal.
+	 *
+	 * There is no force-push here and there is no argument that could produce
+	 * one.
+	 */
+	git: {
+		status: (): Promise<Done<Status>> => ipcRenderer.invoke("git:status"),
+		diff: (path?: string): Promise<Done<string>> => ipcRenderer.invoke("git:diff", path),
+		branches: (): Promise<Done<string[]>> => ipcRenderer.invoke("git:branches"),
+		stage: (paths: readonly string[]): Promise<Done<null>> =>
+			ipcRenderer.invoke("git:stage", paths),
+		unstage: (paths: readonly string[]): Promise<Done<null>> =>
+			ipcRenderer.invoke("git:unstage", paths),
+		commit: (message: string): Promise<Done<string>> =>
+			ipcRenderer.invoke("git:commit", message),
+		push: (): Promise<Done<string>> => ipcRenderer.invoke("git:push"),
+	},
+
+	/**
+	 * The operator's own shell.
+	 *
+	 * Not a worker's, and never will be. `ADR-003` §3.1: they are different
+	 * mechanisms that do not share a code path, because a pseudoterminal on
+	 * somebody's real shell has no isolation boundary and holds their whole
+	 * machine. A worker's shell lives inside an isolation boundary on a node.
+	 */
+	terminal: {
+		start: (input: { id: string; cwd: string | null }): void =>
+			ipcRenderer.send("terminal:start", input),
+		write: (input: { id: string; data: string }): void =>
+			ipcRenderer.send("terminal:write", input),
+		resize: (input: { id: string; cols: number; rows: number }): void =>
+			ipcRenderer.send("terminal:resize", input),
+		stop: (id: string): void => ipcRenderer.send("terminal:stop", id),
+
+		onData: (id: string, listener: (chunk: string) => void): (() => void) => {
+			const handler = (_event: unknown, chunk: string) => listener(chunk);
+			ipcRenderer.on(`terminal:data:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:data:${id}`, handler);
+		},
+		onExit: (id: string, listener: (code: number) => void): (() => void) => {
+			const handler = (_event: unknown, code: number) => listener(code);
+			ipcRenderer.on(`terminal:exit:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:exit:${id}`, handler);
+		},
+		onProblem: (id: string, listener: (problem: string) => void): (() => void) => {
+			const handler = (_event: unknown, problem: string) => listener(problem);
+			ipcRenderer.on(`terminal:problem:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:problem:${id}`, handler);
+		},
 	},
 
 	/** What has been done, counted. Never shown to a worker. */

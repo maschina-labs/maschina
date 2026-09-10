@@ -21,6 +21,20 @@ Versions follow semver.
 
 ### Added
 
+- **Git, in one place.** What changed, what is staged, the diff for any file, a
+  commit and a push, on the project you have open. It runs real git on the real
+  repository, so anything else you use on that directory sees exactly what it
+  would have seen anyway.
+
+### Added
+
+- **A terminal, running your own shell.** Your profile, your aliases, your
+  prompt, in a panel in the window. It is yours and it is not where anything
+  autonomous runs: workers get an isolated shell elsewhere and can never reach
+  this one.
+
+### Added
+
 - **Open a project and read its files.** Pick a directory you already work in,
   browse it, open a file, change it, save it. It is written in place, so whatever
   else you have open on that directory keeps working exactly as it did.
