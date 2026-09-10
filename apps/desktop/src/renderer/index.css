@@ -653,3 +653,110 @@ body {
 .waiting__worker {
 	color: var(--text);
 }
+
+/* ── Approvals ────────────────────────────────────────────────────────────── */
+
+.approval {
+	margin-bottom: 18px;
+	padding: 16px 18px;
+	border: 1px solid color-mix(in srgb, #d8a13a 40%, var(--border));
+	border-radius: 9px;
+	background: var(--bg-raised);
+}
+
+.approval .facts {
+	margin-bottom: 14px;
+}
+
+.answer__refuse {
+	padding: 5px 12px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	background: transparent;
+	color: var(--text-dim);
+	font-family: var(--mono);
+	font-size: 11px;
+	cursor: default;
+}
+
+.answer__refuse:hover:not(:disabled) {
+	border-color: color-mix(in srgb, #d0603a 50%, var(--border));
+	color: #f0a58a;
+}
+
+/* ── Stopping everything ──────────────────────────────────────────────────── */
+
+.stop {
+	-webkit-app-region: no-drag;
+	margin-left: auto;
+	padding: 3px 10px;
+	border: 1px solid color-mix(in srgb, #d0603a 45%, var(--border));
+	border-radius: 5px;
+	background: transparent;
+	color: #d0603a;
+	font-family: var(--mono);
+	font-size: 11px;
+	cursor: default;
+}
+
+.stop:hover {
+	background: color-mix(in srgb, #d0603a 15%, transparent);
+	color: #f0a58a;
+}
+
+.stop--confirm {
+	margin-left: 0;
+	border-color: #d0603a;
+	background: #d0603a;
+	color: #17090a;
+}
+
+.stop--confirm:disabled {
+	border-color: var(--border);
+	background: color-mix(in srgb, var(--text-faint) 25%, transparent);
+	color: var(--text-faint);
+}
+
+.stopping {
+	position: fixed;
+	inset: 0;
+	z-index: 10;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	background: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+
+.stopping__box {
+	width: min(520px, 100%);
+	padding: 22px 24px;
+	border: 1px solid color-mix(in srgb, #d0603a 45%, var(--border));
+	border-radius: 11px;
+	background: var(--bg-raised);
+}
+
+.stopping__title {
+	margin: 0 0 12px;
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.stopping__text {
+	margin: 0 0 10px;
+	font-size: 12.5px;
+	line-height: 1.6;
+	color: var(--text-dim);
+}
+
+.stopping__text--warn {
+	margin-bottom: 16px;
+	color: #f0a58a;
+}
+
+.stopping__outcome {
+	margin: 10px 0 0;
+	font-family: var(--mono);
+	font-size: 11px;
+	line-height: 1.6;
+	color: var(--text);
+}

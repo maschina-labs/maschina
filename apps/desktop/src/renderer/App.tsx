@@ -10,6 +10,7 @@ import { useCallback, useState } from "react";
 import { Log } from "./Log.tsx";
 import { Objectives } from "./Objectives.tsx";
 import { Queue } from "./Queue.tsx";
+import { Stop } from "./Stop.tsx";
 
 type View = "queue" | "objectives" | "log";
 
@@ -39,6 +40,7 @@ export function App() {
 						log
 					</Tab>
 				</nav>
+				<Stop />
 			</header>
 
 			<main className="body">

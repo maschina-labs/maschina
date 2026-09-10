@@ -24,11 +24,14 @@ import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import {
 	answer,
+	approvals,
+	decide,
 	events,
 	health,
 	type LogQuery,
 	objective,
 	objectives,
+	stopEverything,
 	suspensions,
 } from "./control-plane.ts";
 
@@ -103,6 +106,17 @@ function serveTheRenderer(): void {
 	ipcMain.handle("objectives:list", () => objectives());
 	ipcMain.handle("objectives:one", (_event, id: string) => objective(id));
 	ipcMain.handle("queue:list", () => suspensions());
+	ipcMain.handle("queue:approvals", () => approvals());
+	ipcMain.handle(
+		"queue:decide",
+		(
+			_event,
+			input: { capabilityId: string; granted: boolean; reason: string; approver: string },
+		) => decide(input.capabilityId, input.granted, input.reason, input.approver),
+	);
+	ipcMain.handle("stop:everything", (_event, input: { reason: string; actor: string }) =>
+		stopEverything(input.reason, input.actor),
+	);
 	// The only handler here that changes anything. Named, single purpose, and it
 	// takes exactly the four things an answer is made of.
 	ipcMain.handle(
