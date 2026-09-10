@@ -1132,3 +1132,27 @@ body {
 	color: var(--text-dim);
 	white-space: pre;
 }
+
+/*
+ * The control plane address, in the notice that asks for it and in the status
+ * bar that shows it. The status bar entry is a button because it does something,
+ * and it is styled flat because a button that looks like a button down there
+ * reads as an action somebody is being asked to take.
+ */
+.field--inline {
+	margin-top: 10px;
+}
+
+.statusbar__where {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--text-faint);
+	font-family: var(--mono);
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.statusbar__where:hover {
+	color: var(--text-dim);
+}

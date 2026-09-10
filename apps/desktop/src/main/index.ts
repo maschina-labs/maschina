@@ -22,6 +22,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
+import * as address from "./address.ts";
 import {
 	answer,
 	approvals,
@@ -35,6 +36,7 @@ import {
 	modelCapabilities,
 	objective,
 	objectives,
+	pointAt,
 	state,
 	stats,
 	stopEverything,
@@ -128,6 +130,18 @@ function createWindow(): void {
  * the window is allowed to know, so it is short on purpose and each entry reads
  * as a question rather than as a channel.
  */
+/**
+ * Point the client at an address, and say so if it will not take it.
+ *
+ * `pointAt` refuses anything that is not an http or https address, because it is
+ * the code that makes the request. Every path here has already validated, so a
+ * refusal means the settings file was written by something other than this app.
+ * That is worth a line on stderr rather than a window that quietly reads nothing.
+ */
+function point(url: string | null): void {
+	if (!pointAt(url)) console.error(`[main] refused as a control plane address: ${url}`);
+}
+
 function serveTheRenderer(): void {
 	ipcMain.handle("log:events", (_event, query: LogQuery) => events(query ?? {}));
 	ipcMain.handle("log:health", () => health());
@@ -147,6 +161,22 @@ function serveTheRenderer(): void {
 	);
 	ipcMain.handle("objectives:drafters", () => modelCapabilities());
 	ipcMain.handle("stats:read", () => stats());
+
+	// Where the control plane is. Read, set, forget. The client is told every
+	// time it changes, because a saved address nothing was told about is a
+	// setting that appears to work and does not.
+	ipcMain.handle("plane:where", () => address.where());
+	ipcMain.handle("plane:suggested", () => address.SUGGESTED);
+	ipcMain.handle("plane:save", (_event, url: string) => {
+		const outcome = address.save(url);
+		if (outcome.ok) point(outcome.value.url);
+		return outcome;
+	});
+	ipcMain.handle("plane:forget", () => {
+		const outcome = address.forget();
+		if (outcome.ok) point(outcome.value.url);
+		return outcome;
+	});
 
 	// The operator's own files. Named operations on a directory they chose, and
 	// no path outside it is expressible: the renderer sends relative paths and
@@ -243,6 +273,10 @@ app.whenReady().then(() => {
 		const icon = nativeImage.createFromPath(join(dirname, "../../build/icon.png"));
 		if (!icon.isEmpty()) app.dock?.setIcon(icon);
 	}
+
+	// Before the window, so its first read of the log goes to the right place
+	// rather than to nowhere and then being corrected.
+	point(address.where().url);
 
 	serveTheRenderer();
 	createWindow();

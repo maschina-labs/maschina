@@ -11,6 +11,7 @@ import { Files } from "./Files.tsx";
 import { Git } from "./Git.tsx";
 import { Log } from "./Log.tsx";
 import { Objectives } from "./Objectives.tsx";
+import { Connect, useWhere } from "./Plane.tsx";
 import { Queue } from "./Queue.tsx";
 import { Stats } from "./Stats.tsx";
 import { Stop } from "./Stop.tsx";
@@ -24,6 +25,13 @@ export function App() {
 	const [view, setView] = useState<View>("queue");
 	const [problem, setProblem] = useState<string | null>(null);
 	const [count, setCount] = useState(0);
+	const { where, setWhere } = useWhere();
+	const [changing, setChanging] = useState(false);
+
+	// Null while it is still being read. Unset once it has been read and there is
+	// nothing there, which is a different thing to show.
+	const unset = where !== null && where.url === null;
+	const dismiss = useCallback(() => setChanging(false), []);
 
 	// Stable, so the effects reporting into them do not fire on every render.
 	const reportProblem = useCallback((p: string | null) => setProblem(p), []);
@@ -60,7 +68,14 @@ export function App() {
 			</header>
 
 			<main className="body">
-				{problem !== null && <Lost problem={problem} />}
+				{where !== null && (unset || changing) && (
+					<Connect
+						where={where}
+						onChanged={setWhere}
+						onDismiss={changing ? dismiss : undefined}
+					/>
+				)}
+				{problem !== null && !unset && <Lost problem={problem} />}
 				{view === "queue" && <Queue onProblem={reportProblem} />}
 				{view === "objectives" && <Objectives onProblem={reportProblem} />}
 				{view === "log" && <Log onProblem={reportProblem} onCount={reportCount} />}
@@ -73,10 +88,15 @@ export function App() {
 			<footer className="statusbar">
 				<span>
 					<span
-						className={`statusbar__dot statusbar__dot--${problem === null ? "connected" : "lost"}`}
+						className={`statusbar__dot statusbar__dot--${unset ? "connecting" : problem === null ? "connected" : "lost"}`}
 					/>
-					{problem === null ? "reading the log" : "not connected"}
+					{unset ? "no control plane" : problem === null ? "reading the log" : "not connected"}
 				</span>
+				{where !== null && where.url !== null && (
+					<button type="button" className="statusbar__where" onClick={() => setChanging(true)}>
+						{where.url}
+					</button>
+				)}
 				{view === "log" && (
 					<span>
 						{count} event{count === 1 ? "" : "s"}
