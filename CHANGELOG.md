@@ -21,6 +21,11 @@ Versions follow semver.
 
 ### Added
 
+- **The desktop window shows the log.** Everything Maschina has recorded, newest
+  first, updating while you watch, with the full detail of any entry one click
+  away. Losing the connection says so plainly instead of showing you an empty
+  screen that looks like nothing happened.
+
 - **The board updates itself.** Opening, closing or relabelling an issue moves it
   on the public roadmap within minutes, without anyone dragging a card.
 - **The roadmap is public.** Every planned piece of Maschina is an issue, grouped

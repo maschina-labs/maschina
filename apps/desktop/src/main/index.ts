@@ -11,13 +11,18 @@
  * the main process only through whatever `preload` explicitly exposes.
  *
  * Nothing here spawns a process or touches a path outside the app. When the
- * terminal and file explorer arrive at Stage 2, they arrive as the HUMAN's
- * surfaces (ADR-003 §5), and the worker execution path is built separately.
+ * terminal and file explorer arrive, they arrive as the HUMAN's surfaces
+ * (ADR-003 §5, ADR-011), and the worker execution path is built separately.
+ *
+ * The handlers below are named operations, one per thing the renderer may ask
+ * for. Not a general `invoke(channel, ...)` passthrough, which is an open door
+ * with a narrow-looking frame. Every one of them is read-only.
  */
 
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { events, health, type LogQuery } from "./control-plane.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 const isDev = !app.isPackaged;
@@ -79,7 +84,18 @@ function createWindow(): void {
 	}
 }
 
+/**
+ * The renderer's entire vocabulary. Adding to this list is a decision about what
+ * the window is allowed to know, so it is short on purpose and each entry reads
+ * as a question rather than as a channel.
+ */
+function serveTheRenderer(): void {
+	ipcMain.handle("log:events", (_event, query: LogQuery) => events(query ?? {}));
+	ipcMain.handle("log:health", () => health());
+}
+
 app.whenReady().then(() => {
+	serveTheRenderer();
 	createWindow();
 
 	// macOS: clicking the dock icon with no windows open reopens one.
