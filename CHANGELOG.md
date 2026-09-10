@@ -19,6 +19,11 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Changed
+
+- **The app icon is the newer artwork.** The mark is light on dark now, so it is
+  legible at the size a dock actually shows it.
+
 ### Fixed
 
 - **The app icon is the right size in the dock.** It was drawn edge to edge, so
