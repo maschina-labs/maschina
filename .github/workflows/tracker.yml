@@ -48,8 +48,16 @@ jobs:
             echo "No token with project scope. Set PROJECT_TOKEN and this starts working."
             exit 0
           fi
+          # One issue when one issue changed. Everything on a schedule or when
+          # asked, which also backfills anything an event missed.
+          if [ -n "${{ github.event.issue.number }}" ]; then
+            ARGS="--issue ${{ github.event.issue.number }}"
+          else
+            ARGS=""
+          fi
+
           # A missing scope is a configuration problem, not a broken build.
-          node internal/operations/sync-board.mjs || {
+          node internal/operations/sync-board.mjs $ARGS || {
             echo "Board sync failed. Usually a token without the project scope."
             exit 0
           }
