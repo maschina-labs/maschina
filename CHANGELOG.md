@@ -21,6 +21,17 @@ Versions follow semver.
 
 ### Added
 
+- **A real editor.** Files open with syntax highlighting, in Monaco, the editor
+  from VS Code. Find, folding, multiple cursors and the usual keys work.
+
+### Changed
+
+- **Changes are shown as the file, side by side, not as a patch.** The git tab
+  used to print a unified diff. It now shows what the file was and what it is,
+  highlighted, which is the difference between reading a change and reviewing one.
+
+### Added
+
 - **Tell Maschina where to read from.** The address of the control plane is now
   something you set and it is remembered. Set it in the window, or start one from
   Maschina's own shell and point at it.

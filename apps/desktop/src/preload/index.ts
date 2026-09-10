@@ -258,6 +258,8 @@ const api = {
 	git: {
 		status: (): Promise<Done<Status>> => ipcRenderer.invoke("git:status"),
 		diff: (path?: string): Promise<Done<string>> => ipcRenderer.invoke("git:diff", path),
+		/** One file as it was at the last commit, for the other half of a diff. */
+		show: (path: string): Promise<Done<string>> => ipcRenderer.invoke("git:show", path),
 		branches: (): Promise<Done<string[]>> => ipcRenderer.invoke("git:branches"),
 		stage: (paths: readonly string[]): Promise<Done<null>> =>
 			ipcRenderer.invoke("git:stage", paths),

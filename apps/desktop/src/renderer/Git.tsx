@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Change, Status } from "../preload/index.ts";
+import { Diff } from "./Code.tsx";
 
 export function Git() {
 	const [status, setStatus] = useState<Status | null>(null);
@@ -26,7 +27,10 @@ export function Git() {
 	const [busy, setBusy] = useState(false);
 	const [said, setSaid] = useState<string | null>(null);
 	const [showing, setShowing] = useState<string | null>(null);
-	const [diff, setDiff] = useState("");
+	// Both sides, not a patch. A unified diff describes a change; a person
+	// reviewing one wants to see the thing itself.
+	const [sides, setSides] = useState<{ before: string; after: string } | null>(null);
+	const [refused, setRefused] = useState<string | null>(null);
 
 	const refresh = useCallback(async () => {
 		const result = await window.maschina?.git.status();
@@ -48,9 +52,27 @@ export function Git() {
 			setShowing(null);
 			return;
 		}
-		const result = await window.maschina?.git.diff(path);
 		setShowing(path);
-		setDiff(result?.ok ? (result.value ?? "") : (result?.problem ?? ""));
+		setSides(null);
+		setRefused(null);
+		const bridge = window.maschina;
+		if (bridge === undefined) return;
+		// The committed side comes from git, the working side from the operator's
+		// own files. Two modules on purpose: git does not resolve paths on disk.
+		const [committed, working] = await Promise.all([
+			bridge.git.show(path),
+			bridge.workspace.read(path),
+		]);
+		if (!committed.ok) {
+			setRefused(committed.problem ?? "That file could not be read from git.");
+			return;
+		}
+		setSides({
+			before: committed.value ?? "",
+			// Unreadable means deleted, and an empty right hand side is what that
+			// looks like rather than an error about a missing file.
+			after: working?.ok ? (working.value?.text ?? "") : "",
+		});
 	};
 
 	const act = async (what: () => Promise<{ ok: boolean; problem?: string } | undefined>) => {
@@ -102,7 +124,8 @@ export function Git() {
 				title="Staged"
 				changes={staged}
 				showing={showing}
-				diff={diff}
+				sides={sides}
+				refused={refused}
 				onShow={(p) => void show(p)}
 				action="unstage"
 				onAct={(p) =>
@@ -113,7 +136,8 @@ export function Git() {
 				title="Changed"
 				changes={unstaged}
 				showing={showing}
-				diff={diff}
+				sides={sides}
+				refused={refused}
 				onShow={(p) => void show(p)}
 				action="stage"
 				onAct={(p) =>
@@ -182,7 +206,8 @@ function Group({
 	title,
 	changes,
 	showing,
-	diff,
+	sides,
+	refused,
 	onShow,
 	action,
 	onAct,
@@ -190,7 +215,8 @@ function Group({
 	readonly title: string;
 	readonly changes: readonly Change[];
 	readonly showing: string | null;
-	readonly diff: string;
+	readonly sides: { before: string; after: string } | null;
+	readonly refused: string | null;
 	readonly onShow: (path: string) => void;
 	readonly action: string;
 	readonly onAct: (path: string) => void;
@@ -222,16 +248,17 @@ function Group({
 								{action}
 							</button>
 						</div>
-						{showing === change.path && <pre className="diff">{colourless(diff)}</pre>}
+						{showing === change.path && refused !== null && (
+							<p className="answer__refused">{refused}</p>
+						)}
+						{showing === change.path && sides !== null && (
+							<div className="diff">
+								<Diff path={change.path} before={sides.before} after={sides.after} />
+							</div>
+						)}
 					</li>
 				))}
 			</ul>
 		</>
 	);
-}
-
-/** Trim the diff header. A person opening one file already knows which file. */
-function colourless(diff: string): string {
-	const at = diff.indexOf("@@");
-	return at === -1 ? diff : diff.slice(at);
 }
