@@ -19,6 +19,8 @@ Versions follow semver.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-10
+
 ### Added
 
 - **A worker that is getting nowhere stops and asks you something you can answer
