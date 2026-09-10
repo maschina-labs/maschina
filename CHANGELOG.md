@@ -21,6 +21,12 @@ Versions follow semver.
 
 ### Fixed
 
+- **A worker that keeps saying the same thing in different words now stops and
+  asks.** It used to count every rewording as fresh progress, so a worker with
+  nothing left to try could keep going until it ran out of permitted steps
+  without ever asking for help. Whether something has already been said is now
+  judged from the record rather than taken on the worker's word.
+
 - **Starting Maschina when something already holds its port now says so.** It
   used to die with a stack trace that scrolled away behind the shutdown message,
   leaving nothing on screen that explained what went wrong.
