@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Starting Maschina when something already holds its port now says so.** It
+  used to die with a stack trace that scrolled away behind the shutdown message,
+  leaving nothing on screen that explained what went wrong.
+
 ## [0.10.0] - 2026-09-10
 
 ### Added
