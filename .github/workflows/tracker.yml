@@ -12,6 +12,10 @@ on:
   schedule:
     # Monday morning, so the week starts with an honest list.
     - cron: "0 13 * * 1"
+  # Anything that closes an issue should be reflected on the board within
+  # minutes, not next Monday.
+  issues:
+    types: [opened, closed, reopened, labeled, unlabeled, milestoned, demilestoned]
   workflow_dispatch:
 
 permissions:
@@ -19,6 +23,45 @@ permissions:
   issues: write
 
 jobs:
+  # GitHub's own project workflows cannot be toggled through any API, so this
+  # does their job instead: every issue on the board, with a status derived from
+  # its labels and milestone rather than typed by anyone. Being a script means it
+  # is versioned, reviewable, and cannot be silently switched off in a settings
+  # page nobody looks at.
+  board:
+    name: Put every issue on the board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Sync the board
+        env:
+          # Needs a token with the project scope. GITHUB_TOKEN cannot write to an
+          # organisation project, whatever its permissions block says.
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.RELEASE_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "No token with project scope. Set PROJECT_TOKEN and this starts working."
+            exit 0
+          fi
+          # One issue when one issue changed. Everything on a schedule or when
+          # asked, which also backfills anything an event missed.
+          if [ -n "${{ github.event.issue.number }}" ]; then
+            ARGS="--issue ${{ github.event.issue.number }}"
+          else
+            ARGS=""
+          fi
+
+          # A missing scope is a configuration problem, not a broken build.
+          node internal/operations/sync-board.mjs $ARGS || {
+            echo "Board sync failed. Usually a token without the project scope."
+            exit 0
+          }
+
   drift:
     name: Check for drift
     runs-on: ubuntu-latest
