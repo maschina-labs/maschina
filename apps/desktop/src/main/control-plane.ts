@@ -24,28 +24,70 @@
  */
 
 /**
+ * The address a person chose, told to this module by the main process at startup
+ * and again whenever they change it.
+ *
+ * It lives here as a variable rather than being imported from `address.ts`
+ * because that module imports `electron`, and this one is imported directly by
+ * the proofs in plain Node. Keeping the `electron` import on the other side of
+ * this line is what lets the proofs exercise the real client.
+ */
+let chosen: string | null = null;
+
+export function pointAt(url: string | null): void {
+	chosen = url;
+}
+
+/**
  * Read per call rather than captured at module load, so the address can change
  * without reloading the process. It also means a test can point this somewhere
  * else without importing the module twice, which is the kind of thing that ends
  * up as a cache-busting query string nobody can explain later.
+ *
+ * Null when no address is set anywhere. There is deliberately no default: the
+ * packaged application used to assume 127.0.0.1:8787 and then report that
+ * nothing was listening on a port the operator had never chosen.
  */
-function base(): string {
-	return process.env.MASCHINA_CONTROL_PLANE_URL ?? "http://127.0.0.1:8787";
+function base(): string | null {
+	const override = process.env.MASCHINA_CONTROL_PLANE_URL;
+	if (override !== undefined && override !== "") {
+		return override.endsWith("/") ? override.slice(0, -1) : override;
+	}
+	return chosen;
 }
 
 /** How long to wait before deciding the control plane is not there. */
 const TIMEOUT_MS = 4_000;
 
+/**
+ * Nothing was asked, because there is nowhere to ask.
+ *
+ * Distinct from unreachable on purpose. "You have not said where it is" and "it
+ * is not answering" look the same from here and are not the same problem.
+ */
+const NOT_SET: Unreachable = {
+	ok: false,
+	unset: true,
+	problem: "No control plane address is set yet. Choose one to connect to.",
+};
+
 export interface Unreachable {
 	readonly ok: false;
 	/** Said to a person, so it says what to do rather than what threw. */
 	readonly problem: string;
+	/**
+	 * Set when no address has been chosen at all, as opposed to one that has been
+	 * chosen and is not answering. The two have different fixes, so the window
+	 * must be able to tell them apart rather than showing one message for both.
+	 */
+	readonly unset?: true;
 }
 
 export type Result<T> = { readonly ok: true; readonly value: T } | Unreachable;
 
 async function read<T>(path: string): Promise<Result<T>> {
 	const where = base();
+	if (where === null) return NOT_SET;
 	const url = `${where}${path}`;
 	try {
 		const response = await fetch(url, {
@@ -155,6 +197,7 @@ export function approvals(): Promise<Result<WireApproval[]>> {
 /** Send anything that changes something. One helper, so there is one place to read. */
 async function act<T>(path: string, body: unknown, whenGone: string): Promise<Result<T>> {
 	const where = base();
+	if (where === null) return NOT_SET;
 	try {
 		const response = await fetch(`${where}${path}`, {
 			method: "POST",
@@ -279,6 +322,7 @@ export async function answer(
 	answeredBy: string,
 ): Promise<Result<{ resumed: boolean }>> {
 	const where = base();
+	if (where === null) return NOT_SET;
 	try {
 		const response = await fetch(`${where}/suspensions/${encodeURIComponent(worker)}/resume`, {
 			method: "POST",
@@ -326,8 +370,16 @@ export function watch(
 
 	const run = async (): Promise<void> => {
 		while (!closed) {
+			const where = base();
+			if (where === null) {
+				// Nothing to connect to yet. Say so once and wait for an address
+				// rather than opening a request against the string "null".
+				onTrouble(NOT_SET.problem);
+				await new Promise((resolve) => setTimeout(resolve, 1_000));
+				continue;
+			}
 			try {
-				const response = await fetch(`${base()}/events/stream`, {
+				const response = await fetch(`${where}/events/stream`, {
 					signal: controller.signal,
 					headers: { accept: "text/event-stream" },
 				});

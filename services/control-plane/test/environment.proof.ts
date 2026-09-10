@@ -232,6 +232,9 @@ async function main(): Promise<void> {
 	// ── Slice 12 ──────────────────────────────────────────────────────────────
 	slice12();
 
+	// ── Where the control plane is (#278) ─────────────────────────────────────
+	await addressing();
+
 	verdict("Environment proof");
 }
 
@@ -1535,6 +1538,123 @@ function slice12(): void {
 			"electron-updater",
 		),
 	);
+}
+
+/**
+ * Where the control plane is, which the packaged application has to be told.
+ *
+ * Issue #278. `pnpm dev` starts a control plane and the window together, so the
+ * window could assume 127.0.0.1:8787 and be right every time. The packaged
+ * application is only the window: it opened, assumed the same address, and
+ * reported that nothing was listening on a port the operator had never chosen.
+ *
+ * What is proved here is that the three states are distinguishable, because that
+ * is the part that was wrong. Not set, set and unreachable, and set and working
+ * have three different fixes and used to produce one message.
+ */
+async function addressing(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 8, hostname: "127.0.0.1" });
+	const here = `http://127.0.0.1:${PORT + 8}`;
+
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+	const format = await import("../../../apps/desktop/src/main/address-format.ts");
+
+	console.log("\n44. Nothing is assumed when no address has been set");
+	// Earlier sections steer the client with this. Clear it, or the thing being
+	// proved here is hidden by the thing that made the other sections work.
+	const previous = process.env.MASCHINA_CONTROL_PLANE_URL;
+	delete process.env.MASCHINA_CONTROL_PLANE_URL;
+	plane.pointAt(null);
+
+	const nowhere = await plane.health();
+	check("with nothing set, reading the log does not succeed", !nowhere.ok);
+	check(
+		"and it says it is unset rather than unreachable",
+		!nowhere.ok && nowhere.unset === true,
+		!nowhere.ok ? nowhere.problem : "it succeeded, which it cannot have",
+	);
+	check(
+		"the message names the missing setting, not a port nobody chose",
+		!nowhere.ok && !nowhere.problem.includes("8787"),
+		!nowhere.ok ? nowhere.problem : "",
+	);
+
+	console.log("\n45. What an address is allowed to be");
+	// Real inputs through the real function. The rules matter: this string is
+	// concatenated into every request URL the window makes.
+	const refused: readonly [string, string][] = [
+		["", "empty"],
+		["127.0.0.1:8787", "no scheme"],
+		["file:///etc/passwd", "not http"],
+		["javascript:alert(1)", "not http"],
+		["http://user:secret@host", "credentials in the address"],
+		["http://127.0.0.1:8787?drop=1", "a query string"],
+	];
+	for (const [input, why] of refused) {
+		check(`refused: ${why}`, format.validate(input) !== null, JSON.stringify(input));
+	}
+	for (const good of ["http://127.0.0.1:8787", "https://plane.example.com", " http://x.dev "]) {
+		check(
+			`allowed: ${good.trim()}`,
+			format.validate(good) === null,
+			String(format.validate(good)),
+		);
+	}
+	check("a trailing slash is removed", format.tidy("http://x.dev/") === "http://x.dev");
+
+	console.log("\n46. Being told where it is makes it work");
+	plane.pointAt(here);
+	const reachable = await plane.health();
+	check(
+		"pointed at a real control plane, the log reads",
+		reachable.ok,
+		JSON.stringify(reachable),
+	);
+
+	console.log("\n47. Set and not answering is not the same as not set");
+	plane.pointAt("http://127.0.0.1:9");
+	const dead = await plane.health();
+	check("an address that answers nothing fails", !dead.ok);
+	check(
+		"and it is not reported as unset, because one was set",
+		!dead.ok && dead.unset === undefined,
+		!dead.ok ? dead.problem : "",
+	);
+
+	console.log("\n48. The override still wins, so pnpm dev is unchanged");
+	process.env.MASCHINA_CONTROL_PLANE_URL = here;
+	plane.pointAt("http://127.0.0.1:9");
+	const overridden = await plane.health();
+	check("what is set in the surroundings beats what was saved", overridden.ok);
+
+	console.log("\n49. The operator's own surfaces do not depend on it at all");
+	// The shell, the files and git are the person's own. An unset address must not
+	// black them out: starting a control plane from Maschina's own terminal and
+	// then connecting to it is a real way to use this.
+	for (const own of ["terminal.ts", "workspace.ts", "git.ts"]) {
+		const source = readFileSync(join(desktop, "main", own), "utf8");
+		check(
+			`${own} cannot reach the control plane`,
+			!source.includes("control-plane.ts") && !source.includes("address.ts"),
+		);
+	}
+
+	console.log("\n50. The setting is not part of the record");
+	// 02-CORE: the log holds facts about work. Which address somebody pointed a
+	// window at is not one, so it lives on the machine and never reaches the log.
+	const addressSource = readFileSync(join(desktop, "main", "address.ts"), "utf8");
+	check(
+		"the address module has no route to the log",
+		!addressSource.includes("@maschina/db") && !addressSource.includes("append"),
+	);
+	const events = await read(pool);
+	check("and setting one recorded nothing", events.length === 0, `${events.length} event(s)`);
+
+	if (previous !== undefined) process.env.MASCHINA_CONTROL_PLANE_URL = previous;
+	await new Promise<void>((resolve) => server.close(() => resolve()));
+	await pool.end();
 }
 
 main().catch((error: unknown) => {

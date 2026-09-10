@@ -24,7 +24,19 @@ import { contextBridge, ipcRenderer } from "electron";
 interface Unreachable {
 	readonly ok: false;
 	readonly problem: string;
+	/** No address has been set at all, as opposed to one that is not answering. */
+	readonly unset?: true;
 }
+
+export interface Where {
+	readonly url: string | null;
+	readonly source: "override" | "saved" | "unset";
+	readonly trouble?: string;
+}
+
+export type Saved =
+	| { readonly ok: true; readonly value: Where }
+	| { readonly ok: false; readonly problem: string };
 type Result<T> = { readonly ok: true; readonly value: T } | Unreachable;
 
 export interface WireEvent {
@@ -288,6 +300,20 @@ const api = {
 			ipcRenderer.on(`terminal:problem:${id}`, handler);
 			return () => ipcRenderer.off(`terminal:problem:${id}`, handler);
 		},
+	},
+
+	/**
+	 * Where the control plane is.
+	 *
+	 * A person's own setting, kept on this machine. It is not part of the record:
+	 * which address somebody pointed a window at is not a fact about work, so it
+	 * does not belong in the log (`02-CORE`).
+	 */
+	plane: {
+		where: (): Promise<Where> => ipcRenderer.invoke("plane:where"),
+		suggested: (): Promise<string> => ipcRenderer.invoke("plane:suggested"),
+		save: (url: string): Promise<Saved> => ipcRenderer.invoke("plane:save", url),
+		forget: (): Promise<Saved> => ipcRenderer.invoke("plane:forget"),
 	},
 
 	/** What has been done, counted. Never shown to a worker. */

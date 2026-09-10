@@ -22,6 +22,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
+import * as address from "./address.ts";
 import {
 	answer,
 	approvals,
@@ -35,6 +36,7 @@ import {
 	modelCapabilities,
 	objective,
 	objectives,
+	pointAt,
 	state,
 	stats,
 	stopEverything,
@@ -148,6 +150,22 @@ function serveTheRenderer(): void {
 	ipcMain.handle("objectives:drafters", () => modelCapabilities());
 	ipcMain.handle("stats:read", () => stats());
 
+	// Where the control plane is. Read, set, forget. The client is told every
+	// time it changes, because a saved address nothing was told about is a
+	// setting that appears to work and does not.
+	ipcMain.handle("plane:where", () => address.where());
+	ipcMain.handle("plane:suggested", () => address.SUGGESTED);
+	ipcMain.handle("plane:save", (_event, url: string) => {
+		const outcome = address.save(url);
+		if (outcome.ok) pointAt(outcome.value.url);
+		return outcome;
+	});
+	ipcMain.handle("plane:forget", () => {
+		const outcome = address.forget();
+		if (outcome.ok) pointAt(outcome.value.url);
+		return outcome;
+	});
+
 	// The operator's own files. Named operations on a directory they chose, and
 	// no path outside it is expressible: the renderer sends relative paths and
 	// workspace.ts is the only place they become absolute.
@@ -243,6 +261,10 @@ app.whenReady().then(() => {
 		const icon = nativeImage.createFromPath(join(dirname, "../../build/icon.png"));
 		if (!icon.isEmpty()) app.dock?.setIcon(icon);
 	}
+
+	// Before the window, so its first read of the log goes to the right place
+	// rather than to nowhere and then being corrected.
+	pointAt(address.where().url);
 
 	serveTheRenderer();
 	createWindow();

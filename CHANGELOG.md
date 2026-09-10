@@ -21,6 +21,19 @@ Versions follow semver.
 
 ### Added
 
+- **Tell Maschina where to read from.** The address of the control plane is now
+  something you set and it is remembered. Set it in the window, or start one from
+  Maschina's own shell and point at it.
+
+### Changed
+
+- **"You have not set one" and "it is not answering" are different messages.**
+  The packaged application used to report that nothing was listening on a port
+  you had never chosen. It now says which of the two is actually true, and the
+  shell, files and git keep working either way.
+
+### Added
+
 - **Maschina builds into an application.** `pnpm package` produces a real
   Maschina.app you can double-click, with its own name and icon. It is not signed
   yet, so it runs on the machine that built it and not on anybody else's.
