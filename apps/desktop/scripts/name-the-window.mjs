@@ -45,7 +45,16 @@ try {
 	for (const key of ["CFBundleName", "CFBundleDisplayName"]) {
 		execFileSync("/usr/libexec/PlistBuddy", ["-c", `Set :${key} ${NAME}`, plist]);
 	}
-	console.log(`Named the development bundle ${NAME}.`);
+	// The dock and the Finder cache a bundle's name by path, so renaming it is
+	// not enough on its own: they keep showing what they learned first. This tells
+	// LaunchServices to read it again.
+	const lsregister =
+		"/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
+	if (existsSync(lsregister)) {
+		execFileSync(lsregister, ["-f", join(electron, "dist", "Electron.app")]);
+	}
+
+	console.log(`Named the development bundle ${NAME}. Run killall Dock if the tooltip lags.`);
 } catch {
 	// Electron not installed yet, a read-only store, a different layout. None of
 	// those are worth stopping for.
