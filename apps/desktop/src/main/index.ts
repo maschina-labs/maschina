@@ -38,6 +38,11 @@ import {
 	watch,
 } from "./control-plane.ts";
 
+// Before anything reads it. Electron takes the name from productName in
+// package.json when packaged, and shows "Electron" when run from source, which
+// is what the menu bar and the About panel would otherwise say.
+app.setName("Maschina");
+
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 const isDev = !app.isPackaged;
 

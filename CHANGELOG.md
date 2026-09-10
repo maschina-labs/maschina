@@ -23,6 +23,8 @@ Versions follow semver.
 
 - **The app icon is the newer artwork.** The mark is light on a lighter ground
   now, so it reads at the size a dock actually shows it.
+- **The application is called Maschina.** It was calling itself Electron in the
+  menu bar and the About panel.
 
 ### Fixed
 
