@@ -106,6 +106,27 @@ export interface WireCost {
 	readonly calls: number;
 }
 
+export interface WireDay {
+	readonly date: string;
+	readonly events: number;
+}
+
+export interface WireStats {
+	readonly events: number;
+	readonly objectivesStated: number;
+	readonly objectivesAccomplished: number;
+	readonly criteriaSatisfied: number;
+	readonly effects: number;
+	readonly denials: number;
+	readonly approvalsGiven: number;
+	readonly questionsAsked: number;
+	readonly questionsAnswered: number;
+	readonly nullSteps: number;
+	readonly spent: number;
+	readonly days: readonly WireDay[];
+	readonly streak: number;
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -163,6 +184,11 @@ const api = {
 			reason: string;
 			approver: string;
 		}): Promise<Result<{ granted: boolean }>> => ipcRenderer.invoke("queue:decide", input),
+	},
+
+	/** What has been done, counted. Never shown to a worker. */
+	stats: {
+		read: (): Promise<Result<WireStats>> => ipcRenderer.invoke("stats:read"),
 	},
 
 	/**

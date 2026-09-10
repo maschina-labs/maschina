@@ -55,5 +55,7 @@ export {
 	withinScope,
 	withinScopeOf,
 } from "./scope.ts";
+export type { Day, Scoreboard } from "./scoreboard.ts";
+export { scoreboard } from "./scoreboard.ts";
 export type { ObjectiveOutcome, Rollup, Verdict, VerdictResult } from "./verdict.ts";
 export { outcomeFor, remaining, rollup } from "./verdict.ts";

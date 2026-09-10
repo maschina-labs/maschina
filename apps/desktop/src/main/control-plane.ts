@@ -453,3 +453,29 @@ export async function modelCapabilities(): Promise<Result<{ id: string; holder: 
 			.map((c) => ({ id: c.id, holder: c.holder })),
 	};
 }
+
+/** What has been done, counted. A fold over the log, never stored. */
+export interface WireDay {
+	readonly date: string;
+	readonly events: number;
+}
+
+export interface WireStats {
+	readonly events: number;
+	readonly objectivesStated: number;
+	readonly objectivesAccomplished: number;
+	readonly criteriaSatisfied: number;
+	readonly effects: number;
+	readonly denials: number;
+	readonly approvalsGiven: number;
+	readonly questionsAsked: number;
+	readonly questionsAnswered: number;
+	readonly nullSteps: number;
+	readonly spent: number;
+	readonly days: readonly WireDay[];
+	readonly streak: number;
+}
+
+export function stats(): Promise<Result<WireStats>> {
+	return read<WireStats>("/stats");
+}

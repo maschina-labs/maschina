@@ -21,6 +21,15 @@ Versions follow semver.
 
 ### Added
 
+- **A page for what you have done.** A level that goes up as things actually get
+  finished, a square for every day of the last few months, and counts of what was
+  stated, satisfied, asked, answered and spent.
+- **Refusals and dead ends are counted too**, and labelled as what they are.
+  Authority being refused is a boundary holding, and a step that got nowhere is
+  how a worker notices it is stuck.
+
+### Added
+
 - **You can start work from the window.** Say what you want done and what would
   have to be true for it to count as done, and it goes to a worker. No terminal
   involved.
