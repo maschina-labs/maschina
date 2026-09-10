@@ -1119,18 +1119,22 @@ body {
 	color: var(--text);
 }
 
+/*
+ * Was a <pre> holding a unified patch. It now holds a Monaco diff editor, which
+ * measures itself from this element, so it needs a real height rather than a
+ * maximum one: a max-height with auto content collapses to nothing.
+ */
 .diff {
 	margin: 6px 0 10px;
-	padding: 10px 12px;
-	max-height: 320px;
-	overflow: auto;
+	height: 340px;
+	overflow: hidden;
 	border: 1px solid var(--border);
 	border-radius: 6px;
-	background: var(--bg-raised);
-	font-size: 11px;
-	line-height: 1.55;
-	color: var(--text-dim);
-	white-space: pre;
+	background: var(--bg);
+}
+
+.diff .code {
+	height: 100%;
 }
 
 /*
@@ -1155,4 +1159,14 @@ body {
 
 .statusbar__where:hover {
 	color: var(--text-dim);
+}
+
+/*
+ * The editor. Monaco lays itself out from the size of this element, so it needs
+ * a real height rather than one that collapses to its content.
+ */
+.code {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
 }

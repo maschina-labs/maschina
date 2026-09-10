@@ -222,6 +222,10 @@ function serveTheRenderer(): void {
 		const cwd = where();
 		return cwd === null ? noProject : git.diff(cwd, path);
 	});
+	ipcMain.handle("git:show", (_event, path: string) => {
+		const cwd = where();
+		return cwd === null ? noProject : git.show(cwd, path);
+	});
 	ipcMain.handle("git:branches", () => {
 		const cwd = where();
 		return cwd === null ? noProject : git.branches(cwd);

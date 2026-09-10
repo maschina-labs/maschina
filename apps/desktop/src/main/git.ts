@@ -113,6 +113,33 @@ export async function diff(cwd: string, path?: string): Promise<Result<string>> 
 	return result.ok ? { ok: true, value: result.value ?? "" } : result;
 }
 
+/**
+ * One file as it was at the last commit.
+ *
+ * `diff` returns a unified patch, which is a description of a change rather than
+ * the thing that changed. A side by side view needs the other side, and this is
+ * it. The working copy is not read here: that is a file on disk, and
+ * `workspace.ts` is the only module that turns an operator's path into an
+ * absolute one (`ADR-003` section 3.2). The window already has that half.
+ *
+ * A file that is not in the last commit is new, and its committed side is empty
+ * rather than an error. That is the correct answer to "what did this look like
+ * before", not a failure to answer it.
+ */
+export async function show(cwd: string, path: string): Promise<Result<string>> {
+	// `HEAD:./path` rather than `HEAD:path` so it resolves against the repository
+	// root the same way regardless of where git is invoked, and the `./` keeps a
+	// file named like a revision from being read as one.
+	const committed = await git(cwd, ["show", `HEAD:./${path}`]);
+	if (committed.ok) return { ok: true, value: committed.value ?? "" };
+
+	const said = committed.problem ?? "";
+	if (/exists on disk, but not in|does not exist|unknown revision|fatal: path/i.test(said)) {
+		return { ok: true, value: "" };
+	}
+	return { ok: false, problem: said || "That file could not be read from git." };
+}
+
 export async function branches(cwd: string): Promise<Result<string[]>> {
 	const result = await git(cwd, ["branch", "--format=%(refname:short)"]);
 	if (!result.ok) return { ok: false, problem: result.problem ?? "git said nothing." };

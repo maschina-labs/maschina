@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Entry } from "../preload/index.ts";
+import { Code } from "./Code.tsx";
 
 export function Files() {
 	const [root, setRoot] = useState<string | null>(null);
@@ -146,18 +147,7 @@ export function Files() {
 								save
 							</button>
 						</header>
-						<textarea
-							className="editor__text"
-							value={text}
-							spellCheck={false}
-							onChange={(e) => setText(e.target.value)}
-							onKeyDown={(e) => {
-								if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-									e.preventDefault();
-									void save();
-								}
-							}}
-						/>
+						<Code path={path} value={text} onChange={setText} onSave={() => void save()} />
 					</>
 				)}
 			</div>

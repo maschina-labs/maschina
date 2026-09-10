@@ -1323,13 +1323,53 @@ async function slice9(): Promise<void> {
 		"a tree that offers to edit .git is a tree that owns the repository",
 	);
 
-	console.log("\n34. And it is deliberately small");
-	const editor = source("apps/desktop/src/renderer/Files.tsx");
+	console.log("\n34. The editor runs no language workers");
+	// This section used to assert that no editor library existed at all, which was
+	// ADR-011 section 8 having teeth while slice 9 shipped a textarea. Issue #274
+	// argued the dependency in: reviewing a worker's change in a textarea is not
+	// reviewing. Deleting the guard rather than replacing it would leave "do not
+	// become VS Code" as a comment, so what it now checks is the boundary that
+	// actually holds: highlighting and a diff, and none of the worker backed half.
+	const code = source("apps/desktop/src/renderer/Code.tsx");
+
+	// Both of these pull the four language services, and Vite emits a worker chunk
+	// for anything in the module graph before tree shaking can remove it.
+	// `import type` is erased and reaches no bundle, so only a value import counts.
+	// The first version of this check did not make that distinction and failed on
+	// the type import, which is the check being too blunt rather than a finding.
 	check(
-		"no editor library was added",
-		!/monaco|codemirror|ace-builds/i.test(editor),
-		"ADR-011 section 8: if it starts trying to be VS Code it gets deleted, not improved",
+		"the package entry is not imported for value",
+		!/^import\s+(?!type\b)[^;]*from ["']monaco-editor["']/m.test(code),
+		"monaco-editor and languages/register.all.js both drag in the services",
 	);
+	check("nor languages/register.all.js", !code.includes("languages/register.all"));
+	for (const service of [
+		"features/css",
+		"features/html",
+		"features/json",
+		"features/typescript",
+	]) {
+		check(`no ${service} language service`, !code.includes(`languages/${service}`));
+	}
+
+	check(
+		"asking for a worker throws rather than returning one",
+		/getWorker\([^)]*\)[^{]*\{[\s\S]{0,200}?throw new Error/.test(code),
+		"undefined would fail somewhere deep instead; this fails where the decision is",
+	);
+
+	// The policy is what makes the above matter rather than being a preference.
+	const html = readFileSync(
+		new URL("../../../apps/desktop/src/renderer/index.html", import.meta.url).pathname,
+		"utf8",
+	);
+	check("the content security policy has no worker-src", !html.includes("worker-src"));
+	check("and no blob:", !html.includes("blob:"));
+	check(
+		"and script-src is still self only",
+		/script-src 'self'/.test(html) && !/script-src[^;]*unsafe/.test(html),
+	);
+
 	const manifest = JSON.parse(
 		readFileSync(
 			new URL("../../../apps/desktop/package.json", import.meta.url).pathname,
@@ -1337,9 +1377,39 @@ async function slice9(): Promise<void> {
 		),
 	) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
 	const installed = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies });
-	for (const heavy of ["monaco-editor", "@monaco-editor/react", "codemirror"]) {
-		check(`no ${heavy}`, !installed.includes(heavy));
-	}
+	check(
+		"monaco-editor is a direct dependency, argued for in #274",
+		installed.includes("monaco-editor"),
+	);
+	// The loader fetches Monaco from a CDN by default, which the policy forbids and
+	// which would make the editor depend on being online.
+	check("and not through @monaco-editor/react", !installed.includes("@monaco-editor/react"));
+	check(
+		"no second editor",
+		!installed.includes("codemirror") && !installed.includes("ace-builds"),
+	);
+
+	console.log("\n34b. A change is shown as the thing that changed");
+	// `08-ENVIRONMENT` section 1: a surface fails when it shows state you have to
+	// go elsewhere to act on. A unified patch is a description of a change, and
+	// issue #274's whole argument was that reading one is not reviewing.
+	const gitView = source("apps/desktop/src/renderer/Git.tsx");
+	check("the git view renders a diff editor", gitView.includes("<Diff"));
+	check("and no longer prints a patch", !gitView.includes("colourless"));
+
+	// The two sides come from two modules on purpose. `ADR-003` section 3.2: git
+	// does not turn an operator's path into an absolute one, `workspace.ts` does.
+	check("the committed side comes from git", gitView.includes("git.show("));
+	check(
+		"and the working side from the operator's own files",
+		gitView.includes("workspace.read("),
+	);
+	const gitMain = source("apps/desktop/src/main/git.ts");
+	check(
+		"git reads the commit, never the working file",
+		!/readFileSync|readFile\(|node:fs/.test(gitMain),
+		"a second path resolver is where the scope check gets skipped",
+	);
 }
 
 /**
