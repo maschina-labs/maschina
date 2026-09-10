@@ -368,3 +368,88 @@ export function watch(
 		controller.abort();
 	};
 }
+
+/**
+ * State an objective.
+ *
+ * Admission is not a formality. An objective with no agreement about what done
+ * means is refused, and the refusal is a list of what is wrong rather than an
+ * error, because it is an answer (`09-EVALUATION` §2).
+ */
+export function state(
+	statement: string,
+	contract: unknown,
+	origin: string,
+): Promise<Result<{ objective: WireObjective; problems: string[] }>> {
+	return act(
+		"/objectives",
+		{ statement, contract, origin },
+		"The objective did not reach the control plane. Nothing was stated.",
+	);
+}
+
+/**
+ * The worker that drafts contracts.
+ *
+ * Named, because drafting is a model call and a model call is an effect that
+ * something has to be authorised to perform (invariant 8: not free, not
+ * special). Drafting with nothing granted is refused, and that refusal is
+ * correct rather than an obstacle.
+ */
+export const DRAFTER = "worker:drafter";
+
+/**
+ * Ask the model what the contract should say.
+ *
+ * `15-OPEN-QUESTIONS` §5 lists "that contract authorship gets cheap enough to be
+ * worth it" among the things this project is most likely wrong about. Every
+ * contract so far was written by the person who already knew the answer, so this
+ * is the first thing that tests it.
+ *
+ * **Nothing is admitted here.** The draft comes back as text for a person to
+ * read, edit and accept. A contract accepted by somebody who did not read it is
+ * not an agreement, and admitting on their behalf would make the frozen hash a
+ * promise nobody made.
+ */
+export async function draft(
+	statement: string,
+	capabilityId: string,
+): Promise<Result<{ text: string; cost: number }>> {
+	const asked = await act<{ text: string; cost: number }>(
+		"/model/invoke",
+		{
+			capabilityId,
+			holder: DRAFTER,
+			modelClass: "fast",
+			prompt:
+				"Somebody wants this done:\n\n" +
+				`  ${statement}\n\n` +
+				"Write the conditions that would have to be true for it to count as done. " +
+				"For each one give a short id, the condition in one sentence, how it would be " +
+				"checked, and whether checking it is mechanical (a machine verifies it against " +
+				"something the worker does not control), independent (somebody who did not do " +
+				"the work checks it), or judgement (an opinion). Prefer mechanical. Do not " +
+				"invent conditions the statement does not imply.\n\n" +
+				"Reply with JSON and nothing else, matching:\n" +
+				'{"criteria":[{"id":"","criterion":"","verifyBy":"","strength":"mechanical",' +
+				'"evidence":[""]}],"nonGoals":[""],"failureConditions":[""]}',
+		},
+		"The draft request did not arrive. Nothing was spent.",
+	);
+	return asked;
+}
+
+/** Every model capability somebody could draft with, so the window can say what is missing. */
+export async function modelCapabilities(): Promise<Result<{ id: string; holder: string }[]>> {
+	const all =
+		await read<{ id: string; holder: string; resource: string; status: string }[]>(
+			"/capabilities",
+		);
+	if (!all.ok) return all;
+	return {
+		ok: true,
+		value: all.value
+			.filter((c) => c.resource === "model" && c.status === "active")
+			.map((c) => ({ id: c.id, holder: c.holder })),
+	};
+}

@@ -27,12 +27,15 @@ import {
 	approvals,
 	cost,
 	decide,
+	draft,
 	evaluations,
 	events,
 	health,
 	type LogQuery,
+	modelCapabilities,
 	objective,
 	objectives,
+	state,
 	stopEverything,
 	suspensions,
 	watch,
@@ -124,6 +127,17 @@ function serveTheRenderer(): void {
 	ipcMain.handle("objectives:one", (_event, id: string) => objective(id));
 	ipcMain.handle("objectives:evaluations", (_event, id: string) => evaluations(id));
 	ipcMain.handle("objectives:cost", (_event, id: string) => cost(id));
+	ipcMain.handle(
+		"objectives:state",
+		(_event, input: { statement: string; contract: unknown; origin: string }) =>
+			state(input.statement, input.contract, input.origin),
+	);
+	ipcMain.handle(
+		"objectives:draft",
+		(_event, input: { statement: string; capabilityId: string }) =>
+			draft(input.statement, input.capabilityId),
+	);
+	ipcMain.handle("objectives:drafters", () => modelCapabilities());
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(

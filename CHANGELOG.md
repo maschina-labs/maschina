@@ -19,6 +19,15 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **You can start work from the window.** Say what you want done and what would
+  have to be true for it to count as done, and it goes to a worker. No terminal
+  involved.
+- **The model can write the conditions for you.** It fills in the fields and
+  nothing more: you read them, change them, and only then does it become an
+  agreement. Refusing to accept something you did not read is the point.
+
 ### Changed
 
 - **The app icon again.** Same shape, cleaner contrast between the ring and the

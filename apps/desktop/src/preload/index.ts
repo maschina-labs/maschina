@@ -188,6 +188,24 @@ const api = {
 			ipcRenderer.invoke("objectives:evaluations", id),
 		cost: (id: string): Promise<Result<WireCost[]>> =>
 			ipcRenderer.invoke("objectives:cost", id),
+
+		/** State one. Refusal comes back as problems, because refusal is an answer. */
+		state: (input: {
+			statement: string;
+			contract: unknown;
+			origin: string;
+		}): Promise<Result<{ objective: WireObjective; problems: string[] }>> =>
+			ipcRenderer.invoke("objectives:state", input),
+
+		/** Ask the model what the contract should say. Nothing is admitted by this. */
+		draft: (input: {
+			statement: string;
+			capabilityId: string;
+		}): Promise<Result<{ text: string; cost: number }>> =>
+			ipcRenderer.invoke("objectives:draft", input),
+
+		drafters: (): Promise<Result<{ id: string; holder: string }[]>> =>
+			ipcRenderer.invoke("objectives:drafters"),
 	},
 } as const;
 

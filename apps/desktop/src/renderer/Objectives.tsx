@@ -13,10 +13,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { WireEvaluation, WireEvent } from "../preload/index.ts";
+import { State } from "./State.tsx";
 import { useReading } from "./useLog.ts";
 
 export function Objectives({ onProblem }: { readonly onProblem: (p: string | null) => void }) {
 	const [openId, setOpenId] = useState<string | null>(null);
+	const [stating, setStating] = useState(false);
 
 	const readList = useCallback(async () => {
 		const bridge = window.maschina;
@@ -32,6 +34,17 @@ export function Objectives({ onProblem }: { readonly onProblem: (p: string | nul
 	// and the whole view went blank rather than saying so.
 	const problem = connection.state === "lost" ? connection.problem : null;
 	useEffect(() => onProblem(problem), [onProblem, problem]);
+
+	if (stating) {
+		return (
+			<State
+				onStated={(id) => {
+					setStating(false);
+					setOpenId(id);
+				}}
+			/>
+		);
+	}
 
 	if (objectives.length === 0 && connection.state === "connected") {
 		return (
@@ -51,6 +64,17 @@ export function Objectives({ onProblem }: { readonly onProblem: (p: string | nul
 	return (
 		<div className="split">
 			<ul className="objectives">
+				<li>
+					<button
+						type="button"
+						className="objective objective--new"
+						onClick={() => setStating(true)}
+					>
+						<span className="dim">+</span>
+						<span className="objective__statement">state an objective</span>
+						<span />
+					</button>
+				</li>
 				{objectives.map((objective) => (
 					<li key={objective.id}>
 						<button

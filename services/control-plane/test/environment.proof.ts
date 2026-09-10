@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 to 6. The window reads, answers, allows, stops, is told, and shows what things cost.
+ * Environment proof, slices 1 to 7. The window reads, answers, allows, stops, is told, shows what things cost, and states work.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -211,6 +211,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 6 ───────────────────────────────────────────────────────────────
 	await slice6();
+
+	// ── Slice 7 ───────────────────────────────────────────────────────────────
+	await slice7();
 
 	verdict("Environment proof");
 }
@@ -942,6 +945,149 @@ async function slice6(): Promise<void> {
 		check(
 			"and says the cost came from settlements",
 			view.includes("not from anything a worker reported"),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 7: stating an objective.
+ *
+ *   "An objective stated in the window is admitted with a frozen contract and
+ *    picked up by a worker, with no CLI involved."
+ *
+ *   "Watch for: becoming a chat box. And a drafted contract being accepted
+ *    automatically."
+ */
+async function slice7(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 6, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 6}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n23. An objective stated in the window is admitted");
+		const good = await plane.state(
+			"Add a README to the sandbox repository",
+			{
+				criteria: [
+					{
+						id: "exists",
+						criterion: "README.md is on the remote default branch",
+						verifyBy: "query the git remote for the file at HEAD",
+						strength: "mechanical",
+						evidence: ["the file, read back from the remote"],
+					},
+				],
+				nonGoals: [],
+				failureConditions: [],
+			},
+			"human:operator",
+		);
+		check("it was accepted", good.ok && good.value.problems.length === 0);
+		check(
+			"and the contract is frozen",
+			good.ok &&
+				typeof good.value.objective.contractHash === "string" &&
+				good.value.objective.contractHash.length > 0,
+		);
+		check(
+			"stated by the person, not by a worker",
+			good.ok && good.value.objective.origin === "human:operator",
+		);
+
+		const listed = await plane.objectives();
+		check("and it is there", listed.ok && listed.value.length === 1);
+		check(
+			"admitted, so something can take it",
+			listed.ok && listed.value[0]?.state === "admitted",
+			listed.ok ? (listed.value[0]?.state ?? "") : "",
+		);
+
+		console.log("\n24. A contract that agrees to nothing is refused");
+		const bad = await plane.state(
+			"Do something good",
+			{ criteria: [], nonGoals: [], failureConditions: [] },
+			"human:operator",
+		);
+		check("it was refused", !bad.ok || bad.value.problems.length > 0);
+		check(
+			"with what is wrong, rather than an error",
+			!bad.ok
+				? bad.problem.length > 0
+				: bad.value.problems.some((p) => p.includes("criterion")),
+			!bad.ok ? bad.problem : (bad.value.problems[0] ?? ""),
+		);
+		const after = await plane.objectives();
+		check(
+			"and nothing new was admitted",
+			after.ok && after.value.filter((o) => o.state === "admitted").length === 1,
+			after.ok ? after.value.map((o) => o.state).join(", ") : "",
+		);
+		check(
+			"though the refusal is in the record, with its reasons",
+			after.ok && after.value.some((o) => o.state === "rejected"),
+			"a refused objective is a fact, and facts are recorded",
+		);
+
+		console.log("\n25. Drafting is a model call, so it needs authority");
+		const noneYet = await plane.modelCapabilities();
+		check("nothing can draft yet", noneYet.ok && noneYet.value.length === 0);
+		const refused = await plane.draft("Add a README", "cap_that_does_not_exist");
+		check(
+			"and asking anyway is refused",
+			!refused.ok,
+			"invariant 8: the model call is an effect, not free and not special",
+		);
+
+		await grant(pool, {
+			holder: plane.DRAFTER,
+			resource: "model",
+			operations: ["invoke"],
+			scope: "fast",
+			limits: { granted: 500_000, reserved: 0, settled: 0 },
+			effectClass: "idempotent",
+			checkpoint: "none",
+			approval: "none",
+			delegationDepth: 0,
+			grantedBy: "human:ash",
+		});
+		const now = await plane.modelCapabilities();
+		check(
+			"once something is granted, the window can see what to draft with",
+			now.ok && now.value.length === 1 && now.value[0]?.holder === plane.DRAFTER,
+		);
+
+		console.log("\n26. And a draft is never an agreement");
+		// Comments stripped first. Two checks here failed on their first run by
+		// matching this file's own documentation, which is the third time that has
+		// happened in this project.
+		const form = readFileSync(join(desktop, "renderer/State.tsx"), "utf8")
+			.replace(/\/\*[\s\S]*?\*\//g, "")
+			.replace(/^\s*\/\/.*$/gm, "");
+
+		// The draft handler runs from the first line of askForADraft to the end of
+		// that function, and what matters is what it does not do.
+		const drafting = form.slice(
+			form.indexOf("const askForADraft"),
+			form.indexOf("const canDraft"),
+		);
+		check(
+			"the draft only fills the fields",
+			drafting.includes("applyDraft") && !drafting.includes("objectives.state"),
+			"admitting on somebody's behalf would make the frozen hash a promise nobody made",
+		);
+		check(
+			"stating is one action, not a conversation",
+			!/messages|chat|history/.test(form),
+			"08-ENVIRONMENT section 1: a chat box makes the human the scheduler again",
+		);
+		check(
+			"and the form says the contract is about to be frozen",
+			form.includes("frozen once stated"),
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));

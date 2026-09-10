@@ -18,6 +18,7 @@
 
 import type {
 	AuthorizationRequest,
+	Contract,
 	Event,
 	ModelClass,
 	NewEvent,
@@ -54,6 +55,7 @@ import {
 	resume as resumeWorker,
 	revoke,
 	settle,
+	stateObjective,
 	suspendAsking,
 	suspendUntil,
 	takeObjective,
@@ -562,6 +564,31 @@ export function createApp(
 	 * the answer rather than an error: two nodes asking at once is normal and one
 	 * of them has to lose.
 	 */
+	/**
+	 * State an objective.
+	 *
+	 * Admission is not a formality. `09-EVALUATION` §2 and invariant 16: an
+	 * objective with no agreement about what done means is refused, and the
+	 * contract is hashed and frozen the moment it is admitted. Refusal comes back
+	 * as a list of what is wrong rather than as an error, because it is an answer.
+	 */
+	app.post("/objectives", async (c) => {
+		const body = (await c.req.json()) as {
+			statement: string;
+			contract: Contract;
+			origin?: string;
+		};
+		if (typeof body.statement !== "string" || body.statement.trim() === "") {
+			return c.json({ problems: ["an objective needs a statement"] }, 400);
+		}
+		const admitted = await stateObjective(pool, {
+			statement: body.statement,
+			contract: body.contract,
+			origin: body.origin ?? "human:operator",
+		});
+		return c.json(admitted, admitted.problems.length > 0 ? 422 : 200);
+	});
+
 	app.post("/objectives/:id/take", async (c) => {
 		const body = (await c.req.json()) as { worker: string; node: string; epoch?: string };
 		const id = c.req.param("id");
