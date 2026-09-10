@@ -13,22 +13,21 @@ name: Version
 # them.
 
 on:
-  # Releases are cut when somebody asks for one, not after every merge.
+  # Every merge that earns a version gets one, immediately. The tags are the
+  # ledger: reading them back should say what happened and when, one line per
+  # change, rather than lumping an afternoon into a single number.
   #
-  # Opening a release on every merge doubled the pull requests, and every one of
-  # them costs a preview build on a host that charges for them, for a change that
-  # only ever touches the changelog and a version number. It also raced the
-  # feature branches: a release rewrites the unreleased section of the changelog,
-  # so any open branch that added to it conflicted, every time.
+  # It used to open a release pull request, which doubled the pull requests for
+  # every change and cost a preview build each time. The answer to that was never
+  # to release less often. It was to stop the release needing a pull request.
   #
-  # One release covering twelve merges is also a better release. It is read by a
-  # person, and twelve of them in an afternoon are read by nobody.
-  workflow_dispatch:
+  # So nothing is committed back to main. The tag is the version. A merge that
+  # earns no bump, docs and chores and CI, produces nothing and that is correct.
   push:
     branches: [main]
+  workflow_dispatch:
 
-# Read only at the top, so a job that was added without thinking about it gets
-# nothing. The two jobs below ask for exactly what they use.
+# Read only at the top, so a job added without thinking gets nothing.
 permissions:
   contents: read
 
@@ -37,60 +36,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  tag:
-    name: Tag a merged release
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Pushes a tag, nothing else.
-    permissions:
-      contents: write
-    if: startsWith(github.event.head_commit.message, 'chore(release):')
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-          # The tag has to be pushed by a token belonging to a person, because a
-          # push made with GITHUB_TOKEN starts no workflows and release.yml
-          # listens for exactly this tag. Pushed with the built in token, the
-          # tag would appear and nothing would ever publish it.
-          token: ${{ secrets.RELEASE_TOKEN || github.token }}
-
-      - name: Tag it
-        run: |
-          VERSION="$(node -p 'require("./package.json").version')"
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "v$VERSION already exists."
-            exit 0
-          fi
-          # Tags are not covered by the branch ruleset, which targets the
-          # default branch, so this needs no bypass and no signature.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$VERSION" -m "v$VERSION"
-          git push origin "v$VERSION"
-
-  propose:
-    name: Open a release, when asked
+  release:
+    name: Tag the merge
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Pushes a branch and opens a pull request.
     permissions:
       contents: write
-      pull-requests: write
-    # Only when somebody runs it. A push to main computes nothing and opens
-    # nothing; the tag job above is what reacts to a release being merged.
-    if: github.event_name == 'workflow_dispatch'
-    env:
-      # The secrets context cannot be read from a step-level `if`, so the answer
-      # is worked out once here where it can be.
-      HAS_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          # Pushing with GITHUB_TOKEN does not start any workflow, so the
-          # release pull request would sit forever with its required checks
-          # never running. A token that belongs to a person does start them.
+          # A push made with GITHUB_TOKEN starts no workflows, and a tag that
+          # starts nothing is a tag nothing publishes. This belongs to a person.
           token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -101,36 +58,18 @@ jobs:
         id: next
         run: node .github/ci/next-version.mjs
 
-      - name: Say what is missing
-        if: steps.next.outputs.version != '' && env.HAS_TOKEN != 'true'
-        run: |
-          echo "::warning::${{ steps.next.outputs.version }} is ready, but RELEASE_TOKEN is not set, so the release pull request cannot run its checks. See internal/operations/RELEASING.md."
-
-      - name: Open the release pull request
-        if: steps.next.outputs.version != '' && env.HAS_TOKEN == 'true'
+      - name: Tag it
+        if: steps.next.outputs.version != ''
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ steps.next.outputs.version }}
         run: |
-          node .github/ci/prepare-release.mjs "$VERSION"
-          # Committed through the API rather than with git, because main
-          # requires signed commits and a bot pushing over HTTPS signs nothing.
-          node .github/ci/release-commit.mjs "$VERSION"
-
-          # Ask GitHub to open it and let GitHub decide whether one exists,
-          # rather than checking first and acting on the answer. Reading the
-          # state and then acting on it is a race, and it lost: the branch had
-          # just been deleted and recreated, the old pull request was closing,
-          # the check still saw it open, and nothing was opened at all.
-          if ! gh pr create \
-            --base main \
-            --head "release/v$VERSION" \
-            --title "chore(release): $VERSION" \
-            --body "$(printf 'Cut by .github/workflows/version.yml from the commits since the last tag.\n\nMerging this tags v%s, which publishes the release from the changelog section it just wrote.' "$VERSION")" 2>/tmp/pr-error; then
-            if grep -q "already exists" /tmp/pr-error; then
-              echo "A release pull request for $VERSION is already open."
-            else
-              cat /tmp/pr-error
-              exit 1
-            fi
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION already exists."
+            exit 0
           fi
+          # Tags sit outside the branch ruleset, which targets the default
+          # branch, so this needs no bypass and no signature.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"

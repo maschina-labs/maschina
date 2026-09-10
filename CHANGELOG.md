@@ -19,6 +19,16 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Changed
+
+- **Every change that earns a version now gets one, the moment it lands.** The
+  releases are the ledger: one entry per change, rather than an afternoon of work
+  collapsed into a single number days later. The three versions below were
+  written after the fact to close a gap where nine changes shipped under one
+  number, and each is tagged on the change that earned it.
+
+## [0.12.0] - 2026-09-10
+
 ### Added
 
 - **The window shows your objectives.** Each one with its state, and opening it
@@ -29,11 +39,7 @@ Versions follow semver.
   fixed when it is accepted, and the window shows them as fixed rather than as
   something you could edit.
 
-### Fixed
-
-- **The weekly roadmap check now runs.** It had never worked: the check was
-  looking for a file that is not part of the published repository, and the error
-  saying so was being replaced with a guess about something else entirely.
+## [0.11.0] - 2026-09-10
 
 ### Added
 
@@ -41,13 +47,20 @@ Versions follow semver.
   first, updating while you watch, with the full detail of any entry one click
   away. Losing the connection says so plainly instead of showing you an empty
   screen that looks like nothing happened.
-
-- **The board updates itself.** Opening, closing or relabelling an issue moves it
-  on the public roadmap within minutes, without anyone dragging a card.
 - **The roadmap is public.** Every planned piece of Maschina is an issue, grouped
   by the stage it belongs to, with the gates that hold each stage back written
   down as issues of their own rather than living in someone's head. A weekly
   check reports anything that has drifted out of step.
+- **The board updates itself.** Opening, closing or relabelling an issue moves it
+  on the public roadmap within minutes, without anyone dragging a card.
+
+### Fixed
+
+- **The weekly roadmap check now runs.** It had never worked: the check was
+  looking for a file that is not part of the published repository, and the error
+  saying so was being replaced with a guess about something else entirely.
+
+## [0.10.2] - 2026-09-10
 
 ### Fixed
 
@@ -56,6 +69,10 @@ Versions follow semver.
   nothing left to try could keep going until it ran out of permitted steps
   without ever asking for help. Whether something has already been said is now
   judged from the record rather than taken on the worker's word.
+
+## [0.10.1] - 2026-09-10
+
+### Fixed
 
 - **Starting Maschina when something already holds its port now says so.** It
   used to die with a stack trace that scrolled away behind the shutdown message,
