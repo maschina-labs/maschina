@@ -22,7 +22,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
-import { events, health, type LogQuery } from "./control-plane.ts";
+import { events, health, type LogQuery, objective, objectives } from "./control-plane.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 const isDev = !app.isPackaged;
@@ -92,6 +92,8 @@ function createWindow(): void {
 function serveTheRenderer(): void {
 	ipcMain.handle("log:events", (_event, query: LogQuery) => events(query ?? {}));
 	ipcMain.handle("log:health", () => health());
+	ipcMain.handle("objectives:list", () => objectives());
+	ipcMain.handle("objectives:one", (_event, id: string) => objective(id));
 }
 
 app.whenReady().then(() => {

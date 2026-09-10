@@ -1,5 +1,5 @@
 /**
- * Environment slice 1 proof. The window reads the log.
+ * Environment proof, slices 1 and 2. The window reads the log, and objectives.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -23,7 +23,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { serve } from "@hono/node-server";
-import { append, appPool, PAYLOAD_V } from "@maschina/db";
+import type { Contract } from "@maschina/core";
+import { hashContract } from "@maschina/core";
+import { append, appPool, PAYLOAD_V, recordStep, stateObjective } from "@maschina/db";
 import { check, resetLog, verdict } from "../../../packages/db/test/harness.ts";
 import { createApp } from "../src/app.ts";
 
@@ -144,7 +146,158 @@ async function main(): Promise<void> {
 		!main.includes("@maschina/db") && !client.includes("@maschina/db"),
 	);
 
-	verdict("Environment slice 1 proof");
+	// ── Slice 2 ───────────────────────────────────────────────────────────────
+	await slice2();
+
+	verdict("Environment proof");
+}
+
+/**
+ * Slice 2: objectives, and one objective in detail.
+ *
+ *   "An objective stated from the CLI appears, and its state changes as a worker
+ *    works. A criterion satisfied at step two shows as satisfied at step two,
+ *    read from `criterion.satisfied` events rather than recomputed at the end."
+ *
+ *   "Watch for: showing the contract as though it were editable."
+ */
+async function slice2(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 1, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 1}`;
+	// The client reads its address per call, so pointing it here needs no reimport.
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	console.log("\n5. Objectives reach the window with their contracts intact");
+	try {
+		const CONTRACT: Contract = {
+			criteria: [
+				{
+					id: "exists",
+					criterion: "the file is on the remote",
+					verifyBy: "query the git remote",
+					strength: "mechanical",
+					evidence: ["the file, read back"],
+				},
+				{
+					id: "accurate",
+					criterion: "it says what the history shows",
+					verifyBy: "a worker that did not do the work reads both",
+					strength: "independent",
+					evidence: ["the commits", "the file"],
+				},
+			],
+			nonGoals: ["changes to any other file"],
+			failureConditions: ["the repository is left broken"],
+		};
+
+		const admitted = await stateObjective(pool, {
+			statement: "Something a person asked for",
+			contract: CONTRACT,
+			origin: "human:ash",
+		});
+		const id = admitted.objective.id;
+
+		const list = await plane.objectives();
+		check("the window sees the objective", list.ok && list.value.length === 1);
+		check(
+			"with the statement a person wrote",
+			list.ok && list.value[0]?.statement === "Something a person asked for",
+		);
+
+		const one = await plane.objective(id);
+		check("and can open one", one.ok);
+		check(
+			"the contract arrives whole, both criteria",
+			one.ok && one.value.contract.criteria.length === 2,
+			one.ok ? String(one.value.contract.criteria.length) : "",
+		);
+		check(
+			"including how each is verified, which is what makes it checkable",
+			one.ok && one.value.contract.criteria[0]?.verifyBy === "query the git remote",
+		);
+		check(
+			"and its strength, because evidence quality is not uniform",
+			one.ok && one.value.contract.criteria[1]?.strength === "independent",
+		);
+		check("non-goals survive", one.ok && one.value.contract.nonGoals.length === 1);
+		check(
+			"so do failure conditions",
+			one.ok && one.value.contract.failureConditions.length === 1,
+		);
+
+		console.log("\n6. The contract is frozen, and the window is told so");
+		check(
+			"a hash was recorded at admission",
+			one.ok && typeof one.value.contractHash === "string" && one.value.contractHash.length > 0,
+		);
+		check(
+			"and it matches the contract that was admitted",
+			one.ok && one.value.contractHash === hashContract(CONTRACT),
+		);
+		const surface = readFileSync(join(desktop, "renderer/Objectives.tsx"), "utf8");
+		check(
+			"the window renders it as frozen rather than as a field",
+			surface.includes("frozen") &&
+				!surface.includes("<input") &&
+				!surface.includes("<textarea"),
+			"a surface that looks editable teaches that a contract can be edited",
+		);
+
+		console.log("\n7. A criterion met early reads as met early");
+		await recordStep(pool, "worker:doing", id, {
+			artifacts: [],
+			observations: ["had a look"],
+			changedTheWorld: false,
+			satisfied: [],
+		});
+		await recordStep(pool, "worker:doing", id, {
+			artifacts: ["the file"],
+			observations: [],
+			changedTheWorld: true,
+			satisfied: ["exists"],
+		});
+		await recordStep(pool, "worker:doing", id, {
+			artifacts: [],
+			observations: ["still thinking"],
+			changedTheWorld: false,
+			satisfied: [],
+		});
+
+		const events = await plane.events({ objective: id, limit: 500 });
+		check("the window can read this objective's events", events.ok);
+		const satisfiedEvents = events.ok
+			? events.value.filter((e: { type: string }) => e.type === "criterion.satisfied")
+			: [];
+		check("one criterion is recorded satisfied", satisfiedEvents.length === 1);
+		check(
+			"naming which",
+			satisfiedEvents[0]?.payload.criterionId === "exists",
+			String(satisfiedEvents[0]?.payload.criterionId ?? ""),
+		);
+
+		// The event it was recorded at must sit before the last step, or "met at
+		// step two" is a story rather than a fact.
+		const steps = events.ok
+			? events.value.filter((e: { type: string }) => e.type === "step.completed")
+			: [];
+		check("three steps were taken", steps.length === 3, String(steps.length));
+		check(
+			"and the criterion was satisfied before the last of them",
+			BigInt(satisfiedEvents[0]?.id ?? "0") < BigInt(steps[2]?.id ?? "0"),
+			"not gathered up at the end",
+		);
+		check(
+			"the other criterion is still open",
+			!satisfiedEvents.some(
+				(e: { payload: { criterionId?: unknown } }) => e.payload.criterionId === "accurate",
+			),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
 }
 
 main().catch((error: unknown) => {

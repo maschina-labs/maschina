@@ -35,6 +35,29 @@ export interface WireEvent {
 	readonly payload: Record<string, unknown>;
 }
 
+export interface WireCriterion {
+	readonly id: string;
+	readonly criterion: string;
+	readonly verifyBy: string;
+	readonly strength: string;
+	readonly evidence: readonly string[];
+}
+
+export interface WireObjective {
+	readonly id: string;
+	readonly statement: string;
+	readonly origin: string;
+	readonly parent: string | null;
+	readonly state: string;
+	readonly contractHash: string | null;
+	readonly refusedBecause?: string | null;
+	readonly contract: {
+		readonly criteria: readonly WireCriterion[];
+		readonly nonGoals: readonly string[];
+		readonly failureConditions: readonly string[];
+	};
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -49,6 +72,13 @@ const api = {
 		events: (query: LogQuery = {}): Promise<Result<WireEvent[]>> =>
 			ipcRenderer.invoke("log:events", query),
 		health: (): Promise<Result<{ ok: boolean }>> => ipcRenderer.invoke("log:health"),
+	},
+
+	/** Objectives, folded from the log. Read only, like everything on this bridge. */
+	objectives: {
+		list: (): Promise<Result<WireObjective[]>> => ipcRenderer.invoke("objectives:list"),
+		one: (id: string): Promise<Result<WireObjective>> =>
+			ipcRenderer.invoke("objectives:one", id),
 	},
 } as const;
 
