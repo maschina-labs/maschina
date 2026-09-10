@@ -9,13 +9,17 @@ packages:
   # explicitly so UI is built once, not per app.
   - "packages/*"
 
-# Postinstall scripts are opt-in. Only these two need one, and both are
-# build-tool binaries rather than anything that ships in the product:
+# Postinstall scripts are opt-in, which is the right default. Each of these is
+# named deliberately rather than turning the protection off:
 #   electron: downloads the Electron binary
 #   esbuild:  downloads its native binary, used by Vite and tsx
+#   node-pty: compiles. It is a native module because a pseudoterminal is a
+#             kernel feature, and ADR-003 section 3.1 names it as the human
+#             terminal's mechanism. It never runs on a worker's path.
 allowBuilds:
   electron: true
   esbuild: true
+  node-pty: true
 
 minimumReleaseAgeExclude:
   - electron@44.3.0

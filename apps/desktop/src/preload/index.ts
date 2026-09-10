@@ -218,6 +218,40 @@ const api = {
 			ipcRenderer.invoke("workspace:write", input),
 	},
 
+	/**
+	 * The operator's own shell.
+	 *
+	 * Not a worker's, and never will be. `ADR-003` §3.1: they are different
+	 * mechanisms that do not share a code path, because a pseudoterminal on
+	 * somebody's real shell has no isolation boundary and holds their whole
+	 * machine. A worker's shell lives inside an isolation boundary on a node.
+	 */
+	terminal: {
+		start: (input: { id: string; cwd: string | null }): void =>
+			ipcRenderer.send("terminal:start", input),
+		write: (input: { id: string; data: string }): void =>
+			ipcRenderer.send("terminal:write", input),
+		resize: (input: { id: string; cols: number; rows: number }): void =>
+			ipcRenderer.send("terminal:resize", input),
+		stop: (id: string): void => ipcRenderer.send("terminal:stop", id),
+
+		onData: (id: string, listener: (chunk: string) => void): (() => void) => {
+			const handler = (_event: unknown, chunk: string) => listener(chunk);
+			ipcRenderer.on(`terminal:data:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:data:${id}`, handler);
+		},
+		onExit: (id: string, listener: (code: number) => void): (() => void) => {
+			const handler = (_event: unknown, code: number) => listener(code);
+			ipcRenderer.on(`terminal:exit:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:exit:${id}`, handler);
+		},
+		onProblem: (id: string, listener: (problem: string) => void): (() => void) => {
+			const handler = (_event: unknown, problem: string) => listener(problem);
+			ipcRenderer.on(`terminal:problem:${id}`, handler);
+			return () => ipcRenderer.off(`terminal:problem:${id}`, handler);
+		},
+	},
+
 	/** What has been done, counted. Never shown to a worker. */
 	stats: {
 		read: (): Promise<Result<WireStats>> => ipcRenderer.invoke("stats:read"),

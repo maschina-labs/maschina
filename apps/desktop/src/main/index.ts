@@ -41,6 +41,7 @@ import {
 	suspensions,
 	watch,
 } from "./control-plane.ts";
+import * as terminal from "./terminal.ts";
 import * as workspace from "./workspace.ts";
 
 // Before anything reads it. Electron takes the name from productName in
@@ -80,7 +81,11 @@ function createWindow(): void {
 		() => window.webContents.send("log:recorded"),
 		(problem) => window.webContents.send("log:trouble", problem),
 	);
-	window.on("closed", unwatch);
+	window.on("closed", () => {
+		unwatch();
+		// No shell outlives the window that opened it.
+		terminal.stopAll();
+	});
 
 	// Show only once painted, so there is no white flash before the dark theme.
 	window.once("ready-to-show", () => window.show());
@@ -152,6 +157,26 @@ function serveTheRenderer(): void {
 	ipcMain.handle("workspace:write", (_event, input: { path: string; text: string }) =>
 		workspace.write(input.path, input.text),
 	);
+
+	// The operator's own shell. Separate module, separate handlers, and nothing
+	// on a worker's path can reach any of it. ADR-003 section 3.1.
+	ipcMain.on("terminal:start", (event, input: { id: string; cwd: string | null }) => {
+		const reply = event.sender;
+		const outcome = terminal.start(
+			input.id,
+			input.cwd,
+			(chunk) => reply.isDestroyed() || reply.send(`terminal:data:${input.id}`, chunk),
+			(code) => reply.isDestroyed() || reply.send(`terminal:exit:${input.id}`, code),
+		);
+		if (!outcome.ok) reply.send(`terminal:problem:${input.id}`, outcome.problem);
+	});
+	ipcMain.on("terminal:write", (_event, input: { id: string; data: string }) =>
+		terminal.write(input.id, input.data),
+	);
+	ipcMain.on("terminal:resize", (_event, input: { id: string; cols: number; rows: number }) =>
+		terminal.resize(input.id, input.cols, input.rows),
+	);
+	ipcMain.on("terminal:stop", (_event, id: string) => terminal.stop(id));
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(
