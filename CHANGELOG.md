@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Changed
+
+- **Every change that earns a version now gets one, the moment it lands.** The
+  releases are the ledger: one entry per change, rather than an afternoon of work
+  collapsed into a single number days later.
+
 ### Added
 
 - **The window shows your objectives.** Each one with its state, and opening it

@@ -25,23 +25,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract this version's changelog section
+      - name: Work out the release notes
         id: notes
         run: |
-          # The release notes are the hand-written changelog section, not a list
-          # of commit subjects. If a version has no section, that is a mistake
-          # worth failing on rather than papering over with generated text.
+          # The notes are the changelog lines this release added, not a list of
+          # commit subjects. Taken from the diff rather than from a committed
+          # section heading, because nothing commits back to main any more: the
+          # tag is the version, and asking a release to also write a file would
+          # put the pull request back that this removed.
           VERSION="${GITHUB_REF_NAME#v}"
-          awk -v v="## [$VERSION]" '
-            index($0, v) == 1 { found = 1; next }
-            found && /^## \[/  { exit }
-            found              { print }
-          ' CHANGELOG.md > notes.md
+          PREVIOUS="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
 
-          if [ ! -s notes.md ]; then
-            echo "No changelog section for $VERSION in CHANGELOG.md."
-            exit 1
+          if [ -n "$PREVIOUS" ]; then
+            git diff "$PREVIOUS".."$GITHUB_REF_NAME" -- CHANGELOG.md \
+              | grep '^+' | grep -v '^+++' | sed 's/^+//' \
+              | grep -v '^## \[' > notes.md || true
           fi
+
+          # A release with nothing hand written is a release nobody can read, so
+          # say that plainly rather than shipping an empty body.
+          if [ ! -s notes.md ]; then
+            echo "No changelog entries were added for this release." > notes.md
+            echo "" >> notes.md
+            echo "What changed:" >> notes.md
+            git log --format='- %s' "${PREVIOUS:+$PREVIOUS..}$GITHUB_REF_NAME" >> notes.md
+          fi
+
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build the source archive
