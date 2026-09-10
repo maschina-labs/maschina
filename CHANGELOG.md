@@ -19,6 +19,8 @@ Versions follow semver.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-10
+
 ### Added
 
 - **The window shows your objectives.** Each one with its state, and opening it
