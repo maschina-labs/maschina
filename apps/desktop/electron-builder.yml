@@ -1,0 +1,45 @@
+# How Maschina becomes an application.
+#
+# `ENVIRONMENT_PLAN` slice 12. The point of packaging is not distribution yet: it
+# is that a packaged build is a real bundle with its own identity, which ends the
+# two scripts that patch Electron's own bundle in development to get the name
+# right.
+#
+# **Not signed, and that is recorded rather than hidden.** Signing and
+# notarisation need an Apple Developer account, which costs money that does not
+# exist yet. An unsigned build runs on the machine that made it. On anybody
+# else's, Gatekeeper refuses it until they right-click and open, which is not a
+# thing to ask of a stranger. `internal/TECH_DEBT.md` carries the trigger.
+appId: dev.maschina.app
+productName: Maschina
+copyright: Copyright (c) 2026 Asher Wilson
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+# node-pty is a native module: part of it is a compiled binary that cannot run
+# from inside an asar archive, because the loader needs a real file on disk.
+asarUnpack:
+  - "**/node_modules/node-pty/**"
+
+mac:
+  category: public.app-category.developer-tools
+  icon: build/icon.icns
+  target:
+    - target: dir
+      arch: [arm64]
+  # Nothing is signed, so nothing pretends to be. Setting an identity that does
+  # not exist produces a build that looks signed and is not, which is worse than
+  # an honest unsigned one.
+  identity: null
+
+# No auto-updater is configured, deliberately. `12-SECURITY` section 7: an
+# updating desktop application is a code execution path into the operator's
+# machine, and one that cannot verify a signature is a hole rather than a
+# feature. It arrives when there is something to verify against.
+publish: null

@@ -229,6 +229,9 @@ async function main(): Promise<void> {
 	// ── Slice 11 ──────────────────────────────────────────────────────────────
 	slice11();
 
+	// ── Slice 12 ──────────────────────────────────────────────────────────────
+	slice12();
+
 	verdict("Environment proof");
 }
 
@@ -1471,6 +1474,66 @@ function slice11(): void {
 		"push takes no arguments that could add one",
 		/export async function push\(cwd: string\)/.test(human),
 		"if somebody needs to force-push, they have a terminal",
+	);
+}
+
+/**
+ * Slice 12: packaging.
+ *
+ *   "Watch for: an auto-updater that does not verify signatures. `12-SECURITY`
+ *    section 7: an updating desktop application is a code execution path into
+ *    the operator's machine."
+ *
+ * The build itself is checked by running it. What is checked here is the
+ * configuration, because the dangerous parts of packaging are the settings
+ * nobody looks at again.
+ */
+function slice12(): void {
+	console.log("\n41. It packages as an application, with its own identity");
+
+	const config = readFileSync(
+		new URL("../../../apps/desktop/electron-builder.yml", import.meta.url).pathname,
+		"utf8",
+	);
+
+	check("it has a name of its own", config.includes("productName: Maschina"));
+	check("and an identifier", /appId: [a-z.]+/.test(config));
+	check(
+		"and the icon",
+		config.includes("icon: build/icon.icns"),
+		"a packaged bundle carries its own icon, so the development workarounds retire",
+	);
+
+	console.log("\n42. The native module survives being packaged");
+	check(
+		"node-pty is unpacked from the archive",
+		config.includes("asarUnpack") && config.includes("node-pty"),
+		"a compiled binary cannot run from inside an asar: the loader needs a real file",
+	);
+
+	console.log("\n43. Nothing pretends to be signed, and nothing updates itself");
+	check(
+		"signing is explicitly off rather than misconfigured",
+		config.includes("identity: null"),
+		"a build that looks signed and is not is worse than an honest unsigned one",
+	);
+	check(
+		"and there is no auto-updater",
+		config.includes("publish: null") && !/autoUpdate|electron-updater/.test(config),
+		"12-SECURITY section 7: an updater that cannot verify a signature is a hole, not a feature",
+	);
+
+	const manifest = JSON.parse(
+		readFileSync(
+			new URL("../../../apps/desktop/package.json", import.meta.url).pathname,
+			"utf8",
+		),
+	) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+	check(
+		"electron-updater is not even installed",
+		!Object.keys({ ...manifest.dependencies, ...manifest.devDependencies }).includes(
+			"electron-updater",
+		),
 	);
 }
 
