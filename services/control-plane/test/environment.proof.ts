@@ -756,12 +756,26 @@ async function slice5(): Promise<void> {
 			schema.includes("NEW.id::text"),
 			"a notification holding the event would be a second, worse copy of the log",
 		);
-		const manifest = readFileSync(
-			new URL("../../../package.json", import.meta.url).pathname,
-			"utf8",
-		);
-		for (const banned of ["nats", "redis", "socket.io", "ws", "amqp", "kafka"]) {
-			check(`no ${banned}`, !new RegExp(`"${banned}`).test(manifest));
+		// Dependency names, not a substring search of the file. Grepping for "ws
+		// would also match "wsl-tools", and a check that can be satisfied by
+		// coincidence is not a check.
+		const manifest = JSON.parse(
+			readFileSync(new URL("../../../package.json", import.meta.url).pathname, "utf8"),
+		) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+		const installed = new Set([
+			...Object.keys(manifest.dependencies ?? {}),
+			...Object.keys(manifest.devDependencies ?? {}),
+		]);
+		for (const banned of [
+			"nats",
+			"redis",
+			"ioredis",
+			"socket.io",
+			"ws",
+			"amqplib",
+			"kafkajs",
+		]) {
+			check(`no ${banned}`, !installed.has(banned));
 		}
 
 		console.log("\n19. And the window stopped asking");
