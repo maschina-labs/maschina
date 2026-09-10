@@ -21,8 +21,8 @@ Versions follow semver.
 
 ### Changed
 
-- **The app icon is the newer artwork.** The mark is light on dark now, so it is
-  legible at the size a dock actually shows it.
+- **The app icon is the newer artwork.** The mark is light on a lighter ground
+  now, so it reads at the size a dock actually shows it.
 
 ### Fixed
 
