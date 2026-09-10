@@ -19,7 +19,8 @@
  * sidecar of any kind. Delete Maschina and the directory is exactly as it was.
  */
 
-import { readdir, readFile, stat, writeFile } from "node:fs/promises";
+import type { FileHandle } from "node:fs/promises";
+import { open as openFile, readdir, writeFile } from "node:fs/promises";
 import { basename, join, relative, resolve, sep } from "node:path";
 import { dialog } from "electron";
 
@@ -94,14 +95,25 @@ export async function read(path: string): Promise<Result<{ text: string; path: s
 	const file = inside(path);
 	if (file === null) return { ok: false, problem: "That path is outside the open project." };
 
+	// One handle for both the size check and the read. Checking the path and then
+	// opening it is a check-then-act race: the file can be swapped in between, and
+	// what gets read is not what was measured. Holding the handle means the size
+	// and the contents are the same file, whatever happens to the name.
+	let handle: FileHandle | null = null;
 	try {
-		const info = await stat(file);
+		handle = await openFile(file, "r");
+		const info = await handle.stat();
 		if (info.size > TOO_BIG) {
 			return { ok: false, problem: `That file is ${Math.round(info.size / 1_000_000)}MB.` };
 		}
-		return { ok: true, value: { text: await readFile(file, "utf8"), path } };
+		if (!info.isFile()) {
+			return { ok: false, problem: "That is not a file." };
+		}
+		return { ok: true, value: { text: await handle.readFile("utf8"), path } };
 	} catch (error: unknown) {
 		return { ok: false, problem: error instanceof Error ? error.message : String(error) };
+	} finally {
+		await handle?.close();
 	}
 }
 
