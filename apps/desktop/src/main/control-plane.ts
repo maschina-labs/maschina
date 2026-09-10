@@ -23,6 +23,8 @@
  * nothing has happened, and those two mean opposite things.
  */
 
+import { tidy, validate } from "./address-format.ts";
+
 /**
  * The address a person chose, told to this module by the main process at startup
  * and again whenever they change it.
@@ -34,8 +36,21 @@
  */
 let chosen: string | null = null;
 
-export function pointAt(url: string | null): void {
-	chosen = url;
+export function pointAt(url: string | null): boolean {
+	if (url === null) {
+		chosen = null;
+		return true;
+	}
+	// Checked here, not only where it was saved. The address reaches this module
+	// from a file on disk and then decides where every request goes, so the code
+	// that makes the request is the code that enforces what an address may be.
+	// CodeQL js/file-access-to-http found this and was right about it.
+	if (validate(url) !== null) {
+		chosen = null;
+		return false;
+	}
+	chosen = tidy(url);
+	return true;
 }
 
 /**

@@ -1604,6 +1604,21 @@ async function addressing(): Promise<void> {
 	}
 	check("a trailing slash is removed", format.tidy("http://x.dev/") === "http://x.dev");
 
+	// The rule is enforced where the request is made, not only where the address
+	// was saved. It arrives from a file on disk and then decides where every
+	// request goes, which is what CodeQL js/file-access-to-http objected to.
+	check(
+		"the client refuses an address that is not one",
+		plane.pointAt("file:///etc/passwd") === false,
+	);
+	const afterBad = await plane.health();
+	check(
+		"and is left unset rather than pointed at it",
+		!afterBad.ok && afterBad.unset === true,
+		!afterBad.ok ? afterBad.problem : "it succeeded, which it cannot have",
+	);
+	check("a good one is accepted", plane.pointAt("http://127.0.0.1:1") === true);
+
 	console.log("\n46. Being told where it is makes it work");
 	plane.pointAt(here);
 	const reachable = await plane.health();
