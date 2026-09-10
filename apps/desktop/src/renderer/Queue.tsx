@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import type { WireSuspension } from "../preload/index.ts";
+import type { WireApproval, WireSuspension } from "../preload/index.ts";
 import { useReading } from "./useLog.ts";
 
 /**
@@ -34,8 +34,16 @@ export function Queue({ onProblem }: { readonly onProblem: (p: string | null) =>
 		return bridge.queue.list();
 	}, []);
 
+	const readApprovals = useCallback(async () => {
+		const bridge = window.maschina;
+		if (bridge === undefined) return { ok: false as const, problem: "No bridge." };
+		return bridge.queue.approvals();
+	}, []);
+
 	const { value, connection, refresh } = useReading(read);
+	const { value: pending, refresh: refreshApprovals } = useReading(readApprovals);
 	const waiting = value ?? [];
+	const approvals = pending ?? [];
 
 	const problem = connection.state === "lost" ? connection.problem : null;
 	useEffect(() => onProblem(problem), [onProblem, problem]);
@@ -45,7 +53,7 @@ export function Queue({ onProblem }: { readonly onProblem: (p: string | null) =>
 	const forAPerson = waiting.filter((w) => w.kind === "question");
 	const forAClock = waiting.filter((w) => w.kind !== "question");
 
-	if (waiting.length === 0 && connection.state === "connected") {
+	if (waiting.length === 0 && approvals.length === 0 && connection.state === "connected") {
 		return (
 			<div className="empty empty--centred">
 				<h1 className="empty__title">Nothing needs you</h1>
@@ -59,6 +67,13 @@ export function Queue({ onProblem }: { readonly onProblem: (p: string | null) =>
 
 	return (
 		<div className="queue">
+			{approvals.map((approval) => (
+				<Approval
+					key={`${approval.capabilityId}-${approval.askedAt}`}
+					approval={approval}
+					onDecided={refreshApprovals}
+				/>
+			))}
 			{forAPerson.map((suspension) => (
 				<Question key={suspension.worker} suspension={suspension} onAnswered={refresh} />
 			))}
@@ -162,6 +177,117 @@ function Question({
 						onClick={() => void send()}
 					>
 						{sending ? "sending" : "answer and resume"}
+					</button>
+				</div>
+			</div>
+		</article>
+	);
+}
+
+/**
+ * A worker asking to do something it needs permission for each time.
+ *
+ * It shows what the capability actually permits, not just its name, because
+ * approving something whose scope you cannot see is not approving, it is
+ * agreeing. `05-CAPABILITIES` §0 asks whether the worst case is readable from a
+ * data structure rather than from the whole codebase, and this is where a person
+ * reads it.
+ */
+function Approval({
+	approval,
+	onDecided,
+}: {
+	readonly approval: WireApproval;
+	readonly onDecided: () => void;
+}) {
+	const [reason, setReason] = useState("");
+	const [sending, setSending] = useState(false);
+	const [refused, setRefused] = useState<string | null>(null);
+
+	const decide = async (granted: boolean) => {
+		const why = reason.trim();
+		if (why === "" || sending) return;
+		setSending(true);
+		setRefused(null);
+
+		const bridge = window.maschina;
+		if (bridge === undefined) {
+			setRefused("The bridge did not load, so nothing can be decided.");
+			setSending(false);
+			return;
+		}
+
+		const result = await bridge.queue.decide({
+			capabilityId: approval.capabilityId,
+			granted,
+			reason: why,
+			approver: ANSWERED_BY,
+		});
+		if (result.ok) {
+			setReason("");
+			onDecided();
+		} else {
+			setRefused(result.problem);
+		}
+		setSending(false);
+	};
+
+	return (
+		<article className="approval">
+			<header className="question__head">
+				<span className="question__worker">{approval.holder}</span>
+				<span className="dim">wants permission, asked {ago(approval.askedAt)}</span>
+			</header>
+
+			<p className="question__text">
+				{approval.operation} on <strong>{approval.target}</strong>
+			</p>
+
+			<dl className="facts">
+				<dt>resource</dt>
+				<dd>{approval.resource}</dd>
+				<dt>scope</dt>
+				<dd>{approval.scope}</dd>
+				<dt>permits</dt>
+				<dd>{approval.operations.join(", ")}</dd>
+				<dt>asks</dt>
+				<dd>
+					{approval.approval === "every_use"
+						? "every time, so this allows one use"
+						: "once, so this unlocks it for good"}
+				</dd>
+			</dl>
+
+			<div className="answer">
+				<textarea
+					className="answer__box"
+					value={reason}
+					placeholder="Why. A decision without a reason is not a decision, and this is recorded either way."
+					rows={2}
+					disabled={sending}
+					onChange={(e) => setReason(e.target.value)}
+				/>
+				<div className="answer__foot">
+					{refused !== null ? (
+						<span className="answer__refused">{refused}</span>
+					) : (
+						<span className="dim">recorded as {ANSWERED_BY}</span>
+					)}
+					<button
+						type="button"
+						className="answer__refuse"
+						disabled={reason.trim() === "" || sending}
+						onClick={() => void decide(false)}
+					>
+						refuse
+					</button>
+					<button
+						type="button"
+						className="answer__send"
+						disabled={reason.trim() === "" || sending}
+						onClick={() => void decide(true)}
+					>
+						allow
 					</button>
 				</div>
 			</div>

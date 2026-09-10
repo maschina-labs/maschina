@@ -70,6 +70,18 @@ export interface WireSuspension {
 	readonly since: string;
 }
 
+export interface WireApproval {
+	readonly capabilityId: string;
+	readonly holder: string;
+	readonly operation: string;
+	readonly target: string;
+	readonly approval: string;
+	readonly resource: string;
+	readonly scope: string;
+	readonly operations: readonly string[];
+	readonly askedAt: string;
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -101,6 +113,30 @@ const api = {
 			because: string;
 			answeredBy: string;
 		}): Promise<Result<{ resumed: boolean }>> => ipcRenderer.invoke("queue:answer", input),
+
+		approvals: (): Promise<Result<WireApproval[]>> => ipcRenderer.invoke("queue:approvals"),
+
+		/** Allow it or refuse it. A refusal is recorded, not merely withheld. */
+		decide: (input: {
+			capabilityId: string;
+			granted: boolean;
+			reason: string;
+			approver: string;
+		}): Promise<Result<{ granted: boolean }>> => ipcRenderer.invoke("queue:decide", input),
+	},
+
+	/**
+	 * Stop everything, from anywhere.
+	 *
+	 * `01-PRINCIPLES` P13 does not yield. It is on the bridge rather than behind a
+	 * menu because a stop nobody can find is a stop nobody has.
+	 */
+	stop: {
+		everything: (input: {
+			reason: string;
+			actor: string;
+		}): Promise<Result<{ stopped: boolean; revoked: string[] }>> =>
+			ipcRenderer.invoke("stop:everything", input),
 	},
 
 	/** Objectives, folded from the log. Read only, like everything on this bridge. */

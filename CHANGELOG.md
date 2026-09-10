@@ -19,6 +19,16 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **You can allow or refuse what a worker is asking to do.** Anything needing
+  your permission appears with what it would actually let the worker do, on what,
+  and whether saying yes covers one use or all of them. Refusing is recorded, not
+  just withheld.
+- **Stop everything, from anywhere in the window.** One button, always visible,
+  that takes away every permission at once. It tells you plainly that it is not a
+  pause: nothing comes back, and starting again means granting it all again.
+
 ### Fixed
 
 - **Merges bump the version again.** Releases had silently stopped: the version

@@ -134,6 +134,85 @@ export function objective(id: string): Promise<Result<WireObjective>> {
 	return read<WireObjective>(`/objectives/${encodeURIComponent(id)}`);
 }
 
+/** Something a worker wants to do that a person has to allow first. */
+export interface WireApproval {
+	readonly capabilityId: string;
+	readonly holder: string;
+	readonly operation: string;
+	readonly target: string;
+	/** `every_use` asks again next time. `first_use` unlocks it for good. */
+	readonly approval: string;
+	readonly resource: string;
+	readonly scope: string;
+	readonly operations: readonly string[];
+	readonly askedAt: string;
+}
+
+export function approvals(): Promise<Result<WireApproval[]>> {
+	return read<WireApproval[]>("/approvals");
+}
+
+/** Send anything that changes something. One helper, so there is one place to read. */
+async function act<T>(path: string, body: unknown, whenGone: string): Promise<Result<T>> {
+	const where = base();
+	try {
+		const response = await fetch(`${where}${path}`, {
+			method: "POST",
+			signal: AbortSignal.timeout(TIMEOUT_MS),
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(body),
+		});
+		if (!response.ok) {
+			const detail = (await response.json().catch(() => ({}))) as { error?: string };
+			return {
+				ok: false,
+				problem: detail.error ?? `The control plane refused it (${response.status}).`,
+			};
+		}
+		return { ok: true, value: (await response.json()) as T };
+	} catch {
+		return { ok: false, problem: whenGone };
+	}
+}
+
+/**
+ * Allow it, or refuse it.
+ *
+ * A refusal is recorded, not merely withheld. Invariant 14: denials are recorded
+ * as prominently as uses, and "nobody approved it" and "a person said no" are
+ * different facts.
+ */
+export function decide(
+	capabilityId: string,
+	granted: boolean,
+	reason: string,
+	approver: string,
+): Promise<Result<{ granted: boolean }>> {
+	return act(
+		`/capabilities/${encodeURIComponent(capabilityId)}/approve`,
+		{ granted, reason, approver },
+		"The decision did not arrive. Nothing has been allowed or refused.",
+	);
+}
+
+/**
+ * Stop everything.
+ *
+ * Revokes the root, which takes every capability with it. `01-PRINCIPLES` P13
+ * does not yield, and a stop only reachable from a terminal is not reachable
+ * when it is needed.
+ */
+export function stopEverything(
+	reason: string,
+	actor: string,
+): Promise<Result<{ stopped: boolean; revoked: string[] }>> {
+	return act(
+		"/emergency-stop",
+		{ reason, actor },
+		"The stop did not arrive, so assume nothing has stopped. Use: pnpm stop:test",
+	);
+}
+
 /** A worker that has stopped, and what would start it again. */
 export interface WireSuspension {
 	readonly worker: string;

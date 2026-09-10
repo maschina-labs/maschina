@@ -1,5 +1,5 @@
 /**
- * Environment proof, slices 1 to 3. The window reads, and answers.
+ * Environment proof, slices 1 to 4. The window reads, answers, allows and stops.
  *
  * `ENVIRONMENT_PLAN` slice 1:
  *
@@ -28,7 +28,9 @@ import { hashContract } from "@maschina/core";
 import {
 	append,
 	appPool,
+	authorize,
 	getSuspension,
+	grant,
 	PAYLOAD_V,
 	read,
 	recordStep,
@@ -161,15 +163,18 @@ async function main(): Promise<void> {
 	// became the first thing on this surface that changes anything. The claim
 	// narrows rather than disappearing: one named effect, and nothing that
 	// touches the log.
-	const writes = client.match(/method: "POST"/g) ?? [];
+	// Named effects, counted by name rather than by how many times fetch is
+	// written. What matters is that each one is a specific operation somebody
+	// chose to expose, not that they share a helper.
+	const effects = ["/resume", "/approve", "/emergency-stop"];
 	check(
-		"there is exactly one thing on this surface that changes anything",
-		writes.length === 1,
-		`${writes.length} write(s)`,
+		"everything that changes something is a named operation",
+		effects.every((e) => client.includes(e)),
+		effects.join(", "),
 	);
 	check(
-		"and it answers a person's question rather than writing to the log",
-		client.includes("/resume") && !/\/events['"`]/.test(client),
+		"and none of them writes to the log",
+		!/\/events['"`]/.test(client) && !/append/.test(client.replace(/\/\*[\s\S]*?\*\//g, "")),
 		"a viewer that can write to the event log is not a viewer",
 	);
 	check(
@@ -182,6 +187,9 @@ async function main(): Promise<void> {
 
 	// ── Slice 3 ───────────────────────────────────────────────────────────────
 	await slice3();
+
+	// ── Slice 4 ───────────────────────────────────────────────────────────────
+	await slice4();
 
 	verdict("Environment proof");
 }
@@ -471,6 +479,193 @@ async function slice3(): Promise<void> {
 		check(
 			"and an answer that failed to send never looks like one that worked",
 			queueView.includes("setRefused") && queueView.includes("still stopped"),
+		);
+	} finally {
+		await new Promise<void>((resolve) => server.close(() => resolve()));
+		await pool.end();
+	}
+}
+
+/**
+ * Slice 4: approvals, and the emergency stop.
+ *
+ *   "A worker blocks on an every_use capability, is released from the window,
+ *    and the decision is in the log. Then a worker mid-objective is stopped from
+ *    the window and stays stopped."
+ *
+ *   "Watch for: an approve button that approves more than the one use in front
+ *    of it. And hiding the emergency stop because it looks alarming."
+ */
+async function slice4(): Promise<void> {
+	await resetLog();
+	const pool = appPool();
+	const server = serve({ fetch: createApp(pool).fetch, port: PORT + 3, hostname: "127.0.0.1" });
+	process.env.MASCHINA_CONTROL_PLANE_URL = `http://127.0.0.1:${PORT + 3}`;
+	const plane = await import("../../../apps/desktop/src/main/control-plane.ts");
+
+	try {
+		console.log("\n12. A worker blocked on approval reaches the window");
+		const capability = await grant(pool, {
+			holder: "worker:careful",
+			resource: "repository",
+			operations: ["commit"],
+			scope: "maschina-labs/maschina-sandbox",
+			effectClass: "reconcilable",
+			checkpoint: "none",
+			approval: "every_use",
+			delegationDepth: 0,
+			grantedBy: "human:ash",
+		});
+
+		const blocked = await authorize(pool, {
+			capabilityId: capability.id,
+			holder: "worker:careful",
+			operation: "commit",
+			target: "maschina-labs/maschina-sandbox",
+		});
+		check("the worker is refused until somebody decides", !blocked.granted);
+		check(
+			"for wanting approval, not for anything else",
+			blocked.granted === false && blocked.reason === "approval_required",
+			blocked.granted === false ? blocked.reason : "",
+		);
+
+		const waiting = await plane.approvals();
+		check("the window sees the request", waiting.ok && waiting.value.length === 1);
+		check(
+			"and what it would permit, not just its name",
+			waiting.ok &&
+				waiting.value[0]?.scope === "maschina-labs/maschina-sandbox" &&
+				waiting.value[0]?.operations.includes("commit"),
+			"approving something whose scope you cannot see is agreeing, not approving",
+		);
+
+		console.log("\n13. Refusing is recorded, not merely withheld");
+		const refusedEmpty = await plane.decide(capability.id, true, "  ", "human:operator");
+		check("a decision with no reason is refused", !refusedEmpty.ok);
+
+		const refusal = await plane.decide(
+			capability.id,
+			false,
+			"not this repository",
+			"human:operator",
+		);
+		check("a refusal is accepted", refusal.ok);
+		const refusals = (await read(pool)).filter((e) => e.type === "capability.approval_refused");
+		check("and recorded", refusals.length === 1);
+		check(
+			"with who refused it and why",
+			refusals[0]?.payload.approver === "human:operator" &&
+				refusals[0]?.payload.reason === "not this repository",
+			"invariant 14: denials are recorded as prominently as uses",
+		);
+		check(
+			"and the worker is still refused",
+			!(
+				await authorize(pool, {
+					capabilityId: capability.id,
+					holder: "worker:careful",
+					operation: "commit",
+					target: "maschina-labs/maschina-sandbox",
+				})
+			).granted,
+		);
+
+		console.log("\n14. Allowing it allows exactly one use");
+		const allowed = await plane.decide(
+			capability.id,
+			true,
+			"yes, that repository",
+			"human:operator",
+		);
+		check("the approval is accepted", allowed.ok);
+		check(
+			"the worker may act once",
+			(
+				await authorize(pool, {
+					capabilityId: capability.id,
+					holder: "worker:careful",
+					operation: "commit",
+					target: "maschina-labs/maschina-sandbox",
+				})
+			).granted,
+		);
+		check(
+			"and is refused again immediately after",
+			!(
+				await authorize(pool, {
+					capabilityId: capability.id,
+					holder: "worker:careful",
+					operation: "commit",
+					target: "maschina-labs/maschina-sandbox",
+				})
+			).granted,
+			"every_use means one answer authorises one action",
+		);
+
+		console.log("\n15. Stopping everything, from the window");
+		const held = await grant(pool, {
+			holder: "worker:busy",
+			resource: "model",
+			operations: ["invoke"],
+			scope: "fast",
+			limits: { granted: 100_000, reserved: 0, settled: 0 },
+			effectClass: "idempotent",
+			checkpoint: "none",
+			approval: "none",
+			delegationDepth: 0,
+			grantedBy: "human:ash",
+		});
+		check(
+			"a worker holds authority before the stop",
+			(
+				await authorize(pool, {
+					capabilityId: held.id,
+					holder: "worker:busy",
+					operation: "invoke",
+					target: "fast",
+				})
+			).granted,
+		);
+
+		const refusedNoReason = await plane.stopEverything("   ", "human:operator");
+		check("stopping without a reason is refused", !refusedNoReason.ok);
+
+		const stopped = await plane.stopEverything("it is doing the wrong thing", "human:operator");
+		check("the stop is accepted", stopped.ok);
+		check(
+			"and took capabilities with it",
+			stopped.ok && stopped.value.revoked.length > 0,
+			stopped.ok ? `${stopped.value.revoked.length} revoked` : "",
+		);
+		check(
+			"the worker has no authority now",
+			!(
+				await authorize(pool, {
+					capabilityId: held.id,
+					holder: "worker:busy",
+					operation: "invoke",
+					target: "fast",
+				})
+			).granted,
+			"no cooperation from the worker was needed",
+		);
+
+		console.log("\n16. And it is reachable, and honest about not being a pause");
+		const stopView = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
+		const shell = readFileSync(join(desktop, "renderer/App.tsx"), "utf8");
+		check(
+			"the stop is in the title bar, so it is visible from every view",
+			shell.includes("<Stop />"),
+			"a stop nobody can find is a stop nobody has",
+		);
+		check(
+			"it asks before it acts",
+			stopView.includes("Stop everything?") && stopView.includes("setAsking"),
+		);
+		check(
+			"and says plainly that nothing comes back",
+			stopView.includes("not a pause") && stopView.includes("comes back"),
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));

@@ -28,7 +28,12 @@ import type {
 import type { Lease } from "@maschina/db";
 import {
 	acquireLease,
+	append,
+	approveUse,
 	authorize,
+	CAPABILITY_APPROVAL_REQUESTED,
+	CAPABILITY_APPROVED,
+	emergencyStop,
 	Fenced,
 	getCapability,
 	getLease,
@@ -222,6 +227,107 @@ export function createApp(
 		};
 		const request: AuthorizationRequest = body;
 		return c.json(await authorize(pool, request));
+	});
+
+	/**
+	 * What is waiting on a person's approval.
+	 *
+	 * Folded from the log: every request, minus the ones already answered. A
+	 * capability configured `every_use` asks again each time, which is the point
+	 * of configuring it that way, so the same capability can appear more than once
+	 * and each entry is a separate decision.
+	 */
+	app.get("/approvals", async (c) => {
+		const events = await logRead(pool);
+		const answered = new Set<string>();
+		for (const event of events) {
+			if (event.type !== CAPABILITY_APPROVED) continue;
+			answered.add(String(event.payload.capabilityId));
+		}
+
+		const pending = [];
+		for (const event of events) {
+			if (event.type !== CAPABILITY_APPROVAL_REQUESTED) continue;
+			const capabilityId = String(event.payload.capabilityId);
+			// A first_use approval, once given, answers every later request for the
+			// same capability. An every_use one answers exactly one.
+			if (event.payload.approval === "first_use" && answered.has(capabilityId)) continue;
+
+			const capability = await getCapability(pool, capabilityId);
+			if (capability === null || capability.status !== "active") continue;
+
+			pending.push({
+				capabilityId,
+				holder: String(event.payload.holder),
+				operation: String(event.payload.operation),
+				target: String(event.payload.target),
+				approval: String(event.payload.approval),
+				resource: capability.resource,
+				scope: capability.scope,
+				operations: capability.operations,
+				askedAt: event.recordedAt.toISOString(),
+			});
+		}
+		return c.json(pending);
+	});
+
+	/**
+	 * Approve, or refuse.
+	 *
+	 * A refusal is recorded as prominently as a use (invariant 14), so it goes in
+	 * the log rather than simply not happening. "Nobody approved it" and "a person
+	 * looked at it and said no" are different facts and the record has to keep
+	 * them apart.
+	 */
+	app.post("/capabilities/:id/approve", async (c) => {
+		const body = (await c.req.json()) as {
+			approver: string;
+			reason: string;
+			granted?: boolean;
+		};
+		if (typeof body.reason !== "string" || body.reason.trim() === "") {
+			return c.json(
+				{ error: "reason is required: a decision without one is not a decision" },
+				400,
+			);
+		}
+
+		if (body.granted === false) {
+			await append(pool, {
+				actor: body.approver,
+				type: "capability.approval_refused",
+				payload: {
+					v: 1,
+					capabilityId: c.req.param("id"),
+					approver: body.approver,
+					reason: body.reason,
+				},
+			});
+			return c.json({ granted: false });
+		}
+
+		await approveUse(pool, c.req.param("id"), body.approver, body.reason);
+		return c.json({ granted: true });
+	});
+
+	/**
+	 * Stop everything.
+	 *
+	 * `01-PRINCIPLES` P13 does not yield, and a stop that is only reachable from a
+	 * terminal is not reachable when it is needed. Revokes the root, which takes
+	 * every capability in the tree with it.
+	 *
+	 * There is no route back. Lifting a stop goes through `liftEmergencyStop` and
+	 * is meant to be deliberate rather than a button next to the one that stopped
+	 * everything.
+	 */
+	app.post("/emergency-stop", async (c) => {
+		const body = (await c.req.json()) as { actor: string; reason: string };
+		if (typeof body.reason !== "string" || body.reason.trim() === "") {
+			return c.json({ error: "reason is required" }, 400);
+		}
+		const revoked = await emergencyStop(pool, body.actor, body.reason);
+		return c.json({ stopped: true, revoked });
 	});
 
 	app.post("/capabilities/:id/revoke", async (c) => {
