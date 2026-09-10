@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The weekly roadmap check now runs.** It had never worked: the check was
+  looking for a file that is not part of the published repository, and the error
+  saying so was being replaced with a guess about something else entirely.
+
 ### Added
 
 - **The desktop window shows the log.** Everything Maschina has recorded, newest
