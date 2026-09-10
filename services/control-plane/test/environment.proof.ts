@@ -143,12 +143,23 @@ async function main(): Promise<void> {
 	// were found by trying them.
 	const style = readFileSync(join(desktop, "renderer/index.css"), "utf8");
 	if (style.includes("-webkit-app-region: drag")) {
+		// Blanket, not per control. The tabs shipped broken this way and then the
+		// stop dialog did, because it renders inside the header and inherited the
+		// drag region: the overlay could not be typed in or dismissed. Checking one
+		// class at a time would have caught the first and missed the second.
 		check(
-			"anything clickable in the title bar opts out of the drag region",
-			/\.tab\s*\{[^}]*-webkit-app-region:\s*no-drag/.test(style),
-			"a drag region swallows clicks from everything inside it",
+			"everything inside the title bar opts out of the drag region",
+			/\.titlebar\s\*\s*\{[^}]*-webkit-app-region:\s*no-drag/.test(style),
+			"a drag region swallows clicks and keystrokes from everything inside it",
 		);
 	}
+
+	const stopView = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
+	check(
+		"and the dialog can always be left",
+		stopView.includes("Escape") && stopView.includes("stopping__backdrop"),
+		"nobody should ever be stuck in a dialog, least of all this one",
+	);
 
 	check(
 		"the renderer never calls fetch itself",
@@ -655,7 +666,7 @@ async function slice4(): Promise<void> {
 		);
 
 		console.log("\n16. And it is reachable, and honest about not being a pause");
-		const stopView = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
+		const stopSource = readFileSync(join(desktop, "renderer/Stop.tsx"), "utf8");
 		const shell = readFileSync(join(desktop, "renderer/App.tsx"), "utf8");
 		check(
 			"the stop is in the title bar, so it is visible from every view",
@@ -664,11 +675,11 @@ async function slice4(): Promise<void> {
 		);
 		check(
 			"it asks before it acts",
-			stopView.includes("Stop everything?") && stopView.includes("setAsking"),
+			stopSource.includes("Stop everything?") && stopSource.includes("setAsking"),
 		);
 		check(
 			"and says plainly that nothing comes back",
-			stopView.includes("not a pause") && stopView.includes("comes back"),
+			stopSource.includes("not a pause") && stopSource.includes("comes back"),
 		);
 	} finally {
 		await new Promise<void>((resolve) => server.close(() => resolve()));
