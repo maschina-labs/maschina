@@ -213,6 +213,42 @@ export function stopEverything(
 	);
 }
 
+/** One criterion, judged. `09-EVALUATION` §5. */
+export interface WireVerdict {
+	readonly criterionId: string;
+	readonly result: string;
+	/** What makes it checkable: artifact hashes, event ids, command output. */
+	readonly evidence: readonly string[];
+	/** Which verification strength was actually used, not which was asked for. */
+	readonly method: string;
+	readonly notes: string;
+}
+
+export interface WireEvaluation {
+	readonly objective: string;
+	readonly evaluator: string;
+	readonly verdicts: readonly WireVerdict[];
+	readonly rollup: string;
+	readonly outcome: string;
+	readonly remaining: readonly string[];
+	readonly contractHash: string;
+}
+
+/** In micro-dollars of list value, which is the unit the log records. */
+export interface WireCost {
+	readonly resource: string;
+	readonly settled: number;
+	readonly calls: number;
+}
+
+export function evaluations(id: string): Promise<Result<WireEvaluation[]>> {
+	return read<WireEvaluation[]>(`/objectives/${encodeURIComponent(id)}/evaluations`);
+}
+
+export function cost(id: string): Promise<Result<WireCost[]>> {
+	return read<WireCost[]>(`/objectives/${encodeURIComponent(id)}/cost`);
+}
+
 /** A worker that has stopped, and what would start it again. */
 export interface WireSuspension {
 	readonly worker: string;

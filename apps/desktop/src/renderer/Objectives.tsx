@@ -12,7 +12,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { WireEvent } from "../preload/index.ts";
+import type { WireEvaluation, WireEvent } from "../preload/index.ts";
 import { useReading } from "./useLog.ts";
 
 export function Objectives({ onProblem }: { readonly onProblem: (p: string | null) => void }) {
@@ -83,8 +83,22 @@ function Detail({ id }: { readonly id: string }) {
 		return bridge.log.events({ objective: id, limit: 500 });
 	}, [id]);
 
+	const readVerdicts = useCallback(async () => {
+		const bridge = window.maschina;
+		if (bridge === undefined) return { ok: false as const, problem: "No bridge." };
+		return bridge.objectives.evaluations(id);
+	}, [id]);
+
+	const readCost = useCallback(async () => {
+		const bridge = window.maschina;
+		if (bridge === undefined) return { ok: false as const, problem: "No bridge." };
+		return bridge.objectives.cost(id);
+	}, [id]);
+
 	const { value: objective } = useReading(readOne);
 	const { value: events } = useReading(readEvents);
+	const { value: judged } = useReading(readVerdicts);
+	const { value: spent } = useReading(readCost);
 
 	// When each criterion was met, from the events that recorded it happening.
 	const satisfied = useMemo(() => whenSatisfied(events ?? []), [events]);
@@ -161,6 +175,35 @@ function Detail({ id }: { readonly id: string }) {
 				<Listing title="Counts as failed" items={objective.contract.failureConditions} />
 			)}
 
+			{(judged ?? []).length > 0 && <Judged evaluations={judged ?? []} />}
+
+			{(spent ?? []).length > 0 && (
+				<>
+					<h3 className="detail__heading">
+						What it cost
+						<span className="detail__count">
+							{money((spent ?? []).reduce((sum, line) => sum + line.settled, 0))}
+						</span>
+					</h3>
+					<table className="cost">
+						<tbody>
+							{(spent ?? []).map((line) => (
+								<tr key={line.resource}>
+									<td>{line.resource}</td>
+									<td className="dim">
+										{line.calls} call{line.calls === 1 ? "" : "s"}
+									</td>
+									<td className="cost__amount">{money(line.settled)}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+					<p className="cost__note">
+						Read from what was settled, not from anything a worker reported about itself.
+					</p>
+				</>
+			)}
+
 			<h3 className="detail__heading">
 				What happened
 				<span className="detail__count">{(events ?? []).length} events</span>
@@ -175,6 +218,66 @@ function Detail({ id }: { readonly id: string }) {
 			</ol>
 		</aside>
 	);
+}
+
+/**
+ * What somebody judged, and on what evidence.
+ *
+ * The evidence is shown because a verdict that does not say what it was checked
+ * against cannot be audited later, and the method is shown because
+ * `09-EVALUATION` §3 ranks evidence: mechanical, independent and judgement are
+ * not the same claim.
+ *
+ * The evaluator is named. `09-EVALUATION` §4 forbids a worker judging its own
+ * objective, and showing who judged is how a person sees that it held.
+ */
+function Judged({ evaluations }: { readonly evaluations: readonly WireEvaluation[] }) {
+	return (
+		<>
+			{evaluations.map((evaluation) => (
+				<div key={`${evaluation.evaluator}-${evaluation.contractHash}`}>
+					<h3 className="detail__heading">
+						Judged {evaluation.outcome}
+						<span className="detail__count">by {evaluation.evaluator}</span>
+					</h3>
+					<ul className="criteria">
+						{evaluation.verdicts.map((verdict) => (
+							<li
+								key={verdict.criterionId}
+								className={
+									verdict.result === "satisfied" ? "criterion criterion--met" : "criterion"
+								}
+							>
+								<div className="criterion__head">
+									<span className="criterion__mark">{verdict.result}</span>
+									<span className="criterion__id">{verdict.criterionId}</span>
+									<span className={`strength strength--${verdict.method}`}>
+										{verdict.method}
+									</span>
+								</div>
+								{verdict.notes !== "" && <p className="criterion__text">{verdict.notes}</p>}
+								{verdict.evidence.length > 0 && (
+									<p className="criterion__how">
+										<span className="dim">checked against</span> {verdict.evidence.join(", ")}
+									</p>
+								)}
+							</li>
+						))}
+					</ul>
+					{evaluation.remaining.length > 0 && (
+						<p className="criterion__how">
+							<span className="dim">still outstanding</span> {evaluation.remaining.join(", ")}
+						</p>
+					)}
+				</div>
+			))}
+		</>
+	);
+}
+
+/** Micro-dollars of list value, which is the unit the log records. */
+function money(micro: number): string {
+	return `$${(micro / 1_000_000).toFixed(6)}`;
 }
 
 function Listing({

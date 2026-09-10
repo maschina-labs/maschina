@@ -25,7 +25,9 @@ import { app, BrowserWindow, ipcMain, shell } from "electron";
 import {
 	answer,
 	approvals,
+	cost,
 	decide,
+	evaluations,
 	events,
 	health,
 	type LogQuery,
@@ -115,6 +117,8 @@ function serveTheRenderer(): void {
 	ipcMain.handle("log:health", () => health());
 	ipcMain.handle("objectives:list", () => objectives());
 	ipcMain.handle("objectives:one", (_event, id: string) => objective(id));
+	ipcMain.handle("objectives:evaluations", (_event, id: string) => evaluations(id));
+	ipcMain.handle("objectives:cost", (_event, id: string) => cost(id));
 	ipcMain.handle("queue:list", () => suspensions());
 	ipcMain.handle("queue:approvals", () => approvals());
 	ipcMain.handle(

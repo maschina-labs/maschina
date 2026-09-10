@@ -35,6 +35,7 @@ import {
 	CAPABILITY_APPROVED,
 	connectionString,
 	emergencyStop,
+	evaluationsOf,
 	Fenced,
 	getCapability,
 	getLease,
@@ -57,6 +58,7 @@ import {
 	suspendUntil,
 	takeObjective,
 	watchEvents,
+	whatDidItCost,
 } from "@maschina/db";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
@@ -592,6 +594,28 @@ export function createApp(
 			throw error;
 		}
 	});
+
+	/**
+	 * What somebody judged, and on what evidence.
+	 *
+	 * `09-EVALUATION` §5. Per criterion, with the evidence each verdict rested on
+	 * and which verification strength was actually used, because a verdict that
+	 * does not say what it was checked against cannot be audited later.
+	 */
+	app.get("/objectives/:id/evaluations", async (c) =>
+		c.json(await evaluationsOf(pool, c.req.param("id"))),
+	);
+
+	/**
+	 * What it cost, from settlements.
+	 *
+	 * Read from what was actually settled rather than from anything a worker
+	 * reported about itself, which is the same rule as invariant 17 applied to
+	 * money instead of to files.
+	 */
+	app.get("/objectives/:id/cost", async (c) =>
+		c.json(await whatDidItCost(pool, c.req.param("id"))),
+	);
 
 	app.get("/objectives/:id", async (c) => {
 		const objective = await getObjective(pool, c.req.param("id"));
