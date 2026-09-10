@@ -19,6 +19,14 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **A worker that stopped to ask you something now asks you in the window.** The
+  question appears with a box under it, you answer, and the worker carries on.
+  The answer is kept, along with who gave it.
+- **The window opens on what needs you.** Usually nothing, because work that is
+  proceeding correctly does not need you, and that is the point.
+
 ### Changed
 
 - **Every change that earns a version now gets one, the moment it lands.** The

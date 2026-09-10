@@ -22,7 +22,15 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
-import { events, health, type LogQuery, objective, objectives } from "./control-plane.ts";
+import {
+	answer,
+	events,
+	health,
+	type LogQuery,
+	objective,
+	objectives,
+	suspensions,
+} from "./control-plane.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 const isDev = !app.isPackaged;
@@ -94,6 +102,16 @@ function serveTheRenderer(): void {
 	ipcMain.handle("log:health", () => health());
 	ipcMain.handle("objectives:list", () => objectives());
 	ipcMain.handle("objectives:one", (_event, id: string) => objective(id));
+	ipcMain.handle("queue:list", () => suspensions());
+	// The only handler here that changes anything. Named, single purpose, and it
+	// takes exactly the four things an answer is made of.
+	ipcMain.handle(
+		"queue:answer",
+		(
+			_event,
+			input: { worker: string; objective: string | null; because: string; answeredBy: string },
+		) => answer(input.worker, input.objective, input.because, input.answeredBy),
+	);
 }
 
 app.whenReady().then(() => {

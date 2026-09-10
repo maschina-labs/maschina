@@ -9,11 +9,14 @@
 import { useCallback, useState } from "react";
 import { Log } from "./Log.tsx";
 import { Objectives } from "./Objectives.tsx";
+import { Queue } from "./Queue.tsx";
 
-type View = "objectives" | "log";
+type View = "queue" | "objectives" | "log";
 
 export function App() {
-	const [view, setView] = useState<View>("objectives");
+	// The queue opens first. 08-ENVIRONMENT section 1: the primary surface is what
+	// needs a person, not a view of what is happening.
+	const [view, setView] = useState<View>("queue");
 	const [problem, setProblem] = useState<string | null>(null);
 	const [count, setCount] = useState(0);
 
@@ -26,6 +29,9 @@ export function App() {
 			<header className="titlebar">
 				<span className="titlebar__mark">Maschina</span>
 				<nav className="tabs">
+					<Tab now={view} is="queue" onPick={setView}>
+						needs you
+					</Tab>
 					<Tab now={view} is="objectives" onPick={setView}>
 						objectives
 					</Tab>
@@ -37,11 +43,9 @@ export function App() {
 
 			<main className="body">
 				{problem !== null && <Lost problem={problem} />}
-				{view === "objectives" ? (
-					<Objectives onProblem={reportProblem} />
-				) : (
-					<Log onProblem={reportProblem} onCount={reportCount} />
-				)}
+				{view === "queue" && <Queue onProblem={reportProblem} />}
+				{view === "objectives" && <Objectives onProblem={reportProblem} />}
+				{view === "log" && <Log onProblem={reportProblem} onCount={reportCount} />}
 			</main>
 
 			<footer className="statusbar">

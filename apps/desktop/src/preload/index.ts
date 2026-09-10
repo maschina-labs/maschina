@@ -13,7 +13,9 @@
  *     passthrough. That is an open door with a narrow-looking frame.
  *   · Never expose `fs`, `child_process`, `shell`, or a path the renderer picks.
  *   · The log is READ-ONLY from this surface. There is no append here, and the
- *     viewer never writes to the event log (02-CORE §3.5).
+ *     viewer never writes to the event log (02-CORE §3.5). One operation changes
+ *     something, `queue.answer`, and it changes it by asking the control plane
+ *     to record a person's decision rather than by writing anything itself.
  */
 
 import { contextBridge, ipcRenderer } from "electron";
@@ -58,6 +60,16 @@ export interface WireObjective {
 	};
 }
 
+export interface WireSuspension {
+	readonly worker: string;
+	readonly objective: string | null;
+	readonly kind: string;
+	readonly reason: string;
+	readonly resumeAt: string | null;
+	readonly question: string | null;
+	readonly since: string;
+}
+
 export interface LogQuery {
 	readonly objective?: string;
 	readonly actor?: string;
@@ -72,6 +84,23 @@ const api = {
 		events: (query: LogQuery = {}): Promise<Result<WireEvent[]>> =>
 			ipcRenderer.invoke("log:events", query),
 		health: (): Promise<Result<{ ok: boolean }>> => ipcRenderer.invoke("log:health"),
+	},
+
+	/**
+	 * What is waiting on a person, and answering it.
+	 *
+	 * `answer` is the only thing on this bridge that changes anything. It does not
+	 * write to the log: it asks the control plane to record that a person decided
+	 * something, under that person's name.
+	 */
+	queue: {
+		list: (): Promise<Result<WireSuspension[]>> => ipcRenderer.invoke("queue:list"),
+		answer: (input: {
+			worker: string;
+			objective: string | null;
+			because: string;
+			answeredBy: string;
+		}): Promise<Result<{ resumed: boolean }>> => ipcRenderer.invoke("queue:answer", input),
 	},
 
 	/** Objectives, folded from the log. Read only, like everything on this bridge. */
