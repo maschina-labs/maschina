@@ -44,8 +44,8 @@
 		"node:dev": "pnpm --filter @maschina/node dev",
 		"fix:electron": "node -e \"const p=require.resolve(String.raw`electron`);require(require(String.raw`node:path`).join(require(String.raw`node:path`).dirname(p),String.raw`install.js`))\"",
 		"stall:live": "pnpm --filter @maschina/control-plane stall:live",
-		"tracker": "node internal/operations/check-tracker.mjs",
-		"tracker:sync": "node internal/operations/sync-issues.mjs && node internal/operations/sync-board.mjs",
+		"tracker": "node .github/ci/check-tracker.mjs",
+		"tracker:sync": "node .github/ci/sync-issues.mjs && node .github/ci/sync-board.mjs",
 		"backup": "bash internal/checks/backup.sh"
 	},
 	"devDependencies": {
