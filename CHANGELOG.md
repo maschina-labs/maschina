@@ -23,6 +23,8 @@ Versions follow semver.
 
 - **The app icon again.** Same shape, cleaner contrast between the ring and the
   ground.
+- **The menu bar says Maschina when running from source.** It said Electron, and
+  no setting inside the application could change it.
 
 ### Changed
 
