@@ -1,0 +1,2 @@
+# Local-only checks. Not every clone has these.
+[ -f internal/checks/branch-base.mjs ] && node internal/checks/branch-base.mjs
