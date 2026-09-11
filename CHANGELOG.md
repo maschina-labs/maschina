@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The app is a third smaller.** It was shipping a second copy of every library it
+  already had bundled. 433MB down to 299MB, and the part that is your code went from
+  143MB to 9MB.
+
 ### Added
 
 - **A shared design system.** Tokens, and the primitives every panel is built from,
