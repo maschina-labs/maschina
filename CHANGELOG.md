@@ -19,6 +19,12 @@ Versions follow semver.
 
 ## [Unreleased]
 
+### Added
+
+- **A shared design system.** Tokens, and the primitives every panel is built from,
+  in one place. The window has been running on a placeholder since the first slice;
+  this is the decision that replaces it.
+
 ### Changed
 
 - **A pull request that closes no issue is refused.** The roadmap is meant to
