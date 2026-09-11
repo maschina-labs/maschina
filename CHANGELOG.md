@@ -21,6 +21,8 @@ Versions follow semver.
 
 ### Fixed
 
+- **The app is smaller again.** It was shipping 659 languages and native binaries
+  for Windows and Linux inside a Mac build. 299MB down to 250MB.
 - **The app is a third smaller.** It was shipping a second copy of every library it
   already had bundled. 433MB down to 299MB, and the part that is your code went from
   143MB to 9MB.

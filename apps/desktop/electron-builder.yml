@@ -27,9 +27,23 @@ files:
 asarUnpack:
   - "**/node_modules/node-pty/**"
 
+# Electron ships every language Chromium supports, which is 659 locale files and
+# 49MB inside the framework. The window has one language and no translation
+# machinery, so the other 658 are weight nobody can use. This is reversible the
+# day translation exists: add the locale, rebuild, it ships.
+electronLanguages:
+  - en-US
+
 mac:
   category: public.app-category.developer-tools
   icon: build/icon.icns
+  # node-pty carries prebuilt binaries for every platform it supports, so a macOS
+  # build was shipping 1.4MB of Windows .node files it can never load. Excluded
+  # here rather than in the shared `files` list so a Windows build still gets its
+  # own, whenever there is one.
+  files:
+    - "!**/node_modules/node-pty/prebuilds/win32-*"
+    - "!**/node_modules/node-pty/prebuilds/linux-*"
   target:
     - target: dir
       arch: [arm64]
