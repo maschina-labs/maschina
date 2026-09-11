@@ -45,6 +45,18 @@
 					"allowComments": true
 				}
 			}
+		},
+		{
+			"includes": ["**/packages/ui/src/styles.css"],
+			"formatter": {
+				"enabled": false
+			},
+			"linter": {
+				"enabled": false
+			},
+			"assist": {
+				"enabled": false
+			}
 		}
 	]
 }

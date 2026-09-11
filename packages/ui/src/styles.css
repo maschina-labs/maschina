@@ -1,0 +1,107 @@
+/*
+ * The shared surface.
+ *
+ * `ADR-003` §7 left visual design undecided and the window has been running on a
+ * neutral dark placeholder since slice 1. This is the decision: Tailwind v4 for
+ * layout and spacing, tokens as CSS variables so a component never hard codes a
+ * colour, and copy-paste primitives from shadcn and beautifui.dev dropped into
+ * `primitives/` rather than pulled from a component dependency.
+ *
+ * **Why copy-paste rather than a library.** A component library is a dependency
+ * that owns your visual language and versions on its own schedule. Copied source
+ * is code in this repository, readable and changeable, with no upgrade that can
+ * restyle the application without anybody asking. `01-PRINCIPLES` P12 wants a
+ * named problem before a dependency, and "we need a button" is not one.
+ *
+ * **Nothing here loads from a network.** The renderer's content security policy
+ * is `default-src 'self'` with no CDN, so Tailwind is compiled at build time and
+ * fonts are system fonts. A stylesheet that needs to be online is a window that
+ * does not work on a plane.
+ */
+
+@import "tailwindcss";
+
+@theme {
+	/* Ground. Three steps, not a gradient: the window, a raised surface, and a
+	   line between them. Anything needing a fourth is probably a nested panel
+	   that should not be nested. */
+	--color-ground: #0c0d10;
+	--color-raised: #14161b;
+	--color-sunken: #090a0c;
+	--color-line: #22252d;
+	--color-line-strong: #2f333d;
+
+	/* Text. Four steps, because three was not enough for a dense log and five
+	   is more than anybody can hold in their head. */
+	--color-ink: #e6e8ee;
+	--color-ink-dim: #8b90a0;
+	--color-ink-faint: #575c6b;
+	--color-ink-ghost: #3c414d;
+
+	/* Meaning. Each of these says one thing and is used for nothing else.
+	   `accent` is interactive, never decorative. */
+	--color-accent: #6f8cff;
+	--color-accent-dim: #3f4d8c;
+	--color-good: #4ea36b;
+	--color-warn: #d8a13c;
+	--color-bad: #d0603a;
+
+	/* Type. System fonts only: no network, and a terminal application that ships
+	   a webfont for its chrome is at odds with the panel next to it. */
+	--font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+	--font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+	/* Scale. A dense tool, so the base is 13px and the small end goes to 10. */
+	--text-2xs: 10px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-base: 13px;
+	--text-lg: 15px;
+	--text-xl: 18px;
+
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 12px;
+}
+
+/*
+ * Light is not built yet and #205 says neither theme may be an afterthought, so
+ * rather than half doing it the tokens above are dark and the switch arrives with
+ * a second block here. Recording that is more honest than a `prefers-color-scheme`
+ * rule that has never been looked at.
+ */
+
+@layer base {
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body,
+	#root {
+		height: 100%;
+	}
+
+	body {
+		margin: 0;
+		background: var(--color-ground);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	/* Every interactive thing is reachable by keyboard and says so when it is
+	   focused. #93 wants keyboard first, and an invisible focus ring is the
+	   fastest way to fail that without noticing. */
+	:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 1px;
+	}
+
+	::selection {
+		background: var(--color-accent-dim);
+	}
+}

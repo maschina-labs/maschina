@@ -6,6 +6,7 @@
  * viewer are exactly that.
  */
 
+import { Notice } from "@maschina/ui";
 import { useCallback, useState } from "react";
 import { Authority } from "./Authority.tsx";
 import { Files } from "./Files.tsx";
@@ -142,12 +143,11 @@ function Tab({
  */
 function Lost({ problem }: { readonly problem: string }) {
 	return (
-		<div className="notice">
-			<strong className="notice__title">Not reading the log</strong>
-			<p className="notice__text">{problem}</p>
-			<p className="notice__text notice__text--dim">
+		<Notice title="Not reading the log" className="mx-4 mt-3">
+			<p>{problem}</p>
+			<p className="mt-1 text-ink-faint">
 				Anything below was true when it was read. It is not being updated.
 			</p>
-		</div>
+		</Notice>
 	);
 }

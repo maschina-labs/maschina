@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import tailwind from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "electron-vite";
 
@@ -37,7 +38,10 @@ export default defineConfig({
 	},
 	renderer: {
 		root: resolve(src, "renderer"),
-		plugins: [react()],
+		// Tailwind compiles at build time. The renderer's content security policy
+		// is default-src 'self' with no CDN, so a stylesheet that needed the network
+		// would be a window that does not work on a plane.
+		plugins: [react(), tailwind()],
 		build: {
 			outDir: resolve(import.meta.dirname, "out/renderer"),
 			rollupOptions: { input: resolve(src, "renderer/index.html") },
