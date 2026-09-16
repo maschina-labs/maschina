@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build: install only what this service needs, compile it, then keep production dependencies.
-FROM node:24.21.0-alpine AS build
+FROM node:26.8-alpine AS build
 WORKDIR /repo
 RUN corepack enable
 COPY . .
@@ -11,7 +11,7 @@ RUN pnpm --filter @maschina/gateway build
 RUN pnpm --filter @maschina/gateway deploy --legacy --prod --config.node-linker=hoisted /out
 
 # Run: a small image, as an unprivileged user, with nothing but the build output.
-FROM node:24.21.0-alpine
+FROM node:26.8-alpine
 ARG SERVICE_VERSION=dev
 ENV NODE_ENV=production
 ENV SERVICE_VERSION=$SERVICE_VERSION
