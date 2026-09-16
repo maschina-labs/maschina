@@ -45,9 +45,46 @@
 - name: database
   color: c5def5
   description: packages/db
+- name: runtime
+  color: c5def5
+  description: packages/core, packages/rules and packages/runtime
+- name: sdk
+  color: c5def5
+  description: packages/sdk
+- name: ui
+  color: c5def5
+  description: packages/ui
+- name: ai
+  color: c5def5
+  description: AI brains and talking to machines
+- name: infra
+  color: c5def5
+  description: Deployment, hosting, monitoring and servers
 - name: repo
   color: c5def5
   description: Tooling, CI and repository setup
+
+# Priority
+- name: p0
+  color: b60205
+  description: Must happen for its milestone
+- name: p1
+  color: fbca04
+  description: Should happen for its milestone
+- name: p2
+  color: c2e0c6
+  description: Nice to have
+
+# Size
+- name: "size: s"
+  color: bfdadc
+  description: Under a day
+- name: "size: m"
+  color: 76c7cf
+  description: A few days
+- name: "size: l"
+  color: 1f8a96
+  description: A week or more, and probably worth splitting
 
 # State
 - name: blocked
