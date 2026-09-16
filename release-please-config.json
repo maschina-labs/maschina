@@ -21,6 +21,7 @@
 	"packages": {
 		".": {
 			"package-name": "maschina",
+			"initial-version": "0.0.1",
 			"changelog-path": "CHANGELOG.md"
 		}
 	}
