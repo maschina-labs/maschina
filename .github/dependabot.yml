@@ -13,6 +13,12 @@ updates:
     commit-message:
       prefix: build
       include: scope
+    # A new major version of Node or TypeScript is a deliberate upgrade with its own issue.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -43,6 +49,10 @@ updates:
       day: monday
     commit-message:
       prefix: build
+    # Services stay on the Node long-term support line until an upgrade issue moves them.
+    ignore:
+      - dependency-name: node
+        update-types: [version-update:semver-major]
     groups:
       node-image:
         patterns: ["*"]
