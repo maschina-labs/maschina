@@ -71,3 +71,8 @@ catalog:
   vitest: 5.0.1
   yaml: 2.9.1
   zod: 4.6.5
+
+# drizzle-kit's config loader pins esbuild 0.18, which has a development server advisory. It only uses
+# esbuild's transform functions, which are unchanged in 0.25.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": 0.25.12
