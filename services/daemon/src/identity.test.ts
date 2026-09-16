@@ -1,4 +1,14 @@
-import { chmodSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	statSync,
+	symlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { MaschinaError } from "@maschina/core";
@@ -37,6 +47,57 @@ describe("loadOrCreateIdentity", () => {
 		loadOrCreateIdentity(path);
 		chmodSync(path, 0o644);
 		expect(() => loadOrCreateIdentity(path)).toThrow(/chmod 600/);
+	});
+
+	it("refuses an identity reached through a symbolic link", () => {
+		// A link can be swapped to point somewhere else between checking the file and reading it.
+		const real = tempPath();
+		loadOrCreateIdentity(real);
+		const link = join(real, "..", "link.json");
+		symlinkSync(real, link);
+		expect(() => loadOrCreateIdentity(link)).toThrow(/symbolic link/);
+	});
+
+	it("refuses anything that isn't a regular file", () => {
+		const path = tempPath();
+		mkdirSync(path, { recursive: true });
+		expect(() => loadOrCreateIdentity(path)).toThrow(/not a regular file/);
+	});
+
+	it("reports a file it isn't allowed to open instead of replacing it", () => {
+		const path = tempPath();
+		loadOrCreateIdentity(path);
+		chmodSync(path, 0o000);
+		expect(() => loadOrCreateIdentity(path)).toThrow(/EACCES|permission denied/i);
+		chmodSync(path, 0o600);
+	});
+
+	it("refuses a file that isn't JSON", () => {
+		const path = tempPath();
+		mkdirSync(join(path, ".."), { recursive: true });
+		writeFileSync(path, "not json", { mode: 0o600 });
+		expect(() => loadOrCreateIdentity(path)).toThrow(/not a valid daemon identity/);
+	});
+
+	it("gives daemons starting at the same moment the same identity", async () => {
+		const path = tempPath();
+		const script = `import { loadOrCreateIdentity } from ${JSON.stringify(new URL("./identity.ts", import.meta.url).pathname)};
+process.stdout.write(loadOrCreateIdentity(process.argv[1]).nodeId);`;
+		const start = () =>
+			new Promise<string>((resolve, reject) => {
+				const child = spawn(process.execPath, ["--input-type=module", "-e", script, path]);
+				let out = "";
+				let err = "";
+				child.stdout.on("data", (chunk) => {
+					out += chunk;
+				});
+				child.stderr.on("data", (chunk) => {
+					err += chunk;
+				});
+				child.on("close", (code) => (code === 0 ? resolve(out) : reject(new Error(err))));
+			});
+		const ids = await Promise.all(Array.from({ length: 8 }, start));
+		expect(new Set(ids).size).toBe(1);
 	});
 
 	it("refuses a corrupted or tampered file", () => {

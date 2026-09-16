@@ -5,7 +5,15 @@
  */
 
 import { generateKeyPairSync } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+	closeSync,
+	constants,
+	fstatSync,
+	mkdirSync,
+	openSync,
+	readFileSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname } from "node:path";
 import { MaschinaError, type NodeId, newId, parseId } from "@maschina/core";
 import { z } from "zod";
@@ -31,7 +39,8 @@ export function loadOrCreateIdentity(
 	path: string,
 	now: () => Date = () => new Date(),
 ): NodeIdentity {
-	if (existsSync(path)) return load(path);
+	const existing = load(path);
+	if (existing) return existing;
 
 	const { publicKey, privateKey } = generateKeyPairSync("ed25519", {
 		publicKeyEncoding: { type: "spki", format: "pem" },
@@ -45,25 +54,70 @@ export function loadOrCreateIdentity(
 	};
 
 	mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-	writeFileSync(path, `${JSON.stringify({ version: 1, ...identity }, null, "\t")}\n`, {
-		mode: OWNER_ONLY,
-		flag: "wx",
-	});
+	try {
+		writeFileSync(path, `${JSON.stringify({ version: 1, ...identity }, null, "\t")}\n`, {
+			mode: OWNER_ONLY,
+			flag: "wx",
+		});
+	} catch (error) {
+		// Another daemon created it first. Use that one, so both agree on who this node is.
+		if (hasCode(error, "EEXIST")) {
+			const winner = load(path);
+			if (winner) return winner;
+		}
+		throw error;
+	}
 	return identity;
 }
 
-function load(path: string): NodeIdentity {
-	const mode = statSync(path).mode & 0o777;
-	if (mode & 0o077) {
-		throw new MaschinaError(
-			"forbidden",
-			`${path} is readable by other users. Fix with: chmod 600 ${path}`,
-		);
+/**
+ * Opens the file once, without following links, and checks and reads that same open file. Checking by
+ * path and then reading by path would let the file be swapped in between.
+ */
+function load(path: string): NodeIdentity | undefined {
+	let fd: number;
+	try {
+		fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+	} catch (error) {
+		if (hasCode(error, "ENOENT")) return undefined;
+		if (hasCode(error, "ELOOP")) {
+			throw new MaschinaError("forbidden", `${path} is a symbolic link. Use the file itself.`);
+		}
+		throw error;
 	}
-	const parsed = StoredIdentity.safeParse(JSON.parse(readFileSync(path, "utf8")));
-	if (!parsed.success) {
-		throw new MaschinaError("invalid_input", `${path} is not a valid daemon identity`);
+	try {
+		const stat = fstatSync(fd);
+		if (!stat.isFile()) {
+			throw new MaschinaError("forbidden", `${path} is not a regular file`);
+		}
+		if (process.getuid && stat.uid !== process.getuid()) {
+			throw new MaschinaError("forbidden", `${path} belongs to another user`);
+		}
+		if (stat.mode & 0o077) {
+			throw new MaschinaError(
+				"forbidden",
+				`${path} is readable by other users. Fix with: chmod 600 ${path}`,
+			);
+		}
+		const parsed = StoredIdentity.safeParse(parseJson(readFileSync(fd, "utf8")));
+		if (!parsed.success) {
+			throw new MaschinaError("invalid_input", `${path} is not a valid daemon identity`);
+		}
+		const { nodeId, publicKey, privateKey, createdAt } = parsed.data;
+		return { nodeId: parseId(nodeId, "node"), publicKey, privateKey, createdAt };
+	} finally {
+		closeSync(fd);
 	}
-	const { nodeId, publicKey, privateKey, createdAt } = parsed.data;
-	return { nodeId: parseId(nodeId, "node"), publicKey, privateKey, createdAt };
+}
+
+function parseJson(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return undefined;
+	}
+}
+
+function hasCode(error: unknown, code: string): boolean {
+	return error instanceof Error && "code" in error && error.code === code;
 }
