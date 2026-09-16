@@ -48,7 +48,15 @@ export function buildApp(deps: GatewayDeps) {
 			maxAge: 600,
 		}),
 	);
-	app.use("/v1/*", rateLimit({ capacity: 60, refillPerSecond: 2, key: clientKey }));
+	app.use(
+		"/v1/*",
+		rateLimit({
+			capacity: 60,
+			refillPerSecond: 2,
+			key: clientKey,
+			clock: deps.clock ?? systemClock,
+		}),
+	);
 
 	registerHealth(app, { service: SERVICE, version: deps.version });
 

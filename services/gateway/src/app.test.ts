@@ -53,12 +53,20 @@ describe("gateway", () => {
 		expect(other.headers.get("access-control-allow-origin")).toBeNull();
 	});
 
-	it("rate limits each client", async () => {
-		const gateway = app();
+	it("rate limits each client, refilling on the gateway's clock", async () => {
+		const time = new ManualClock("2026-09-16T12:00:00.000Z");
+		const gateway = buildApp({ version: "1", corsOrigins: [], logger, clock: time });
 		const headers = { "x-real-ip": "203.0.113.9" };
-		let last = 200;
-		for (let i = 0; i < 61; i++) last = (await gateway.request("/v1/status", { headers })).status;
-		expect(last).toBe(429);
+		const status = async () => (await gateway.request("/v1/status", { headers })).status;
+
+		for (let i = 0; i < 60; i++) expect(await status()).toBe(200);
+		expect(await status()).toBe(429);
+		// Two requests a second refill, so half a second restores exactly one.
+		time.advance(499);
+		expect(await status()).toBe(429);
+		time.advance(1);
+		expect(await status()).toBe(200);
+		expect(await status()).toBe(429);
 		const other = await gateway.request("/v1/status", {
 			headers: { "x-forwarded-for": "198.51.100.1, 10.0.0.1" },
 		});
