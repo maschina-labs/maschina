@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+pnpm-lock.yaml linguist-generated=true -diff merge=binary
+**/routeTree.gen.ts linguist-generated=true
+**/migrations/meta/** linguist-generated=true
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary

@@ -1,0 +1,7 @@
+pnpm check
+pnpm typecheck
+pnpm test
+
+if [ -x .git/local-hooks/pre-push ]; then
+	.git/local-hooks/pre-push
+fi

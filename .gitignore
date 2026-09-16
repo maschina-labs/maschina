@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+.vercel/
+.output/
+*.tsbuildinfo
+
+# Tooling caches
+.turbo/
+coverage/
+.eslintcache
+
+# Browser tests
+playwright-report/
+test-results/
+blob-report/
+
+# Local runtime state
+.maschina/
+*.pem
+*.key
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

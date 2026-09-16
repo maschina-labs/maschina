@@ -1,0 +1,36 @@
+{
+	"name": "@maschina/bots",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Chat platform integrations, starting with Telegram.",
+	"scripts": {
+		"dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+		"build": "tsdown",
+		"start": "node --enable-source-maps dist/main.mjs",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
+	},
+	"dependencies": {
+		"@hono/node-server": "catalog:",
+		"@sentry/node": "catalog:",
+		"hono": "catalog:",
+		"pino": "catalog:",
+		"uuidv7": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@maschina/env": "workspace:*",
+		"@maschina/service": "workspace:*",
+		"@maschina/telemetry": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"tsx": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

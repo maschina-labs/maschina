@@ -1,0 +1,71 @@
+name: Release
+
+# Every push to main updates the release pull request. Merging that pull request publishes the release.
+# The GitHub App token is used instead of GITHUB_TOKEN because pull requests opened with GITHUB_TOKEN
+# never trigger CI, so the release pull request could never pass its required checks.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Publish a merged release
+        env:
+          TOKEN: ${{ steps.app.outputs.token }}
+        run: >
+          pnpm exec release-please github-release
+          --token "$TOKEN"
+          --repo-url "$GITHUB_REPOSITORY"
+          --target-branch main
+
+      - name: Clear the queued milestone version once it has shipped
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          QUEUED: ${{ vars.NEXT_RELEASE_AS }}
+        run: |
+          current=$(node -p "require('./.release-please-manifest.json')['.']")
+          if [ -n "$QUEUED" ] && [ "$current" = "$QUEUED" ]; then
+            gh variable delete NEXT_RELEASE_AS --repo "$GITHUB_REPOSITORY"
+            echo "Released $QUEUED, cleared the queue."
+          fi
+
+      - name: Open or update the release pull request
+        env:
+          TOKEN: ${{ steps.app.outputs.token }}
+          QUEUED: ${{ vars.NEXT_RELEASE_AS }}
+        run: |
+          current=$(node -p "require('./.release-please-manifest.json')['.']")
+          args=(release-pr --token "$TOKEN" --repo-url "$GITHUB_REPOSITORY" --target-branch main)
+          if [ -n "$QUEUED" ] && [ "$current" != "$QUEUED" ]; then
+            args+=(--release-as "$QUEUED")
+          fi
+          pnpm exec release-please "${args[@]}"

@@ -1,0 +1,55 @@
+name: Milestone
+
+# Closing a roadmap milestone queues the next release as a new minor version, or a new major version
+# when the milestone's description contains a line reading "Release: major". Reopening one does nothing.
+
+on:
+  milestone:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  queue:
+    name: Queue the next version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Work out and queue the version
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          MILESTONE_TITLE: ${{ github.event.milestone.title }}
+          MILESTONE_DESCRIPTION: ${{ github.event.milestone.description }}
+          QUEUED_VERSION: ${{ vars.NEXT_RELEASE_AS }}
+        run: |
+          next=$(node scripts/release/milestone.mjs)
+          gh variable set NEXT_RELEASE_AS --repo "$GITHUB_REPOSITORY" --body "$next"
+          echo "Closing '$MILESTONE_TITLE' queues the next release as $next."
+
+      - name: Update the release pull request now
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref main

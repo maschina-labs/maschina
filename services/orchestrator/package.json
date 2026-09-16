@@ -1,0 +1,39 @@
+{
+	"name": "@maschina/orchestrator",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Schedules machines, owns the run queue, and hands work to daemons.",
+	"scripts": {
+		"dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+		"build": "tsdown",
+		"start": "node --enable-source-maps dist/main.mjs",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
+	},
+	"dependencies": {
+		"@hono/node-server": "catalog:",
+		"@sentry/node": "catalog:",
+		"drizzle-orm": "catalog:",
+		"hono": "catalog:",
+		"pino": "catalog:",
+		"postgres": "catalog:",
+		"uuidv7": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@maschina/db": "workspace:*",
+		"@maschina/env": "workspace:*",
+		"@maschina/service": "workspace:*",
+		"@maschina/telemetry": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"tsx": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

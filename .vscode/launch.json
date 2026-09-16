@@ -1,0 +1,53 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "gateway",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["--filter", "@maschina/gateway", "dev"],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "orchestrator",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["--filter", "@maschina/orchestrator", "dev"],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "signer",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["--filter", "@maschina/signer", "dev"],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "daemon",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["--filter", "@maschina/daemon", "dev"],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "bots",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["--filter", "@maschina/bots", "dev"],
+			"console": "integratedTerminal"
+		},
+		{
+			"name": "current test file",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "pnpm",
+			"runtimeArgs": ["exec", "vitest", "run", "${relativeFile}"],
+			"console": "integratedTerminal"
+		}
+	]
+}

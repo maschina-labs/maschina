@@ -1,0 +1,19 @@
+import type { QueryClient } from "@tanstack/react-query";
+import { createRouter } from "@tanstack/react-router";
+import type { Api } from "./lib/api.ts";
+import { routeTree } from "./routeTree.gen.ts";
+
+export function createAppRouter(context: { api: Api; queryClient: QueryClient }) {
+	return createRouter({
+		routeTree,
+		context,
+		defaultPreload: "intent",
+		scrollRestoration: true,
+	});
+}
+
+declare module "@tanstack/react-router" {
+	interface Register {
+		router: ReturnType<typeof createAppRouter>;
+	}
+}

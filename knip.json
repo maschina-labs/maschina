@@ -1,0 +1,41 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"ignoreWorkspaces": ["packages/config"],
+	"workspaces": {
+		".": {
+			"entry": ["scripts/**/*.mjs"]
+		},
+		"apps/web": {
+			"ignoreDependencies": ["tailwindcss"]
+		},
+		"packages/integration-tests": {
+			"entry": ["test/**/*.test.ts"]
+		},
+		"services/bots": {
+			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "hono", "pino", "uuidv7"]
+		},
+		"services/daemon": {
+			"ignoreDependencies": ["@sentry/node", "pino", "uuidv7"]
+		},
+		"services/gateway": {
+			"entry": ["api/index.ts"],
+			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "pino", "uuidv7"]
+		},
+		"services/orchestrator": {
+			"ignoreDependencies": [
+				"@hono/node-server",
+				"@sentry/node",
+				"drizzle-orm",
+				"hono",
+				"pino",
+				"postgres",
+				"uuidv7",
+				"zod"
+			]
+		},
+		"services/signer": {
+			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "hono", "pino", "uuidv7", "zod"]
+		}
+	},
+	"ignoreBinaries": ["act"]
+}

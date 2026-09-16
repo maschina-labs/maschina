@@ -1,0 +1,72 @@
+# Synced to GitHub by .github/workflows/labels.yml. Labels not listed here are removed.
+
+# Kind
+- name: bug
+  color: d73a4a
+  description: Something works differently than it should
+- name: feature
+  color: 0e8a16
+  description: Something Maschina should be able to do
+- name: task
+  color: 1d76db
+  description: Planned work on the roadmap
+- name: docs
+  color: 0075ca
+  description: Documentation only
+- name: question
+  color: d876e3
+  description: Needs an answer, not code
+- name: security
+  color: b60205
+  description: Affects funds, keys, identity or trust
+
+# Area
+- name: web
+  color: c5def5
+  description: apps/web
+- name: api
+  color: c5def5
+  description: services/gateway
+- name: orchestrator
+  color: c5def5
+  description: services/orchestrator
+- name: signer
+  color: c5def5
+  description: services/signer
+- name: daemon
+  color: c5def5
+  description: services/daemon and the runtime
+- name: bots
+  color: c5def5
+  description: services/bots
+- name: solana
+  color: c5def5
+  description: packages/solana
+- name: database
+  color: c5def5
+  description: packages/db
+- name: repo
+  color: c5def5
+  description: Tooling, CI and repository setup
+
+# State
+- name: blocked
+  color: e99695
+  description: Waiting on something else
+- name: good first issue
+  color: 7057ff
+  description: Small and well defined
+
+# Process
+- name: no-issue
+  color: ededed
+  description: This pull request deliberately closes no issue
+- name: "autorelease: pending"
+  color: ededed
+  description: A release pull request waiting to be merged
+- name: "autorelease: tagged"
+  color: ededed
+  description: A release pull request that has been released
+- name: dependencies
+  color: 0366d6
+  description: Dependency updates

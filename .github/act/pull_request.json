@@ -1,0 +1,10 @@
+{
+	"pull_request": {
+		"number": 1,
+		"title": "feat(repo): check locally before pushing",
+		"body": "Closes #1",
+		"head": { "ref": "feat/local-check" },
+		"base": { "ref": "main", "sha": "0000000000000000000000000000000000000000" },
+		"labels": []
+	}
+}

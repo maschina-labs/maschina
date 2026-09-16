@@ -1,0 +1,9 @@
+# Every change is reviewed by the maintainer. Anything that can move money or change who is trusted
+# is listed separately so it stays visible as the team grows.
+* @asherwilson
+
+/services/signer/ @asherwilson
+/packages/rules/ @asherwilson
+/packages/solana/ @asherwilson
+/packages/db/migrations/ @asherwilson
+/.github/ @asherwilson

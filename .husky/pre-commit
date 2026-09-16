@@ -1,0 +1,6 @@
+pnpm exec lint-staged
+pnpm check:boundaries
+
+if [ -x .git/local-hooks/pre-commit ]; then
+	.git/local-hooks/pre-commit
+fi

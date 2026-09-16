@@ -1,0 +1,4 @@
+-P ubuntu-latest=catthehacker/ubuntu:act-24.04
+--container-architecture linux/amd64
+--env PATH=/opt/acttoolcache/node/24.19.0/x64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+--eventpath .github/act/pull_request.json

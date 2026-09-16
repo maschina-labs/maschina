@@ -1,0 +1,7 @@
+{
+	"extends": "./packages/config/tsconfig/node.json",
+	"compilerOptions": {
+		"noEmit": true
+	},
+	"include": ["vitest.config.ts", "knip.ts", "turbo/**/*.ts"]
+}

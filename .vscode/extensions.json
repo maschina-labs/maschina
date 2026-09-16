@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"biomejs.biome",
+		"bradlc.vscode-tailwindcss",
+		"vitest.explorer",
+		"ms-azuretools.vscode-docker",
+		"editorconfig.editorconfig"
+	]
+}

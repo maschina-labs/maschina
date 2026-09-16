@@ -1,0 +1,76 @@
+name: maschina
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: maschina-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: maschina_owner
+      POSTGRES_PASSWORD: maschina_dev_password
+      POSTGRES_DB: maschina
+    ports:
+      - "5442:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maschina_owner -d maschina"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # The backend, for running everything together. Off unless asked for:
+  #   pnpm docker:services
+  orchestrator:
+    profiles: [services]
+    build:
+      context: ..
+      dockerfile: services/orchestrator/Dockerfile
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://maschina_app:maschina_dev_password@postgres:5432/maschina
+    ports:
+      - "4100:4100"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  signer:
+    profiles: [services]
+    build:
+      context: ..
+      dockerfile: services/signer/Dockerfile
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://maschina_app:maschina_dev_password@postgres:5432/maschina
+    ports:
+      - "4200:4200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  daemon:
+    profiles: [services]
+    build:
+      context: ..
+      dockerfile: services/daemon/Dockerfile
+    env_file: ../.env
+    environment:
+      ORCHESTRATOR_URL: http://orchestrator:4100
+    depends_on:
+      - orchestrator
+
+  bots:
+    profiles: [services]
+    build:
+      context: ..
+      dockerfile: services/bots/Dockerfile
+    env_file: ../.env
+    environment:
+      GATEWAY_URL: http://host.docker.internal:4000
+    ports:
+      - "4300:4300"
+
+volumes:
+  postgres-data:

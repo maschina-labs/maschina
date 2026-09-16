@@ -1,0 +1,26 @@
+{
+	"name": "@maschina/telemetry",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@sentry/node": "catalog:",
+		"pino": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"pino-pretty": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

@@ -1,0 +1,5 @@
+pnpm exec commitlint --edit "$1"
+
+if [ -x .git/local-hooks/commit-msg ]; then
+	.git/local-hooks/commit-msg "$1"
+fi

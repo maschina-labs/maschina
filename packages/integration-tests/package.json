@@ -1,0 +1,19 @@
+{
+	"name": "@maschina/integration-tests",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test:integration": "vitest run"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@maschina/db": "workspace:*",
+		"@maschina/testing": "workspace:*",
+		"@types/node": "catalog:",
+		"postgres": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

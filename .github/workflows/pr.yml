@@ -1,0 +1,67 @@
+name: Pull request
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  title:
+    name: Title is a conventional commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Pull requests are squash merged, so the title becomes the commit on main.
+          if ! printf '%s' "$TITLE" | grep -qE '^(feat|fix|perf|refactor|docs|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [a-z0-9].{2,}$'; then
+            echo "::error::Title must look like 'feat(gateway): add machine list'. Got: $TITLE"
+            exit 1
+          fi
+          if [ "${#TITLE}" -gt 72 ]; then
+            echo "::error::Title is ${#TITLE} characters. Keep it to 72."
+            exit 1
+          fi
+
+  branch:
+    name: Branch name is short
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.head_ref, 'dependabot/') && !startsWith(github.head_ref, 'release-please--') }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/git
+
+      - name: Check
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          # The same rule pnpm stack uses: type/one-to-three-words, like feat/machine-list.
+          if ! problem=$(node scripts/git/stack.mjs check "$BRANCH" 2>&1); then
+            echo "::error::$problem"
+            exit 1
+          fi
+
+  issue:
+    name: Links an issue
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-issue') && !startsWith(github.head_ref, 'release-please--') && github.actor != 'dependabot[bot]' }}
+    steps:
+      - name: Check
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Closing keywords close the issue automatically when this merges.
+          if ! printf '%s' "$BODY" | grep -qiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) #[0-9]+'; then
+            echo "::error::Say which issue this closes, for example 'Closes #12'. Add the no-issue label if it genuinely has none."
+            exit 1
+          fi

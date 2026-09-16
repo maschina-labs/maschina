@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # A full run every week, so nothing hides behind the affected-only runs.
+    - cron: "41 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # Remote cache, used when configured. Without it each run falls back to the Actions cache.
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  TURBO_TELEMETRY_DISABLED: 1
+  # Pull requests and pushes check only what changed since their base, when the base can be read.
+  # Scheduled and manual runs, and a first push, check everything.
+  TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+      images: ${{ steps.detect.outputs.images }}
+      affected: ${{ steps.detect.outputs.affected }}
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect
+        id: detect
+        env:
+          # Scheduled and manual runs have no base, which means check everything.
+          BASE_SHA: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && env.TURBO_SCM_BASE || '' }}
+        run: node scripts/ci/changes.mjs | tee -a "$GITHUB_OUTPUT"
+
+  validate:
+    name: Validate
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AFFECTED: ${{ needs.changes.outputs.affected == 'true' && 'true' || '' }}
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint, format and architecture rules
+        run: pnpm check
+
+      - name: Unused code and dependencies
+        run: pnpm check:unused
+
+      - name: Dependency licences
+        run: pnpm check:licenses
+
+      - name: Typecheck
+        run: pnpm typecheck ${AFFECTED:+--affected}
+
+      - name: Unit tests with coverage
+        run: pnpm test:coverage ${AFFECTED:+--affected}
+
+      - name: Script tests
+        run: pnpm test:scripts
+
+      - name: Build
+        run: pnpm build ${AFFECTED:+--affected}
+
+  integration:
+    name: Integration
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AFFECTED: ${{ needs.changes.outputs.affected == 'true' && 'true' || '' }}
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Start Postgres
+        run: pnpm docker:up
+
+      - name: Integration tests
+        run: pnpm test:integration ${AFFECTED:+--affected}
+
+  images:
+    name: Image (${{ matrix.service }})
+    needs: changes
+    if: needs.changes.outputs.images == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, orchestrator, signer, daemon, bots]
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: services/${{ matrix.service }}/Dockerfile
+          push: false
+          tags: maschina-${{ matrix.service }}:ci
+          # Layers cached on main are reused by every pull request. Local runs have no cache service.
+          cache-from: ${{ !env.ACT && format('type=gha,scope={0}', matrix.service) || '' }}
+          cache-to: ${{ !env.ACT && format('type=gha,mode=max,scope={0}', matrix.service) || '' }}
+
+  passed:
+    # The one check branch protection requires. Skipped jobs count as passed, so a release or docs-only
+    # change goes green in seconds, while any failure or cancellation fails this job.
+    name: CI passed
+    needs: [changes, validate, integration, images]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "::error::A CI job ended with '$result'."; exit 1 ;;
+            esac
+          done

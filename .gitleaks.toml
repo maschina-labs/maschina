@@ -1,0 +1,14 @@
+title = "maschina"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders that are not secrets"
+regexes = [
+	'''replace-with-a-real-value''',
+	'''maschina_dev_password''',
+]
+paths = [
+	'''pnpm-lock\.yaml''',
+]

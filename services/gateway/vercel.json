@@ -1,0 +1,20 @@
+{
+	"$schema": "https://openapi.vercel.sh/vercel.json",
+	"framework": null,
+	"installCommand": "pnpm install --frozen-lockfile",
+	"buildCommand": "",
+	"outputDirectory": "",
+	"rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+	"headers": [
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=63072000; includeSubDomains; preload"
+				},
+				{ "key": "Cache-Control", "value": "no-store" }
+			]
+		}
+	]
+}
