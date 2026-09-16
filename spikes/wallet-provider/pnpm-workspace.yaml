@@ -1,0 +1,6 @@
+# This spike is its own install, separate from the main workspace, so its provider SDKs never reach
+# Maschina's lockfile. The safety settings match the main workspace.
+engineStrict: true
+saveExact: true
+minimumReleaseAge: 1440
+allowBuilds: {}

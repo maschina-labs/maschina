@@ -1,0 +1,23 @@
+{
+	"name": "wallet-provider-spike",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Tests Turnkey and Crossmint against the machine wallet policy before Maschina depends on either.",
+	"type": "module",
+	"engines": {
+		"node": ">=24.21.0 <25"
+	},
+	"scripts": {
+		"check:credentials": "node --env-file-if-exists=.env src/cli.ts ping",
+		"test": "node --test \"src/**/*.test.ts\"",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@turnkey/sdk-server": "8.5.0",
+		"zod": "4.6.5"
+	},
+	"devDependencies": {
+		"@types/node": "24.13.5",
+		"typescript": "6.0.3"
+	}
+}
