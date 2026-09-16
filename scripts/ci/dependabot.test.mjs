@@ -24,10 +24,11 @@ describe("dependabot", () => {
 		assert.ok(holdsMajor(ecosystem("docker"), "node"));
 	});
 
-	it("keeps routine updates to one batch a month, grouped", () => {
+	it("checks weekly on Mondays, one grouped pull request per group", () => {
 		for (const update of config.updates) {
 			const name = update["package-ecosystem"];
-			assert.equal(update.schedule.interval, "monthly", name);
+			assert.equal(update.schedule.interval, "weekly", name);
+			assert.equal(update.schedule.day, "monday", name);
 			assert.ok(update.groups && Object.keys(update.groups).length > 0, name);
 			assert.ok(
 				update["open-pull-requests-limit"] <= Object.keys(update.groups).length,
