@@ -18,6 +18,9 @@ export type Rounding = "down" | "up";
 
 const MAX_DECIMALS = 18;
 const DECIMAL = /^(\d+)(?:\.(\d+))?$/;
+// 60 whole digits and 18 decimals is far beyond any real token amount. Longer input is refused before
+// it is parsed, because turning a huge digit string into a bigint is slow.
+const MAX_INPUT_LENGTH = 60 + 1 + MAX_DECIMALS;
 
 function assertDecimals(decimals: number): void {
 	if (!Number.isInteger(decimals) || decimals < 0 || decimals > MAX_DECIMALS) {
@@ -40,7 +43,11 @@ export function baseUnitsOf(value: bigint): BaseUnits {
  */
 export function parseAmount(input: string, decimals: number): BaseUnits {
 	assertDecimals(decimals);
-	const match = DECIMAL.exec(input.trim());
+	const trimmed = input.trim();
+	if (trimmed.length > MAX_INPUT_LENGTH) {
+		throw new MaschinaError("invalid_amount", `amount is too long (${trimmed.length} characters)`);
+	}
+	const match = DECIMAL.exec(trimmed);
 	if (!match) throw new MaschinaError("invalid_amount", `"${input}" is not a decimal amount`);
 	const whole = match[1] ?? "0";
 	const fraction = match[2] ?? "";
@@ -59,8 +66,14 @@ export function formatAmount(amount: BaseUnits, decimals: number): string {
 	if (decimals === 0) return amount.toString();
 	const digits = amount.toString().padStart(decimals + 1, "0");
 	const whole = digits.slice(0, -decimals);
-	const fraction = digits.slice(-decimals).replace(/0+$/, "");
+	const fraction = trimTrailingZeros(digits.slice(-decimals));
 	return fraction ? `${whole}.${fraction}` : whole;
+}
+
+function trimTrailingZeros(digits: string): string {
+	let end = digits.length;
+	while (end > 0 && digits[end - 1] === "0") end--;
+	return digits.slice(0, end);
 }
 
 export function addAmounts(a: BaseUnits, b: BaseUnits): BaseUnits {
