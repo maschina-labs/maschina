@@ -46,6 +46,25 @@ describe("parseAmount", () => {
 	});
 });
 
+describe("parseAmount input length", () => {
+	it("refuses input longer than any real amount", () => {
+		const longest = `${"9".repeat(60)}.${"9".repeat(18)}`;
+		expect(parseAmount(longest, 18)).toBe(10n ** 78n - 1n);
+		expect(() => parseAmount(`1${"0".repeat(80)}`, 0)).toThrow(/too long/);
+		expect(() => parseAmount(` ${"1".repeat(100_000)} `, 0)).toThrow(/too long/);
+	});
+});
+
+describe("formatAmount round trip", () => {
+	it("formats any amount so it parses back to the same value", () => {
+		fc.assert(
+			fc.property(amount, decimals, (value, places) => {
+				expect(parseAmount(formatAmount(value, places), places)).toBe(value);
+			}),
+		);
+	});
+});
+
 describe("formatAmount", () => {
 	it("trims trailing zeros and pads small amounts", () => {
 		expect(formatAmount(baseUnitsOf(1_500_000_000n), 9)).toBe("1.5");
