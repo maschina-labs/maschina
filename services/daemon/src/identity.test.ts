@@ -64,13 +64,17 @@ describe("loadOrCreateIdentity", () => {
 		expect(() => loadOrCreateIdentity(path)).toThrow(/not a regular file/);
 	});
 
-	it("reports a file it isn't allowed to open instead of replacing it", () => {
-		const path = tempPath();
-		loadOrCreateIdentity(path);
-		chmodSync(path, 0o000);
-		expect(() => loadOrCreateIdentity(path)).toThrow(/EACCES|permission denied/i);
-		chmodSync(path, 0o600);
-	});
+	// Root can open a file whatever its permissions, so this can only be tested as a normal user.
+	it.skipIf(process.getuid?.() === 0)(
+		"reports a file it isn't allowed to open instead of replacing it",
+		() => {
+			const path = tempPath();
+			loadOrCreateIdentity(path);
+			chmodSync(path, 0o000);
+			expect(() => loadOrCreateIdentity(path)).toThrow(/EACCES|permission denied/i);
+			chmodSync(path, 0o600);
+		},
+	);
 
 	it("refuses a file that isn't JSON", () => {
 		const path = tempPath();
