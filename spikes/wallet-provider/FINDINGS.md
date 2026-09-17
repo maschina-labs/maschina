@@ -17,7 +17,7 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 
 | Check | Expected | Turnkey | Crossmint |
 | --- | --- | --- | --- |
-| Credentials work | allowed | ok, 2026-09-16 | not run |
+| Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
 | Transfer to the owner | allowed | not run | not run |
 | Transfer to any other address | refused | not run | not run |
 | Swap between approved tokens | allowed | not run | not run |
@@ -38,4 +38,7 @@ A refusal only counts when its allowed pair passed in the same run. An error is 
   must get its own API user, limited by Turnkey policies to what it needs.
 
 - Crossmint has no "who am I" endpoint. The credentials check asks for a wallet that can't exist and
-  treats "not found" as proof the key was accepted.
+  treats "not found" as proof the key was accepted. Confirmed against staging on 2026-09-16: a made-up
+  key gets 403, and the real server key gets 404.
+- Crossmint's staging console comes with pre-generated keys that have full access. Production needs its
+  own server key limited to the scopes the signer uses.
