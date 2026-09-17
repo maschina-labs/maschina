@@ -91,4 +91,14 @@ describe("attemptFor", () => {
 		assert.equal(outcome.status, "error");
 		assert.deepEqual(built, []);
 	});
+
+	it("attempts other checks when the caller lists them, still never sending a refused one", async () => {
+		const { t, built, submitted } = tools({ status: "signed", signedHex: "signed" });
+		const attempt = attemptFor(t, ["pay-approved-recipient", "pay-removed-recipient"]);
+		assert.equal((await attempt(check("pay-approved-recipient"))).status, "allowed");
+		assert.equal((await attempt(check("pay-removed-recipient"))).status, "allowed");
+		assert.equal((await attempt(check("transfer-owner"))).status, "error");
+		assert.deepEqual(built, ["pay-approved-recipient", "pay-removed-recipient"]);
+		assert.deepEqual(submitted, ["signed"]);
+	});
 });

@@ -1,0 +1,32 @@
+{
+	"provider": "crossmint-recipients-devnet",
+	"at": "2026-09-17T08:08:55.299Z",
+	"passed": true,
+	"failures": [],
+	"results": [
+		{
+			"id": "pay-approved-recipient",
+			"outcome": {
+				"status": "allowed",
+				"signature": "36TiHeqaKbfmGW8odXsEoyMeXWDsx57QxUVBrkmHpKEYThoJh2XzubsAhgPA3uQBytkMrfVYv4jXLgN9opVvHFzS"
+			},
+			"ms": 4704.014708000001
+		},
+		{
+			"id": "pay-unapproved-recipient",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 2994.5867499999986
+		},
+		{
+			"id": "pay-removed-recipient",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 1013.1869589999988
+		}
+	]
+}

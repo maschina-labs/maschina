@@ -9,7 +9,11 @@ against the same checklist (`src/checklist.ts`) before any Maschina code depends
 pnpm install    # inside spikes/wallet-provider, separate from the main workspace
 infisical run --env=dev --path=/wallet-spike -- pnpm check:credentials
 infisical run --env=dev --path=/wallet-spike -- pnpm setup:turnkey   # signer, wallet and policies
-infisical run --env=dev --path=/wallet-spike -- pnpm setup:crossmint # Crossmint wallet
+infisical run --env=dev --path=/wallet-spike -- pnpm setup:crossmint # Crossmint wallet and machine signer
+infisical run --env=dev --path=/wallet-spike -- pnpm prepare:crossmint # token accounts the Crossmint checks use
+infisical run --env=dev --path=/wallet-spike -- pnpm check:turnkey   # refusal checks
+infisical run --env=dev --path=/wallet-spike -- pnpm check:crossmint
+infisical run --env=dev --path=/wallet-spike -- pnpm check:recipients turnkey   # or crossmint
 pnpm test       # the spike's own tests, no credentials needed
 ```
 
@@ -30,10 +34,10 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | **failed: landed.** Scopes can't restrict programs, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
 | Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed (0.009 SOL of 0.01 per minute), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
 | Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused (0.011 SOL), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
-| Pay an approved recipient | allowed | not run | not run |
-| Pay an unapproved recipient | refused | not run | not run |
-| Pay a removed recipient | refused | not run | not run |
-| Real Jupiter swap on mainnet | allowed | not run | not run |
+| Pay an approved recipient | allowed | ok, landed, [run](results/turnkey-recipients-devnet-2026-09-17T08-08-10-884Z.json) | ok, landed, [run](results/crossmint-recipients-devnet-2026-09-17T08-08-55-299Z.json) |
+| Pay an unapproved recipient | refused | ok, refused, [run](results/turnkey-recipients-devnet-2026-09-17T08-08-10-884Z.json) | ok, refused, [run](results/crossmint-recipients-devnet-2026-09-17T08-08-55-299Z.json) |
+| Pay a removed recipient | refused | ok, refused, [run](results/turnkey-recipients-devnet-2026-09-17T08-08-10-884Z.json) | ok, refused, [run](results/crossmint-recipients-devnet-2026-09-17T08-08-55-299Z.json) |
+| Real Jupiter swap on mainnet | allowed | moved to the first real swap, after the provider is chosen | moved, as for Turnkey |
 
 A refusal only counts when its allowed pair passed in the same run. An error is never a refusal.
 
@@ -174,6 +178,29 @@ don't allow. Earlier runs in `results/` record the scope mistakes described belo
 Scopes can't be edited. Changing them means removing the signer and adding it again, which the setup
 does when they differ.
 
+
+## Approved recipients (#25)
+
+`pnpm check:recipients turnkey|crossmint` adds a recipient to the machine wallet's rules, pays it, pays
+a stranger, removes it, and pays it again. The recipient is the other provider's test wallet, so no
+devnet SOL is lost. The recipient is always removed at the end, even when a step fails.
+
+| Check | Turnkey ([run](results/turnkey-recipients-devnet-2026-09-17T08-08-10-884Z.json)) | Crossmint ([run](results/crossmint-recipients-devnet-2026-09-17T08-08-55-299Z.json)) |
+| --- | --- | --- |
+| Pay the approved recipient | landed | landed |
+| Pay a stranger | refused by the policy engine | refused on-chain: `RecipientNotAllowed` |
+| Pay the recipient after removing it | refused by the policy engine | refused on-chain: `RecipientNotAllowed` |
+| Wallet kept while the list changed | yes | yes |
+
+- **Turnkey changes the list in place.** The signing policy is updated, and the next signature follows
+  it. The signer keeps working throughout.
+- **Crossmint replaces the signer's scopes.** Scopes can't be edited, so the machine's signer is removed
+  and added again with the new list. Between those two steps the machine can't sign at all, and each
+  change is an approval by the server signer. The wallet and the signer's address stay the same.
+- **Crossmint's SDK logged errors while adding the signer back,** yet the change took effect, and the
+  setup reads the scopes back to prove it. Its logs can't be trusted to show whether a call worked.
+- A payment to a new address must leave it at least rent-exempt (about 0.00089 SOL), so the checks pay
+  0.001 SOL.
 
 ## Notes
 

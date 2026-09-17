@@ -7,41 +7,20 @@
  * aren't recognised as refusals are printed in full, so the classifier can be built from real ones.
  */
 
-import { CrossmintWallets, createCrossmint, SolanaWallet } from "@crossmint/wallets-sdk";
 import { address, generateKeyPairSigner } from "@solana/kit";
-import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { CHECKS } from "./checklist.ts";
 import { CROSSMINT_DEVNET_CHECKS, crossmintAttempt } from "./crossmint-checks.ts";
+import { crossmintMachineSender } from "./crossmint-devnet.ts";
 import { classifyCrossmintError } from "./crossmint-errors.ts";
-import { crossmintEnv, crossmintMachineSigner, heliusKey, setupEnv } from "./env.ts";
-import { readJsonIfPresent } from "./files.ts";
-import { runChecks, verdict, writeResults } from "./run.ts";
+import { heliusKey, setupEnv } from "./env.ts";
+import { reportRun } from "./report.ts";
+import { runChecks } from "./run.ts";
 import { DEVNET_USDC, devnetRpc } from "./solana/devnet.ts";
 import { memoOnly, tokenTransfer, transferSol, WRAPPED_SOL } from "./solana/transactions.ts";
 
 try {
-	const env = crossmintEnv(process.env);
 	const { ownerAddress } = setupEnv(process.env);
-	const machine = crossmintMachineSigner(process.env);
-	if (!machine) throw new Error("No machine signer saved. Run pnpm setup:crossmint first.");
-	const setup = readJsonIfPresent("results/crossmint-setup-devnet.json") as
-		| { address?: string }
-		| undefined;
-	if (!setup?.address)
-		throw new Error("No Crossmint wallet saved. Run pnpm setup:crossmint first.");
-	const walletAddress = setup.address;
-
-	const keypair = Keypair.fromSecretKey(Buffer.from(machine.secretHex, "hex"));
-	const sdk = CrossmintWallets.from(createCrossmint({ apiKey: env.apiKey }));
-	const wallet = SolanaWallet.from(await sdk.getWallet(walletAddress, { chain: "solana" }));
-	await wallet.useSigner({
-		type: "external-wallet",
-		address: machine.address,
-		onSign: async (transaction) => {
-			transaction.sign([keypair]);
-			return transaction;
-		},
-	});
+	const { walletAddress, send: sendRaw } = await crossmintMachineSender(process.env);
 
 	const rpc = devnetRpc(heliusKey(process.env));
 	const blockhash = async () =>
@@ -51,12 +30,6 @@ try {
 	const owner = address(ownerAddress);
 
 	// Every check goes through the custom transaction path, so a failure comes back with the program logs.
-	const sendRaw = async (hex: string) =>
-		(
-			await wallet.sendTransaction({
-				transaction: VersionedTransaction.deserialize(Buffer.from(hex, "hex")),
-			})
-		).hash;
 	const sendSol = async (to: string, lamports: bigint) =>
 		sendRaw(
 			await transferSol({
@@ -120,20 +93,7 @@ try {
 		),
 	);
 
-	const path = writeResults({ dir: "results", provider: "crossmint-devnet", checks, results });
-	for (const result of results) {
-		const expected = checks.find((c) => c.id === result.id)?.expect;
-		const o = result.outcome;
-		const detail =
-			o.status === "allowed" ? o.signature : o.status === "refused" ? o.reason : o.message;
-		process.stdout.write(
-			`${result.id.padEnd(22)} expected ${expected?.padEnd(8)} got ${o.status.padEnd(8)} ${detail.slice(0, 300)}\n`,
-		);
-	}
-	const { passed, failures } = verdict(checks, results);
-	process.stdout.write(`\n${passed ? "PASSED" : "FAILED"}, saved to ${path}\n`);
-	for (const failure of failures) process.stdout.write(`  ${failure.slice(0, 300)}\n`);
-	process.exit(passed ? 0 : 1);
+	process.exit(reportRun("crossmint-devnet", checks, results));
 } catch (error) {
 	console.error(error instanceof Error ? error.message : error);
 	process.exit(1);

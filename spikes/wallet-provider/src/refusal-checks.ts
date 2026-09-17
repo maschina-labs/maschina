@@ -29,9 +29,10 @@ export type Tools = {
 
 const describeError = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-export function attemptFor(tools: Tools) {
+/** `ids` are the checks this caller can build transactions for. */
+export function attemptFor(tools: Tools, ids: readonly string[] = TURNKEY_DEVNET_CHECKS) {
 	return async (check: Check): Promise<Outcome> => {
-		if (!TURNKEY_DEVNET_CHECKS.includes(check.id)) {
+		if (!ids.includes(check.id)) {
 			return { status: "error", message: `${check.id} has no devnet transaction yet` };
 		}
 		const signed = await tools.sign(await tools.build(check.id));
