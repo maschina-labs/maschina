@@ -5,6 +5,8 @@
 
 import { z } from "zod";
 
+export * from "./events.ts";
+
 export const HealthResponse = z
 	.object({
 		status: z.enum(["ok", "degraded"]),

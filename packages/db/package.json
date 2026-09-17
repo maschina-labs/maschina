@@ -16,6 +16,7 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
+		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/env": "workspace:*",
 		"drizzle-orm": "catalog:",

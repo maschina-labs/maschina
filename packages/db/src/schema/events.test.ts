@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { EVENT_TYPES } from "@maschina/contracts";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import { describe, expect, it } from "vitest";
 import { events } from "./events.ts";
@@ -29,6 +31,20 @@ describe("the events table", () => {
 
 	it("has one primary key, the event id", () => {
 		expect(table.columns.filter((column) => column.primary).map((c) => c.name)).toEqual(["id"]);
+	});
+
+	it("carries a constraint limiting the event type", () => {
+		expect(table.checks.map((constraint) => constraint.name)).toEqual(["events_type_known"]);
+	});
+
+	it("has a migration for the constraint, so a running database enforces it too", () => {
+		const folder = new URL("../../migrations/", import.meta.url);
+		const applied = readdirSync(folder)
+			.filter((file) => file.endsWith(".sql"))
+			.map((file) => readFileSync(new URL(file, folder), "utf8"))
+			.join("\n");
+		expect(applied).toContain("events_type_known");
+		for (const type of EVENT_TYPES) expect(applied, type).toContain(`'${type}'`);
 	});
 
 	it("indexes a machine's events by time, for reading a machine's history", () => {
