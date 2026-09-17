@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { crossmintEnv, MissingEnvError, turnkeyEnv } from "./env.ts";
+import { crossmintEnv, MissingEnvError, setupEnv, turnkeyEnv } from "./env.ts";
 
 const TURNKEY = {
 	TURNKEY_API_PUBLIC_KEY: "02abc",
@@ -61,6 +61,31 @@ describe("crossmintEnv", () => {
 		assert.throws(
 			() => crossmintEnv({ CROSSMINT_SERVER_API_KEY: "ck_staging_abc" }),
 			/CROSSMINT_SERVER_API_KEY/,
+		);
+	});
+});
+
+describe("setupEnv", () => {
+	const OWNER = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
+
+	it("reads the owner's address and the signer's saved public key, if any", () => {
+		assert.deepEqual(setupEnv({ SPIKE_OWNER_ADDRESS: OWNER }), {
+			ownerAddress: OWNER,
+			signerPublicKey: undefined,
+		});
+		const key = `03${"ab".repeat(32)}`;
+		assert.equal(
+			setupEnv({ SPIKE_OWNER_ADDRESS: OWNER, TURNKEY_SIGNER_API_PUBLIC_KEY: key }).signerPublicKey,
+			key,
+		);
+	});
+
+	it("refuses a missing or invalid owner address, or a malformed key", () => {
+		assert.throws(() => setupEnv({}), /SPIKE_OWNER_ADDRESS/);
+		assert.throws(() => setupEnv({ SPIKE_OWNER_ADDRESS: "not-an-address" }), /SPIKE_OWNER_ADDRESS/);
+		assert.throws(
+			() => setupEnv({ SPIKE_OWNER_ADDRESS: OWNER, TURNKEY_SIGNER_API_PUBLIC_KEY: "04zz" }),
+			/TURNKEY_SIGNER_API_PUBLIC_KEY/,
 		);
 	});
 });

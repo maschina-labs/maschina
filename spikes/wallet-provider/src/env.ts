@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSolanaAddress } from "./policy.ts";
 
 type Source = Record<string, string | undefined>;
 
@@ -71,5 +72,25 @@ export function crossmintEnv(source: Source): CrossmintEnv {
 		apiBaseUrl: apiKey.startsWith("sk_production_")
 			? "https://www.crossmint.com"
 			: "https://staging.crossmint.com",
+	};
+}
+
+export type SetupEnv = { ownerAddress: string; signerPublicKey: string | undefined };
+
+/** What the Turnkey setup needs beyond the root credentials. */
+export function setupEnv(source: Source): SetupEnv {
+	const env = read(
+		{
+			SPIKE_OWNER_ADDRESS: z.string().refine(isSolanaAddress),
+			TURNKEY_SIGNER_API_PUBLIC_KEY: z
+				.string()
+				.regex(/^0[23][0-9a-f]{64}$/)
+				.optional(),
+		},
+		source,
+	);
+	return {
+		ownerAddress: env.SPIKE_OWNER_ADDRESS,
+		signerPublicKey: env.TURNKEY_SIGNER_API_PUBLIC_KEY,
 	};
 }
