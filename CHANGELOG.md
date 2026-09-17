@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.3](https://github.com/maschina-labs/maschina/compare/v0.0.2...v0.0.3) (2026-09-17)
+
+
+### Added
+
+* **repo:** create the crossmint wallet in the spike ([#448](https://github.com/maschina-labs/maschina/issues/448)) ([b04ba65](https://github.com/maschina-labs/maschina/commit/b04ba65a03a73da527765e0f2a2df21eb41efcde))
+* **repo:** prove turnkey refuses what the policy forbids ([0b7d3b4](https://github.com/maschina-labs/maschina/commit/0b7d3b4e7d7939d115bae2027759578736992486))
+* **repo:** run the refusal checks against crossmint ([#450](https://github.com/maschina-labs/maschina/issues/450)) ([79cefa6](https://github.com/maschina-labs/maschina/commit/79cefa6cb44b3fb2f9169033b95e689bfc3602f0))
+* **repo:** scope the machine signer on the crossmint wallet ([93308e3](https://github.com/maschina-labs/maschina/commit/93308e3a3845ec74fabb23bb21c5f8a4a497b619))
+* **repo:** test approved recipients on both providers ([#455](https://github.com/maschina-labs/maschina/issues/455)) ([471a84c](https://github.com/maschina-labs/maschina/commit/471a84cd05f476c357cf11d3760c2ea13de8c0d3))
+
+
+### Fixed
+
+* **daemon:** give the concurrent identity test its own time limit ([#454](https://github.com/maschina-labs/maschina/issues/454)) ([d055ffa](https://github.com/maschina-labs/maschina/commit/d055ffa5e17f7028c6e6e23f206aa7891f4219e8))
+
 ## [0.0.2](https://github.com/maschina-labs/maschina/compare/v0.0.1...v0.0.2) (2026-09-17)
 
 
