@@ -83,6 +83,8 @@ describe("loadOrCreateIdentity", () => {
 		expect(() => loadOrCreateIdentity(path)).toThrow(/not a valid daemon identity/);
 	});
 
+	// Eight real Node processes start here. That takes a fraction of a second on a laptop and over five
+	// seconds in a busy CI container, so this test gets its own limit instead of the default.
 	it("gives daemons starting at the same moment the same identity", async () => {
 		const path = tempPath();
 		const script = `import { loadOrCreateIdentity } from ${JSON.stringify(new URL("./identity.ts", import.meta.url).pathname)};
@@ -102,7 +104,7 @@ process.stdout.write(loadOrCreateIdentity(process.argv[1]).nodeId);`;
 			});
 		const ids = await Promise.all(Array.from({ length: 8 }, start));
 		expect(new Set(ids).size).toBe(1);
-	});
+	}, 60_000);
 
 	it("refuses a corrupted or tampered file", () => {
 		const path = tempPath();
