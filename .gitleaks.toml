@@ -8,6 +8,8 @@ description = "Placeholders that are not secrets"
 regexes = [
 	'''replace-with-a-real-value''',
 	'''maschina_dev_password''',
+	# A made-up Turnkey organisation id in the wallet spike's tests.
+	'''0b1c8e5e-7c3b-4f55-9e57-6c2b4f0a9d11''',
 ]
 paths = [
 	'''pnpm-lock\.yaml''',

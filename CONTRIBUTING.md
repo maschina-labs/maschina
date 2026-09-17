@@ -82,7 +82,7 @@ A change isn't done until its behaviour is tested.
 
 ```bash
 pnpm gate       # everything CI checks, run directly
-pnpm ci:local   # the CI and pull request workflows themselves, in containers
+pnpm ci:local   # the secret scan, then the CI and pull request workflows in containers
 ```
 
 The pre-push hook runs the quick checks on its own.

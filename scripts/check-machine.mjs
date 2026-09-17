@@ -42,6 +42,21 @@ check("pnpm version", () => {
 
 check("Docker running", () => sh("docker info --format '{{.ServerVersion}}'"));
 
+// The same scanner version CI uses, so a push that passes here passes there.
+const wantedGitleaks = readFileSync(".github/workflows/secrets.yml", "utf8").match(
+	/GITLEAKS_VERSION:\s*([\d.]+)/,
+)?.[1];
+
+check("gitleaks version", () => {
+	const have = sh("gitleaks version");
+	if (have !== wantedGitleaks) {
+		throw new Error(`have ${have || "none"}, need ${wantedGitleaks}. Run: brew install gitleaks`);
+	}
+	return have;
+});
+
+check("act installed", () => sh("act --version"));
+
 check("Postgres healthy", () => {
 	const status = sh("docker inspect --format '{{.State.Health.Status}}' maschina-postgres");
 	if (status !== "healthy") throw new Error(`container is ${status}. Run: pnpm docker:up`);
