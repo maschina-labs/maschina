@@ -20,13 +20,13 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | --- | --- | --- | --- |
 | Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
 | Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | not run |
-| Transfer to the owner | allowed | not run | not run |
-| Transfer to any other address | refused | not run | not run |
-| Swap between approved tokens | allowed | not run | not run |
-| Swap into an unapproved token | refused | not run | not run |
-| Call an unapproved program | refused | not run | not run |
-| Transfer just under the size limit | allowed | not run | not run |
-| Transfer just over the size limit | refused | not run | not run |
+| Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Swap between approved tokens | allowed | ok, landed (wrapped SOL to the owner), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Swap into an unapproved token | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
 | Pay an approved recipient | allowed | not run | not run |
 | Pay an unapproved recipient | refused | not run | not run |
 | Pay a removed recipient | refused | not run | not run |
@@ -51,12 +51,28 @@ A refusal only counts when its allowed pair passed in the same run. An error is 
 - **Reruns.** `pnpm setup:turnkey` can be run again safely. It changes only what's missing or different,
   then reads every policy back and fails if Turnkey stored anything else.
 
-Open for #19 and later:
+## Turnkey refusals on devnet (#19)
+
+`pnpm check:turnkey` signs as `spike-signer` and runs each check for real. Allowed transactions land on
+devnet. Transactions that should be refused are never sent.
+
+- **Every forbidden transaction was refused, and every allowed one landed**, on the first run with the
+  final classifier (2026-09-16).
+- **How Turnkey says no.** A policy denial is not an activity status. It is an error with code 7 and a
+  `PolicyEnginePermissionError` detail listing each policy's outcome (`OUTCOME_DENY_IMPLICIT` when
+  nothing allowed it). The first run, kept in `results/` as a record, labelled those as errors because
+  the classifier expected an activity status. It now looks for that structured detail, and the words in
+  a message never count on their own.
+- **Wrapping SOL needed a policy change,** as #18 predicted. A swap from SOL moves SOL into the wallet's
+  own wrapped SOL account, so that account is now an approved recipient alongside the owner.
+- **Each allowed run costs about 0.06 devnet SOL.** Most of it goes to the owner, so it can be sent back.
+- **The token checks use checked transfers of wrapped SOL** (allowed) and of a made-up mint (refused).
+  Real Jupiter swaps are checked on mainnet in #20.
+
+Still open:
 
 - Token transfer rules only see the mint on checked transfers. A plain `Transfer` has no mint, so it
-  fails the rule, which is safe but may block some swap routes.
-- A swap from SOL moves SOL into the wallet's own wrapped SOL account, which the "only to the owner" rule
-  refuses. The wallet's own token accounts will likely need to be approved recipients.
+  fails the rule, which is safe but may block some Jupiter routes (#20).
 - The size limit covers SOL transfers. Limiting swap size needs Jupiter's instruction data, which Turnkey
   can read only if Jupiter's IDL is uploaded.
 - Jupiter uses address lookup tables. How Turnkey resolves accounts behind them needs testing.

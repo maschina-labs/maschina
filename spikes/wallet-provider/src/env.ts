@@ -94,3 +94,22 @@ export function setupEnv(source: Source): SetupEnv {
 		signerPublicKey: env.TURNKEY_SIGNER_API_PUBLIC_KEY,
 	};
 }
+
+export type ChecksEnv = { signerPublicKey: string; signerPrivateKey: string; heliusApiKey: string };
+
+/** What the devnet checks need: the signer's own key pair, never the root one, and the RPC key. */
+export function checksEnv(source: Source): ChecksEnv {
+	const env = read(
+		{
+			TURNKEY_SIGNER_API_PUBLIC_KEY: z.string().regex(/^0[23][0-9a-f]{64}$/),
+			TURNKEY_SIGNER_API_PRIVATE_KEY: z.string().regex(/^[0-9a-f]{64}$/),
+			HELIUS_API_KEY: set,
+		},
+		source,
+	);
+	return {
+		signerPublicKey: env.TURNKEY_SIGNER_API_PUBLIC_KEY,
+		signerPrivateKey: env.TURNKEY_SIGNER_API_PRIVATE_KEY,
+		heliusApiKey: env.HELIUS_API_KEY,
+	};
+}

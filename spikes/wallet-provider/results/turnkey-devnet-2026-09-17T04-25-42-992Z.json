@@ -1,0 +1,69 @@
+{
+	"provider": "turnkey-devnet",
+	"at": "2026-09-17T04:25:42.992Z",
+	"passed": false,
+	"failures": [
+		"transfer-outside: errored before the provider decided (Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}]))",
+		"swap-unapproved-token: errored before the provider decided (Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}]))",
+		"unapproved-program: errored before the provider decided (Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}]))",
+		"over-size-limit: errored before the provider decided (Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}]))"
+	],
+	"results": [
+		{
+			"id": "transfer-owner",
+			"outcome": {
+				"status": "allowed",
+				"signature": "xPsN3kiiwVwi1XyqMzvE3RxMpVoebDRGNPTgi156AJg2HFzxfyW5njTwRaFWMqTrZ8hMLTtC8NBwG2WMeB2kCAm"
+			},
+			"ms": 2506.713625
+		},
+		{
+			"id": "transfer-outside",
+			"outcome": {
+				"status": "error",
+				"message": "Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}])"
+			},
+			"ms": 314.696375
+		},
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "allowed",
+				"signature": "47xFf9VWJi6hJZxXCkuAyAD4cos6Wtp3WUY73ghgdtYDbqcowPNQBPmbQkBGe387QZfLxqp983s85tTNJMU99qPi"
+			},
+			"ms": 1582.6406249999995
+		},
+		{
+			"id": "swap-unapproved-token",
+			"outcome": {
+				"status": "error",
+				"message": "Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}])"
+			},
+			"ms": 268.5052089999999
+		},
+		{
+			"id": "unapproved-program",
+			"outcome": {
+				"status": "error",
+				"message": "Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}])"
+			},
+			"ms": 277.1564579999995
+		},
+		{
+			"id": "under-size-limit",
+			"outcome": {
+				"status": "allowed",
+				"signature": "2vcXDbwyTuNCkeQXuRe84PcqERQp6UtRb1XPrWuyPWxrRxC7PFKvdovoaJnWtKqssVyXrZSJY7JvyW94B1X3gFYE"
+			},
+			"ms": 1781.742083
+		},
+		{
+			"id": "over-size-limit",
+			"outcome": {
+				"status": "error",
+				"message": "Turnkey error 7: You don't have sufficient permissions to take this action. Please add a policy granting this user permissions. Learn more at https://docs.turnkey.com/concepts/policies/quickstart. (Details: [{\"@type\":\"type.googleapis.com/errors.v1.PolicyEnginePermissionError\",\"message\":\"No policies evaluated to outcome: Allow\",\"policyEvaluations\":[{\"policyId\":\"d682a674-4e93-46c5-a727-ed46fff9de74\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"},{\"policyId\":\"4469cfbb-296c-48d3-87d9-93f579b2700e\",\"outcome\":\"OUTCOME_DENY_IMPLICIT\"}]}])"
+			},
+			"ms": 360.25987499999974
+		}
+	]
+}

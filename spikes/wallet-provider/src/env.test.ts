@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { crossmintEnv, MissingEnvError, setupEnv, turnkeyEnv } from "./env.ts";
+import { checksEnv, crossmintEnv, MissingEnvError, setupEnv, turnkeyEnv } from "./env.ts";
 
 const TURNKEY = {
 	TURNKEY_API_PUBLIC_KEY: "02abc",
@@ -85,6 +85,35 @@ describe("setupEnv", () => {
 		assert.throws(() => setupEnv({ SPIKE_OWNER_ADDRESS: "not-an-address" }), /SPIKE_OWNER_ADDRESS/);
 		assert.throws(
 			() => setupEnv({ SPIKE_OWNER_ADDRESS: OWNER, TURNKEY_SIGNER_API_PUBLIC_KEY: "04zz" }),
+			/TURNKEY_SIGNER_API_PUBLIC_KEY/,
+		);
+	});
+});
+
+describe("checksEnv", () => {
+	const key = `02${"cd".repeat(32)}`;
+	const complete = {
+		TURNKEY_SIGNER_API_PUBLIC_KEY: key,
+		TURNKEY_SIGNER_API_PRIVATE_KEY: "ef".repeat(32),
+		HELIUS_API_KEY: "helius-key",
+	};
+
+	it("reads the signer's key pair and the RPC key", () => {
+		assert.deepEqual(checksEnv(complete), {
+			signerPublicKey: key,
+			signerPrivateKey: "ef".repeat(32),
+			heliusApiKey: "helius-key",
+		});
+	});
+
+	it("names whatever is missing or malformed", () => {
+		assert.throws(
+			() => checksEnv({ ...complete, TURNKEY_SIGNER_API_PRIVATE_KEY: "short" }),
+			/TURNKEY_SIGNER_API_PRIVATE_KEY/,
+		);
+		assert.throws(() => checksEnv({ ...complete, HELIUS_API_KEY: "" }), /HELIUS_API_KEY/);
+		assert.throws(
+			() => checksEnv({ ...complete, TURNKEY_SIGNER_API_PUBLIC_KEY: undefined }),
 			/TURNKEY_SIGNER_API_PUBLIC_KEY/,
 		);
 	});
