@@ -8,56 +8,12 @@
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { address } from "@solana/kit";
-import { Turnkey } from "@turnkey/sdk-server";
-import type { ApiKeyPair } from "./api-key.ts";
-import { generateApiKeyPair } from "./api-key.ts";
-import { MissingEnvError, setupEnv, turnkeyEnv } from "./env.ts";
-import { storeInInfisical } from "./infisical.ts";
-import { SOLANA_PROGRAMS } from "./policy.ts";
+import { MissingEnvError } from "./env.ts";
 import { turnkey } from "./providers/turnkey.ts";
-import { setupMachineWallet } from "./providers/turnkey-setup.ts";
-import { wrappedSolAccount } from "./solana/transactions.ts";
-
-const DEVNET_USDC = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-const WRAPPED_SOL = "So11111111111111111111111111111111111111112";
+import { applyTurnkeySetup } from "./turnkey-devnet.ts";
 
 try {
-	const root = turnkeyEnv(process.env);
-	const setup = setupEnv(process.env);
-	const client = new Turnkey({
-		apiBaseUrl: root.apiBaseUrl,
-		apiPublicKey: root.apiPublicKey,
-		apiPrivateKey: root.apiPrivateKey,
-		defaultOrganizationId: root.organizationId,
-	}).apiClient();
-
-	let newKeys: ApiKeyPair | undefined;
-	const result = await setupMachineWallet({
-		admin: client,
-		label: "devnet",
-		ownerAddress: setup.ownerAddress,
-		signerPublicKey: setup.signerPublicKey,
-		newKeyPair: () => {
-			newKeys = generateApiKeyPair();
-			return newKeys;
-		},
-		storeSigner: (keys) =>
-			storeInInfisical(
-				{
-					TURNKEY_SIGNER_API_PUBLIC_KEY: keys.publicKey,
-					TURNKEY_SIGNER_API_PRIVATE_KEY: keys.privateKey,
-				},
-				{ env: "dev", path: "/wallet-spike" },
-			),
-		// Wrapping SOL for a token swap moves SOL into the wallet's own wrapped SOL account.
-		extraRecipients: async (wallet) => [await wrappedSolAccount(address(wallet))],
-		settings: {
-			approvedPrograms: Object.values(SOLANA_PROGRAMS),
-			approvedMints: [DEVNET_USDC, WRAPPED_SOL],
-			maxLamportsPerTransfer: 50_000_000n,
-		},
-	});
+	const { root, setup, result, newKeys } = await applyTurnkeySetup(process.env);
 
 	// Prove the signer's key is accepted, using the key just made or the one saved earlier.
 	const signerPrivate = newKeys?.privateKey ?? process.env["TURNKEY_SIGNER_API_PRIVATE_KEY"];

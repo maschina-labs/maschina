@@ -14,7 +14,8 @@ import { CHECKS } from "./checklist.ts";
 import { checksEnv, setupEnv, turnkeyEnv } from "./env.ts";
 import { turnkeySigner } from "./providers/turnkey-signer.ts";
 import { attemptFor, TURNKEY_DEVNET_CHECKS } from "./refusal-checks.ts";
-import { runChecks, verdict, writeResults } from "./run.ts";
+import { reportRun } from "./report.ts";
+import { runChecks } from "./run.ts";
 import { devnetRpc, submitSigned } from "./solana/devnet.ts";
 import { memoOnly, tokenTransfer, transferSol, WRAPPED_SOL } from "./solana/transactions.ts";
 
@@ -93,20 +94,7 @@ try {
 		}),
 	);
 
-	const path = writeResults({ dir: "results", provider: "turnkey-devnet", checks, results });
-	for (const result of results) {
-		const expected = checks.find((c) => c.id === result.id)?.expect;
-		const o = result.outcome;
-		const detail =
-			o.status === "allowed" ? o.signature : o.status === "refused" ? o.reason : o.message;
-		process.stdout.write(
-			`${result.id.padEnd(22)} expected ${expected?.padEnd(8)} got ${o.status.padEnd(8)} ${detail.slice(0, 110)}\n`,
-		);
-	}
-	const { passed, failures } = verdict(checks, results);
-	process.stdout.write(`\n${passed ? "PASSED" : "FAILED"}, saved to ${path}\n`);
-	for (const failure of failures) process.stdout.write(`  ${failure}\n`);
-	process.exit(passed ? 0 : 1);
+	process.exit(reportRun("turnkey-devnet", checks, results));
 } catch (error) {
 	console.error(error instanceof Error ? error.message : error);
 	process.exit(1);

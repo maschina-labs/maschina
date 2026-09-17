@@ -1,0 +1,32 @@
+{
+	"provider": "turnkey-recipients-devnet",
+	"at": "2026-09-17T08:08:10.884Z",
+	"passed": true,
+	"failures": [],
+	"results": [
+		{
+			"id": "pay-approved-recipient",
+			"outcome": {
+				"status": "allowed",
+				"signature": "2Wb45TZtKJTBm9qY5cV26CgrCwfqMzgkd4qnMcz5r5mTj1cyrQMRvYDswmfVpGmjUaG38opTwwG4WZrwu8redXxC"
+			},
+			"ms": 2371.21225
+		},
+		{
+			"id": "pay-unapproved-recipient",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 371.4407089999995
+		},
+		{
+			"id": "pay-removed-recipient",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 375.65295799999967
+		}
+	]
+}
