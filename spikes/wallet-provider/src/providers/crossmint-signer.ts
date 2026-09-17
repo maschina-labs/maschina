@@ -31,14 +31,28 @@ export function machineScopes(options: {
 	owner: string;
 	solLimit: string;
 	intervalSeconds: number;
+	/** More addresses SOL may go to, such as the wallet's own wrapped SOL account. */
+	extraSolRecipients?: string[];
+	/**
+	 * Tokens the machine may send, each with its allowed recipients. For tokens Crossmint checks the
+	 * destination token account, not the wallet that owns it.
+	 */
+	tokens?: { mint: string; recipients: string[] }[];
 }): Scope[] {
 	return [
 		{
 			type: "transfer",
 			tokenLocator: "solana:sol",
-			recipients: [options.owner],
+			recipients: [options.owner, ...(options.extraSolRecipients ?? [])],
 			spendingLimit: { amount: options.solLimit, interval: options.intervalSeconds },
 		},
+		...(options.tokens ?? []).map(
+			(token): Scope => ({
+				type: "transfer",
+				tokenLocator: `solana:${token.mint}`,
+				recipients: token.recipients,
+			}),
+		),
 	];
 }
 

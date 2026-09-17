@@ -10,6 +10,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { CrossmintWallets, createCrossmint } from "@crossmint/wallets-sdk";
+import { address } from "@solana/kit";
 import { crossmintEnv, crossmintMachineSigner, crossmintSignerSecret, setupEnv } from "./env.ts";
 import { readJsonIfPresent } from "./files.ts";
 import { storeInInfisical } from "./infisical.ts";
@@ -21,6 +22,7 @@ import {
 	setupMachineSigner,
 	UNEXPRESSIBLE_RULES,
 } from "./providers/crossmint-signer.ts";
+import { WRAPPED_SOL, wrappedSolAccount } from "./solana/transactions.ts";
 
 const RESULT = "results/crossmint-setup-devnet.json";
 
@@ -58,7 +60,7 @@ try {
 	const secret = serverSecret;
 	if (!secret) throw new Error("the server signer secret is missing");
 
-	// The machine's own signer, limited with scopes. The spending limit is a total per hour.
+	// The machine's own signer, limited with scopes. The spending limit is a total per interval.
 	const wallet = await sdk.getWallet(result.address, { chain: "solana" });
 	const signerApi: CrossmintSignerApi = {
 		useServerSigner: async () => {
@@ -84,7 +86,16 @@ try {
 			await wallet.removeSigner({ type: "external-wallet", address });
 		},
 	};
-	const scopes = machineScopes({ owner: ownerAddress, solLimit: "0.05", intervalSeconds: 3600 });
+	// A small limit over a short interval, so the refusal checks can be rerun after a minute.
+	const scopes = machineScopes({
+		owner: ownerAddress,
+		solLimit: "0.01",
+		intervalSeconds: 60,
+		// Wrapping SOL for a token transfer moves SOL into the wallet's own wrapped SOL account.
+		extraSolRecipients: [await wrappedSolAccount(address(result.address))],
+		// For tokens Crossmint checks the destination token account, so the owner's own one is listed.
+		tokens: [{ mint: WRAPPED_SOL, recipients: [await wrappedSolAccount(address(ownerAddress))] }],
+	});
 	const signer = await setupMachineSigner({
 		api: signerApi,
 		scopes,

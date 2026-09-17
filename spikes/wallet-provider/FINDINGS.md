@@ -124,7 +124,43 @@ The rules compare with the machine wallet policy like this:
 | A maximum size per transaction | Policy, per transfer | **Not expressible.** Only a total per interval |
 | Only approved programs | Policy | **Not expressible.** Scopes only describe transfers |
 | The signer can never export keys | Explicit deny policy | Not applicable, since the keypair is Maschina's own |
-| Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's backend, before broadcast |
+| Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's smart account program, on-chain (seen in #23), and checked in simulation before broadcast |
+
+## Crossmint refusals on devnet (#23, in progress)
+
+`pnpm check:crossmint` sends each check as the machine's scoped signer. Crossmint checks, signs and
+broadcasts in one call, so a forbidden transaction it allows really lands. On devnet that's harmless.
+
+Results so far ([run](results/crossmint-devnet-2026-09-17T05-13-58-968Z.json)):
+
+| Check | Expected | Crossmint |
+| --- | --- | --- |
+| Transfer to the owner | allowed | landed |
+| Transfer to any other address | refused | refused on-chain: `RecipientNotAllowed` (6017) |
+| Transfer just under the limit (0.009 of 0.01 per minute) | allowed | landed |
+| Transfer just over the limit (0.011) | refused | refused on-chain: `SpendingLimitExceeded` (6012) |
+| Call an unapproved program (a memo) | refused | **landed.** Scopes can't restrict programs |
+| Swap between approved tokens (wrapped SOL to the owner) | allowed | refused: `RecipientNotAllowed`. Still open, see below |
+| Swap into an unapproved token | refused | not conclusive yet: the wallet holds none of the token, so it fails before the policy is consulted |
+
+- **Enforcement is on-chain.** Refusals come from Crossmint's smart account program
+  (`XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU`, `enforcement.rs`) during simulation, with a named
+  error. That is stronger than the docs suggest. The classifier only counts those named enforcement
+  errors as refusals.
+- **For tokens, the recipient is the token account.** A token scope that lists the owner's wallet refused
+  a transfer to the owner's token account.
+- **Wrapped SOL is probably treated as SOL.** With the wallet's own wrapped SOL account and the owner's
+  token account both approved, the wrapped SOL transfer was still refused. The likely reason is that it
+  is checked against the SOL scope, whose recipients don't include the owner's wrapped SOL account. This
+  can be tested once the rent cap resets.
+- **Crossmint caps the rent it covers per day.** Staging stopped with `DAILY_RENT_CAP`: 10,000,000
+  lamports (0.01 SOL) per day. Creating token accounts counts against it, so token checks can only run a
+  few times a day.
+- **Timing:** allowed transactions took a few seconds each through Crossmint's API.
+- **The SDK logs every call** to the console, which makes the output hard to read.
+
+Still to do: approve the owner's wrapped SOL account for SOL and rerun, and fund the wallet with a
+little devnet USDC (Circle's faucet) so the unapproved token check reaches the policy.
 
 Scopes can't be edited. Changing them means removing the signer and adding it again, which the setup
 does when they differ.

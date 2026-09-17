@@ -145,3 +145,6 @@ export function crossmintMachineSigner(
 	const keypair = Keypair.fromSecretKey(Buffer.from(secretHex, "hex"));
 	return { address: keypair.publicKey.toBase58(), secretHex };
 }
+
+export const heliusKey = (source: Source): string =>
+	read({ HELIUS_API_KEY: set }, source).HELIUS_API_KEY;
