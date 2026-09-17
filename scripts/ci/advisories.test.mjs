@@ -34,6 +34,18 @@ describe("ignored advisories", () => {
 		assert.deepEqual([...allowedInCi()].sort(), [...ignoredByPnpm()].sort());
 	});
 
+	it("allow only licences the product itself never ships", () => {
+		const workflow = read(".github/workflows/dependency-review.yml");
+		const step = workflow.jobs.review.steps.find((s) =>
+			String(s.uses).includes("dependency-review-action"),
+		);
+		const allowed = String(step.with["allow-dependencies-licenses"] ?? "")
+			.split(",")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		assert.deepEqual(allowed, ["pkg:npm/rpc-websockets"]);
+	});
+
 	it("are real advisory ids", () => {
 		for (const id of ignoredByPnpm()) assert.match(id, /^GHSA(-[23456789cfghjmpqrvwx]{4}){3}$/, id);
 	});

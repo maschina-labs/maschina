@@ -16,6 +16,11 @@ const below = (version, floor) => {
 };
 
 describe("lockfile", () => {
+	it("contains nothing that CI's dependency review only allows for spikes", () => {
+		// rpc-websockets is LGPL-3.0, allowed in dependency review because a spike needs it.
+		assert.deepEqual(versionsOf("rpc-websockets"), []);
+	});
+
 	it("installs no esbuild with the development server advisory (below 0.25.0)", () => {
 		const versions = versionsOf("esbuild");
 		assert.ok(versions.length > 0, "esbuild not found in the lockfile");

@@ -33,3 +33,6 @@ jobs:
           # Advisories judged not to apply, each with its reason next to the matching pnpm auditConfig entry.
           # A test keeps this list and pnpm's in step.
           allow-ghsas: GHSA-528h-pc64-c93x
+          # LGPL-3.0, needed by @solana/web3.js 1.x in the wallet provider spike. The product's own
+          # dependencies are checked by pnpm check:licenses, and a test keeps this out of its lockfile.
+          allow-dependencies-licenses: pkg:npm/rpc-websockets

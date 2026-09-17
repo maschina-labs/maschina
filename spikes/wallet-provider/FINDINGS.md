@@ -100,6 +100,9 @@ Still open:
   - `stream-json`'s patched version moved the modules its user loads, so that advisory is ignored with
     the reason recorded: the code that loads it is never used by the Solana client.
   - Turnkey's SDK brought in none.
+- **Licence:** Crossmint's SDK needs `@solana/web3.js` 1.x, which depends on `rpc-websockets`, licensed
+  LGPL-3.0. A production signer built on Crossmint's SDK would carry that dependency, which Maschina's
+  licence check refuses today. Turnkey's SDK has no such dependency.
 
 Next for Crossmint (#22): a separate delegated signer for the machine, restricted with scopes. Crossmint's
 docs say scopes cover transfers only (a spending limit per token and a recipient allow list, plus an
