@@ -10,6 +10,7 @@ import {
 } from "@solana/kit";
 import { SOLANA_PROGRAMS } from "../policy.ts";
 import {
+	createTokenAccountFor,
 	MEMO_PROGRAM,
 	memoOnly,
 	tokenTransfer,
@@ -108,6 +109,21 @@ describe("tokenTransfer", () => {
 		assert.deepEqual(tx.programs, [SOLANA_PROGRAMS.associatedToken, SOLANA_PROGRAMS.token]);
 		assert.ok(tx.instructions[1]?.accounts?.some((account) => account.address === other));
 	});
+
+	it("can leave out creating the owner's token account, so nothing funds it", async () => {
+		const tx = read(
+			await tokenTransfer({
+				wallet: WALLET,
+				owner: OWNER,
+				mint: WRAPPED_SOL,
+				amount: 1n,
+				blockhash: BLOCKHASH,
+				wrap: false,
+				createDestination: false,
+			}),
+		);
+		assert.deepEqual(tx.programs, [SOLANA_PROGRAMS.token]);
+	});
 });
 
 describe("wrappedSolAccount", () => {
@@ -115,5 +131,23 @@ describe("wrappedSolAccount", () => {
 		const first = await wrappedSolAccount(WALLET);
 		assert.equal(first, await wrappedSolAccount(WALLET));
 		assert.notEqual(first, await wrappedSolAccount(OWNER));
+	});
+});
+
+describe("createTokenAccountFor", () => {
+	it("creates another wallet's token account, paid for by the signing wallet, and nothing else", async () => {
+		const tx = read(
+			await createTokenAccountFor({
+				payer: WALLET,
+				owner: OWNER,
+				mint: WRAPPED_SOL,
+				blockhash: BLOCKHASH,
+			}),
+		);
+		assert.equal(tx.feePayer, WALLET);
+		assert.deepEqual(tx.programs, [SOLANA_PROGRAMS.associatedToken]);
+		const [payer, account, owner, mint] = tx.instructions[0]?.accounts?.map((a) => a.address) ?? [];
+		assert.deepEqual([payer, owner, mint], [WALLET, OWNER, WRAPPED_SOL]);
+		assert.equal(account, await wrappedSolAccount(OWNER));
 	});
 });

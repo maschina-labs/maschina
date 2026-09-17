@@ -13,6 +13,7 @@
 		"check:turnkey": "node src/check-turnkey.ts",
 		"setup:crossmint": "node src/setup-crossmint.ts",
 		"check:crossmint": "node src/check-crossmint.ts",
+		"prepare:crossmint": "node src/prepare-crossmint.ts",
 		"test": "node --test \"src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},

@@ -1,0 +1,69 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T06:37:11.512Z",
+	"passed": false,
+	"failures": [
+		"swap-approved-tokens: expected allowed, was refused",
+		"swap-unapproved-token: errored before the provider decided ({\"error\":true,\"message\":\"Daily rent cap exceeded. Current usage: 8930640 lamports, cap: 10000000 lamports, requested: 1488440 lamports.\",\"code\":\"DAILY_RENT_CAP_EXCEEDED\",\"details\":{\"currentUsageLamports\":\"8930640\",\"capLamports\":\"10000000\",\"rentCostLamports\":\"1488440\"}})",
+		"unapproved-program: expected refused, was allowed",
+		"over-size-limit: errored before the provider decided ({\"error\":true,\"message\":\"Transaction simulation failed. Please check the transaction payload.\",\"code\":\"TRANSACTION_SIMULATION_FAILED\",\"simulation\":{\"success\":false,\"err\":{\"InstructionError\":[2,{\"Custom\":1}]},\"logs\":[\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU invoke [1]\",\"Program log: Instruction: ExecuteTransaction\",\"Program data: 0+OoDiBvvdIihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2AEB\",\"Program 11111111111111111111111111111111 invoke [2]\",\"Transfer: insufficient lamports 1800000, need 11000000\",\"Program 11111111111111111111111111111111 failed: custom program error: 0x1\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU consumed 10652 of 399700 compute units\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU failed: custom program error: 0x1\"]}})"
+	],
+	"results": [
+		{
+			"id": "transfer-owner",
+			"outcome": {
+				"status": "allowed",
+				"signature": "5r7NpYYiJGMtVdyjoSfJ6HJEvbC4fVj3Q8DTn38pKZS6BC1H9pWU1sTpUMpfK7V32fMw98kPj7icjMepp5qga9ph"
+			},
+			"ms": 4674.0028330000005
+		},
+		{
+			"id": "transfer-outside",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 2199.072833
+		},
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 600.7235000000001
+		},
+		{
+			"id": "swap-unapproved-token",
+			"outcome": {
+				"status": "error",
+				"message": "{\"error\":true,\"message\":\"Daily rent cap exceeded. Current usage: 8930640 lamports, cap: 10000000 lamports, requested: 1488440 lamports.\",\"code\":\"DAILY_RENT_CAP_EXCEEDED\",\"details\":{\"currentUsageLamports\":\"8930640\",\"capLamports\":\"10000000\",\"rentCostLamports\":\"1488440\"}}"
+			},
+			"ms": 910.7180829999998
+		},
+		{
+			"id": "unapproved-program",
+			"outcome": {
+				"status": "allowed",
+				"signature": "2MtpSJV9BjoZ8FwV4rGD3bKxFSVe6AHWRAaLyY4gQx3tVsdy7gMLr1AuhdLuw83eBQCnGYuCqmBGtpWjf4xVJAQ1"
+			},
+			"ms": 3061.5726250000007
+		},
+		{
+			"id": "under-size-limit",
+			"outcome": {
+				"status": "allowed",
+				"signature": "4ztJwadGTxb2mtPtfQjLdxBMDLdjPE2kpSAjcnLXynLJsze6etQrYyb948WGKLLQaLpCRaBYEkj9LjECPecHPmdZ"
+			},
+			"ms": 3592.2572499999987
+		},
+		{
+			"id": "over-size-limit",
+			"outcome": {
+				"status": "error",
+				"message": "{\"error\":true,\"message\":\"Transaction simulation failed. Please check the transaction payload.\",\"code\":\"TRANSACTION_SIMULATION_FAILED\",\"simulation\":{\"success\":false,\"err\":{\"InstructionError\":[2,{\"Custom\":1}]},\"logs\":[\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU invoke [1]\",\"Program log: Instruction: ExecuteTransaction\",\"Program data: 0+OoDiBvvdIihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2AEB\",\"Program 11111111111111111111111111111111 invoke [2]\",\"Transfer: insufficient lamports 1800000, need 11000000\",\"Program 11111111111111111111111111111111 failed: custom program error: 0x1\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU consumed 10652 of 399700 compute units\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU failed: custom program error: 0x1\"]}}"
+			},
+			"ms": 807.6365000000005
+		}
+	]
+}

@@ -34,8 +34,8 @@ export function machineScopes(options: {
 	/** More addresses SOL may go to, such as the wallet's own wrapped SOL account. */
 	extraSolRecipients?: string[];
 	/**
-	 * Tokens the machine may send, each with its allowed recipients. For tokens Crossmint checks the
-	 * destination token account, not the wallet that owns it.
+	 * Tokens the machine may send, each with its allowed recipients. Recipients are wallets: Crossmint
+	 * checks who owns the destination token account, so listing the token account itself refuses.
 	 */
 	tokens?: { mint: string; recipients: string[] }[];
 }): Scope[] {

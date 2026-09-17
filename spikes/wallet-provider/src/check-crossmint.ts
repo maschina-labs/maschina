@@ -1,5 +1,5 @@
 /**
- * pnpm check:crossmint   run the policy checks against Crossmint on devnet (#23)
+ * pnpm check:crossmint [check ids]   run the policy checks against Crossmint on devnet (#23)
  *
  *   infisical run --env=dev --path=/wallet-spike -- pnpm check:crossmint
  *
@@ -16,11 +16,8 @@ import { classifyCrossmintError } from "./crossmint-errors.ts";
 import { crossmintEnv, crossmintMachineSigner, heliusKey, setupEnv } from "./env.ts";
 import { readJsonIfPresent } from "./files.ts";
 import { runChecks, verdict, writeResults } from "./run.ts";
-import { devnetRpc } from "./solana/devnet.ts";
+import { DEVNET_USDC, devnetRpc } from "./solana/devnet.ts";
 import { memoOnly, tokenTransfer, transferSol, WRAPPED_SOL } from "./solana/transactions.ts";
-
-// Real, but not approved for the machine signer. A made-up mint fails simulation for unrelated reasons.
-const DEVNET_USDC = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 
 try {
 	const env = crossmintEnv(process.env);
@@ -70,7 +67,12 @@ try {
 			}),
 		);
 
-	const checks = CHECKS.filter((check) => CROSSMINT_DEVNET_CHECKS.includes(check.id));
+	// Check ids on the command line run just those, to spend less when investigating one.
+	const only = process.argv.slice(2);
+	const checks = CHECKS.filter(
+		(check) =>
+			CROSSMINT_DEVNET_CHECKS.includes(check.id) && (only.length === 0 || only.includes(check.id)),
+	);
 	const results = await runChecks(
 		checks,
 		crossmintAttempt(
@@ -96,6 +98,7 @@ try {
 							mint: WRAPPED_SOL,
 							amount: 200_000n,
 							blockhash: await blockhash(),
+							createDestination: false,
 						}),
 					),
 				"swap-unapproved-token": async () =>
@@ -103,10 +106,12 @@ try {
 						await tokenTransfer({
 							wallet: walletKey,
 							owner,
-							mint: address(DEVNET_USDC),
+							// Real, but not approved for the machine signer. A made-up mint fails simulation for unrelated reasons.
+							mint: DEVNET_USDC,
 							amount: 1n,
 							decimals: 6,
 							blockhash: await blockhash(),
+							createDestination: false,
 							wrap: false,
 						}),
 					),

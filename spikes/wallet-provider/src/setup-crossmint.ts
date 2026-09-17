@@ -91,10 +91,15 @@ try {
 		owner: ownerAddress,
 		solLimit: "0.01",
 		intervalSeconds: 60,
-		// Wrapping SOL for a token transfer moves SOL into the wallet's own wrapped SOL account.
-		extraSolRecipients: [await wrappedSolAccount(address(result.address))],
-		// For tokens Crossmint checks the destination token account, so the owner's own one is listed.
-		tokens: [{ mint: WRAPPED_SOL, recipients: [await wrappedSolAccount(address(ownerAddress))] }],
+		// Crossmint checks net balance changes once the whole transaction has run. Wrapping SOL moves SOL into
+		// the wallet's own wrapped SOL account, and sending wrapped SOL moves real SOL into the owner's, so
+		// when both happen in one transaction the owner's wrapped SOL account is a SOL recipient too.
+		extraSolRecipients: [
+			await wrappedSolAccount(address(result.address)),
+			await wrappedSolAccount(address(ownerAddress)),
+		],
+		// Token recipients are wallets, not token accounts. Listing the owner's token account refused.
+		tokens: [{ mint: WRAPPED_SOL, recipients: [ownerAddress] }],
 	});
 	const signer = await setupMachineSigner({
 		api: signerApi,

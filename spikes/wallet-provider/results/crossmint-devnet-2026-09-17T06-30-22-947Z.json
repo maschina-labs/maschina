@@ -1,0 +1,18 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T06:30:22.947Z",
+	"passed": false,
+	"failures": [
+		"swap-approved-tokens: errored before the provider decided ({\"error\":true,\"message\":\"Daily rent cap exceeded. Current usage: 8930640 lamports, cap: 10000000 lamports, requested: 1488440 lamports.\",\"code\":\"DAILY_RENT_CAP_EXCEEDED\",\"details\":{\"currentUsageLamports\":\"8930640\",\"capLamports\":\"10000000\",\"rentCostLamports\":\"1488440\"}})"
+	],
+	"results": [
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "error",
+				"message": "{\"error\":true,\"message\":\"Daily rent cap exceeded. Current usage: 8930640 lamports, cap: 10000000 lamports, requested: 1488440 lamports.\",\"code\":\"DAILY_RENT_CAP_EXCEEDED\",\"details\":{\"currentUsageLamports\":\"8930640\",\"capLamports\":\"10000000\",\"rentCostLamports\":\"1488440\"}}"
+			},
+			"ms": 678.4265420000002
+		}
+	]
+}

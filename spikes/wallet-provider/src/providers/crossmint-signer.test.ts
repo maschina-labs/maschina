@@ -27,7 +27,6 @@ describe("machineScopes", () => {
 
 	it("can add SOL recipients, and tokens with their own recipients", () => {
 		const own = "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM";
-		const ownerTokenAccount = "CfZaYTfQ7YyeWv8XvcZ7amMAAcE83DLL2mNeef46Dvp7";
 		const mint = "So11111111111111111111111111111111111111112";
 		assert.deepEqual(
 			machineScopes({
@@ -35,7 +34,7 @@ describe("machineScopes", () => {
 				solLimit: "0.01",
 				intervalSeconds: 60,
 				extraSolRecipients: [own],
-				tokens: [{ mint, recipients: [ownerTokenAccount] }],
+				tokens: [{ mint, recipients: [OWNER] }],
 			}),
 			[
 				{
@@ -44,7 +43,7 @@ describe("machineScopes", () => {
 					recipients: [OWNER, own],
 					spendingLimit: { amount: "0.01", interval: 60 },
 				},
-				{ type: "transfer", tokenLocator: `solana:${mint}`, recipients: [ownerTokenAccount] },
+				{ type: "transfer", tokenLocator: `solana:${mint}`, recipients: [OWNER] },
 			],
 		);
 	});

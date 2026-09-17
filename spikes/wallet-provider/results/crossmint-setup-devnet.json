@@ -1,5 +1,5 @@
 {
-	"at": "2026-09-17T05:13:07.801Z",
+	"at": "2026-09-17T06:41:52.573Z",
 	"environment": "staging",
 	"address": "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF",
 	"created": false,
@@ -11,7 +11,8 @@
 			"tokenLocator": "solana:sol",
 			"recipients": [
 				"8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR",
-				"CfZaYTfQ7YyeWv8XvcZ7amMAAcE83DLL2mNeef46Dvp7"
+				"CfZaYTfQ7YyeWv8XvcZ7amMAAcE83DLL2mNeef46Dvp7",
+				"ojfJgT6nwH8i9KAPPpmFGV6WEcUC4GhPK68o1Vu2Hxn"
 			],
 			"spendingLimit": {
 				"amount": "0.01",
@@ -21,7 +22,7 @@
 		{
 			"type": "transfer",
 			"tokenLocator": "solana:So11111111111111111111111111111111111111112",
-			"recipients": ["ojfJgT6nwH8i9KAPPpmFGV6WEcUC4GhPK68o1Vu2Hxn"]
+			"recipients": ["8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR"]
 		}
 	],
 	"cannotExpress": [

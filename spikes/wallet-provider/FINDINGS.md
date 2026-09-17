@@ -111,9 +111,9 @@ Still open:
 Infisical, as a delegated signer on the wallet. The server signer approves it. Its scopes read back
 exactly as set:
 
-- **token:** SOL only (`solana:sol`)
-- **recipient:** the owner only
-- **spending limit:** 0.05 SOL per hour
+- **SOL** (`solana:sol`): to the owner, the wallet's own wrapped SOL account and the owner's wrapped SOL
+  account, at most 0.01 SOL per minute (small, so the limit checks cost little)
+- **wrapped SOL** (`solana:So111...112`): to the owner, with no limit of its own
 
 The rules compare with the machine wallet policy like this:
 
@@ -140,27 +140,30 @@ Results so far ([run](results/crossmint-devnet-2026-09-17T05-13-58-968Z.json)):
 | Transfer just under the limit (0.009 of 0.01 per minute) | allowed | landed |
 | Transfer just over the limit (0.011) | refused | refused on-chain: `SpendingLimitExceeded` (6012) |
 | Call an unapproved program (a memo) | refused | **landed.** Scopes can't restrict programs |
-| Swap between approved tokens (wrapped SOL to the owner) | allowed | refused: `RecipientNotAllowed`. Still open, see below |
-| Swap into an unapproved token | refused | not conclusive yet: the wallet holds none of the token, so it fails before the policy is consulted |
+| Swap between approved tokens (wrapped SOL to the owner) | allowed | landed, once the scopes matched how Crossmint checks ([run](results/crossmint-devnet-2026-09-17T06-42-00-286Z.json)) |
+| Swap into an unapproved token (devnet USDC) | refused | not conclusive yet: the wallet holds none, so it fails before the policy is consulted |
 
 - **Enforcement is on-chain.** Refusals come from Crossmint's smart account program
   (`XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU`, `enforcement.rs`) during simulation, with a named
   error. That is stronger than the docs suggest. The classifier only counts those named enforcement
   errors as refusals.
-- **For tokens, the recipient is the token account.** A token scope that lists the owner's wallet refused
-  a transfer to the owner's token account.
-- **Wrapped SOL is probably treated as SOL.** With the wallet's own wrapped SOL account and the owner's
-  token account both approved, the wrapped SOL transfer was still refused. The likely reason is that it
-  is checked against the SOL scope, whose recipients don't include the owner's wrapped SOL account. This
-  can be tested once the rent cap resets.
-- **Crossmint caps the rent it covers per day.** Staging stopped with `DAILY_RENT_CAP`: 10,000,000
-  lamports (0.01 SOL) per day. Creating token accounts counts against it, so token checks can only run a
-  few times a day.
+- **The program checks after the transaction has run, not before.** Its logs show every inner
+  instruction succeeding, then the policy check failing. It compares balances before and after:
+  - A transfer bigger than the wallet holds fails with the System program's "insufficient funds" before
+    the limit is looked at, so the over-limit check needs a wallet holding more than the limit.
+  - Wrapped SOL moves real SOL. When a transaction wraps SOL and sends it on, the SOL ends up in the
+    owner's wrapped SOL account, so that account has to be a SOL recipient as well.
+  - An instruction that creates a token account for someone else makes that account a recipient too.
+    The token checks only send to accounts that already exist (`pnpm prepare:crossmint` creates them,
+    paid by the Turnkey test wallet).
+- **Token recipients are wallets.** A token scope listing the owner's token account refused the
+  transfer. Listing the owner's wallet allowed it.
+- **Crossmint caps the rent it covers per day.** Staging stopped with `DAILY_RENT_CAP_EXCEEDED`:
+  10,000,000 lamports (0.01 SOL) per rolling day. Creating token accounts counts against it.
 - **Timing:** allowed transactions took a few seconds each through Crossmint's API.
-- **The SDK logs every call** to the console, which makes the output hard to read.
-
-Still to do: approve the owner's wrapped SOL account for SOL and rerun, and fund the wallet with a
-little devnet USDC (Circle's faucet) so the unapproved token check reaches the policy.
+- **The SDK can't be quieted.** It logs every call to the console, and the wallets SDK never passes a log
+  level to its logger. On a server it also sends the same logs, including wallet addresses and
+  transaction ids, to Crossmint's Datadog. A production adapter needs to account for both (#28).
 
 Scopes can't be edited. Changing them means removing the signer and adding it again, which the setup
 does when they differ.

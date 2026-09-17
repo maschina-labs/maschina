@@ -92,6 +92,11 @@ export async function tokenTransfer(options: {
 	blockhash: Blockhash;
 	wrap?: boolean;
 	decimals?: number;
+	/**
+	 * Crossmint counts the account created here as a recipient and pays its rent, so its checks send only
+	 * to token accounts that already exist.
+	 */
+	createDestination?: boolean;
 }): Promise<string> {
 	const payer = createNoopSigner(options.wallet);
 	const tokenProgram = TOKEN_PROGRAM_ADDRESS;
@@ -120,13 +125,17 @@ export async function tokenTransfer(options: {
 			getSyncNativeInstruction({ account: source }),
 		);
 	}
+	if (options.createDestination ?? true) {
+		instructions.push(
+			getCreateAssociatedTokenIdempotentInstruction({
+				payer,
+				owner: options.owner,
+				mint: options.mint,
+				ata: destination,
+			}),
+		);
+	}
 	instructions.push(
-		getCreateAssociatedTokenIdempotentInstruction({
-			payer,
-			owner: options.owner,
-			mint: options.mint,
-			ata: destination,
-		}),
 		getTransferCheckedInstruction({
 			source,
 			mint: options.mint,
@@ -137,4 +146,29 @@ export async function tokenTransfer(options: {
 		}),
 	);
 	return unsignedHex(options.wallet, options.blockhash, instructions);
+}
+
+/**
+ * Creates another wallet's associated token account, paid for by `payer`. The policy allows it: the
+ * only program called is the associated token program, and there is no top-level transfer.
+ */
+export async function createTokenAccountFor(options: {
+	payer: Address;
+	owner: Address;
+	mint: Address;
+	blockhash: Blockhash;
+}): Promise<string> {
+	const [ata] = await findAssociatedTokenPda({
+		owner: options.owner,
+		mint: options.mint,
+		tokenProgram: TOKEN_PROGRAM_ADDRESS,
+	});
+	return unsignedHex(options.payer, options.blockhash, [
+		getCreateAssociatedTokenIdempotentInstruction({
+			payer: createNoopSigner(options.payer),
+			owner: options.owner,
+			mint: options.mint,
+			ata,
+		}),
+	]);
 }
