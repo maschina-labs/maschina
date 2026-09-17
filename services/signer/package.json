@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@hono/node-server": "catalog:",
+		"@maschina/core": "workspace:*",
 		"@sentry/node": "catalog:",
 		"hono": "catalog:",
 		"pino": "catalog:",
