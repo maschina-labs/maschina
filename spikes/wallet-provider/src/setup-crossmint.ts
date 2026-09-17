@@ -7,9 +7,10 @@
  * wallet is created. Nothing secret is printed. The result is saved in results/.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { CrossmintWallets, createCrossmint } from "@crossmint/wallets-sdk";
 import { crossmintEnv, crossmintSignerSecret } from "./env.ts";
+import { readJsonIfPresent } from "./files.ts";
 import { storeInInfisical } from "./infisical.ts";
 import { type CrossmintWalletsApi, setupCrossmintWallet } from "./providers/crossmint-setup.ts";
 
@@ -18,9 +19,7 @@ const RESULT = "results/crossmint-setup-devnet.json";
 try {
 	const env = crossmintEnv(process.env);
 	const savedSecret = crossmintSignerSecret(process.env);
-	const saved = existsSync(RESULT)
-		? (JSON.parse(readFileSync(RESULT, "utf8")) as { address?: string })
-		: {};
+	const saved = (readJsonIfPresent(RESULT) ?? {}) as { address?: string };
 
 	const sdk = CrossmintWallets.from(createCrossmint({ apiKey: env.apiKey }));
 	const wallets: CrossmintWalletsApi = {
