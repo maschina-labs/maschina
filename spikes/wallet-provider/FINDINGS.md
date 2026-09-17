@@ -3,21 +3,20 @@
 The question: which wallet provider holds Maschina's machine wallets? Turnkey and Crossmint are tested
 against the same checklist (`src/checklist.ts`) before any Maschina code depends on either.
 
-## Running it
+## Status
+
+**Retired on 2026-09-17 (#29).** The question is answered: Turnkey holds machine wallets, with Crossmint
+as the fallback. Only these notes and the saved runs in `results/` are kept. The code is in git at
+commit `1016be3`:
 
 ```bash
-pnpm install    # inside spikes/wallet-provider, separate from the main workspace
-infisical run --env=dev --path=/wallet-spike -- pnpm check:credentials
-infisical run --env=dev --path=/wallet-spike -- pnpm setup:turnkey   # signer, wallet and policies
-infisical run --env=dev --path=/wallet-spike -- pnpm setup:crossmint # Crossmint wallet and machine signer
-infisical run --env=dev --path=/wallet-spike -- pnpm prepare:crossmint # token accounts the Crossmint checks use
-infisical run --env=dev --path=/wallet-spike -- pnpm check:turnkey   # refusal checks
-infisical run --env=dev --path=/wallet-spike -- pnpm check:crossmint
-infisical run --env=dev --path=/wallet-spike -- pnpm check:recipients turnkey   # or crossmint
-infisical run --env=dev --path=/wallet-spike -- pnpm time:providers   # wallet creation and signing times
-infisical run --env=dev --path=/wallet-spike -- pnpm check:helius   # devnet and mainnet balances, read only
-pnpm test       # the spike's own tests, no credentials needed
+git show 1016be3:spikes/wallet-provider/src/policy.ts          # one file
+git archive 1016be3 spikes/wallet-provider | tar -x -C /tmp     # the whole spike
 ```
+
+The parts worth rewriting properly in the signer are listed with the decision. The signer's
+provider interface is `services/signer/src/provider/`. No test wallet holds mainnet funds; the devnet
+wallets and their Infisical secrets are kept for the real adapter's integration checks.
 
 ## Results
 
@@ -302,6 +301,22 @@ requests and 5 sends a second.
 - 1 send a second is fine for development and far too little for launch. The sending path is chosen
   with the other services.
 - The production key is created with production (A5), in Infisical's production environment.
+
+## Sending Crossmint transactions directly (2026-09-17)
+
+A one-off devnet test, not kept as a script. It asked whether Crossmint's slow API (3 to 9 seconds to
+land a transfer) can be skipped.
+
+- A Crossmint transaction needs two signatures: Crossmint's fee payer and the machine's own key.
+  Crossmint's fee payer isn't used by the smart account program; it only pays the fee.
+- Rebuilt with the machine key as the only signer and fee payer, and sent through Helius, a transfer
+  landed in **1.57 s** including confirmation, with no priority fee.
+- Sent the same way, a transfer to a stranger and one over the limit were still refused on-chain in
+  simulation (`RecipientNotAllowed`, `SpendingLimitExceeded`). Crossmint's API refuses to build
+  forbidden transactions, so those were made by editing an allowed one.
+- The path is undocumented and may be against Crossmint's terms, which is part of why Turnkey was
+  chosen. If Crossmint is ever used, check the terms and test the instructions its balance checks can't
+  see first.
 
 ## Notes
 

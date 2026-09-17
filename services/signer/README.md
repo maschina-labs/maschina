@@ -19,7 +19,8 @@ The signer talks to the wallet provider only through `src/provider/wallet-provid
 machine wallets, with Crossmint as the fallback. Every provider adapter must pass the shared tests in
 `src/provider/contract.ts`. `src/provider/memory.ts` passes them in memory, for tests of the layers above.
 
-How the Turnkey work in `spikes/wallet-provider` maps onto the interface:
+How the Turnkey work in the wallet provider spike (code at commit `1016be3`, notes in
+`spikes/wallet-provider/FINDINGS.md`) maps onto the interface:
 
 | Interface | Turnkey |
 | --- | --- |

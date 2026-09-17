@@ -10,5 +10,6 @@ a policy the way it claims to.
   main one) and its own lockfile, so a spike's dependencies never reach Maschina's.
 - Each spike has `test` and `typecheck` scripts. `pnpm test:spikes` runs them for every spike, and CI
   runs it too.
-- When the question is answered, the finding moves into the real code or docs and the spike is
-  deleted.
+- When the question is answered, the finding moves into the real code or docs and the spike's code
+  is deleted. Its `FINDINGS.md` and saved results may stay as notes; a folder without a
+  `package.json` is not checked as a spike.
