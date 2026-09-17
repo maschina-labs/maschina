@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.6](https://github.com/maschina-labs/maschina/compare/v0.0.5...v0.0.6) (2026-09-17)
+
+
+### Added
+
+* **db:** write every event through one function ([#464](https://github.com/maschina-labs/maschina/issues/464)) ([f94e89f](https://github.com/maschina-labs/maschina/commit/f94e89f52dc2b44f2a95f75cd0d26f83c4f3fec2))
+
 ## [0.0.5](https://github.com/maschina-labs/maschina/compare/v0.0.4...v0.0.5) (2026-09-17)
 
 
