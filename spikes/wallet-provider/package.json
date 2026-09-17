@@ -15,6 +15,7 @@
 		"check:crossmint": "node src/check-crossmint.ts",
 		"prepare:crossmint": "node src/prepare-crossmint.ts",
 		"check:recipients": "node src/check-recipients.ts",
+		"time:providers": "node src/time-providers.ts",
 		"test": "node --test \"src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},
