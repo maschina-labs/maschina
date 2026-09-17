@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/maschina-labs/maschina/compare/v0.0.4...v0.0.5) (2026-09-17)
+
+
+### Added
+
+* **contracts:** define the record's event types ([#462](https://github.com/maschina-labs/maschina/issues/462)) ([2ea5998](https://github.com/maschina-labs/maschina/commit/2ea5998ebe363eefd5d13588af855812edfa69f0))
+
 ## [0.0.4](https://github.com/maschina-labs/maschina/compare/v0.0.3...v0.0.4) (2026-09-17)
 
 
