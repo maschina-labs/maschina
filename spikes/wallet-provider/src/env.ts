@@ -1,3 +1,4 @@
+import { Keypair } from "@solana/web3.js";
 import { z } from "zod";
 import { isSolanaAddress } from "./policy.ts";
 
@@ -125,4 +126,22 @@ export function crossmintSignerSecret(source: Source): string | undefined {
 		},
 		source,
 	).CROSSMINT_SERVER_SIGNER_SECRET;
+}
+
+/** The Crossmint machine signer saved by an earlier setup, if any, with its address. */
+export function crossmintMachineSigner(
+	source: Source,
+): { address: string; secretHex: string } | undefined {
+	const secretHex = read(
+		{
+			CROSSMINT_MACHINE_SIGNER_SECRET: z
+				.string()
+				.regex(/^[0-9a-f]{128}$/)
+				.optional(),
+		},
+		source,
+	).CROSSMINT_MACHINE_SIGNER_SECRET;
+	if (!secretHex) return undefined;
+	const keypair = Keypair.fromSecretKey(Buffer.from(secretHex, "hex"));
+	return { address: keypair.publicKey.toBase58(), secretHex };
 }

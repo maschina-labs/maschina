@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
 	checksEnv,
 	crossmintEnv,
+	crossmintMachineSigner,
 	crossmintSignerSecret,
 	MissingEnvError,
 	setupEnv,
@@ -138,6 +139,26 @@ describe("crossmintSignerSecret", () => {
 		assert.throws(
 			() => crossmintSignerSecret({ CROSSMINT_SERVER_SIGNER_SECRET: "xmsk1_tooshort" }),
 			(error: unknown) => error instanceof MissingEnvError && !error.message.includes("tooshort"),
+		);
+	});
+});
+
+describe("crossmintMachineSigner", () => {
+	it("reads the machine signer's saved secret and works out its address", async () => {
+		const { Keypair } = await import("@solana/web3.js");
+		const keypair = Keypair.generate();
+		const secretHex = Buffer.from(keypair.secretKey).toString("hex");
+		assert.deepEqual(crossmintMachineSigner({ CROSSMINT_MACHINE_SIGNER_SECRET: secretHex }), {
+			address: keypair.publicKey.toBase58(),
+			secretHex,
+		});
+		assert.equal(crossmintMachineSigner({}), undefined);
+	});
+
+	it("refuses a malformed secret without printing it", () => {
+		assert.throws(
+			() => crossmintMachineSigner({ CROSSMINT_MACHINE_SIGNER_SECRET: "cd".repeat(10) }),
+			(error: unknown) => error instanceof MissingEnvError && !error.message.includes("cdcd"),
 		);
 	});
 });
