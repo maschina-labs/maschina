@@ -1,0 +1,64 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T07:50:14.310Z",
+	"passed": false,
+	"failures": ["unapproved-program: expected refused, was allowed"],
+	"results": [
+		{
+			"id": "transfer-owner",
+			"outcome": {
+				"status": "allowed",
+				"signature": "5EEKXtT6RvrGoZkf87WtzWsFG8ZjUJdEdE6b9riGV6coUa7Dwjs9M8z4QTUJBpoodcrvrPuCQEFRFyYwj84JcBoE"
+			},
+			"ms": 3379.877041
+		},
+		{
+			"id": "transfer-outside",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 2479.504750000001
+		},
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "allowed",
+				"signature": "3KBzV74CdAeuunyxAfzy3PSru333MXkFtXFKf3BbMMGm8DViZfnEQGnTnCU2v4DufBAJ5r6YhpFTuMXvjupf1tvS"
+			},
+			"ms": 6366.336291000001
+		},
+		{
+			"id": "swap-unapproved-token",
+			"outcome": {
+				"status": "refused",
+				"reason": "OperationNotPermitted: Operation not permitted: asset decrease without a matching spending limit"
+			},
+			"ms": 1213.1779999999999
+		},
+		{
+			"id": "unapproved-program",
+			"outcome": {
+				"status": "allowed",
+				"signature": "3UEmwM2HedptFVxD5cY9X3YwF7wwFq1mvgVwrjyvKPo2SnpUSK5zoqNdvRyAYbFvAWqFFxmtH9ZAzbmuswzQco7f"
+			},
+			"ms": 4736.763625
+		},
+		{
+			"id": "under-size-limit",
+			"outcome": {
+				"status": "allowed",
+				"signature": "UpJobcvVZ9hYQxcV2KvhD9PKayt3k5eiuCevjkgx5KakCKJhgNxqGF2bSkTVGmK1L6Fafx6t5ju7fgrBCoCqZg1"
+			},
+			"ms": 9257.899333999998
+		},
+		{
+			"id": "over-size-limit",
+			"outcome": {
+				"status": "refused",
+				"reason": "SpendingLimitExceeded: Transaction exceeds the signer's spending limit for this token"
+			},
+			"ms": 2874.1501250000038
+		}
+	]
+}

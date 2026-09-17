@@ -22,14 +22,14 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
 | Policy attached and reads back as set (#22) | allowed | ok, 2026-09-16 | partly: scopes attached 2026-09-16, two rules can't be expressed ([setup](results/crossmint-setup-devnet.json)) |
 | Wallet created | allowed | ok, 2026-09-16 (in #18) | ok, 2026-09-16, about 1.9 s ([setup](results/crossmint-setup-devnet.json)) |
-| Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | not run |
-| Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Swap between approved tokens | allowed | ok, landed (wrapped SOL to the owner), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Swap into an unapproved token | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | ok, 2026-09-17 ([setup](results/crossmint-setup-devnet.json)) |
+| Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Swap between approved tokens | allowed | ok, landed (wrapped SOL to the owner), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed (wrapped SOL to the owner), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Swap into an unapproved token | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | **failed: landed.** Scopes can't restrict programs, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed (0.009 SOL of 0.01 per minute), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused (0.011 SOL), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
 | Pay an approved recipient | allowed | not run | not run |
 | Pay an unapproved recipient | refused | not run | not run |
 | Pay a removed recipient | refused | not run | not run |
@@ -126,22 +126,26 @@ The rules compare with the machine wallet policy like this:
 | The signer can never export keys | Explicit deny policy | Not applicable, since the keypair is Maschina's own |
 | Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's smart account program, on-chain (seen in #23), and checked in simulation before broadcast |
 
-## Crossmint refusals on devnet (#23, in progress)
+## Crossmint refusals on devnet (#23)
 
 `pnpm check:crossmint` sends each check as the machine's scoped signer. Crossmint checks, signs and
 broadcasts in one call, so a forbidden transaction it allows really lands. On devnet that's harmless.
 
-Results so far ([run](results/crossmint-devnet-2026-09-17T05-13-58-968Z.json)):
+Final run, 2026-09-17 ([run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json)):
 
 | Check | Expected | Crossmint |
 | --- | --- | --- |
 | Transfer to the owner | allowed | landed |
 | Transfer to any other address | refused | refused on-chain: `RecipientNotAllowed` (6017) |
-| Transfer just under the limit (0.009 of 0.01 per minute) | allowed | landed |
-| Transfer just over the limit (0.011) | refused | refused on-chain: `SpendingLimitExceeded` (6012) |
+| Swap between approved tokens (wrapped SOL to the owner) | allowed | landed |
+| Swap into an unapproved token (devnet USDC) | refused | refused on-chain: `OperationNotPermitted`, a token with no scope can't leave the wallet |
 | Call an unapproved program (a memo) | refused | **landed.** Scopes can't restrict programs |
-| Swap between approved tokens (wrapped SOL to the owner) | allowed | landed, once the scopes matched how Crossmint checks ([run](results/crossmint-devnet-2026-09-17T06-42-00-286Z.json)) |
-| Swap into an unapproved token (devnet USDC) | refused | not conclusive yet: the wallet holds none, so it fails before the policy is consulted |
+| Transfer just under the limit (0.009 of 0.01 SOL per minute) | allowed | landed |
+| Transfer just over the limit (0.011 SOL) | refused | refused on-chain: `SpendingLimitExceeded` (6012) |
+
+The run is marked failed because of the memo. That is the result, not a fault in the check: Crossmint
+can't stop a machine's signer from calling any program, as long as no balance moves where the scopes
+don't allow. Earlier runs in `results/` record the scope mistakes described below.
 
 - **Enforcement is on-chain.** Refusals come from Crossmint's smart account program
   (`XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU`, `enforcement.rs`) during simulation, with a named
@@ -156,6 +160,8 @@ Results so far ([run](results/crossmint-devnet-2026-09-17T05-13-58-968Z.json)):
   - An instruction that creates a token account for someone else makes that account a recipient too.
     The token checks only send to accounts that already exist (`pnpm prepare:crossmint` creates them,
     paid by the Turnkey test wallet).
+- **Tokens are refused by default.** A balance going down with no scope for that token fails with
+  `OperationNotPermitted`, so an unapproved token can't leave the wallet even though no rule names it.
 - **Token recipients are wallets.** A token scope listing the owner's token account refused the
   transfer. Listing the owner's wallet allowed it.
 - **Crossmint caps the rent it covers per day.** Staging stopped with `DAILY_RENT_CAP_EXCEEDED`:
