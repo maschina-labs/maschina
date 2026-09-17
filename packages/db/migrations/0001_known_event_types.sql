@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD CONSTRAINT "events_type_known" CHECK ("type" in ('run.queued', 'run.started', 'run.skipped', 'run.finished', 'trade.intended', 'trade.refused', 'trade.completed', 'trade.failed', 'machine.created', 'machine.started', 'machine.paused', 'machine.resumed', 'machine.stopped', 'machine.limits_changed', 'authority.used', 'authority.denied'));

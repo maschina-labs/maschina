@@ -6,7 +6,9 @@
  * itself, in the migration, for every role including the owner.
  */
 
-import { bigint, index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { EVENT_TYPES } from "@maschina/contracts";
+import { sql } from "drizzle-orm";
+import { bigint, check, index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const events = pgTable(
 	"events",
@@ -21,5 +23,13 @@ export const events = pgTable(
 		leaseEpoch: bigint("lease_epoch", { mode: "bigint" }).notNull(),
 		occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
 	},
-	(table) => [index("events_machine_time").on(table.machineId, table.occurredAt)],
+	(table) => [
+		index("events_machine_time").on(table.machineId, table.occurredAt),
+		// Only types defined in the contracts may be written. Adding one means a migration, on purpose:
+		// the record is forever, so a typo'd type would live in it forever too.
+		check(
+			"events_type_known",
+			sql.raw(`"type" in (${EVENT_TYPES.map((type) => `'${type}'`).join(", ")})`),
+		),
+	],
 );

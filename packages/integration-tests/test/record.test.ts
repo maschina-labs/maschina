@@ -113,6 +113,20 @@ describe("the record", () => {
 		});
 	}
 
+	it("refuses an event type the contracts don't define", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			await expect(
+				sql`insert into events (machine_id, type, lease_epoch) values (${randomUUID()}, 'trade.sneaky', 1)`,
+			).rejects.toThrow(/events_type_known|violates check constraint/i);
+			await expect(
+				sql`insert into events (machine_id, type, lease_epoch) values (${randomUUID()}, 'machine.created', 1)`,
+			).resolves.toBeDefined();
+		} finally {
+			await sql.end();
+		}
+	});
+
 	it("refuses an event with no machine, no type or no lease epoch", async () => {
 		const sql = connect(database.appUrl);
 		try {
