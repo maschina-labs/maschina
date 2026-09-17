@@ -4,11 +4,11 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, beforeEach, describe, it } from "node:test";
+import { isolateGit } from "../test-support/isolated-git.mjs";
 import { branchNameProblem, newStack, restack } from "./stack.mjs";
 
-// Keep the machine's own git config (signing, hooks, aliases) out of these repositories.
-process.env.GIT_CONFIG_GLOBAL = "/dev/null";
-process.env.GIT_CONFIG_NOSYSTEM = "1";
+// Git commands here must act only on the repositories these tests create, even inside a git hook.
+isolateGit();
 
 describe("branchNameProblem", () => {
 	it("accepts a type and one to three short words", () => {

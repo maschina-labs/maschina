@@ -4,11 +4,11 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
+import { isolateGit } from "../test-support/isolated-git.mjs";
 import { classify, detectChanges, onlyVersionChanged } from "./changes.mjs";
 
-// Keep the machine's own git config (signing, hooks, aliases) out of these repositories.
-process.env.GIT_CONFIG_GLOBAL = "/dev/null";
-process.env.GIT_CONFIG_NOSYSTEM = "1";
+// Git commands here must act only on the repositories these tests create, even inside a git hook.
+isolateGit();
 
 const EVERYTHING = { code: true, images: true };
 const FULL_RUN = { ...EVERYTHING, affected: false };
