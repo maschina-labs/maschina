@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.4](https://github.com/maschina-labs/maschina/compare/v0.0.3...v0.0.4) (2026-09-17)
+
+
+### Added
+
+* **db:** create the append-only record table ([#461](https://github.com/maschina-labs/maschina/issues/461)) ([2a229ff](https://github.com/maschina-labs/maschina/commit/2a229fffb9283ecdf681730220058c0ae9956692))
+* **repo:** read mainnet and devnet balances through helius ([#458](https://github.com/maschina-labs/maschina/issues/458)) ([1016be3](https://github.com/maschina-labs/maschina/commit/1016be353237a2bbc4b02793ab0793bd023482cd))
+* **signer:** define the wallet provider interface ([#457](https://github.com/maschina-labs/maschina/issues/457)) ([5195659](https://github.com/maschina-labs/maschina/commit/5195659eb2332dff91f6ae63871f4857fd013c07))
+
 ## [0.0.3](https://github.com/maschina-labs/maschina/compare/v0.0.2...v0.0.3) (2026-09-17)
 
 
