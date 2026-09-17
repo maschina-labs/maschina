@@ -1,0 +1,25 @@
+{
+	"at": "2026-09-17T16:14:09.434Z",
+	"turnkey": {
+		"createWallet": {
+			"runs": 3,
+			"minMs": 197,
+			"medianMs": 228,
+			"maxMs": 588
+		},
+		"signTransaction": {
+			"runs": 5,
+			"minMs": 168,
+			"medianMs": 183,
+			"maxMs": 225
+		}
+	},
+	"crossmint": {
+		"createWallet": {
+			"runs": 3,
+			"minMs": 277,
+			"medianMs": 407,
+			"maxMs": 1762
+		}
+	}
+}

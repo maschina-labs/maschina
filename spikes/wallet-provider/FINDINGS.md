@@ -202,6 +202,90 @@ devnet SOL is lost. The recipient is always removed at the end, even when a step
 - A payment to a new address must leave it at least rent-exempt (about 0.00089 SOL), so the checks pay
   0.001 SOL.
 
+## Turnkey and Crossmint compared (#26)
+
+Everything below comes from this spike's runs, except prices, which come from each provider's pricing
+page on 2026-09-17.
+
+### Policy coverage
+
+| Machine wallet rule | Turnkey | Crossmint |
+| --- | --- | --- |
+| SOL only to the owner and approved recipients | Enforced | Enforced |
+| Only approved tokens | Enforced, on checked transfers | Enforced: a token with no scope can't leave |
+| A maximum size per transaction | Enforced | **Not expressible.** Only a total per interval |
+| Only approved programs | Enforced | **Not expressible** |
+| Changing the recipient list | In place, the signer keeps working | The signer is removed and added again |
+| Where it's enforced | Turnkey's secure enclave, before anything is signed | On-chain, by Crossmint's smart account program, after the transaction's instructions run |
+
+Crossmint judges a transaction by how balances changed. Anything that moves no balance at the moment it
+runs isn't judged at all, which is how the memo landed. The worry is instructions that hand over power
+without moving money, such as a token `Approve` that lets someone else spend later, or changing a token
+account's owner. **Untested.** Crossmint shouldn't be chosen without testing these first.
+
+### Speed
+
+| | Turnkey | Crossmint |
+| --- | --- | --- |
+| Create a wallet (3 runs, [timings](results/provider-timings-2026-09-17T16-14-04-100Z.json)) | median 228 ms (197 to 588) | median 407 ms (277 to 1,762). One earlier run: 1.9 s |
+| Decide on a transaction | about 0.2 s to sign (5 runs, median 183 ms), about 0.3 s to refuse | 1 to 3 s to refuse |
+| Allowed transfer, landed on devnet | 2 to 2.5 s, including sending and confirming | 3 to 9 s, Crossmint sends it |
+
+Turnkey signs and Maschina sends, so Maschina controls priority fees and retries. Crossmint sends it
+itself.
+
+### Price
+
+| | Turnkey | Crossmint |
+| --- | --- | --- |
+| Free | 1,000 wallets, 25 signatures a month | 1,000 active wallets a month |
+| Paid | $0.10 a signature, or $99 a month and $0.05 a signature. Enterprise quoted "as low as $0.0015" | From $0.05 per active wallet a month, volume discounts |
+| What drives the bill | Every signature, so every trade | Every wallet used that month, however much it trades |
+
+With every machine trading once a day (about 30 signatures a month):
+
+| Machines | Turnkey Pro | Turnkey at $0.0015 | Crossmint |
+| --- | --- | --- | --- |
+| 100 | about $250 a month | about $5 | free |
+| 10,000 | about $15,000 | about $450 | about $450 |
+| 100,000 | about $150,000 | about $4,500 | about $4,950 |
+
+At the recorded fee (0.5% on scheduled trades, D-032), a machine buying $50 a day earns Maschina about
+$7.50 a month. Turnkey at Pro rates costs $1.50 of that; a machine trading 50 times a day costs $75 a
+month in signatures. **Turnkey only works at scale on Enterprise terms,** so the price has to be agreed
+before launch, not discovered after.
+
+### Custody, and if the provider disappears
+
+- **Turnkey:** keys live in Turnkey's enclaves. Maschina's signer can't export them (an explicit deny
+  policy). An authorised user can export a wallet, so funds could be moved out ahead of a shutdown.
+  Their disaster recovery terms still need reading.
+- **Crossmint:** the wallet is an on-chain smart account. Its admin key is derived from a secret
+  Maschina holds, so in principle Maschina still controls the account without Crossmint, but every tool
+  used here goes through Crossmint's API. Untested.
+
+### SDK, documentation and support
+
+- **Turnkey:** a small server SDK, no advisories, no licence problems. Policy errors come back
+  structured, which made refusals easy to recognise. Docs were enough for everything here.
+- **Crossmint:** aimed at browsers. It pulled in four packages with advisories and an LGPL dependency.
+  It logs every call to the console with no way to turn it off, sends those logs to Crossmint's
+  Datadog, and logged errors on calls that succeeded. Several behaviours (token recipients are wallets,
+  checks run after the transaction, the daily rent cap on staging) were found by testing, not from
+  the docs.
+- **Outages:** both have public status pages (turnkey-status.com, status.crossmint.com). Their history
+  loads in the browser, so it wasn't read here.
+
+### Recommendation
+
+**Turnkey.** It enforces every rule in the machine wallet policy, including the two Crossmint can't
+express, and it refuses before anything is signed rather than after instructions have run. It is faster,
+its SDK is clean, and its lists change without taking the machine offline.
+
+The cost is the catch: per-signature pricing only works at Enterprise rates. Before launch, get an
+Enterprise quote. If it's far above $0.0015 a signature, compare again, and test Crossmint's untested
+gaps before switching.
+
 ## Notes
 
 - Turnkey's first API key belongs to the organisation's root user, which can do anything. The signer
