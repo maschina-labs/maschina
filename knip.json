@@ -38,5 +38,5 @@
 			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "hono", "pino", "uuidv7", "zod"]
 		}
 	},
-	"ignoreBinaries": ["act"]
+	"ignoreBinaries": ["act", "gitleaks"]
 }
