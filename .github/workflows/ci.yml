@@ -90,6 +90,9 @@ jobs:
       - name: Script tests
         run: pnpm test:scripts
 
+      - name: Spike tests
+        run: pnpm test:spikes
+
       - name: Build
         run: pnpm build ${AFFECTED:+--affected}
 
