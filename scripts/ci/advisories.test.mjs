@@ -43,7 +43,7 @@ describe("ignored advisories", () => {
 			.split(",")
 			.map((p) => p.trim())
 			.filter(Boolean);
-		assert.deepEqual(allowed, ["pkg:npm/rpc-websockets"]);
+		assert.deepEqual(allowed, []);
 	});
 
 	it("are real advisory ids", () => {
