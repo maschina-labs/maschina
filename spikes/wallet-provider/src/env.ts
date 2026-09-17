@@ -113,3 +113,16 @@ export function checksEnv(source: Source): ChecksEnv {
 		heliusApiKey: env.HELIUS_API_KEY,
 	};
 }
+
+/** The Crossmint server signer secret saved by an earlier setup, if any. */
+export function crossmintSignerSecret(source: Source): string | undefined {
+	return read(
+		{
+			CROSSMINT_SERVER_SIGNER_SECRET: z
+				.string()
+				.regex(/^xmsk1_[0-9a-f]{64}$/)
+				.optional(),
+		},
+		source,
+	).CROSSMINT_SERVER_SIGNER_SECRET;
+}

@@ -11,10 +11,12 @@
 		"check:credentials": "node src/cli.ts ping",
 		"setup:turnkey": "node src/setup-turnkey.ts",
 		"check:turnkey": "node src/check-turnkey.ts",
+		"setup:crossmint": "node src/setup-crossmint.ts",
 		"test": "node --test \"src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@crossmint/wallets-sdk": "1.15.0",
 		"@solana-program/compute-budget": "0.18.1",
 		"@solana-program/memo": "0.14.0",
 		"@solana-program/system": "0.14.1",
