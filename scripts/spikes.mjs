@@ -3,7 +3,8 @@
  * Type checks and tests every spike. Spikes are separate installs, outside the main workspace, so the
  * workspace's own checks never reach them.
  *
- * Usage: node scripts/spikes.mjs
+ * Usage: node scripts/spikes.mjs            type check and test
+ *        node scripts/spikes.mjs --audit    check dependencies for published advisories (needs network)
  */
 
 import { spawnSync } from "node:child_process";
@@ -37,6 +38,10 @@ export function findSpikes(root) {
 	return { spikes, problems };
 }
 
+export function planSpikeAudits(spikes) {
+	return spikes.map(({ dir }) => ["pnpm", ["--dir", dir, "audit", "--audit-level", "moderate"]]);
+}
+
 export function planSpikeChecks(spikes) {
 	return spikes.flatMap(({ dir }) => [
 		["pnpm", ["install", "--frozen-lockfile", "--dir", dir]],
@@ -54,7 +59,8 @@ if (isMain) {
 		console.error(problems.join("\n"));
 		process.exit(1);
 	}
-	for (const [command, args] of planSpikeChecks(spikes)) {
+	const audit = process.argv.includes("--audit");
+	for (const [command, args] of audit ? planSpikeAudits(spikes) : planSpikeChecks(spikes)) {
 		const { status } = spawnSync(command, args, { stdio: "inherit" });
 		if (status !== 0) process.exit(status ?? 1);
 	}

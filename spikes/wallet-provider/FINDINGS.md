@@ -93,6 +93,13 @@ Still open:
 - **SDK:** it's aimed at browsers and pulls in EVM and Stellar libraries, an older Solana library
   (`@solana/web3.js`), and packages expecting TypeScript 5 and Zod 3. It also logs every call to the
   console by default.
+- **Advisories:** installing it brought in four packages with published advisories: two in `ws` (one
+  high, through viem), one in `uuid` and one in `stream-json` (both through `@solana/web3.js`'s RPC
+  client).
+  - `ws` and `uuid` are overridden to patched versions.
+  - `stream-json`'s patched version moved the modules its user loads, so that advisory is ignored with
+    the reason recorded: the code that loads it is never used by the Solana client.
+  - Turnkey's SDK brought in none.
 
 Next for Crossmint (#22): a separate delegated signer for the machine, restricted with scopes. Crossmint's
 docs say scopes cover transfers only (a spending limit per token and a recipient allow list, plus an

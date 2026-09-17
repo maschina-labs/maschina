@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
-import { findSpikes, planSpikeChecks } from "./spikes.mjs";
+import { findSpikes, planSpikeAudits, planSpikeChecks } from "./spikes.mjs";
 
 describe("findSpikes", () => {
 	const root = mkdtempSync(join(tmpdir(), "maschina-spikes-"));
@@ -58,6 +58,14 @@ describe("findSpikes", () => {
 		} finally {
 			rmSync(empty, { recursive: true, force: true });
 		}
+	});
+});
+
+describe("planSpikeAudits", () => {
+	it("audits each spike's dependencies for published advisories", () => {
+		assert.deepEqual(planSpikeAudits([{ name: "a", dir: "/r/spikes/a" }]), [
+			["pnpm", ["--dir", "/r/spikes/a", "audit", "--audit-level", "moderate"]],
+		]);
 	});
 });
 
