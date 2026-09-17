@@ -11,7 +11,7 @@ import {
 	setTransactionMessageFeePayer,
 	setTransactionMessageLifetimeUsingBlockhash,
 } from "@solana/kit";
-import { type DevnetRpc, devnetUrl, submitSigned } from "./devnet.ts";
+import { type DevnetRpc, devnetUrl, mainnetUrl, submitSigned } from "./devnet.ts";
 
 const WALLET = address("6Xa6BehnAkS9tUui8hYgNs9qjFmuxZe2pGZm9k8u2uvh");
 
@@ -84,6 +84,12 @@ describe("submitSigned", () => {
 		const unsigned = signedHex().replace(/(07){64}/, "00".repeat(64));
 		await assert.rejects(submitSigned(rpc, unsigned, fast), /not signed/);
 		assert.equal(sent.length, 0);
+	});
+});
+
+describe("mainnetUrl", () => {
+	it("points at Helius mainnet with the same key", () => {
+		assert.equal(mainnetUrl("abc"), "https://mainnet.helius-rpc.com/?api-key=abc");
 	});
 });
 

@@ -1,0 +1,14 @@
+{
+	"at": "2026-09-17T17:04:49.298Z",
+	"owner": "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR",
+	"balances": {
+		"devnet": {
+			"lamports": "2508465920",
+			"slot": "499913482"
+		},
+		"mainnet": {
+			"lamports": "0",
+			"slot": "447847537"
+		}
+	}
+}
