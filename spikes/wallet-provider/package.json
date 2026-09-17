@@ -10,10 +10,16 @@
 	"scripts": {
 		"check:credentials": "node src/cli.ts ping",
 		"setup:turnkey": "node src/setup-turnkey.ts",
+		"check:turnkey": "node src/check-turnkey.ts",
 		"test": "node --test \"src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@solana-program/compute-budget": "0.18.1",
+		"@solana-program/memo": "0.14.0",
+		"@solana-program/system": "0.14.1",
+		"@solana-program/token": "0.16.1",
+		"@solana/kit": "8.3.0",
 		"@turnkey/sdk-server": "8.5.0",
 		"zod": "4.6.5"
 	},

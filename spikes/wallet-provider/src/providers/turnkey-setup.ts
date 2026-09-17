@@ -79,6 +79,8 @@ export type SetupOptions = {
 		MachineWalletRules,
 		"approvedPrograms" | "approvedMints" | "maxLamportsPerTransfer"
 	>;
+	/** More addresses the wallet may send SOL to, such as its own wrapped SOL account. */
+	extraRecipients?: (walletAddress: string) => Promise<string[]>;
 };
 
 export type SetupResult = {
@@ -155,7 +157,10 @@ export async function setupMachineWallet(options: SetupOptions): Promise<SetupRe
 		...options.settings,
 		signerUserId,
 		walletAddress,
-		transferRecipients: [options.ownerAddress],
+		transferRecipients: [
+			options.ownerAddress,
+			...((await options.extraRecipients?.(walletAddress)) ?? []),
+		],
 	});
 	const { policies } = await admin.getPolicies();
 	for (const spec of specs) {

@@ -1,9 +1,9 @@
 {
-	"at": "2026-09-17T04:06:03.720Z",
+	"at": "2026-09-17T04:25:27.669Z",
 	"signerUserId": "794893a3-789c-415d-88db-ab0488ebf383",
 	"walletId": "b1b9bc31-b443-5449-ab9b-d3fdfd923ba5",
 	"walletAddress": "6Xa6BehnAkS9tUui8hYgNs9qjFmuxZe2pGZm9k8u2uvh",
-	"changed": [],
+	"changed": ["machine:devnet:sign"],
 	"signerKeyWorks": {
 		"ok": true,
 		"detail": "organization Maschina as spike-signer"

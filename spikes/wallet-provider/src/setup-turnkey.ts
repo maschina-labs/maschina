@@ -8,6 +8,7 @@
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
+import { address } from "@solana/kit";
 import { Turnkey } from "@turnkey/sdk-server";
 import type { ApiKeyPair } from "./api-key.ts";
 import { generateApiKeyPair } from "./api-key.ts";
@@ -16,6 +17,7 @@ import { storeInInfisical } from "./infisical.ts";
 import { SOLANA_PROGRAMS } from "./policy.ts";
 import { turnkey } from "./providers/turnkey.ts";
 import { setupMachineWallet } from "./providers/turnkey-setup.ts";
+import { wrappedSolAccount } from "./solana/transactions.ts";
 
 const DEVNET_USDC = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 const WRAPPED_SOL = "So11111111111111111111111111111111111111112";
@@ -48,6 +50,8 @@ try {
 				},
 				{ env: "dev", path: "/wallet-spike" },
 			),
+		// Wrapping SOL for a token swap moves SOL into the wallet's own wrapped SOL account.
+		extraRecipients: async (wallet) => [await wrappedSolAccount(address(wallet))],
 		settings: {
 			approvedPrograms: Object.values(SOLANA_PROGRAMS),
 			approvedMints: [DEVNET_USDC, WRAPPED_SOL],

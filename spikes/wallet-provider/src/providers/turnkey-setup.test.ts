@@ -165,6 +165,21 @@ describe("setupMachineWallet", () => {
 		assert.notEqual(sign.condition, "true");
 	});
 
+	it("adds the wallet's own accounts as SOL recipients when asked", async () => {
+		const turnkey = fakeTurnkey();
+		const own = "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM";
+		let askedFor = "";
+		await run(turnkey.admin, {
+			extraRecipients: async (wallet) => {
+				askedFor = wallet;
+				return [own];
+			},
+		}).promise;
+		assert.equal(askedFor, WALLET);
+		const sign = turnkey.policies.find((p) => p.policyName === "machine:test:sign");
+		assert.ok(sign?.condition.includes(`(t.to == '${OWNER}' || t.to == '${own}')`));
+	});
+
 	it("fails when a policy reads back differently from what was set", async () => {
 		const turnkey = fakeTurnkey({ mangleConditions: true });
 		await assert.rejects(run(turnkey.admin).promise, /machine:test:sign doesn't match/);

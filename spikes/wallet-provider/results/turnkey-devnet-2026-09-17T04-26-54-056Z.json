@@ -1,0 +1,64 @@
+{
+	"provider": "turnkey-devnet",
+	"at": "2026-09-17T04:26:54.056Z",
+	"passed": true,
+	"failures": [],
+	"results": [
+		{
+			"id": "transfer-owner",
+			"outcome": {
+				"status": "allowed",
+				"signature": "4CbEgLz1f2qxxAPhtwdXBDxNjLhHjenrVBmqePUgJHUk1mUggSQBYC6ccj5S8GZSMUKBCMWVv2tpuSg1RVgiqTky"
+			},
+			"ms": 2531.369625
+		},
+		{
+			"id": "transfer-outside",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 290.8761669999999
+		},
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "allowed",
+				"signature": "5UqVXAiRDxX11msobvCHavmsDRrkDTurG7JgXCqw3gP2CD5g22y374isXhk8ABGBNt2bUfYCCcwQhYTeQ4F57RLb"
+			},
+			"ms": 2033.6608749999996
+		},
+		{
+			"id": "swap-unapproved-token",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 305.8372499999996
+		},
+		{
+			"id": "unapproved-program",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 278.35258299999987
+		},
+		{
+			"id": "under-size-limit",
+			"outcome": {
+				"status": "allowed",
+				"signature": "ukXA2vReuUS6sDuV6FTkpbZjxzzrztRb8RFiyA3F1grRJFBFC2yuBmUsWrhgt9HboLbJjg5h8C3FH5VoHbKNA61"
+			},
+			"ms": 2009.4328749999995
+		},
+		{
+			"id": "over-size-limit",
+			"outcome": {
+				"status": "refused",
+				"reason": "No policies evaluated to outcome: Allow (OUTCOME_DENY_IMPLICIT, OUTCOME_DENY_IMPLICIT)"
+			},
+			"ms": 363.88437499999964
+		}
+	]
+}
