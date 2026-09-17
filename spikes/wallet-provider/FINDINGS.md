@@ -14,6 +14,8 @@ infisical run --env=dev --path=/wallet-spike -- pnpm prepare:crossmint # token a
 infisical run --env=dev --path=/wallet-spike -- pnpm check:turnkey   # refusal checks
 infisical run --env=dev --path=/wallet-spike -- pnpm check:crossmint
 infisical run --env=dev --path=/wallet-spike -- pnpm check:recipients turnkey   # or crossmint
+infisical run --env=dev --path=/wallet-spike -- pnpm time:providers   # wallet creation and signing times
+infisical run --env=dev --path=/wallet-spike -- pnpm check:helius   # devnet and mainnet balances, read only
 pnpm test       # the spike's own tests, no credentials needed
 ```
 
@@ -285,6 +287,21 @@ its SDK is clean, and its lists change without taking the machine offline.
 The cost is the catch: per-signature pricing only works at Enterprise rates. Before launch, get an
 Enterprise quote. If it's far above $0.0015 a signature, compare again, and test Crossmint's untested
 gaps before switching.
+
+## Helius (#15)
+
+`pnpm check:helius` reads the owner's balance on devnet and mainnet with the development key from
+Infisical, read only ([run](results/helius-2026-09-17T17-04-49-298Z.json)).
+
+Free plan limits, from helius.dev/pricing on 2026-09-17: 1 million credits a month, 10 RPC requests a
+second, 1 `sendTransaction` a second. The cheapest paid plan is $49 a month for 10 million credits, 50
+requests and 5 sends a second.
+
+- Tests that loop against Helius must stay well under 10 requests a second. The spike's checks send
+  one transaction at a time.
+- 1 send a second is fine for development and far too little for launch. The sending path is chosen
+  with the other services.
+- The production key is created with production (A5), in Infisical's production environment.
 
 ## Notes
 

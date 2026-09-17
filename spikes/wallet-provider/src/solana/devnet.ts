@@ -13,6 +13,9 @@ export const DEVNET_USDC = address("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
 
 export const devnetUrl = (apiKey: string) => `https://devnet.helius-rpc.com/?api-key=${apiKey}`;
 
+/** Mainnet, for reading only. Nothing in the spike sends a mainnet transaction (D-061). */
+export const mainnetUrl = (apiKey: string) => `https://mainnet.helius-rpc.com/?api-key=${apiKey}`;
+
 export const devnetRpc = (apiKey: string): DevnetRpc => createSolanaRpc(devnetUrl(apiKey));
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
