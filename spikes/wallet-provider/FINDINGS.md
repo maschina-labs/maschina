@@ -22,14 +22,14 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
 | Policy attached and reads back as set (#22) | allowed | ok, 2026-09-16 | partly: scopes attached 2026-09-16, two rules can't be expressed ([setup](results/crossmint-setup-devnet.json)) |
 | Wallet created | allowed | ok, 2026-09-16 (in #18) | ok, 2026-09-16, about 1.9 s ([setup](results/crossmint-setup-devnet.json)) |
-| Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | not run |
-| Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Swap between approved tokens | allowed | ok, landed (wrapped SOL to the owner), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Swap into an unapproved token | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
-| Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
+| Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | ok, 2026-09-17 ([setup](results/crossmint-setup-devnet.json)) |
+| Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Swap between approved tokens | allowed | ok, landed (wrapped SOL to the owner), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed (wrapped SOL to the owner), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Swap into an unapproved token | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Call an unapproved program | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | **failed: landed.** Scopes can't restrict programs, [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer just under the size limit | allowed | ok, landed (0.049 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, landed (0.009 SOL of 0.01 per minute), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
+| Transfer just over the size limit | refused | ok, refused (0.051 SOL), [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | ok, refused (0.011 SOL), [run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json) |
 | Pay an approved recipient | allowed | not run | not run |
 | Pay an unapproved recipient | refused | not run | not run |
 | Pay a removed recipient | refused | not run | not run |
@@ -111,9 +111,9 @@ Still open:
 Infisical, as a delegated signer on the wallet. The server signer approves it. Its scopes read back
 exactly as set:
 
-- **token:** SOL only (`solana:sol`)
-- **recipient:** the owner only
-- **spending limit:** 0.05 SOL per hour
+- **SOL** (`solana:sol`): to the owner, the wallet's own wrapped SOL account and the owner's wrapped SOL
+  account, at most 0.01 SOL per minute (small, so the limit checks cost little)
+- **wrapped SOL** (`solana:So111...112`): to the owner, with no limit of its own
 
 The rules compare with the machine wallet policy like this:
 
@@ -124,7 +124,52 @@ The rules compare with the machine wallet policy like this:
 | A maximum size per transaction | Policy, per transfer | **Not expressible.** Only a total per interval |
 | Only approved programs | Policy | **Not expressible.** Scopes only describe transfers |
 | The signer can never export keys | Explicit deny policy | Not applicable, since the keypair is Maschina's own |
-| Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's backend, before broadcast |
+| Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's smart account program, on-chain (seen in #23), and checked in simulation before broadcast |
+
+## Crossmint refusals on devnet (#23)
+
+`pnpm check:crossmint` sends each check as the machine's scoped signer. Crossmint checks, signs and
+broadcasts in one call, so a forbidden transaction it allows really lands. On devnet that's harmless.
+
+Final run, 2026-09-17 ([run](results/crossmint-devnet-2026-09-17T07-50-14-310Z.json)):
+
+| Check | Expected | Crossmint |
+| --- | --- | --- |
+| Transfer to the owner | allowed | landed |
+| Transfer to any other address | refused | refused on-chain: `RecipientNotAllowed` (6017) |
+| Swap between approved tokens (wrapped SOL to the owner) | allowed | landed |
+| Swap into an unapproved token (devnet USDC) | refused | refused on-chain: `OperationNotPermitted`, a token with no scope can't leave the wallet |
+| Call an unapproved program (a memo) | refused | **landed.** Scopes can't restrict programs |
+| Transfer just under the limit (0.009 of 0.01 SOL per minute) | allowed | landed |
+| Transfer just over the limit (0.011 SOL) | refused | refused on-chain: `SpendingLimitExceeded` (6012) |
+
+The run is marked failed because of the memo. That is the result, not a fault in the check: Crossmint
+can't stop a machine's signer from calling any program, as long as no balance moves where the scopes
+don't allow. Earlier runs in `results/` record the scope mistakes described below.
+
+- **Enforcement is on-chain.** Refusals come from Crossmint's smart account program
+  (`XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU`, `enforcement.rs`) during simulation, with a named
+  error. That is stronger than the docs suggest. The classifier only counts those named enforcement
+  errors as refusals.
+- **The program checks after the transaction has run, not before.** Its logs show every inner
+  instruction succeeding, then the policy check failing. It compares balances before and after:
+  - A transfer bigger than the wallet holds fails with the System program's "insufficient funds" before
+    the limit is looked at, so the over-limit check needs a wallet holding more than the limit.
+  - Wrapped SOL moves real SOL. When a transaction wraps SOL and sends it on, the SOL ends up in the
+    owner's wrapped SOL account, so that account has to be a SOL recipient as well.
+  - An instruction that creates a token account for someone else makes that account a recipient too.
+    The token checks only send to accounts that already exist (`pnpm prepare:crossmint` creates them,
+    paid by the Turnkey test wallet).
+- **Tokens are refused by default.** A balance going down with no scope for that token fails with
+  `OperationNotPermitted`, so an unapproved token can't leave the wallet even though no rule names it.
+- **Token recipients are wallets.** A token scope listing the owner's token account refused the
+  transfer. Listing the owner's wallet allowed it.
+- **Crossmint caps the rent it covers per day.** Staging stopped with `DAILY_RENT_CAP_EXCEEDED`:
+  10,000,000 lamports (0.01 SOL) per rolling day. Creating token accounts counts against it.
+- **Timing:** allowed transactions took a few seconds each through Crossmint's API.
+- **The SDK can't be quieted.** It logs every call to the console, and the wallets SDK never passes a log
+  level to its logger. On a server it also sends the same logs, including wallet addresses and
+  transaction ids, to Crossmint's Datadog. A production adapter needs to account for both (#28).
 
 Scopes can't be edited. Changing them means removing the signer and adding it again, which the setup
 does when they differ.

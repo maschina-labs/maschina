@@ -10,6 +10,8 @@ regexes = [
 	'''maschina_dev_password''',
 	# A made-up Turnkey organisation id in the wallet spike's tests.
 	'''0b1c8e5e-7c3b-4f55-9e57-6c2b4f0a9d11''',
+	# A public Solana address, the Crossmint test wallet's wrapped SOL account, in the spike's tests.
+	'''CfZaYTfQ7YyeWv8XvcZ7amMAAcE83DLL2mNeef46Dvp7''',
 ]
 paths = [
 	'''pnpm-lock\.yaml''',

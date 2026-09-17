@@ -1,0 +1,16 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T06:40:51.091Z",
+	"passed": false,
+	"failures": ["swap-approved-tokens: expected allowed, was refused"],
+	"results": [
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 1269.355833
+		}
+	]
+}

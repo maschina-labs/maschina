@@ -1,0 +1,68 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T05:13:58.968Z",
+	"passed": false,
+	"failures": [
+		"swap-approved-tokens: expected allowed, was refused",
+		"swap-unapproved-token: errored before the provider decided ({\"error\":true,\"message\":\"Transaction simulation failed. Please check the transaction payload.\",\"code\":\"TRANSACTION_SIMULATION_FAILED\",\"simulation\":{\"success\":false,\"err\":{\"InstructionError\":[3,\"InvalidAccountData\"]},\"logs\":[\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program 11111111111111111111111111111111 invoke [1]\",\"Program 11111111111111111111111111111111 success\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU invoke [1]\",\"Program log: Instruction: ExecuteTransaction\",\"Program data: 0+OoDiBvvdIihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2AEC\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [2]\",\"Program log: CreateIdempotent\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 179 of 379191 compute units\",\"Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA pQAAAAAAAAA=\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program 11111111111111111111111111111111 invoke [3]\",\"Program 11111111111111111111111111111111 success\",\"Program log: Initialize the associated token account\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 37 of 374102 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 233 of 371639 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 13518 of 384620 compute units\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success\",\"Program data: y/vICEP+KZYihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2IyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAA==\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]\",\"Program log: Error: InvalidAccountData\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 199 of 368438 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: invalid account data for instruction\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU consumed 31311 of 399550 compute units\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU failed: invalid account data for instruction\"]}})",
+		"unapproved-program: expected refused, was allowed"
+	],
+	"results": [
+		{
+			"id": "transfer-owner",
+			"outcome": {
+				"status": "allowed",
+				"signature": "WUjcCapj6KmuvBcFXJXw14r8VokZUuhMUjpBeZwXx5sCV7EnoKJuQS8QYoSxnbp2bWeWiaNz2CfXNbNYnxwsg1v"
+			},
+			"ms": 4078.745208
+		},
+		{
+			"id": "transfer-outside",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 631.610541
+		},
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "refused",
+				"reason": "RecipientNotAllowed: Transfer destination not in the policy's allowed recipients list"
+			},
+			"ms": 754.0761669999993
+		},
+		{
+			"id": "swap-unapproved-token",
+			"outcome": {
+				"status": "error",
+				"message": "{\"error\":true,\"message\":\"Transaction simulation failed. Please check the transaction payload.\",\"code\":\"TRANSACTION_SIMULATION_FAILED\",\"simulation\":{\"success\":false,\"err\":{\"InstructionError\":[3,\"InvalidAccountData\"]},\"logs\":[\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program ComputeBudget111111111111111111111111111111 invoke [1]\",\"Program ComputeBudget111111111111111111111111111111 success\",\"Program 11111111111111111111111111111111 invoke [1]\",\"Program 11111111111111111111111111111111 success\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU invoke [1]\",\"Program log: Instruction: ExecuteTransaction\",\"Program data: 0+OoDiBvvdIihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2AEC\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [2]\",\"Program log: CreateIdempotent\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 179 of 379191 compute units\",\"Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA pQAAAAAAAAA=\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program 11111111111111111111111111111111 invoke [3]\",\"Program 11111111111111111111111111111111 success\",\"Program log: Initialize the associated token account\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 37 of 374102 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [3]\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 233 of 371639 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 13518 of 384620 compute units\",\"Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success\",\"Program data: y/vICEP+KZYihwYinxJ4N1kXp6GRan7lmjyCFhlszEWEQTeZj4MG2IyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAA==\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]\",\"Program log: Error: InvalidAccountData\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 199 of 368438 compute units\",\"Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: invalid account data for instruction\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU consumed 31311 of 399550 compute units\",\"Program XmSwiXQsxSZYKVYbSAkkvQVvdrKo1nwwfvZBPQrLzbU failed: invalid account data for instruction\"]}}"
+			},
+			"ms": 651.8203749999993
+		},
+		{
+			"id": "unapproved-program",
+			"outcome": {
+				"status": "allowed",
+				"signature": "3qyFotfFDuKGAC722qaZQRASFwBn3VGBy9f4xsJNXZ28MLKvUPyXoL7qPwhLdFYBhp3ScNqratVRoKMkuA3sUjFb"
+			},
+			"ms": 4005.7643749999997
+		},
+		{
+			"id": "under-size-limit",
+			"outcome": {
+				"status": "allowed",
+				"signature": "447yjQgZU1JM3fQkkPctsTDqhipuQhf58oNK21b3Ec9hnkzbxL3gnrf7JeWAmjiLo8eee734yJ1F4PXdt7HMqiVm"
+			},
+			"ms": 3256.0424580000017
+		},
+		{
+			"id": "over-size-limit",
+			"outcome": {
+				"status": "refused",
+				"reason": "SpendingLimitExceeded: Transaction exceeds the signer's spending limit for this token"
+			},
+			"ms": 500.1309999999994
+		}
+	]
+}

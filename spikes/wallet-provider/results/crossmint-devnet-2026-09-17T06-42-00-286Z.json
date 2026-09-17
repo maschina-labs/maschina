@@ -1,0 +1,16 @@
+{
+	"provider": "crossmint-devnet",
+	"at": "2026-09-17T06:42:00.286Z",
+	"passed": true,
+	"failures": [],
+	"results": [
+		{
+			"id": "swap-approved-tokens",
+			"outcome": {
+				"status": "allowed",
+				"signature": "3S9dueYfbboDMTetoBazFCD9GRp6YCoAiUf8F62eANwc1kaW31BvM59hHJL6W629yem5fNxsgTrii29qmqmC1os5"
+			},
+			"ms": 2988.8097920000005
+		}
+	]
+}

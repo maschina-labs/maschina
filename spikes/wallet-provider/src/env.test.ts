@@ -5,6 +5,7 @@ import {
 	crossmintEnv,
 	crossmintMachineSigner,
 	crossmintSignerSecret,
+	heliusKey,
 	MissingEnvError,
 	setupEnv,
 	turnkeyEnv,
@@ -160,5 +161,12 @@ describe("crossmintMachineSigner", () => {
 			() => crossmintMachineSigner({ CROSSMINT_MACHINE_SIGNER_SECRET: "cd".repeat(10) }),
 			(error: unknown) => error instanceof MissingEnvError && !error.message.includes("cdcd"),
 		);
+	});
+});
+
+describe("heliusKey", () => {
+	it("reads the RPC key, and refuses a missing one", () => {
+		assert.equal(heliusKey({ HELIUS_API_KEY: "k" }), "k");
+		assert.throws(() => heliusKey({}), /HELIUS_API_KEY/);
 	});
 });

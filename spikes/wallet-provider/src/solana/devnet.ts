@@ -1,4 +1,5 @@
 import {
+	address,
 	createSolanaRpc,
 	getBase64EncodedWireTransaction,
 	getSignatureFromTransaction,
@@ -6,6 +7,9 @@ import {
 } from "@solana/kit";
 
 export type DevnetRpc = ReturnType<typeof createSolanaRpc>;
+
+/** Circle's devnet USDC. Real, so a transfer of it only fails where a policy says no. */
+export const DEVNET_USDC = address("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");
 
 export const devnetUrl = (apiKey: string) => `https://devnet.helius-rpc.com/?api-key=${apiKey}`;
 
