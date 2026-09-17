@@ -1,7 +1,11 @@
 /**
  * pnpm check:credentials [turnkey|crossmint]   check each provider's credentials work
  *
- * Credentials come from spikes/wallet-provider/.env. See .env.example.
+ * Credentials come from the environment, normally injected by Infisical:
+ *
+ *   infisical run --env=dev --path=/wallet-spike -- pnpm check:credentials
+ *
+ * .env.example lists every variable.
  */
 
 import { crossmintEnv, MissingEnvError, turnkeyEnv } from "./env.ts";

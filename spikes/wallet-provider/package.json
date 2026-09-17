@@ -8,7 +8,7 @@
 		"node": ">=24.21.0 <25"
 	},
 	"scripts": {
-		"check:credentials": "node --env-file-if-exists=.env src/cli.ts ping",
+		"check:credentials": "node src/cli.ts ping",
 		"test": "node --test \"src/**/*.test.ts\"",
 		"typecheck": "tsc --noEmit"
 	},

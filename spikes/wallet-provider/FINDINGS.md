@@ -6,10 +6,9 @@ against the same checklist (`src/checklist.ts`) before any Maschina code depends
 ## Running it
 
 ```bash
-pnpm install          # inside spikes/wallet-provider, separate from the main workspace
-cp .env.example .env  # then fill in the credentials
-pnpm check:credentials  # checks both providers' credentials
-pnpm test             # the spike's own tests
+pnpm install    # inside spikes/wallet-provider, separate from the main workspace
+infisical run --env=dev --path=/wallet-spike -- pnpm check:credentials
+pnpm test       # the spike's own tests, no credentials needed
 ```
 
 ## Results
@@ -18,7 +17,7 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 
 | Check | Expected | Turnkey | Crossmint |
 | --- | --- | --- | --- |
-| Credentials work | allowed | not run | not run |
+| Credentials work | allowed | ok, 2026-09-16 | not run |
 | Transfer to the owner | allowed | not run | not run |
 | Transfer to any other address | refused | not run | not run |
 | Swap between approved tokens | allowed | not run | not run |
@@ -34,6 +33,9 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 A refusal only counts when its allowed pair passed in the same run. An error is never a refusal.
 
 ## Notes
+
+- Turnkey's first API key belongs to the organisation's root user, which can do anything. The signer
+  must get its own API user, limited by Turnkey policies to what it needs.
 
 - Crossmint has no "who am I" endpoint. The credentials check asks for a wallet that can't exist and
   treats "not found" as proof the key was accepted.

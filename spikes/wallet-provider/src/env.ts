@@ -7,7 +7,9 @@ export class MissingEnvError extends Error {
 	readonly variables: string[];
 
 	constructor(variables: string[]) {
-		super(`Set these in spikes/wallet-provider/.env: ${variables.join(", ")}`);
+		super(
+			`Missing or invalid: ${variables.join(", ")}. Add them in Infisical under /wallet-spike.`,
+		);
 		this.name = "MissingEnvError";
 		this.variables = variables;
 	}
