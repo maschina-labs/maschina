@@ -9,6 +9,7 @@
 	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
+		"@maschina/core": "workspace:*",
 		"@maschina/db": "workspace:*",
 		"@maschina/testing": "workspace:*",
 		"@types/node": "catalog:",

@@ -137,6 +137,37 @@ export function listWorkspaces(root) {
 	return found;
 }
 
+/**
+ * Writing to the permanent record goes through one function, which checks the payload against its
+ * contract and refuses a stale lease. A direct insert anywhere else would skip both. Tests may insert
+ * directly: that is how the database's own rules are proved.
+ */
+const RECORD_WRITE = /insert\s+into\s+"?events"?|\.insert\(\s*(schema\.)?events\b/i;
+const RECORD_WRITER = "packages/db/src/record.ts";
+const TEST_FILE = /\.test\.[a-z]+$/;
+
+export function checkRecordWrites(root) {
+	const rule = {
+		name: "Only the record writer appends events",
+		why: "appendEvent checks the payload and the lease epoch. A direct insert skips both.",
+	};
+	const problems = [];
+	for (const ws of listWorkspaces(root)) {
+		for (const file of walk(join(root, ws))) {
+			const where = relative(root, file);
+			if (where === RECORD_WRITER || TEST_FILE.test(where)) continue;
+			readFileSync(file, "utf8")
+				.split("\n")
+				.forEach((line, index) => {
+					if (RECORD_WRITE.test(line)) {
+						problems.push({ rule, where: `${where}:${index + 1}`, what: "an insert into events" });
+					}
+				});
+		}
+	}
+	return problems;
+}
+
 export function checkBoundaries(root) {
 	const problems = [];
 
@@ -185,14 +216,14 @@ const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
 if (isMain) {
 	const root = join(fileURLToPath(import.meta.url), "../../..");
-	const problems = checkBoundaries(root);
+	const problems = [...checkBoundaries(root), ...checkRecordWrites(root)];
 	if (problems.length === 0) {
 		console.log("Architecture boundaries hold.");
 		process.exit(0);
 	}
-	console.error(`${problems.length} architecture boundary violation(s):\n`);
+	console.error(`${problems.length} architecture rule violation(s):\n`);
 	for (const p of problems) {
-		console.error(`  ${p.where}  imports ${p.what}`);
+		console.error(`  ${p.where}  has ${p.what}`);
 		console.error(`    ${p.rule.name}. ${p.rule.why}\n`);
 	}
 	process.exit(1);
