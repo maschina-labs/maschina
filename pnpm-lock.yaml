@@ -394,6 +394,9 @@ importers:
       '@maschina/config':
         specifier: workspace:*
         version: link:../config
+      '@maschina/core':
+        specifier: workspace:*
+        version: link:../core
       '@maschina/db':
         specifier: workspace:*
         version: link:../db

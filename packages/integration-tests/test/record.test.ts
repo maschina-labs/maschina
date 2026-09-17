@@ -4,6 +4,8 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { newId } from "@maschina/core";
+import { appendEvent, createDatabase } from "@maschina/db";
 import { createTestDatabase, type TestDatabase } from "@maschina/testing";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -139,6 +141,112 @@ describe("the record", () => {
 			}
 		} finally {
 			await sql.end();
+		}
+	});
+});
+
+describe("appendEvent", () => {
+	const handle = () =>
+		createDatabase({ url: database.appUrl, applicationName: "record-writer-test" });
+
+	it("writes a valid event and gives it a sortable v7 id", async () => {
+		const { db, close } = handle();
+		try {
+			const machineId = newId<"machine">();
+			const written = await appendEvent(db, {
+				machineId,
+				type: "machine.started",
+				payload: {},
+				leaseEpoch: 1n,
+			});
+			expect(written.ok).toBe(true);
+			if (!written.ok) return;
+			expect(written.value.id[14], "version 7").toBe("7");
+			expect(written.value.occurredAt.getTime()).toBeGreaterThan(Date.now() - 60_000);
+			const sql = connect(database.appUrl);
+			try {
+				const [row] = await sql<{ type: string; lease_epoch: string }[]>`
+					select type, lease_epoch from events where id = ${written.value.id}`;
+				expect(row).toEqual({ type: "machine.started", lease_epoch: "1" });
+			} finally {
+				await sql.end();
+			}
+		} finally {
+			await close();
+		}
+	});
+
+	it("refuses a payload that doesn't match its type, and writes nothing", async () => {
+		const { db, close } = handle();
+		try {
+			const machineId = newId<"machine">();
+			const result = await appendEvent(db, {
+				machineId,
+				type: "run.started",
+				payload: { runId: newId<"machine">() },
+				leaseEpoch: 1n,
+			});
+			expect(result.ok).toBe(false);
+			const sql = connect(database.appUrl);
+			try {
+				const [row] = await sql<{ count: string }[]>`
+					select count(*) from events where machine_id = ${machineId}`;
+				expect(row?.count).toBe("0");
+			} finally {
+				await sql.end();
+			}
+		} finally {
+			await close();
+		}
+	});
+
+	it("refuses a write from a lease the machine has moved on from", async () => {
+		const { db, close } = handle();
+		try {
+			const machineId = newId<"machine">();
+			const event = { machineId, type: "machine.started", payload: {} };
+			expect((await appendEvent(db, { ...event, leaseEpoch: 5n })).ok).toBe(true);
+
+			const stale = await appendEvent(db, { ...event, leaseEpoch: 4n });
+			expect(stale.ok).toBe(false);
+			if (!stale.ok) expect(stale.error.code).toBe("conflict");
+
+			// The current lease and a newer one both still work.
+			expect((await appendEvent(db, { ...event, leaseEpoch: 5n })).ok).toBe(true);
+			expect((await appendEvent(db, { ...event, leaseEpoch: 6n })).ok).toBe(true);
+
+			const sql = connect(database.appUrl);
+			try {
+				const [row] = await sql<{ count: string }[]>`
+					select count(*) from events where machine_id = ${machineId}`;
+				expect(row?.count).toBe("3");
+			} finally {
+				await sql.end();
+			}
+		} finally {
+			await close();
+		}
+	});
+
+	it("keeps one machine's leases from blocking another's", async () => {
+		const { db, close } = handle();
+		try {
+			const busy = newId<"machine">();
+			await appendEvent(db, {
+				machineId: busy,
+				type: "machine.started",
+				payload: {},
+				leaseEpoch: 9n,
+			});
+			const other = await appendEvent(db, {
+				machineId: newId<"machine">(),
+				type: "machine.started",
+				payload: {},
+				leaseEpoch: 1n,
+			});
+			expect(other.ok).toBe(true);
+		} finally {
+			await close();
 		}
 	});
 });

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, it } from "node:test";
-import { checkBoundaries } from "./boundaries.mjs";
+import { checkBoundaries, checkRecordWrites } from "./boundaries.mjs";
 
 const roots = [];
 after(() => {
@@ -129,5 +129,46 @@ describe("architecture boundaries", () => {
 			"services/daemon/dist/main.js": 'import "@maschina/db";',
 		});
 		assert.deepEqual(checkBoundaries(root), []);
+	});
+});
+
+describe("who may write to the record", () => {
+	const dbPackage = { "packages/db/package.json": pkg("@maschina/db") };
+
+	it("allows the record writer itself", () => {
+		const root = repo({
+			...dbPackage,
+			"packages/db/src/record.ts": "await db.execute(sql`insert into events (id) values (1)`);",
+		});
+		assert.deepEqual(checkRecordWrites(root), []);
+	});
+
+	it("allows tests, which prove the database's own rules with direct inserts", () => {
+		const root = repo({
+			...dbPackage,
+			"packages/db/src/schema/events.test.ts": "await sql`insert into events (id) values (1)`;",
+		});
+		assert.deepEqual(checkRecordWrites(root), []);
+	});
+
+	it("catches a raw insert anywhere else", () => {
+		const root = repo({
+			...dbPackage,
+			"services/orchestrator/package.json": pkg("@maschina/orchestrator"),
+			"services/orchestrator/src/run.ts": "await sql`insert into events (machine_id) values ($1)`;",
+		});
+		assert.deepEqual(
+			checkRecordWrites(root).map((p) => p.where),
+			["services/orchestrator/src/run.ts:1"],
+		);
+	});
+
+	it("catches a query builder insert anywhere else", () => {
+		const root = repo({
+			...dbPackage,
+			"services/signer/package.json": pkg("@maschina/signer"),
+			"services/signer/src/sign.ts": "await db.insert(schema.events).values(event);",
+		});
+		assert.equal(checkRecordWrites(root).length, 1);
 	});
 });

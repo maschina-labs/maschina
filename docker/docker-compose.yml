@@ -2,7 +2,7 @@ name: maschina
 
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     container_name: maschina-postgres
     restart: unless-stopped
     environment:
