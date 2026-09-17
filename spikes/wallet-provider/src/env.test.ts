@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { checksEnv, crossmintEnv, MissingEnvError, setupEnv, turnkeyEnv } from "./env.ts";
+import {
+	checksEnv,
+	crossmintEnv,
+	crossmintSignerSecret,
+	MissingEnvError,
+	setupEnv,
+	turnkeyEnv,
+} from "./env.ts";
 
 const TURNKEY = {
 	TURNKEY_API_PUBLIC_KEY: "02abc",
@@ -115,6 +122,22 @@ describe("checksEnv", () => {
 		assert.throws(
 			() => checksEnv({ ...complete, TURNKEY_SIGNER_API_PUBLIC_KEY: undefined }),
 			/TURNKEY_SIGNER_API_PUBLIC_KEY/,
+		);
+	});
+});
+
+describe("crossmintSignerSecret", () => {
+	it("reads a saved server secret, or nothing", () => {
+		const secret = `xmsk1_${"0f".repeat(32)}`;
+		assert.equal(crossmintSignerSecret({ CROSSMINT_SERVER_SIGNER_SECRET: secret }), secret);
+		assert.equal(crossmintSignerSecret({}), undefined);
+		assert.equal(crossmintSignerSecret({ CROSSMINT_SERVER_SIGNER_SECRET: "" }), undefined);
+	});
+
+	it("refuses a malformed secret without printing it", () => {
+		assert.throws(
+			() => crossmintSignerSecret({ CROSSMINT_SERVER_SIGNER_SECRET: "xmsk1_tooshort" }),
+			(error: unknown) => error instanceof MissingEnvError && !error.message.includes("tooshort"),
 		);
 	});
 });

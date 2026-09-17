@@ -3,4 +3,20 @@
 engineStrict: true
 saveExact: true
 minimumReleaseAge: 1440
-allowBuilds: {}
+allowBuilds:
+  # Native speedups with pure JavaScript fallbacks, as in the main workspace.
+  bufferutil: false
+  utf-8-validate: false
+
+# Patched versions of packages the Crossmint SDK pulls in through viem and @solana/web3.js, which have
+# published advisories. Each was checked against the code that loads it.
+overrides:
+  "ws@>=8.0.0 <8.21.0": 8.21.3
+  "uuid@<11.1.1": 11.1.1
+
+auditConfig:
+  ignoreGhsas:
+    # stream-json 1.x, through jayson. Its patched 3.x moved the modules jayson loads, so overriding
+    # would break jayson. Only jayson's server-side stream parser loads it, and @solana/web3.js uses
+    # jayson's browser client, which never does.
+    - GHSA-528h-pc64-c93x

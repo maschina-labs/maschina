@@ -9,6 +9,7 @@ against the same checklist (`src/checklist.ts`) before any Maschina code depends
 pnpm install    # inside spikes/wallet-provider, separate from the main workspace
 infisical run --env=dev --path=/wallet-spike -- pnpm check:credentials
 infisical run --env=dev --path=/wallet-spike -- pnpm setup:turnkey   # signer, wallet and policies
+infisical run --env=dev --path=/wallet-spike -- pnpm setup:crossmint # Crossmint wallet
 pnpm test       # the spike's own tests, no credentials needed
 ```
 
@@ -19,6 +20,7 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | Check | Expected | Turnkey | Crossmint |
 | --- | --- | --- | --- |
 | Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
+| Wallet created | allowed | ok, 2026-09-16 (in #18) | ok, 2026-09-16, about 1.9 s ([setup](results/crossmint-setup-devnet.json)) |
 | Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | not run |
 | Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
 | Transfer to any other address | refused | ok, refused, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
@@ -76,6 +78,36 @@ Still open:
 - The size limit covers SOL transfers. Limiting swap size needs Jupiter's instruction data, which Turnkey
   can read only if Jupiter's IDL is uploaded.
 - Jupiter uses address lookup tables. How Turnkey resolves accounts behind them needs testing.
+
+## Crossmint wallet (#21)
+
+- **Wallet:** `pnpm setup:crossmint` created a Solana smart wallet on Crossmint staging, which uses devnet:
+  `3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF`, in about 1.9 seconds. A second run finds it instead of
+  creating another.
+- **Custody:** the wallet's recovery signer is a server signer. Maschina generates the secret
+  (`xmsk1_` and 32 random bytes), keeps it in Infisical, and Crossmint's SDK derives the Solana signing
+  key from it on Maschina's side. According to Crossmint's docs the secret never reaches them.
+  - Whoever holds that secret has full control of the wallet. Nothing sits between the secret and a
+    signature the way Turnkey's policy engine does.
+  - A server signer can only be used through Crossmint's SDK, not plain REST.
+- **SDK:** it's aimed at browsers and pulls in EVM and Stellar libraries, an older Solana library
+  (`@solana/web3.js`), and packages expecting TypeScript 5 and Zod 3. It also logs every call to the
+  console by default.
+- **Advisories:** installing it brought in four packages with published advisories: two in `ws` (one
+  high, through viem), one in `uuid` and one in `stream-json` (both through `@solana/web3.js`'s RPC
+  client).
+  - `ws` and `uuid` are overridden to patched versions.
+  - `stream-json`'s patched version moved the modules its user loads, so that advisory is ignored with
+    the reason recorded: the code that loads it is never used by the Solana client.
+  - Turnkey's SDK brought in none.
+- **Licence:** Crossmint's SDK needs `@solana/web3.js` 1.x, which depends on `rpc-websockets`, licensed
+  LGPL-3.0. A production signer built on Crossmint's SDK would carry that dependency, which Maschina's
+  licence check refuses today. Turnkey's SDK has no such dependency.
+
+Next for Crossmint (#22): a separate delegated signer for the machine, restricted with scopes. Crossmint's
+docs say scopes cover transfers only (a spending limit per token and a recipient allow list, plus an
+expiry), and are checked by Crossmint's backend before broadcast. There is no scope for which programs a
+transaction may call.
 
 ## Notes
 
