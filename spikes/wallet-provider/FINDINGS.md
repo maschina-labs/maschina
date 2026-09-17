@@ -20,6 +20,7 @@ Filled in as each check is built. Every row links to its saved run in `results/`
 | Check | Expected | Turnkey | Crossmint |
 | --- | --- | --- | --- |
 | Credentials work | allowed | ok, 2026-09-16 | ok, 2026-09-16 (staging) |
+| Policy attached and reads back as set (#22) | allowed | ok, 2026-09-16 | partly: scopes attached 2026-09-16, two rules can't be expressed ([setup](results/crossmint-setup-devnet.json)) |
 | Wallet created | allowed | ok, 2026-09-16 (in #18) | ok, 2026-09-16, about 1.9 s ([setup](results/crossmint-setup-devnet.json)) |
 | Policy attached and reads back as set | allowed | ok, 2026-09-16 ([setup](results/turnkey-setup-devnet.json)) | not run |
 | Transfer to the owner | allowed | ok, landed, [run](results/turnkey-devnet-2026-09-17T04-26-54-056Z.json) | not run |
@@ -104,10 +105,30 @@ Still open:
   LGPL-3.0. A production signer built on Crossmint's SDK would carry that dependency, which Maschina's
   licence check refuses today. Turnkey's SDK has no such dependency.
 
-Next for Crossmint (#22): a separate delegated signer for the machine, restricted with scopes. Crossmint's
-docs say scopes cover transfers only (a spending limit per token and a recipient allow list, plus an
-expiry), and are checked by Crossmint's backend before broadcast. There is no scope for which programs a
-transaction may call.
+## Crossmint scopes (#22)
+
+`pnpm setup:crossmint` also registers the machine's own signer, a keypair whose secret lives only in
+Infisical, as a delegated signer on the wallet. The server signer approves it. Its scopes read back
+exactly as set:
+
+- **token:** SOL only (`solana:sol`)
+- **recipient:** the owner only
+- **spending limit:** 0.05 SOL per hour
+
+The rules compare with the machine wallet policy like this:
+
+| Machine wallet rule | Turnkey | Crossmint |
+| --- | --- | --- |
+| SOL only to the owner (and the wallet's own accounts) | Policy | Scope recipients |
+| Only approved tokens | Policy, on checked token transfers | Scope tokens, for transfers made through Crossmint |
+| A maximum size per transaction | Policy, per transfer | **Not expressible.** Only a total per interval |
+| Only approved programs | Policy | **Not expressible.** Scopes only describe transfers |
+| The signer can never export keys | Explicit deny policy | Not applicable, since the keypair is Maschina's own |
+| Where the rules are enforced | Turnkey's secure enclave, at signing | Crossmint's backend, before broadcast |
+
+Scopes can't be edited. Changing them means removing the signer and adding it again, which the setup
+does when they differ.
+
 
 ## Notes
 

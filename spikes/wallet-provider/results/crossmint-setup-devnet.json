@@ -1,7 +1,29 @@
 {
-	"at": "2026-09-17T04:35:55.933Z",
+	"at": "2026-09-17T04:56:17.006Z",
 	"environment": "staging",
 	"address": "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF",
 	"created": false,
-	"createMs": 1945.9015409999997
+	"createMs": 1945.9015409999997,
+	"machineSigner": "6dzoc1WdoFzYSXN3wQosxKt9e1pRDM8eVii2JttD5K6q",
+	"scopes": [
+		{
+			"type": "transfer",
+			"tokenLocator": "solana:sol",
+			"recipients": ["8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR"],
+			"spendingLimit": {
+				"amount": "0.05",
+				"interval": 3600
+			}
+		}
+	],
+	"cannotExpress": [
+		{
+			"rule": "approved programs",
+			"why": "Scopes only describe transfers. Nothing limits which programs a transaction may call."
+		},
+		{
+			"rule": "size of a single transaction",
+			"why": "A spending limit is a total per interval, not a cap on each transaction."
+		}
+	]
 }
