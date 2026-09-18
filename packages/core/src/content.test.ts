@@ -13,6 +13,22 @@ describe("canonicalJson", () => {
 		expect(canonicalJson({ b: 1, a: 2 })).toBe('{"a":2,"b":1}');
 	});
 
+	it("writes every JSON value the same way JSON does", () => {
+		expect(canonicalJson(true)).toBe("true");
+		expect(canonicalJson(false)).toBe("false");
+		expect(canonicalJson(null)).toBe("null");
+		expect(canonicalJson(0)).toBe("0");
+		expect(canonicalJson(-1.5)).toBe("-1.5");
+		expect(canonicalJson("")).toBe('""');
+		expect(canonicalJson([])).toBe("[]");
+		expect(canonicalJson({})).toBe("{}");
+	});
+
+	it("sorts keys at every depth, not just the top", () => {
+		const nested = { z: { b: [{ d: 1, c: 2 }], a: true } };
+		expect(canonicalJson(nested)).toBe('{"z":{"a":true,"b":[{"c":2,"d":1}]}}');
+	});
+
 	it("keeps array order, which is part of the content", () => {
 		expect(canonicalJson([1, 2])).not.toBe(canonicalJson([2, 1]));
 	});
