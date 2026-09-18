@@ -8,6 +8,7 @@
 
 import { jupiterRouter, parseAddress, quotedPrice } from "@maschina/solana";
 import { describe, expect, it } from "vitest";
+import { live } from "./support/live.ts";
 
 const SOL = parseAddress("So11111111111111111111111111111111111111112");
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -22,12 +23,14 @@ const tenthOfASol = 100_000_000n as Parameters<typeof router.quote>[0]["amount"]
 
 describe("a live quote", () => {
 	it("answers the question that was asked", async () => {
-		const quote = await router.quote({
-			inputMint: SOL,
-			outputMint: USDC,
-			amount: tenthOfASol,
-			slippageBps: 50,
-		});
+		const quote = await live(() =>
+			router.quote({
+				inputMint: SOL,
+				outputMint: USDC,
+				amount: tenthOfASol,
+				slippageBps: 50,
+			}),
+		);
 
 		expect(quote.router).toBe("jupiter");
 		expect(quote.inputMint).toBe(SOL);
@@ -39,12 +42,14 @@ describe("a live quote", () => {
 
 	it("never promises more than its floor, and the floor is within the slippage asked for", async () => {
 		const slippageBps = 50;
-		const quote = await router.quote({
-			inputMint: SOL,
-			outputMint: USDC,
-			amount: tenthOfASol,
-			slippageBps,
-		});
+		const quote = await live(() =>
+			router.quote({
+				inputMint: SOL,
+				outputMint: USDC,
+				amount: tenthOfASol,
+				slippageBps,
+			}),
+		);
 
 		expect(quote.minimumOutputAmount).toBeLessThanOrEqual(quote.outputAmount);
 		// The floor may be at most the slippage below the expectation, never further.
@@ -53,12 +58,14 @@ describe("a live quote", () => {
 	});
 
 	it("prices a whole SOL somewhere a human would recognise", async () => {
-		const quote = await router.quote({
-			inputMint: SOL,
-			outputMint: USDC,
-			amount: tenthOfASol,
-			slippageBps: 50,
-		});
+		const quote = await live(() =>
+			router.quote({
+				inputMint: SOL,
+				outputMint: USDC,
+				amount: tenthOfASol,
+				slippageBps: 50,
+			}),
+		);
 
 		// Wide on purpose: this catches a decimals mistake or a broken price, not a market move.
 		const perSol = quotedPrice(quote, 9);

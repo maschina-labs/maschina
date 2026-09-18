@@ -15,6 +15,7 @@ import {
 	type SwapQuote,
 } from "@maschina/solana";
 import { describe, expect, it } from "vitest";
+import { live } from "./support/live.ts";
 
 const SOL = parseAddress("So11111111111111111111111111111111111111112");
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -26,13 +27,15 @@ const prices = jupiterPrices({ ...(key ? { apiKey: key } : {}), timeoutMs: 15_00
 const tenthOfASol = 100_000_000n as SwapQuote["inputAmount"];
 
 async function liveQuoteAndPrices() {
-	const quote = await router.quote({
-		inputMint: SOL,
-		outputMint: USDC,
-		amount: tenthOfASol,
-		slippageBps: 50,
-	});
-	const found = await prices.usdPrices([SOL, USDC]);
+	const quote = await live(() =>
+		router.quote({
+			inputMint: SOL,
+			outputMint: USDC,
+			amount: tenthOfASol,
+			slippageBps: 50,
+		}),
+	);
+	const found = await live(() => prices.usdPrices([SOL, USDC]));
 	return {
 		quote,
 		inputPrice: requirePrice(found, SOL, prices.name),

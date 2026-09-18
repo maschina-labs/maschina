@@ -6,9 +6,10 @@
  * this package where the boundary check expects it.
  */
 
-import { createSolanaRpc } from "@solana/kit";
+import { createSolanaRpc, type Signature } from "@solana/kit";
 import type { Address } from "./address.ts";
 import type { BalanceReader, FetchedTokenAccount } from "./balances.ts";
+import type { Commitment, ConfirmationReader, SignatureStatus } from "./confirm.ts";
 import type { AccountReader, FetchedAccount } from "./mint.ts";
 
 export type SolanaRpc = ReturnType<typeof createSolanaRpc>;
@@ -59,6 +60,35 @@ export function rpcBalanceReader(rpc: SolanaRpc): BalanceReader {
 				}),
 			);
 			return perProgram.flat();
+		},
+	};
+}
+
+/** Reads signature statuses and block height through an RPC node. */
+export function rpcConfirmationReader(rpc: SolanaRpc): ConfirmationReader {
+	return {
+		async statusOf(
+			signature: string,
+			searchHistory: boolean,
+		): Promise<SignatureStatus | undefined> {
+			const { value } = await rpc
+				.getSignatureStatuses([signature as Signature], {
+					searchTransactionHistory: searchHistory,
+				})
+				.send();
+
+			const [status] = value;
+			if (!status) return undefined;
+
+			return {
+				slot: BigInt(status.slot),
+				commitment: (status.confirmationStatus ?? "processed") as Commitment,
+				...(status.err ? { error: JSON.stringify(status.err) } : {}),
+			};
+		},
+
+		async blockHeight(): Promise<bigint> {
+			return BigInt(await rpc.getBlockHeight().send());
 		},
 	};
 }
