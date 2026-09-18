@@ -92,3 +92,29 @@ export function rpcConfirmationReader(rpc: SolanaRpc): ConfirmationReader {
 		},
 	};
 }
+
+/** Sends a signed transaction, and says what the chain called it. */
+export type TransactionSender = {
+	send(signedTransaction: Uint8Array): Promise<string>;
+};
+
+/**
+ * Sends through an RPC node.
+ *
+ * Preflight checks are left on: they cost a moment and catch a transaction that could never succeed
+ * before it costs a fee. `maxRetries` is zero because retrying is a decision the run loop makes with
+ * the record in front of it, not something a client library should do quietly.
+ */
+export function rpcSender(rpc: SolanaRpc): TransactionSender {
+	return {
+		async send(signedTransaction: Uint8Array): Promise<string> {
+			const encoded = Buffer.from(signedTransaction).toString("base64");
+			return rpc
+				.sendTransaction(encoded as Parameters<SolanaRpc["sendTransaction"]>[0], {
+					encoding: "base64",
+					maxRetries: 0n,
+				})
+				.send();
+		},
+	};
+}

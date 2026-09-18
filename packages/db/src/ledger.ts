@@ -212,3 +212,86 @@ async function lockMachine(db: Executor, machineId: string): Promise<boolean> {
 async function budgetOf(db: Executor, machineId: string): Promise<MachineBudget> {
 	return machineBudget(await readMachineEvents(db, machineId));
 }
+
+export type TradeSubmission = {
+	machineId: string;
+	runId: string;
+	tradeId: string;
+	leaseEpoch: bigint;
+	/** The signature the chain will know this trade by, read from the signed bytes before sending. */
+	signature: string;
+	lastValidBlockHeight: bigint;
+};
+
+/**
+ * Writes down that a trade has been signed and is about to be sent.
+ *
+ * Taken under the machine's lock and refused if this trade already has a signature, so "sent at most
+ * once" is something the database enforces rather than something the code remembers to check. Two
+ * signers racing on the same trade cannot both get through, and the one that loses is told which
+ * signature already exists so it can ask the chain about that one instead.
+ */
+export async function recordSubmission(
+	db: Database,
+	submission: TradeSubmission,
+): Promise<Result<{ signature: string }, MaschinaError>> {
+	return db.transaction(async (tx) => {
+		const held = await lockMachine(tx, submission.machineId);
+		if (!held) {
+			return err(
+				new MaschinaError("not_found", "no such machine", {
+					details: { machineId: submission.machineId },
+				}),
+			);
+		}
+
+		const already = await submissionOf(tx, submission.machineId, submission.tradeId);
+		if (already) {
+			return err(
+				new MaschinaError("conflict", "this trade has already been signed once", {
+					details: { tradeId: submission.tradeId, signature: already.signature },
+				}),
+			);
+		}
+
+		const written = await appendEvent(tx, {
+			machineId: submission.machineId,
+			type: "trade.submitted",
+			leaseEpoch: submission.leaseEpoch,
+			payload: {
+				runId: submission.runId,
+				tradeId: submission.tradeId,
+				signature: submission.signature,
+				lastValidBlockHeight: submission.lastValidBlockHeight.toString(),
+			},
+		});
+		if (!written.ok) return written;
+
+		return ok({ signature: submission.signature });
+	});
+}
+
+/** The signature already written down for a trade, when there is one. */
+export async function submissionFor(
+	db: Executor,
+	machineId: string,
+	tradeId: string,
+): Promise<{ signature: string; lastValidBlockHeight: bigint } | undefined> {
+	return submissionOf(db, machineId, tradeId);
+}
+
+async function submissionOf(
+	db: Executor,
+	machineId: string,
+	tradeId: string,
+): Promise<{ signature: string; lastValidBlockHeight: bigint } | undefined> {
+	for (const event of await readMachineEvents(db, machineId)) {
+		if (event.type !== "trade.submitted") continue;
+		if (event.payload.tradeId !== tradeId) continue;
+		return {
+			signature: event.payload.signature,
+			lastValidBlockHeight: BigInt(event.payload.lastValidBlockHeight),
+		};
+	}
+	return undefined;
+}

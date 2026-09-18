@@ -36,6 +36,12 @@ const payloads: Record<EventType, unknown> = {
 		rule: "recipients",
 		reason: "not approved",
 	},
+	"trade.submitted": {
+		runId: RUN,
+		tradeId: TRADE,
+		signature: "5".repeat(88),
+		lastValidBlockHeight: "426070577",
+	},
 	"trade.completed": {
 		runId: RUN,
 		tradeId: TRADE,
@@ -74,6 +80,7 @@ describe("EVENT_TYPES", () => {
 			"trade.failed",
 			"trade.intended",
 			"trade.refused",
+			"trade.submitted",
 		]);
 	});
 
