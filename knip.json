@@ -34,7 +34,7 @@
 			]
 		},
 		"services/signer": {
-			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "hono", "pino", "uuidv7", "zod"]
+			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "pino", "uuidv7", "zod"]
 		}
 	},
 	"ignoreBinaries": ["act", "gitleaks"]
