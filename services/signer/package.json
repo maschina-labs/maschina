@@ -17,6 +17,7 @@
 		"@hono/node-server": "catalog:",
 		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
+		"@maschina/rules": "workspace:*",
 		"@sentry/node": "catalog:",
 		"hono": "catalog:",
 		"pino": "catalog:",
