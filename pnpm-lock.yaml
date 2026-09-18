@@ -400,6 +400,9 @@ importers:
       '@maschina/db':
         specifier: workspace:*
         version: link:../db
+      '@maschina/solana':
+        specifier: workspace:*
+        version: link:../solana
       '@maschina/testing':
         specifier: workspace:*
         version: link:../testing
