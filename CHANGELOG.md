@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.7](https://github.com/maschina-labs/maschina/compare/v0.0.6...v0.0.7) (2026-09-18)
+
+
+### Added
+
+* **db:** store owners and machine definitions ([#466](https://github.com/maschina-labs/maschina/issues/466)) ([a01185a](https://github.com/maschina-labs/maschina/commit/a01185a33483e3731776b6f81d2ee8697f544846))
+
 ## [0.0.6](https://github.com/maschina-labs/maschina/compare/v0.0.5...v0.0.6) (2026-09-17)
 
 
