@@ -11,6 +11,7 @@ import type { Address } from "./address.ts";
 import type { BalanceReader, FetchedTokenAccount } from "./balances.ts";
 import type { Commitment, ConfirmationReader, SignatureStatus } from "./confirm.ts";
 import type { AccountReader, FetchedAccount } from "./mint.ts";
+import type { FeeReader, RecentFee } from "./priority-fee.ts";
 
 export type SolanaRpc = ReturnType<typeof createSolanaRpc>;
 
@@ -115,6 +116,19 @@ export function rpcSender(rpc: SolanaRpc): TransactionSender {
 					maxRetries: 0n,
 				})
 				.send();
+		},
+	};
+}
+
+/** Reads what recent transactions paid to touch a set of accounts. */
+export function rpcFeeReader(rpc: SolanaRpc): FeeReader {
+	return {
+		async recentFees(accounts: readonly string[]): Promise<RecentFee[]> {
+			const fees = await rpc.getRecentPrioritizationFees(accounts as unknown as Address[]).send();
+			return fees.map((fee) => ({
+				slot: BigInt(fee.slot),
+				microLamports: BigInt(fee.prioritizationFee),
+			}));
 		},
 	};
 }

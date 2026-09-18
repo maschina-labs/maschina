@@ -266,6 +266,16 @@ export function jupiterRouter(options: JupiterOptions = {}) {
 					// Asks for a compute limit measured from a simulation rather than the maximum, so the
 					// machine is not paying for compute it never uses.
 					dynamicComputeUnitLimit: true,
+					...(request.priorityFee
+						? {
+								prioritizationFeeLamports: {
+									priorityLevelWithMaxLamports: {
+										maxLamports: Number(request.priorityFee.maxLamports),
+										priorityLevel: request.priorityFee.level,
+									},
+								},
+							}
+						: {}),
 				}),
 				signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
 			});
