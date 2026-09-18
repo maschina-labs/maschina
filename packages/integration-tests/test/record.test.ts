@@ -22,6 +22,11 @@ afterAll(async () => {
 
 const connect = (url: string) => postgres(url, { max: 1, onnotice: () => {} });
 
+const BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+/** A different valid-looking Solana address each time, so tests never collide on the unique wallet. */
+const base58Address = () =>
+	Array.from({ length: 43 }, () => BASE58[Math.floor(Math.random() * BASE58.length)]).join("");
+
 async function insertEvent(sql: postgres.Sql, machineId = randomUUID()) {
 	const [row] = await sql<{ id: string }[]>`
 		insert into events (machine_id, type, payload, lease_epoch)
@@ -380,12 +385,126 @@ describe("machine definitions", () => {
 				await expect(sql`delete from machine_definitions where id = ${id}`).rejects.toThrow(
 					/permission denied|immutable/i,
 				);
+				// Once a machine points at a definition, Postgres refuses the truncate for that reason first.
 				await expect(sql`truncate machine_definitions`).rejects.toThrow(
-					/permission denied|immutable/i,
+					/permission denied|immutable|cannot truncate a table referenced/i,
 				);
 			} finally {
 				await sql.end();
 			}
 		});
 	}
+});
+
+describe("machines", () => {
+	const WALLET = "6Xa6BehnAkS9tUui8hYgNs9qjFmuxZe2pGZm9k8u2uvh";
+	const OTHER_WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+
+	/** An owner and a definition to hang machines off, both fresh for each test. */
+	async function ownerAndDefinition(sql: postgres.Sql) {
+		const address = base58Address();
+		const [owner] = await sql<{ id: string }[]>`
+			insert into owners (wallet_address) values (${address}) returning id`;
+		const { db, close } = createDatabase({
+			url: database.appUrl,
+			applicationName: "machines-test",
+		});
+		const saved = await saveDefinition(db, {
+			kind: "recurring_buy",
+			settings: { amount: address.slice(0, 8) },
+			rules: {},
+		});
+		await close();
+		if (!owner || !saved.ok) throw new Error("could not set up the test");
+		return { ownerId: owner.id, definitionId: saved.value.id };
+	}
+
+	const insertMachine = (
+		sql: postgres.Sql,
+		values: {
+			ownerId: string;
+			definitionId: string;
+			wallet: string;
+			provider?: string;
+			name?: string;
+		},
+	) => sql`
+		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+		values (${newId<"machine">()}, ${values.ownerId}, ${values.wallet}, ${"wallet-1"},
+			${values.provider ?? "turnkey"}, ${values.definitionId}, ${values.name ?? "Weekly SOL"})`;
+
+	it("stores a machine with its owner, wallet and pinned definition", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const { ownerId, definitionId } = await ownerAndDefinition(sql);
+			await insertMachine(sql, { ownerId, definitionId, wallet: WALLET });
+			const [row] = await sql<{ owner_id: string; definition_id: string; name: string }[]>`
+				select owner_id, definition_id, name from machines where wallet_address = ${WALLET}`;
+			expect(row).toEqual({ owner_id: ownerId, definition_id: definitionId, name: "Weekly SOL" });
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("refuses to let two machines share a wallet", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const first = await ownerAndDefinition(sql);
+			const second = await ownerAndDefinition(sql);
+			await insertMachine(sql, { ...first, wallet: OTHER_WALLET });
+			await expect(insertMachine(sql, { ...second, wallet: OTHER_WALLET })).rejects.toThrow(
+				/duplicate key|unique/i,
+			);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("refuses a machine whose owner or definition doesn't exist", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const { ownerId, definitionId } = await ownerAndDefinition(sql);
+			await expect(
+				insertMachine(sql, { ownerId: newId<"owner">(), definitionId, wallet: base58Address() }),
+			).rejects.toThrow(/foreign key|violates/i);
+			await expect(
+				insertMachine(sql, { ownerId, definitionId: "f".repeat(64), wallet: base58Address() }),
+			).rejects.toThrow(/foreign key|violates/i);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("refuses a bad wallet address, an unknown provider and an empty name", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const base = await ownerAndDefinition(sql);
+			await expect(insertMachine(sql, { ...base, wallet: "not-a-wallet" })).rejects.toThrow(
+				/machines_wallet_address_shape/i,
+			);
+			await expect(
+				insertMachine(sql, { ...base, wallet: base58Address(), provider: "someone_else" }),
+			).rejects.toThrow(/machines_provider_known/i);
+			await expect(
+				insertMachine(sql, { ...base, wallet: base58Address(), name: "" }),
+			).rejects.toThrow(/machines_name_length/i);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("keeps a machine's definition from being deleted under it", async () => {
+		const sql = connect(database.ownerUrl);
+		try {
+			const appSql = connect(database.appUrl);
+			const { ownerId, definitionId } = await ownerAndDefinition(appSql);
+			await insertMachine(appSql, { ownerId, definitionId, wallet: base58Address() });
+			await appSql.end();
+			await expect(sql`delete from machine_definitions where id = ${definitionId}`).rejects.toThrow(
+				/immutable|foreign key|permission denied/i,
+			);
+		} finally {
+			await sql.end();
+		}
+	});
 });
