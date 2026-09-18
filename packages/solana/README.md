@@ -23,6 +23,11 @@ unsigned, need exactly one signature from the machine's own wallet, be paid for 
 only programs on the list in `swap-transaction.ts`. That list grows one reviewed entry at a time, never
 because a transaction failed the check.
 
+Confirmation has four answers and no fifth: landed, failed, expired, unknown. "The node has never heard
+of it" is not one of them, because a node forgets recent signatures quickly. Absence is only proof once
+the transaction's own expiry has passed, and even then the node's history is searched before anything is
+called dead. Nothing is ever retried on `unknown`.
+
 Coming in A0 to A2: reading balances, Jupiter quotes and swaps, prices, token safety checks, building
 and sending transactions, and confirming them. The rest of Maschina reaches all of it through a
 small, plain interface, so a second chain would be a second implementation of that interface, not a
