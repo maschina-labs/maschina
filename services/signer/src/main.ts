@@ -2,6 +2,7 @@ import { startServer } from "@maschina/service";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
 import { loadConfig } from "./config.ts";
+import { notWiredYet } from "./not-wired.ts";
 
 const config = loadConfig();
 const logger = createLogger({
@@ -22,6 +23,7 @@ startServer({
 		orchestratorToken: config.SIGNER_ORCHESTRATOR_TOKEN,
 		logger,
 		reporter,
+		signer: notWiredYet,
 	}),
 	port: config.SIGNER_PORT,
 	logger,
