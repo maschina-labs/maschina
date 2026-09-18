@@ -13,6 +13,10 @@ Balances are read the same way: whole numbers of the smallest unit, never the de
 alongside them, which is floating point. Frozen token accounts are not counted as balance, and the
 rent-exempt minimum is kept back, so what a budget sees is what a machine can actually spend.
 
+Swap routers answer through one interface, so Jupiter, Orca on devnet and whatever comes next are
+interchangeable. The number a rule reads from a quote is `minimumOutputAmount`, the least the trade may
+produce, never the expectation.
+
 Coming in A0 to A2: reading balances, Jupiter quotes and swaps, prices, token safety checks, building
 and sending transactions, and confirming them. The rest of Maschina reaches all of it through a
 small, plain interface, so a second chain would be a second implementation of that interface, not a
