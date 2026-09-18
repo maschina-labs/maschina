@@ -12,6 +12,8 @@ regexes = [
 	'''0b1c8e5e-7c3b-4f55-9e57-6c2b4f0a9d11''',
 	# A public Solana address, the Crossmint test wallet's wrapped SOL account, in the spike's tests.
 	'''CfZaYTfQ7YyeWv8XvcZ7amMAAcE83DLL2mNeef46Dvp7''',
+	# A public Solana address, the SOL/USDC Whirlpool, in a quote fixture copied from Jupiter's API.
+	'''9Vh6fqJjDkqSTZ8bDXseVxGb2yQEMkEhhtte2anQCHSf''',
 ]
 paths = [
 	'''pnpm-lock\.yaml''',
