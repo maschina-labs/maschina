@@ -57,5 +57,15 @@ export type SwapRouter = {
 	build(request: BuildSwapRequest, signal?: AbortSignal): Promise<UnsignedSwap>;
 };
 
+/**
+ * The router a machine uses unless told otherwise.
+ *
+ * Chosen by measurement on 2026-09-18, not by reputation: across eight real swaps on two pairs and four
+ * sizes, Jupiter guaranteed more every single time and answered in a median of 113ms against Raydium's
+ * 417ms. Raydium sat about 2 basis points behind. It stays implemented as the second opinion and the
+ * fallback, and the measurement is repeatable with `compareRouters`.
+ */
+export const DEFAULT_ROUTER = "jupiter";
+
 /** The most slippage Maschina will ask any router for: ten percent, which is already reckless. */
 export const MAX_SLIPPAGE_BPS = 1000;

@@ -137,13 +137,25 @@ describe("reading what a router built", () => {
 		["no transaction at all", { swapTransaction: undefined }],
 		["an empty transaction", { swapTransaction: "" }],
 		["a missing expiry height", { lastValidBlockHeight: undefined }],
+		["an expiry height that is text but not a number", { lastValidBlockHeight: "soon" }],
 		["an expiry height that is not whole", { lastValidBlockHeight: 1.5 }],
 		["a fee that is not a number", { prioritizationFeeLamports: "many" }],
 		["a negative fee", { prioritizationFeeLamports: -1 }],
-		["a missing compute limit", { computeUnitLimit: undefined }],
+		["a compute limit that is not a number", { computeUnitLimit: "lots" }],
 	])("refuses %s", (_name, over) => {
 		const body = typeof over === "string" ? over : built(over as Record<string, unknown>);
 		expect(() => parseBuiltSwap({ quote: quote(), wallet: WALLET }, body)).toThrow(MaschinaError);
+	});
+
+	it("leaves out a fee or a compute budget the router never stated", () => {
+		const swap = parseBuiltSwap(
+			{ quote: quote(), wallet: WALLET },
+			built({ prioritizationFeeLamports: undefined, computeUnitLimit: undefined }),
+		);
+
+		expect(swap.priorityFeeLamports).toBeUndefined();
+		expect(swap.computeUnitLimit).toBeUndefined();
+		expect(swap.lastValidBlockHeight).toBe(426_070_577n);
 	});
 
 	it("reads whole numbers whether they arrive as numbers or as text", () => {
