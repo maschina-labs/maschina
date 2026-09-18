@@ -13,8 +13,10 @@ Balances are read the same way: whole numbers of the smallest unit, never the de
 alongside them, which is floating point. Frozen token accounts are not counted as balance, and the
 rent-exempt minimum is kept back, so what a budget sees is what a machine can actually spend.
 
-Swap routers answer through one interface, so Jupiter, Orca on devnet and whatever comes next are
-interchangeable. The number a rule reads from a quote is `minimumOutputAmount`, the least the trade may
+Swap routers answer through one interface, so Jupiter, Raydium, Orca on devnet and whatever comes next
+are interchangeable. Jupiter is the default because it was measured against Raydium on real swaps and
+guaranteed more every time, and `compareRouters` re-runs that measurement whenever it is worth asking
+again. The number a rule reads from a quote is `minimumOutputAmount`, the least the trade may
 produce, never the expectation.
 
 A router also builds the transaction, which means an outside service decides what Maschina is asked to

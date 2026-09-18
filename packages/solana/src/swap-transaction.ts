@@ -38,6 +38,7 @@ export const SWAP_PROGRAMS: Record<string, string> = {
 	TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb: "token-2022",
 	ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL: "associated token account",
 	JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4: "jupiter aggregator",
+	routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS: "raydium router",
 };
 
 /** What a transaction turned out to contain, once it was taken apart. */
@@ -161,8 +162,10 @@ export type UnsignedSwap = {
 	transaction: Uint8Array;
 	/** The block height after which this transaction can never land, so a stale one is never resent. */
 	lastValidBlockHeight: bigint;
-	priorityFeeLamports: bigint;
-	computeUnitLimit: number;
+	/** What the router said it is paying to be included. Absent when the router does not say. */
+	priorityFeeLamports?: bigint;
+	/** The compute budget the router asked for. Absent when the router does not say. */
+	computeUnitLimit?: number;
 	facts: TransactionFacts;
 	/** What the router's own simulation said, kept for the record whether it passed or failed. */
 	simulationError?: string;
@@ -209,7 +212,10 @@ export function parseBuiltSwap(request: BuildSwapRequest, body: unknown): Unsign
 	}
 
 	const facts = checkUnsignedSwap(transaction, request.wallet);
-	const computeUnitLimit = built["computeUnitLimit"];
+
+	// A router that does not state its fee or compute budget leaves these out rather than claiming zero.
+	const fee = built["prioritizationFeeLamports"];
+	const limit = built["computeUnitLimit"];
 
 	return {
 		router: request.quote.router,
@@ -217,8 +223,10 @@ export function parseBuiltSwap(request: BuildSwapRequest, body: unknown): Unsign
 		quote: request.quote,
 		transaction,
 		lastValidBlockHeight: wholeNumber(built["lastValidBlockHeight"], "last valid block height"),
-		priorityFeeLamports: wholeNumber(built["prioritizationFeeLamports"], "priority fee"),
-		computeUnitLimit: Number(wholeNumber(computeUnitLimit, "compute unit limit")),
+		...(fee === undefined ? {} : { priorityFeeLamports: wholeNumber(fee, "priority fee") }),
+		...(limit === undefined
+			? {}
+			: { computeUnitLimit: Number(wholeNumber(limit, "compute unit limit")) }),
 		facts,
 		...(simulationError ? { simulationError } : {}),
 	};
