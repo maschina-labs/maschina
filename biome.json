@@ -57,7 +57,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["scripts/**", "**/*.config.*", "**/*.test.*", "**/test/**"],
+			"includes": ["**/scripts/**", "**/*.config.*", "**/*.test.*", "**/test/**"],
 			"linter": {
 				"rules": {
 					"suspicious": { "noConsole": "off" }

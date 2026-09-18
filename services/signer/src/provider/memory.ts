@@ -40,7 +40,8 @@ export function memoryPayment(payment: Payment): Uint8Array {
 	);
 }
 
-function readPayment(bytes: Uint8Array): Payment | undefined {
+/** Reads one of these payments back, for tests of anything that has to understand one. */
+export function readMemoryPayment(bytes: Uint8Array): Payment | undefined {
 	try {
 		const value = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
 		if (value["marker"] !== MARKER) return undefined;
@@ -85,7 +86,7 @@ export function createMemoryWalletProvider(options: { down?: boolean } = {}): Wa
 			if (options.down) return outage();
 			const wallet = wallets.get(walletId);
 			if (!wallet) return missing(walletId);
-			const payment = readPayment(unsignedTransaction);
+			const payment = readMemoryPayment(unsignedTransaction);
 			if (!payment) return err(providerError("invalid", "not a payment this provider can read"));
 			const { policy } = wallet;
 			if (payment.from !== wallet.address) {
