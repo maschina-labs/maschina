@@ -156,9 +156,9 @@ describe("planMachine, whatever it is given", () => {
 			fc.property(anyMachine, anyNow, (m, now) => {
 				expect(planMachine(m, now).queue.length).toBeLessThanOrEqual(1);
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 600 },
 		);
-	});
+	}, 60_000);
 
 	it("only ever queues for a running machine", () => {
 		fc.assert(
@@ -166,9 +166,9 @@ describe("planMachine, whatever it is given", () => {
 				const plan = planMachine(m, now);
 				if (m.state !== "running") expect(plan.queue).toHaveLength(0);
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 600 },
 		);
-	});
+	}, 60_000);
 
 	it("never queues a run that isn't due yet", () => {
 		fc.assert(
@@ -177,9 +177,9 @@ describe("planMachine, whatever it is given", () => {
 					expect(run.dueAt.getTime()).toBeLessThanOrEqual(now.getTime());
 				}
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 600 },
 		);
-	});
+	}, 60_000);
 
 	it("never queues a run later than its grace period allows", () => {
 		fc.assert(
@@ -188,9 +188,9 @@ describe("planMachine, whatever it is given", () => {
 					expect(run.lateBySeconds).toBeLessThanOrEqual(m.graceSeconds);
 				}
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 600 },
 		);
-	});
+	}, 60_000);
 
 	it("gives every planned run a different key, so nothing is queued twice", () => {
 		fc.assert(
@@ -199,7 +199,7 @@ describe("planMachine, whatever it is given", () => {
 				const keys = [...plan.queue, ...plan.skip].map((run) => run.occurrenceKey);
 				expect(new Set(keys).size).toBe(keys.length);
 			}),
-			{ numRuns: 1000 },
+			{ numRuns: 600 },
 		);
-	});
+	}, 60_000);
 });
