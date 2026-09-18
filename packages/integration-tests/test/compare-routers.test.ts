@@ -6,6 +6,7 @@
  * default can be re-measured whenever it matters rather than assumed.
  */
 
+import { MaschinaError } from "@maschina/core";
 import {
 	compareRouters,
 	DEFAULT_ROUTER,
@@ -15,6 +16,7 @@ import {
 	raydiumRouter,
 } from "@maschina/solana";
 import { describe, expect, it } from "vitest";
+import { live } from "./support/live.ts";
 
 const SOL = parseAddress("So11111111111111111111111111111111111111112");
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -38,6 +40,9 @@ describe("comparing the routers on real swaps", () => {
 			pause: () => new Promise((resolve) => setTimeout(resolve, 1200)),
 		});
 
+		// The comparison catches a router's failure rather than throwing, so a bad minute at one of them
+		// shows up as a failed attempt instead of a failed test. Only a total silence is a problem.
+
 		expect(result.requests).toBe(2);
 		expect(result.scores).toHaveLength(2);
 
@@ -52,11 +57,21 @@ describe("comparing the routers on real swaps", () => {
 	});
 
 	it("has both routers agreeing on the price to within a fraction of a percent", async () => {
-		const result = await compareRouters(routers, [swapOf(100_000_000n)]);
-		const [round] = result.attempts;
-		const answers = (round ?? []).filter((attempt) => attempt.ok);
+		// Both have to answer for this comparison to mean anything, so a vendor's bad minute is retried.
+		const answers = await live(async () => {
+			const result = await compareRouters(routers, [swapOf(100_000_000n)]);
+			const round = result.attempts[0] ?? [];
+			const ok = round.filter((attempt) => attempt.ok);
+			if (ok.length !== routers.length) {
+				const failure = round.find((attempt) => !attempt.ok);
+				throw new MaschinaError(
+					"unavailable",
+					`a router did not answer: ${failure && !failure.ok ? failure.because : "unknown"}`,
+				);
+			}
+			return ok;
+		});
 
-		expect(answers.length).toBe(2);
 		const floors = answers.map((attempt) => (attempt.ok ? attempt.minimumOutputAmount : 0n));
 		const best = floors.reduce((most, floor) => (floor > most ? floor : most), 0n);
 		const worst = floors.reduce((least, floor) => (floor < least ? floor : least), best);
