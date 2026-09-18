@@ -11,14 +11,17 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
+		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs",
+		"check:turnkey": "tsx scripts/check-turnkey.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "catalog:",
 		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/rules": "workspace:*",
+		"@maschina/solana": "workspace:*",
 		"@sentry/node": "catalog:",
+		"@turnkey/sdk-server": "catalog:",
 		"hono": "catalog:",
 		"pino": "catalog:",
 		"uuidv7": "catalog:",

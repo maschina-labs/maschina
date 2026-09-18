@@ -31,7 +31,9 @@ catalog:
   "@hono/zod-openapi": 1.6.3
   "@sentry/node": 10.74.0
   "@sentry/react": 10.74.0
+  "@solana-program/system": 0.14.1
   "@solana/kit": 8.3.0
+  "@turnkey/sdk-server": 8.5.0
   "@tailwindcss/vite": 4.3.3
   "@tanstack/react-query": 5.102.8
   "@tanstack/react-router": 1.170.36

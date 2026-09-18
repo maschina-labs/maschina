@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@maschina/core": "workspace:*",
+		"@solana-program/system": "catalog:",
 		"@solana/kit": "catalog:"
 	},
 	"devDependencies": {
