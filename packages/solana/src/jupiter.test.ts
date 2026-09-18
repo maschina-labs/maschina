@@ -9,7 +9,8 @@ import {
 	parseJupiterQuote,
 	quotedPrice,
 } from "./jupiter.ts";
-import type { QuoteRequest } from "./router.ts";
+import type { QuoteRequest, SwapQuote } from "./router.ts";
+import { unsignedTransactionBase64 } from "./testing.ts";
 
 const SOL = parseAddress("So11111111111111111111111111111111111111112");
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -324,5 +325,86 @@ describe("a price from a quote", () => {
 
 		// 0.1 SOL bought 10.587977 USDC, so one SOL is about 105.87 USDC.
 		expect(quotedPrice(quote, 9)).toBe(105_879_770n);
+	});
+});
+
+describe("asking Jupiter to build the transaction", () => {
+	const WALLET = parseAddress("3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF");
+
+	const buildAnswer = (over: Record<string, unknown> = {}) => ({
+		swapTransaction: unsignedTransactionBase64(WALLET),
+		lastValidBlockHeight: 426_070_577,
+		prioritizationFeeLamports: 6417,
+		computeUnitLimit: 1_400_000,
+		...over,
+	});
+
+	const quoteFor = (): SwapQuote => parseJupiterQuote(request(), answer());
+
+	it("sends the quote back exactly as it arrived", async () => {
+		let sent: RequestInit | undefined;
+		let asked: URL | undefined;
+		const router = routerWith((url, init) => {
+			asked = url;
+			sent = init;
+			return json(buildAnswer());
+		});
+		const quote = quoteFor();
+
+		const swap = await router.build({ quote, wallet: WALLET });
+
+		expect(asked?.pathname).toBe("/swap/v1/swap");
+		expect(sent?.method).toBe("POST");
+		const body = JSON.parse(String(sent?.body));
+		// The exact answer Jupiter gave, not a rebuilt copy of it.
+		expect(body.quoteResponse).toEqual(quote.raw);
+		expect(body.userPublicKey).toBe(WALLET);
+		expect(body.wrapAndUnwrapSol).toBe(true);
+		expect(swap.wallet).toBe(WALLET);
+		expect(swap.facts.feePayer).toBe(WALLET);
+	});
+
+	it("sends the key when there is one", async () => {
+		let headers: Record<string, string> | undefined;
+		const router = routerWith(
+			(_url, init) => {
+				headers = init.headers as Record<string, string>;
+				return json(buildAnswer());
+			},
+			{ apiKey: "a-key" },
+		);
+
+		await router.build({ quote: quoteFor(), wallet: WALLET });
+
+		expect(headers?.["x-api-key"]).toBe("a-key");
+		expect(headers?.["content-type"]).toBe("application/json");
+	});
+
+	it("turns a refusal into a code the run loop understands", async () => {
+		const limited = routerWith(() => new Response("slow down", { status: 429 }));
+		const broken = routerWith(() => new Response("down", { status: 503 }));
+
+		await expect(limited.build({ quote: quoteFor(), wallet: WALLET })).rejects.toMatchObject({
+			code: "limit_exceeded",
+		});
+		await expect(broken.build({ quote: quoteFor(), wallet: WALLET })).rejects.toMatchObject({
+			code: "unavailable",
+		});
+	});
+
+	it("refuses a transaction built for somebody else's wallet", async () => {
+		const router = routerWith(() =>
+			json(
+				buildAnswer({
+					swapTransaction: unsignedTransactionBase64(WALLET, {
+						feePayer: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+					}),
+				}),
+			),
+		);
+
+		await expect(router.build({ quote: quoteFor(), wallet: WALLET })).rejects.toThrow(
+			/different wallet to sign/,
+		);
 	});
 });

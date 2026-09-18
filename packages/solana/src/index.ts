@@ -7,5 +7,7 @@ export * from "./mint.ts";
 export * from "./price.ts";
 export * from "./router.ts";
 export * from "./rpc.ts";
+export * from "./swap-transaction.ts";
+export * from "./testing.ts";
 export * from "./token-list.ts";
 export * from "./tokens.ts";

@@ -13,6 +13,7 @@
 import { type BaseUnits, baseUnitsOf, MaschinaError } from "@maschina/core";
 import { parseAddress } from "./address.ts";
 import { MAX_SLIPPAGE_BPS, type QuoteRequest, type RouteStep, type SwapQuote } from "./router.ts";
+import { type BuildSwapRequest, parseBuiltSwap, type UnsignedSwap } from "./swap-transaction.ts";
 
 export const JUPITER_API = "https://api.jup.ag";
 /** The keyless endpoint, which answers at about one request a second. A fallback, not the default. */
@@ -240,6 +241,38 @@ export function jupiterRouter(options: JupiterOptions = {}) {
 
 			const body: unknown = await response.json();
 			return parseJupiterQuote(request, body);
+		},
+
+		/**
+		 * Asks Jupiter to build the transaction for a quote it gave us.
+		 *
+		 * The quote goes back exactly as it arrived. Jupiter prices a route against pools that move, so a
+		 * transaction built from an edited quote would be built against a different trade than the one
+		 * that was checked.
+		 */
+		async build(request: BuildSwapRequest, signal?: AbortSignal): Promise<UnsignedSwap> {
+			const timeout = AbortSignal.timeout(timeoutMs);
+			const response = await call(new URL(`${baseUrl}/swap/v1/swap`), {
+				method: "POST",
+				headers: {
+					"content-type": "application/json",
+					...(options.apiKey ? { "x-api-key": options.apiKey } : {}),
+				},
+				body: JSON.stringify({
+					quoteResponse: request.quote.raw,
+					userPublicKey: request.wallet,
+					// The machine holds SOL, not wrapped SOL, so wrapping is part of the trade itself.
+					wrapAndUnwrapSol: true,
+					// Asks for a compute limit measured from a simulation rather than the maximum, so the
+					// machine is not paying for compute it never uses.
+					dynamicComputeUnitLimit: true,
+				}),
+				signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+			});
+
+			if (!response.ok) throw await failureFor(response);
+
+			return parseBuiltSwap(request, await response.json());
 		},
 	};
 }
