@@ -15,7 +15,9 @@ export type FailureClass =
 	/** A budget or limit ran out. Needs a person's decision. */
 	| "budget"
 	/** A limit that lifts at a known time. Needs nothing but time. */
-	| "waiting";
+	| "waiting"
+	/** Nothing recognised it. Never guessed at: the machine pauses and a person looks. */
+	| "unknown";
 
 export type FailureResponse =
 	| { action: "retry" }
@@ -49,6 +51,8 @@ export function respondTo(failure: Failure, attempt: number): FailureResponse {
 			return failure.resumesAt
 				? { action: "resume_at", at: failure.resumesAt }
 				: { action: "pause", notify: true };
+		case "unknown":
+			return { action: "pause", notify: true };
 	}
 }
 

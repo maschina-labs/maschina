@@ -1,3 +1,4 @@
+export * from "./classify.ts";
 export * from "./effect.ts";
 export * from "./failure.ts";
 export * from "./kinds/recurring-buy.ts";
@@ -5,6 +6,7 @@ export * from "./lifecycle.ts";
 export * from "./machine-budget.ts";
 export * from "./machine-kind.ts";
 export * from "./machine-state.ts";
+export * from "./recovery.ts";
 export * from "./run.ts";
 export * from "./run-loop.ts";
 export * from "./scheduling.ts";
