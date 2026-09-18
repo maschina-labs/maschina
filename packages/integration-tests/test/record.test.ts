@@ -5,7 +5,7 @@
 
 import { randomUUID } from "node:crypto";
 import { newId } from "@maschina/core";
-import { appendEvent, createDatabase } from "@maschina/db";
+import { appendEvent, createDatabase, saveDefinition } from "@maschina/db";
 import { createTestDatabase, type TestDatabase } from "@maschina/testing";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -249,4 +249,143 @@ describe("appendEvent", () => {
 			await close();
 		}
 	});
+});
+
+describe("owners", () => {
+	const OWNER = "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR";
+
+	it("stores an owner by wallet address", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const [row] = await sql<{ id: string; created_at: Date }[]>`
+				insert into owners (wallet_address) values (${OWNER}) returning id, created_at`;
+			expect(row?.id).toBeDefined();
+			expect(row?.created_at.getTime()).toBeGreaterThan(Date.now() - 60_000);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("keeps one owner per wallet address", async () => {
+		const sql = connect(database.appUrl);
+		const address = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+		try {
+			await sql`insert into owners (wallet_address) values (${address})`;
+			await expect(sql`insert into owners (wallet_address) values (${address})`).rejects.toThrow(
+				/duplicate key|unique/i,
+			);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("refuses an address that isn't a Solana address", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			for (const bad of [
+				"",
+				"not-an-address",
+				"0OIl0OIl0OIl0OIl0OIl0OIl0OIl0OIl",
+				"8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR1234567890",
+				"8GTgV1mscEjSoNmTdmNLaPjV1",
+				" 8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR",
+			]) {
+				await expect(sql`insert into owners (wallet_address) values (${bad})`, bad).rejects.toThrow(
+					/owners_wallet_address_shape|violates check constraint/i,
+				);
+			}
+		} finally {
+			await sql.end();
+		}
+	});
+});
+
+describe("machine definitions", () => {
+	const recipe = {
+		kind: "recurring_buy",
+		settings: { amount: "25000000", mint: "So11111111111111111111111111111111111111112" },
+		rules: { maxPerTrade: "50000000" },
+	};
+
+	it("saves a recipe once, however many times it is saved", async () => {
+		const { db, close } = createDatabase({
+			url: database.appUrl,
+			applicationName: "definitions-test",
+		});
+		try {
+			const first = await saveDefinition(db, recipe);
+			const again = await saveDefinition(db, {
+				rules: recipe.rules,
+				settings: recipe.settings,
+				kind: recipe.kind,
+			});
+			expect(first.ok && first.value.created).toBe(true);
+			expect(again.ok && again.value.created).toBe(false);
+			expect(first.ok && again.ok && first.value.id === again.value.id).toBe(true);
+
+			const sql = connect(database.appUrl);
+			try {
+				const [row] = await sql<{ count: string }[]>`
+					select count(*) from machine_definitions where id = ${first.ok ? first.value.id : ""}`;
+				expect(row?.count).toBe("1");
+			} finally {
+				await sql.end();
+			}
+		} finally {
+			await close();
+		}
+	});
+
+	it("gives a changed recipe a new version, leaving the old one alone", async () => {
+		const { db, close } = createDatabase({
+			url: database.appUrl,
+			applicationName: "definitions-test",
+		});
+		try {
+			const before = await saveDefinition(db, { ...recipe, kind: "rebalance" });
+			const after = await saveDefinition(db, {
+				...recipe,
+				kind: "rebalance",
+				rules: { maxPerTrade: "1000" },
+			});
+			expect(before.ok && after.ok && before.value.id !== after.value.id).toBe(true);
+			const sql = connect(database.appUrl);
+			try {
+				const rows = await sql<{ id: string }[]>`
+					select id from machine_definitions where kind = ${"rebalance"}`;
+				expect(rows).toHaveLength(2);
+			} finally {
+				await sql.end();
+			}
+		} finally {
+			await close();
+		}
+	});
+
+	for (const role of ["app", "owner"] as const) {
+		it(`refuses to let the ${role} role change a saved version`, async () => {
+			const url = role === "app" ? database.appUrl : database.ownerUrl;
+			const { db, close } = createDatabase({
+				url: database.appUrl,
+				applicationName: "definitions-test",
+			});
+			const saved = await saveDefinition(db, { ...recipe, kind: `pinned_${role}` });
+			await close();
+			const sql = connect(url);
+			try {
+				const id = saved.ok ? saved.value.id : "";
+				await expect(
+					sql`update machine_definitions set kind = 'rewritten' where id = ${id}`,
+				).rejects.toThrow(/permission denied|immutable/i);
+				await expect(sql`delete from machine_definitions where id = ${id}`).rejects.toThrow(
+					/permission denied|immutable/i,
+				);
+				await expect(sql`truncate machine_definitions`).rejects.toThrow(
+					/permission denied|immutable/i,
+				);
+			} finally {
+				await sql.end();
+			}
+		});
+	}
 });

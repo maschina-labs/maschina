@@ -3,4 +3,6 @@
  * database itself refuses to update or delete. Everything else is derived from it.
  */
 
+export * from "./definitions.ts";
 export * from "./events.ts";
+export * from "./owners.ts";
