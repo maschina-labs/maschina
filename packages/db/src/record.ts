@@ -16,7 +16,7 @@
 import { parseEvent } from "@maschina/contracts";
 import { err, MaschinaError, newId, ok, type Result } from "@maschina/core";
 import { sql } from "drizzle-orm";
-import type { Database } from "./client.ts";
+import type { Executor } from "./client.ts";
 
 export type EventToAppend = {
 	machineId: string;
@@ -30,7 +30,7 @@ export type AppendedEvent = { id: string; occurredAt: Date };
 
 export type AppendResult = Result<AppendedEvent, MaschinaError>;
 
-export async function appendEvent(db: Database, event: EventToAppend): Promise<AppendResult> {
+export async function appendEvent(db: Executor, event: EventToAppend): Promise<AppendResult> {
 	const checked = parseEvent(event);
 	if (!checked.ok) {
 		return err(

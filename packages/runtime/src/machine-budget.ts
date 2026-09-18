@@ -45,9 +45,10 @@ export function machineBudget(events: Iterable<RecordedEvent>): MachineBudget {
 				break;
 			}
 			case "trade.intended": {
-				const { tradeId, inputAmount } = event.payload;
+				const { tradeId, inputAmount, feeAllowance } = event.payload;
 				if (held.has(tradeId)) break;
-				const wanted = amount(inputAmount);
+				// The most this trade could cost: what it spends, plus what it costs to send.
+				const wanted = baseUnitsOf(BigInt(inputAmount) + BigInt(feeAllowance ?? "0"));
 				// A trade that doesn't fit is refused elsewhere; here it simply reserves nothing.
 				if (wanted > available(budget)) break;
 				budget = reserve(budget, wanted);
