@@ -91,3 +91,36 @@ describe("a transaction built from a live quote", () => {
 		).toThrow(/different wallet to sign/);
 	});
 });
+
+describe("what a trade pays to be included", () => {
+	it("is held to the cap by the router itself", async () => {
+		const quote = await liveQuote();
+
+		const swap = await live(() =>
+			router.build({
+				quote,
+				wallet: WALLET,
+				allowFailedSimulation: true,
+				priorityFee: { maxLamports: 200_000n, level: "high" },
+			}),
+		);
+
+		expect(swap.priorityFeeLamports).toBeDefined();
+		expect(swap.priorityFeeLamports ?? 0n).toBeLessThanOrEqual(200_000n);
+	});
+
+	it("bids less when told to pay less", async () => {
+		const quote = await liveQuote();
+
+		const swap = await live(() =>
+			router.build({
+				quote,
+				wallet: WALLET,
+				allowFailedSimulation: true,
+				priorityFee: { maxLamports: 5_000n, level: "medium" },
+			}),
+		);
+
+		expect(swap.priorityFeeLamports ?? 0n).toBeLessThanOrEqual(5_000n);
+	});
+});

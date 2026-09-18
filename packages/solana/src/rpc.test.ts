@@ -4,10 +4,12 @@ import {
 	rpcAccountReader,
 	rpcBalanceReader,
 	rpcConfirmationReader,
+	rpcFeeReader,
 	type SolanaRpc,
 } from "./rpc.ts";
 
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const SIGNATURE_ACCOUNT = parseAddress("So11111111111111111111111111111111111111112");
 
 /** An RPC node that answers with whatever the test hands it. */
 const fakeRpc = (value: unknown): SolanaRpc =>
@@ -136,5 +138,37 @@ describe("reading confirmations through an RPC node", () => {
 		const fake = fakeStatusRpc(null, 448_029_451n);
 
 		expect(await rpcConfirmationReader(fake.rpc).blockHeight()).toBe(448_029_451n);
+	});
+});
+
+describe("reading what recent transactions paid", () => {
+	it("reads fees as whole numbers", async () => {
+		const rpc = {
+			getRecentPrioritizationFees: () => ({
+				send: async () => [
+					{ slot: 448_029_451, prioritizationFee: 0 },
+					{ slot: 448_029_452, prioritizationFee: 12_345 },
+				],
+			}),
+		} as unknown as SolanaRpc;
+
+		expect(await rpcFeeReader(rpc).recentFees([USDC])).toEqual([
+			{ slot: 448_029_451n, microLamports: 0n },
+			{ slot: 448_029_452n, microLamports: 12_345n },
+		]);
+	});
+
+	it("asks about the accounts it was given", async () => {
+		let asked: unknown;
+		const rpc = {
+			getRecentPrioritizationFees: (accounts: unknown) => {
+				asked = accounts;
+				return { send: async () => [] };
+			},
+		} as unknown as SolanaRpc;
+
+		await rpcFeeReader(rpc).recentFees([USDC, SIGNATURE_ACCOUNT]);
+
+		expect(asked).toEqual([USDC, SIGNATURE_ACCOUNT]);
 	});
 });

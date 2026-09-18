@@ -24,6 +24,7 @@ import {
 } from "@solana/kit";
 import type { Address } from "./address.ts";
 import { parseAddress } from "./address.ts";
+import { checkFeeWithinCap, type PriorityFeeSettings } from "./priority-fee.ts";
 import type { SwapQuote } from "./router.ts";
 
 /**
@@ -149,6 +150,11 @@ export type BuildSwapRequest = {
 	/** The machine's wallet: the only account that may sign, and the one that pays. */
 	wallet: Address;
 	/**
+	 * What this trade may pay to be included quickly. A router is asked to respect the cap, and its
+	 * answer is checked against it before anything is signed.
+	 */
+	priorityFee?: PriorityFeeSettings;
+	/**
 	 * Whether to accept a transaction the router's own simulation says will fail. Off by default:
 	 * sending a transaction that already failed is paying a fee to be told so again.
 	 */
@@ -217,6 +223,12 @@ export function parseBuiltSwap(request: BuildSwapRequest, body: unknown): Unsign
 	// A router that does not state its fee or compute budget leaves these out rather than claiming zero.
 	const fee = built["prioritizationFeeLamports"];
 	const limit = built["computeUnitLimit"];
+
+	// Routers are asked for a capped fee and mostly respect it. "Mostly" is not a basis for spending
+	// money, so the answer is held to the cap before the transaction goes anywhere near a signer.
+	if (request.priorityFee && fee !== undefined) {
+		checkFeeWithinCap(wholeNumber(fee, "priority fee"), request.priorityFee);
+	}
 
 	return {
 		router: request.quote.router,
