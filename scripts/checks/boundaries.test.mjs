@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, it } from "node:test";
-import { checkBoundaries, checkRecordWrites } from "./boundaries.mjs";
+import { checkBoundaries, checkKindNames, checkRecordWrites } from "./boundaries.mjs";
 
 const roots = [];
 after(() => {
@@ -170,5 +170,45 @@ describe("who may write to the record", () => {
 			"services/signer/src/sign.ts": "await db.insert(schema.events).values(event);",
 		});
 		assert.equal(checkRecordWrites(root).length, 1);
+	});
+});
+
+describe("who may name a machine kind", () => {
+	const runtime = { "packages/runtime/package.json": pkg("@maschina/runtime") };
+
+	it("allows a kind's own module to name it", () => {
+		const root = repo({
+			...runtime,
+			"packages/runtime/src/kinds/recurring-buy.ts": 'export const kind = "recurring_buy";',
+		});
+		assert.deepEqual(checkKindNames(root), []);
+	});
+
+	it("allows tests to name kinds", () => {
+		const root = repo({
+			...runtime,
+			"packages/runtime/src/run.test.ts": 'const kind = "recurring_buy";',
+		});
+		assert.deepEqual(checkKindNames(root), []);
+	});
+
+	it("catches the core branching on a kind", () => {
+		const root = repo({
+			...runtime,
+			"packages/runtime/src/run.ts": 'if (machine.kind === "recurring_buy") buy();',
+		});
+		assert.deepEqual(
+			checkKindNames(root).map((p) => p.where),
+			["packages/runtime/src/run.ts:1"],
+		);
+	});
+
+	it("catches a service naming a kind", () => {
+		const root = repo({
+			...runtime,
+			"services/orchestrator/package.json": pkg("@maschina/orchestrator"),
+			"services/orchestrator/src/schedule.ts": "const kinds = ['sniper'];",
+		});
+		assert.equal(checkKindNames(root).length, 1);
 	});
 });

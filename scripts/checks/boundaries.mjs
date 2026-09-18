@@ -168,6 +168,35 @@ export function checkRecordWrites(root) {
 	return problems;
 }
 
+/**
+ * Machine kinds are data, not branches. The runtime runs every kind through one interface, so naming a
+ * kind outside its own module means the core has started to care which kind it is, and adding a kind
+ * would mean editing the loop. Each kind's module, and tests, may name it.
+ */
+const KIND_NAMES = /["'`](recurring_buy|take_profit|rebalance|price_trigger|sniper)["'`]/;
+const KINDS_DIR = "packages/runtime/src/kinds/";
+
+export function checkKindNames(root) {
+	const rule = {
+		name: "Only a machine kind's own module names that kind",
+		why: "Every kind runs through one interface. Naming a kind elsewhere is the core branching on it.",
+	};
+	const problems = [];
+	for (const ws of listWorkspaces(root)) {
+		for (const file of walk(join(root, ws))) {
+			const where = relative(root, file);
+			if (where.startsWith(KINDS_DIR) || TEST_FILE.test(where)) continue;
+			readFileSync(file, "utf8")
+				.split("\n")
+				.forEach((line, index) => {
+					const found = line.match(KIND_NAMES);
+					if (found) problems.push({ rule, where: `${where}:${index + 1}`, what: found[1] });
+				});
+		}
+	}
+	return problems;
+}
+
 export function checkBoundaries(root) {
 	const problems = [];
 
@@ -216,7 +245,7 @@ const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
 if (isMain) {
 	const root = join(fileURLToPath(import.meta.url), "../../..");
-	const problems = [...checkBoundaries(root), ...checkRecordWrites(root)];
+	const problems = [...checkBoundaries(root), ...checkRecordWrites(root), ...checkKindNames(root)];
 	if (problems.length === 0) {
 		console.log("Architecture boundaries hold.");
 		process.exit(0);

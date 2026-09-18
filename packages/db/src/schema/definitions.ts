@@ -18,7 +18,7 @@ export const machineDefinitions = pgTable(
 	{
 		/** The content id: the SHA-256 of the canonical recipe, 64 hex characters. */
 		id: text("id").primaryKey(),
-		/** What sort of job the machine does, such as `recurring_buy`. Kinds are data, not code. */
+		/** What sort of job the machine does. Kinds are data, not code, and the runtime never names one. */
 		kind: text("kind").notNull(),
 		/** The settings for that kind: amounts, tokens, schedule. */
 		settings: jsonb("settings").notNull(),
