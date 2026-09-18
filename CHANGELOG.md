@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.10](https://github.com/maschina-labs/maschina/compare/v0.0.9...v0.0.10) (2026-09-18)
+
+
+### Added
+
+* **solana:** add raydium as a second router ([#514](https://github.com/maschina-labs/maschina/issues/514)) ([855992c](https://github.com/maschina-labs/maschina/commit/855992c877714a94553d595721bf15e1b240b60d))
+* **solana:** build swap transactions from quotes ([#512](https://github.com/maschina-labs/maschina/issues/512)) ([2282586](https://github.com/maschina-labs/maschina/commit/22825866c2d379fa52b6628e779c6838ff5e9c08))
+* **solana:** check quotes against an independent price ([#510](https://github.com/maschina-labs/maschina/issues/510)) ([374d0da](https://github.com/maschina-labs/maschina/commit/374d0dae5623b3a43786ac2166e1c2d9ba1dc090))
+* **solana:** confirm transactions and check whether they landed ([#513](https://github.com/maschina-labs/maschina/issues/513)) ([afeea6c](https://github.com/maschina-labs/maschina/commit/afeea6c16a7da7cbc4897a5bb0a1ecbc61fffb30))
+* **solana:** get swap quotes from Jupiter ([#509](https://github.com/maschina-labs/maschina/issues/509)) ([560c06a](https://github.com/maschina-labs/maschina/commit/560c06aa7463373644926b7ad299efe5b1856bfc))
+* **solana:** read token mints and wallet balances ([#507](https://github.com/maschina-labs/maschina/issues/507)) ([59985ac](https://github.com/maschina-labs/maschina/commit/59985ac093130ccd534b4ef9d117acde4e94987d))
+
 ## [0.0.9](https://github.com/maschina-labs/maschina/compare/v0.0.8...v0.0.9) (2026-09-18)
 
 
