@@ -440,9 +440,15 @@ importers:
 
   packages/runtime:
     dependencies:
+      '@maschina/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@maschina/core':
         specifier: workspace:*
         version: link:../core
+      '@maschina/rules':
+        specifier: workspace:*
+        version: link:../rules
     devDependencies:
       '@maschina/config':
         specifier: workspace:*
