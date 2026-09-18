@@ -1,3 +1,4 @@
+export * from "./classify.ts";
 export * from "./effect.ts";
 export * from "./failure.ts";
 export * from "./kinds/recurring-buy.ts";
