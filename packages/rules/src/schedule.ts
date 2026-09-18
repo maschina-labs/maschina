@@ -63,8 +63,16 @@ function assertSchedule(schedule: Schedule): void {
 	}
 }
 
-const partsOf = (timeZone: string) =>
-	new Intl.DateTimeFormat("en-US", {
+/**
+ * Date formatters are expensive to build and are asked for constantly while scanning days, so one is
+ * kept per zone. They hold no state between calls.
+ */
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+const partsOf = (timeZone: string) => {
+	const cached = formatters.get(timeZone);
+	if (cached) return cached;
+	const made = new Intl.DateTimeFormat("en-US", {
 		timeZone,
 		hour12: false,
 		year: "numeric",
@@ -74,6 +82,9 @@ const partsOf = (timeZone: string) =>
 		minute: "2-digit",
 		second: "2-digit",
 	});
+	formatters.set(timeZone, made);
+	return made;
+};
 
 /** The local wall-clock time in a zone at a moment in time. */
 function localTimeAt(timeZone: string, utcMs: number): LocalTime & { second: number } {

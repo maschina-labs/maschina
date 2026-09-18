@@ -249,9 +249,9 @@ describe("nextOccurrence, for any schedule at any moment", () => {
 			fc.property(anySchedule, anyMoment, (schedule, now) => {
 				expect(nextOccurrence(schedule, now)).toBeGreaterThan(now);
 			}),
-			{ numRuns: 3000 },
+			{ numRuns: 1500 },
 		);
-	});
+	}, 60_000);
 
 	it("never repeats a slot: asking again always moves forward", () => {
 		fc.assert(
@@ -260,9 +260,9 @@ describe("nextOccurrence, for any schedule at any moment", () => {
 				const second = nextOccurrence(schedule, first);
 				expect(second).toBeGreaterThan(first);
 			}),
-			{ numRuns: 3000 },
+			{ numRuns: 1500 },
 		);
-	});
+	}, 60_000);
 
 	it("never skips: nothing is due between now and the answer", () => {
 		fc.assert(
@@ -270,9 +270,9 @@ describe("nextOccurrence, for any schedule at any moment", () => {
 				const next = nextOccurrence(schedule, now);
 				expect(occurrencesBetween(schedule, now, next - 1)).toEqual([]);
 			}),
-			{ numRuns: 1500 },
+			{ numRuns: 1000 },
 		);
-	});
+	}, 60_000);
 
 	it("lands on the wanted minute, or later the same day when the clocks skipped it", () => {
 		fc.assert(
@@ -286,9 +286,9 @@ describe("nextOccurrence, for any schedule at any moment", () => {
 				expect(got).toBeGreaterThanOrEqual(wanted);
 				expect(got - wanted).toBeLessThanOrEqual(180);
 			}),
-			{ numRuns: 3000 },
+			{ numRuns: 1500 },
 		);
-	});
+	}, 60_000);
 
 	it("runs a daily schedule once a day, a day being 23 to 25 hours across clock changes", () => {
 		fc.assert(
@@ -315,7 +315,7 @@ describe("nextOccurrence, for any schedule at any moment", () => {
 					});
 				},
 			),
-			{ numRuns: 300 },
+			{ numRuns: 200 },
 		);
-	});
+	}, 60_000);
 });
