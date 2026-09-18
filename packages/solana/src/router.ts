@@ -12,6 +12,7 @@
 
 import type { BaseUnits } from "@maschina/core";
 import type { Address } from "./address.ts";
+import type { BuildSwapRequest, UnsignedSwap } from "./swap-transaction.ts";
 
 export type QuoteRequest = {
 	inputMint: Address;
@@ -52,6 +53,8 @@ export type SwapQuote = {
 export type SwapRouter = {
 	name: string;
 	quote(request: QuoteRequest, signal?: AbortSignal): Promise<SwapQuote>;
+	/** Builds the transaction for a quote. The quote goes back to the router exactly as it arrived. */
+	build(request: BuildSwapRequest, signal?: AbortSignal): Promise<UnsignedSwap>;
 };
 
 /** The most slippage Maschina will ask any router for: ten percent, which is already reckless. */
