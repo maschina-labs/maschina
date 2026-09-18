@@ -10,7 +10,14 @@
 import { newId } from "@maschina/core";
 import { describe, expect, it, vi } from "vitest";
 import type { Database, Executor } from "./client.ts";
-import { budgetFor, releaseTrade, reserveForTrade, settleTrade } from "./ledger.ts";
+import {
+	budgetFor,
+	recordSubmission,
+	releaseTrade,
+	reserveForTrade,
+	settleTrade,
+	submissionFor,
+} from "./ledger.ts";
 
 const machineId = newId<"machine">();
 const runId = newId<"run">();
@@ -262,5 +269,101 @@ describe("reading a budget", () => {
 
 		expect(budget.reserved).toBe(110n);
 		expect(budget.available).toBe(390n);
+	});
+});
+
+describe("writing down a signature before sending", () => {
+	const submission = {
+		machineId,
+		runId,
+		tradeId,
+		leaseEpoch: 1n,
+		signature: SIGNATURE,
+		lastValidBlockHeight: 426_070_577n,
+	};
+
+	it("refuses a machine that does not exist", async () => {
+		const { db } = fakeDatabase([]);
+
+		const result = await recordSubmission(db, submission);
+
+		expect(!result.ok && result.error.code).toBe("not_found");
+	});
+
+	it("writes the signature when this trade has none", async () => {
+		const { db } = fakeDatabase(
+			[{ id: machineId }],
+			[],
+			[{ id: newId<"event">(), occurred_at: "2026-09-18T00:00:03.000Z" }],
+		);
+
+		const result = await recordSubmission(db, submission);
+
+		expect(result.ok && result.value.signature).toBe(SIGNATURE);
+	});
+
+	it("refuses a trade that has already been signed once, and says by what", async () => {
+		const { db } = fakeDatabase(
+			[{ id: machineId }],
+			[
+				{
+					id: newId<"event">(),
+					machine_id: machineId,
+					type: "trade.submitted",
+					payload: { runId, tradeId, signature: SIGNATURE, lastValidBlockHeight: "1" },
+					occurred_at: "2026-09-18T00:00:02.000Z",
+				},
+			],
+		);
+
+		const result = await recordSubmission(db, submission);
+
+		expect(!result.ok && result.error.code).toBe("conflict");
+		expect(!result.ok && result.error.details).toMatchObject({ signature: SIGNATURE });
+	});
+
+	it("passes a refused write back rather than reporting a submission", async () => {
+		const { db } = fakeDatabase([{ id: machineId }], [], []);
+
+		const result = await recordSubmission(db, submission);
+
+		expect(!result.ok && result.error.code).toBe("conflict");
+	});
+});
+
+describe("finding a signature already written down", () => {
+	it("finds the one belonging to this trade", async () => {
+		const { db } = fakeDatabase([
+			{
+				id: newId<"event">(),
+				machine_id: machineId,
+				type: "trade.submitted",
+				payload: {
+					runId,
+					tradeId: newId<"trade">(),
+					signature: "9".repeat(88),
+					lastValidBlockHeight: "1",
+				},
+				occurred_at: "2026-09-18T00:00:01.000Z",
+			},
+			{
+				id: newId<"event">(),
+				machine_id: machineId,
+				type: "trade.submitted",
+				payload: { runId, tradeId, signature: SIGNATURE, lastValidBlockHeight: "426070577" },
+				occurred_at: "2026-09-18T00:00:02.000Z",
+			},
+		]);
+
+		expect(await submissionFor(db, machineId, tradeId)).toEqual({
+			signature: SIGNATURE,
+			lastValidBlockHeight: 426_070_577n,
+		});
+	});
+
+	it("says nothing when this trade was never signed", async () => {
+		const { db } = fakeDatabase([]);
+
+		expect(await submissionFor(db, machineId, tradeId)).toBeUndefined();
 	});
 });

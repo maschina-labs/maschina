@@ -12,10 +12,12 @@ import {
 	budgetFor,
 	createDatabase,
 	type DatabaseHandle,
+	recordSubmission,
 	releaseTrade,
 	reserveForTrade,
 	saveDefinition,
 	settleTrade,
+	submissionFor,
 } from "@maschina/db";
 import { createTestDatabase, type TestDatabase } from "@maschina/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -305,5 +307,98 @@ describe("many trades at once", () => {
 			Array.from({ length: 8 }, () => reserveForTrade(handle.db, aTrade(machineId, 100n))),
 		);
 		expect(after.filter((result) => result.ok)).toHaveLength(7);
+	});
+});
+
+describe("sending a trade at most once", () => {
+	it("writes a signature down once, and refuses a second one for the same trade", async () => {
+		const machineId = await aMachineWith(1_000n);
+		const trade = aTrade(machineId, 100n);
+		await reserveForTrade(handle.db, trade);
+
+		const first = await recordSubmission(handle.db, {
+			machineId,
+			runId: trade.runId,
+			tradeId: trade.tradeId,
+			leaseEpoch: 1n,
+			signature: SIGNATURE,
+			lastValidBlockHeight: 426_070_577n,
+		});
+		const second = await recordSubmission(handle.db, {
+			machineId,
+			runId: trade.runId,
+			tradeId: trade.tradeId,
+			leaseEpoch: 1n,
+			// A different signature: signing again would produce one, and it must not be accepted.
+			signature: "9".repeat(88),
+			lastValidBlockHeight: 426_070_577n,
+		});
+
+		expect(first.ok).toBe(true);
+		expect(!second.ok && second.error.code).toBe("conflict");
+		expect(!second.ok && second.error.details).toMatchObject({ signature: SIGNATURE });
+	});
+
+	it("lets only one of many simultaneous attempts through", async () => {
+		const machineId = await aMachineWith(1_000n);
+		const trade = aTrade(machineId, 100n);
+		await reserveForTrade(handle.db, trade);
+
+		const attempts = await Promise.all(
+			Array.from({ length: 8 }, (_, index) =>
+				recordSubmission(handle.db, {
+					machineId,
+					runId: trade.runId,
+					tradeId: trade.tradeId,
+					leaseEpoch: 1n,
+					signature: `${index}`.repeat(88),
+					lastValidBlockHeight: 426_070_577n,
+				}),
+			),
+		);
+
+		expect(attempts.filter((attempt) => attempt.ok)).toHaveLength(1);
+	});
+
+	it("is found again after a restart, so the trade is never signed twice", async () => {
+		const machineId = await aMachineWith(1_000n);
+		const trade = aTrade(machineId, 100n);
+		await reserveForTrade(handle.db, trade);
+		await recordSubmission(handle.db, {
+			machineId,
+			runId: trade.runId,
+			tradeId: trade.tradeId,
+			leaseEpoch: 1n,
+			signature: SIGNATURE,
+			lastValidBlockHeight: 426_070_577n,
+		});
+
+		// A new connection, as a restarted signer would have.
+		const restarted = createDatabase({ url: database.appUrl, applicationName: "restarted-signer" });
+		try {
+			const found = await submissionFor(restarted.db, machineId, trade.tradeId);
+
+			expect(found).toEqual({ signature: SIGNATURE, lastValidBlockHeight: 426_070_577n });
+		} finally {
+			await restarted.close();
+		}
+	});
+
+	it("keeps each trade's signature to itself", async () => {
+		const machineId = await aMachineWith(1_000n);
+		const first = aTrade(machineId, 100n);
+		const second = aTrade(machineId, 100n);
+		await reserveForTrade(handle.db, first);
+		await reserveForTrade(handle.db, second);
+		await recordSubmission(handle.db, {
+			machineId,
+			runId: first.runId,
+			tradeId: first.tradeId,
+			leaseEpoch: 1n,
+			signature: SIGNATURE,
+			lastValidBlockHeight: 1n,
+		});
+
+		expect(await submissionFor(handle.db, machineId, second.tradeId)).toBeUndefined();
 	});
 });

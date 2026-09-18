@@ -17,6 +17,7 @@
 
 import { MaschinaError } from "@maschina/core";
 import {
+	getBase58Decoder,
 	getCompiledTransactionMessageDecoder,
 	getTransactionDecoder,
 	type Address as KitAddress,
@@ -230,4 +231,27 @@ export function parseBuiltSwap(request: BuildSwapRequest, body: unknown): Unsign
 		facts,
 		...(simulationError ? { simulationError } : {}),
 	};
+}
+
+/**
+ * The signature of a signed transaction.
+ *
+ * A transaction's signature is its identity on chain: it is decided the moment it is signed, before it
+ * is sent anywhere, which is what makes it possible to write down what is about to happen and then ask
+ * the chain about it afterwards. Reading it here rather than waiting for the chain to hand it back is
+ * the difference between a crash that can be recovered and one that cannot.
+ */
+export function signatureOf(signedTransaction: Uint8Array): string {
+	let decoded: ReturnType<ReturnType<typeof getTransactionDecoder>["decode"]>;
+	try {
+		decoded = getTransactionDecoder().decode(signedTransaction);
+	} catch (cause) {
+		throw new MaschinaError("invalid_input", "this is not a transaction", { cause });
+	}
+
+	const [first] = Object.values(decoded.signatures);
+	if (!first) {
+		throw new MaschinaError("invalid_input", "this transaction has no signature on it");
+	}
+	return getBase58Decoder().decode(first);
 }

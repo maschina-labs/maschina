@@ -76,6 +76,17 @@ const TRADE_PAYLOADS = {
 		rule: z.string().min(1).max(100),
 		reason: z.string().min(1).max(500),
 	}),
+	/**
+	 * Signed, and about to be sent. Written before the transaction reaches the chain, so a crash in
+	 * between leaves a signature to ask the chain about rather than a question nobody can answer.
+	 */
+	"trade.submitted": object({
+		runId: id,
+		tradeId: id,
+		signature,
+		/** After this height the transaction can never land, which is how "it failed" becomes provable. */
+		lastValidBlockHeight: amount,
+	}),
 	"trade.completed": object({
 		runId: id,
 		tradeId: id,
