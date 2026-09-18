@@ -12,7 +12,9 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@maschina/core": "workspace:*"
+		"@maschina/contracts": "workspace:*",
+		"@maschina/core": "workspace:*",
+		"@maschina/rules": "workspace:*"
 	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
