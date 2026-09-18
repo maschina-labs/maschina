@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.8](https://github.com/maschina-labs/maschina/compare/v0.0.7...v0.0.8) (2026-09-18)
+
+
+### Added
+
+* **db:** store machines with their owner, wallet and pinned version ([#468](https://github.com/maschina-labs/maschina/issues/468)) ([5767bd1](https://github.com/maschina-labs/maschina/commit/5767bd19a97ea11676cb391963a797177f0293b3))
+
 ## [0.0.7](https://github.com/maschina-labs/maschina/compare/v0.0.6...v0.0.7) (2026-09-18)
 
 
