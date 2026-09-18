@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.9](https://github.com/maschina-labs/maschina/compare/v0.0.8...v0.0.9) (2026-09-18)
+
+
+### Added
+
+* **runtime:** classify failures and recover by effect class ([#474](https://github.com/maschina-labs/maschina/issues/474)) ([45d628b](https://github.com/maschina-labs/maschina/commit/45d628b7d7de06531009a4021152903ea36c8da5))
+* **runtime:** run every machine kind through one interface ([#471](https://github.com/maschina-labs/maschina/issues/471)) ([78acf9b](https://github.com/maschina-labs/maschina/commit/78acf9b6dfef31b62e18de262c45b7b6be7ed3a9))
+* **runtime:** run the eight steps of a run in order ([#473](https://github.com/maschina-labs/maschina/issues/473)) ([657bb15](https://github.com/maschina-labs/maschina/commit/657bb1549e06cd18a9e57708b2d269369c137a84))
+
 ## [0.0.8](https://github.com/maschina-labs/maschina/compare/v0.0.7...v0.0.8) (2026-09-18)
 
 
