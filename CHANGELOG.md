@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.11](https://github.com/maschina-labs/maschina/compare/v0.0.10...v0.0.11) (2026-09-18)
+
+
+### Added
+
+* **signer:** accept proposed transactions from the orchestrator only ([#515](https://github.com/maschina-labs/maschina/issues/515)) ([228aa0f](https://github.com/maschina-labs/maschina/commit/228aa0f1b07d0f0cf6a70effa4d8e884e8438604))
+* **signer:** check Maschina's rules before every signature ([#517](https://github.com/maschina-labs/maschina/issues/517)) ([352d63f](https://github.com/maschina-labs/maschina/commit/352d63f0db6c9519860fa460e18b6f24e111dd21))
+
 ## [0.0.10](https://github.com/maschina-labs/maschina/compare/v0.0.9...v0.0.10) (2026-09-18)
 
 
