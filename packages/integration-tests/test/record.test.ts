@@ -250,3 +250,52 @@ describe("appendEvent", () => {
 		}
 	});
 });
+
+describe("owners", () => {
+	const OWNER = "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR";
+
+	it("stores an owner by wallet address", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			const [row] = await sql<{ id: string; created_at: Date }[]>`
+				insert into owners (wallet_address) values (${OWNER}) returning id, created_at`;
+			expect(row?.id).toBeDefined();
+			expect(row?.created_at.getTime()).toBeGreaterThan(Date.now() - 60_000);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("keeps one owner per wallet address", async () => {
+		const sql = connect(database.appUrl);
+		const address = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+		try {
+			await sql`insert into owners (wallet_address) values (${address})`;
+			await expect(sql`insert into owners (wallet_address) values (${address})`).rejects.toThrow(
+				/duplicate key|unique/i,
+			);
+		} finally {
+			await sql.end();
+		}
+	});
+
+	it("refuses an address that isn't a Solana address", async () => {
+		const sql = connect(database.appUrl);
+		try {
+			for (const bad of [
+				"",
+				"not-an-address",
+				"0OIl0OIl0OIl0OIl0OIl0OIl0OIl0OIl",
+				"8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR1234567890",
+				"8GTgV1mscEjSoNmTdmNLaPjV1",
+				" 8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR",
+			]) {
+				await expect(sql`insert into owners (wallet_address) values (${bad})`, bad).rejects.toThrow(
+					/owners_wallet_address_shape|violates check constraint/i,
+				);
+			}
+		} finally {
+			await sql.end();
+		}
+	});
+});
