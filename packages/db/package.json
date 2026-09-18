@@ -19,6 +19,7 @@
 		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/env": "workspace:*",
+		"@maschina/runtime": "workspace:*",
 		"drizzle-orm": "catalog:",
 		"postgres": "catalog:"
 	},

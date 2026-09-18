@@ -238,3 +238,29 @@ describe("machineBudget, for any sequence of events at all", () => {
 		);
 	});
 });
+
+describe("the fee a trade will cost to send", () => {
+	it("is held back along with what the trade spends", () => {
+		const withFee = event("trade.intended", {
+			runId: RUN,
+			tradeId: trade(9),
+			inputMint: "So11111111111111111111111111111111111111112",
+			outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+			inputAmount: "100",
+			quotedOutputAmount: "1",
+			slippageBps: 50,
+			feeAllowance: "10",
+		});
+
+		const budget = machineBudget([granted("1000"), withFee]);
+
+		expect(budget.reserved).toBe(110n);
+		expect(budget.available).toBe(890n);
+	});
+
+	it("is nothing when the trade did not say, so older events read the same", () => {
+		const budget = machineBudget([granted("1000"), intended(trade(8), "100")]);
+
+		expect(budget.reserved).toBe(100n);
+	});
+});

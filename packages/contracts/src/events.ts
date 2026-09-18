@@ -62,6 +62,11 @@ const TRADE_PAYLOADS = {
 		inputAmount: amount,
 		quotedOutputAmount: amount,
 		slippageBps: z.int().min(0).max(10_000),
+		/**
+		 * Held back for the network fee on top of the amount being spent. A trade costs what it spends
+		 * plus what it costs to send, and a budget that only counts the first slowly drifts.
+		 */
+		feeAllowance: amount.optional(),
 	}),
 	"trade.refused": object({
 		runId: id,
