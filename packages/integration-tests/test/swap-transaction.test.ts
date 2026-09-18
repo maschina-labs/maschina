@@ -17,6 +17,7 @@ import {
 	type SwapQuote,
 } from "@maschina/solana";
 import { describe, expect, it } from "vitest";
+import { live } from "./support/live.ts";
 
 const SOL = parseAddress("So11111111111111111111111111111111111111112");
 const USDC = parseAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
@@ -27,12 +28,14 @@ const key = process.env["JUPITER_API_KEY"];
 const router = jupiterRouter({ ...(key ? { apiKey: key } : {}), timeoutMs: 20_000 });
 
 const liveQuote = (): Promise<SwapQuote> =>
-	router.quote({
-		inputMint: SOL,
-		outputMint: USDC,
-		amount: 10_000_000n as SwapQuote["inputAmount"],
-		slippageBps: 50,
-	});
+	live(() =>
+		router.quote({
+			inputMint: SOL,
+			outputMint: USDC,
+			amount: 10_000_000n as SwapQuote["inputAmount"],
+			slippageBps: 50,
+		}),
+	);
 
 describe("a transaction built from a live quote", () => {
 	it("is refused by default when the router's own simulation failed", async () => {
@@ -44,7 +47,9 @@ describe("a transaction built from a live quote", () => {
 	it("is unsigned, pays from the machine's wallet, and calls only swap programs", async () => {
 		const quote = await liveQuote();
 
-		const swap = await router.build({ quote, wallet: WALLET, allowFailedSimulation: true });
+		const swap = await live(() =>
+			router.build({ quote, wallet: WALLET, allowFailedSimulation: true }),
+		);
 
 		expect(swap.facts.feePayer).toBe(WALLET);
 		expect(swap.facts.signaturesRequired).toBe(1);
@@ -60,7 +65,9 @@ describe("a transaction built from a live quote", () => {
 	it("comes back with an expiry and a fee that are real numbers", async () => {
 		const quote = await liveQuote();
 
-		const swap = await router.build({ quote, wallet: WALLET, allowFailedSimulation: true });
+		const swap = await live(() =>
+			router.build({ quote, wallet: WALLET, allowFailedSimulation: true }),
+		);
 
 		expect(swap.lastValidBlockHeight).toBeGreaterThan(0n);
 		expect(swap.priorityFeeLamports).toBeGreaterThanOrEqual(0n);
@@ -70,7 +77,9 @@ describe("a transaction built from a live quote", () => {
 
 	it("passes the same checks when taken apart on its own", async () => {
 		const quote = await liveQuote();
-		const swap = await router.build({ quote, wallet: WALLET, allowFailedSimulation: true });
+		const swap = await live(() =>
+			router.build({ quote, wallet: WALLET, allowFailedSimulation: true }),
+		);
 
 		expect(checkUnsignedSwap(swap.transaction, WALLET).feePayer).toBe(WALLET);
 		// The same bytes, checked against a wallet they were not built for, are refused.
