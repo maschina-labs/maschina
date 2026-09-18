@@ -22,17 +22,39 @@ const up: typeof fetch = async () =>
 const down: typeof fetch = async () => Response.json({}, { status: 404 });
 
 describe("the web app", () => {
-	it("renders the home page and shows the API is up", async () => {
+	it("says what a machine is and what it cannot do", async () => {
 		renderAt("/", up);
+
 		expect(
-			await screen.findByRole("heading", { name: "Software that goes to work." }),
+			await screen.findByRole("heading", {
+				name: /a machine with its own wallet, a budget it cannot exceed/i,
+			}),
 		).toBeInTheDocument();
-		expect(await screen.findByText("API: ok")).toBeInTheDocument();
+		expect(await screen.findByText("Its own wallet")).toBeInTheDocument();
+		expect(await screen.findByText("It cannot withdraw your money")).toBeInTheDocument();
 	});
 
-	it("says so when the API can't be reached", async () => {
+	it("does not need the API to say anything", async () => {
+		// The landing page is the first thing anyone sees, often before any service is running. It has
+		// to read correctly on its own rather than showing an error where the product should be.
 		renderAt("/", down);
-		expect(await screen.findByText("API: unreachable")).toBeInTheDocument();
+
+		expect(
+			await screen.findByRole("heading", {
+				name: /a machine with its own wallet, a budget it cannot exceed/i,
+			}),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/unreachable/i)).not.toBeInTheDocument();
+	});
+
+	it("promises nothing about returns", async () => {
+		renderAt("/", up);
+		const page = document.body.textContent ?? "";
+
+		// The voice rules: nothing that reads like a yield product, ever, anywhere public.
+		for (const forbidden of ["guaranteed", "profit", "returns", "APY", "earn "]) {
+			expect(page.toLowerCase()).not.toContain(forbidden.toLowerCase());
+		}
 	});
 
 	it("shows a not-found page for unknown routes", async () => {
