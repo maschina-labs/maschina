@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.12](https://github.com/maschina-labs/maschina/compare/v0.0.11...v0.0.12) (2026-09-19)
+
+
+### Added
+
+* **db:** reserve budget before signing and settle after ([#518](https://github.com/maschina-labs/maschina/issues/518)) ([c92501b](https://github.com/maschina-labs/maschina/commit/c92501b7bff99bf5dd645a828262c1098e5129e3))
+* **signer:** never submit the same trade twice ([#521](https://github.com/maschina-labs/maschina/issues/521)) ([c11d8a3](https://github.com/maschina-labs/maschina/commit/c11d8a383f7263f0c1544f04a900c20a04c42494))
+* **signer:** sign through turnkey with its policy enforced ([#519](https://github.com/maschina-labs/maschina/issues/519)) ([73bbe28](https://github.com/maschina-labs/maschina/commit/73bbe28b7ff274b8092adee1c677ad6ac407c418))
+* **solana:** bid to land trades, never past the cap ([#522](https://github.com/maschina-labs/maschina/issues/522)) ([3d47b46](https://github.com/maschina-labs/maschina/commit/3d47b462b973f5bb4c58c928b33658e2a380a1f3))
+* **web:** a plain test landing page, and a README for judges ([#537](https://github.com/maschina-labs/maschina/issues/537)) ([ef6c570](https://github.com/maschina-labs/maschina/commit/ef6c5702ea275b5e6df8b1a21affc79eeff28989))
+* **web:** use the maschina mark and wordmark ([#538](https://github.com/maschina-labs/maschina/issues/538)) ([3716833](https://github.com/maschina-labs/maschina/commit/371683375bc3e262db041e792924ded5c88a792c))
+
 ## [0.0.11](https://github.com/maschina-labs/maschina/compare/v0.0.10...v0.0.11) (2026-09-18)
 
 
