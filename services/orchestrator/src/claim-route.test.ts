@@ -15,6 +15,7 @@ function app(runs: RunQueue) {
 		checks: [],
 		runs,
 		reports: { report: async () => ok(undefined) },
+		contexts: { contextFor: async () => undefined },
 	});
 }
 

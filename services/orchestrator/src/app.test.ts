@@ -14,6 +14,7 @@ function app(databaseUp = true) {
 		checks: [{ name: "database", check: async () => databaseUp }],
 		runs: { claim: async () => ok(undefined) },
 		reports: { report: async () => ok(undefined) },
+		contexts: { contextFor: async () => undefined },
 	});
 }
 
