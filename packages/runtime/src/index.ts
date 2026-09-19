@@ -7,6 +7,7 @@ export * from "./machine-budget.ts";
 export * from "./machine-kind.ts";
 export * from "./machine-limits.ts";
 export * from "./machine-state.ts";
+export * from "./price-trigger.ts";
 export * from "./recovery.ts";
 export * from "./run.ts";
 export * from "./run-loop.ts";
