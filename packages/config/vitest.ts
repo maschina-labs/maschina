@@ -10,8 +10,8 @@ type Options = {
 	/** Test file patterns, when a workspace keeps tests somewhere other than src and test. */
 	include?: string[];
 	/**
-	 * How long one test may take. Property tests that check thousands of cases need more than the default
-	 * on a busy machine, and a timeout there says nothing about the code.
+	 * How long one test may take. The default is generous on purpose: a timeout on a developer's busy
+	 * machine says nothing about the code, and every test here is meant to finish in milliseconds.
 	 */
 	testTimeoutMs?: number;
 };
@@ -23,7 +23,7 @@ export function vitestConfig({
 	coverage = 80,
 	coverageExclude = [],
 	include = ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
-	testTimeoutMs = 5_000,
+	testTimeoutMs = 20_000,
 }: Options = {}): ViteUserConfig {
 	return defineConfig({
 		test: {
