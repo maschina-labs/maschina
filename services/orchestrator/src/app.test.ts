@@ -1,3 +1,4 @@
+import { ok } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
@@ -11,6 +12,7 @@ function app(databaseUp = true) {
 		daemonToken: token,
 		logger,
 		checks: [{ name: "database", check: async () => databaseUp }],
+		runs: { claim: async () => ok(undefined) },
 	});
 }
 
