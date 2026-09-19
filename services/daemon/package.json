@@ -24,6 +24,8 @@
 		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/env": "workspace:*",
+		"@maschina/runtime": "workspace:*",
+		"@maschina/solana": "workspace:*",
 		"@maschina/telemetry": "workspace:*",
 		"@types/node": "catalog:",
 		"@vitest/coverage-v8": "catalog:",

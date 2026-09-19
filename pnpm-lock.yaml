@@ -746,6 +746,12 @@ importers:
       '@maschina/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@maschina/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+      '@maschina/solana':
+        specifier: workspace:*
+        version: link:../../packages/solana
       '@maschina/telemetry':
         specifier: workspace:*
         version: link:../../packages/telemetry

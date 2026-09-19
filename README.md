@@ -32,6 +32,7 @@ Working today, each proved against real services rather than mocks:
 | What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |
 | Nodes claiming runs, asking about them and reporting on them, only while they hold the lease | `services/orchestrator`, `services/daemon` |
 | Trades proposed by a node, passed to the signer only for a run it holds | `services/orchestrator/src/propose-route.ts` |
+| A node running a machine: its balances, its decision, a quote checked against an independent price, a proposal | `services/daemon/src/machine-runner.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 Not built yet: machines running on a node from start to finish, a machine's own wallet created with

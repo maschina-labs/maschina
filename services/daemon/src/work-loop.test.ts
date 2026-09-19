@@ -21,7 +21,7 @@ const aRun = (): ClaimedRun => ({
 function fakeOrchestrator(runs: ClaimedRun[], options: { lose?: boolean } = {}) {
 	const queue = [...runs];
 	const reports: RunReportEvent[] = [];
-	const orchestrator: Orchestrator = {
+	const orchestrator: Pick<Orchestrator, "claim" | "report" | "renew"> = {
 		claim: async () => queue.shift(),
 		report: async ({ event }) => {
 			reports.push(event);
@@ -33,7 +33,11 @@ function fakeOrchestrator(runs: ClaimedRun[], options: { lose?: boolean } = {}) 
 }
 
 /** Runs the loop until the queue is drained, then stops it. */
-async function drain(orchestrator: Orchestrator, execute: RunExecutor, done: () => boolean) {
+async function drain(
+	orchestrator: Pick<Orchestrator, "claim" | "report" | "renew">,
+	execute: RunExecutor,
+	done: () => boolean,
+) {
 	const stop = new AbortController();
 	const sleeps: number[] = [];
 	await runWorkLoop(
@@ -131,7 +135,7 @@ describe("the daemon's work loop", () => {
 
 	it("backs off when the orchestrator cannot be reached", async () => {
 		let attempts = 0;
-		const orchestrator: Orchestrator = {
+		const orchestrator: Pick<Orchestrator, "claim" | "report" | "renew"> = {
 			claim: async () => {
 				attempts++;
 				throw new Error("connection refused");

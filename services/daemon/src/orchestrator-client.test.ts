@@ -138,3 +138,82 @@ describe("renewing a lease", () => {
 		await expect(client.renew({ nodeId, runId, leaseEpoch: 7n })).rejects.toThrow(/503/);
 	});
 });
+
+describe("asking about a run and proposing a trade", () => {
+	const context = {
+		runId,
+		machineId,
+		wallet: "WaLLet1111111111111111111111111111111111111",
+		kind: "recurring_buy",
+		settings: { amountPerBuy: "5" },
+		dueAt: "2026-09-21T09:00:00.000Z",
+		state: "running",
+		canAct: true,
+		availableBudget: "20000000",
+		totals: { spent: "0", buys: 0 },
+	};
+
+	it("reads a run's context, with amounts back as numbers", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json(context),
+		});
+		const read = await client.context({ nodeId, runId, leaseEpoch: 2n });
+		expect(read).toMatchObject({
+			kind: "recurring_buy",
+			availableBudget: 20_000_000n,
+			totals: { spent: 0n, buys: 0 },
+		});
+		expect(read?.dueAt).toEqual(new Date("2026-09-21T09:00:00.000Z"));
+	});
+
+	it("says nothing about a run it no longer holds", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({}, 409),
+		});
+		expect(await client.context({ nodeId, runId, leaseEpoch: 2n })).toBeUndefined();
+	});
+
+	it("passes the signer's answer back from a proposal", async () => {
+		const answer = { status: "signed", proposalId: newId<"proposal">(), signature: "5".repeat(88) };
+		const fetchFn = vi.fn(async () => json(answer));
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: fetchFn,
+		});
+
+		const proposal = { proposalId: answer.proposalId } as unknown as Parameters<
+			typeof client.propose
+		>[0]["proposal"];
+		expect(await client.propose({ nodeId, leaseEpoch: 2n, proposal })).toEqual(answer);
+		const [url, init] = fetchFn.mock.calls[0] as unknown as [URL, RequestInit];
+		expect(String(url)).toBe("http://orchestrator:4100/internal/v1/runs/propose");
+		expect(JSON.parse(String(init.body))).toMatchObject({ leaseEpoch: "2" });
+	});
+
+	it("says the run moved on when a proposal comes too late", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({}, 409),
+		});
+		const proposal = {} as Parameters<typeof client.propose>[0]["proposal"];
+		expect(await client.propose({ nodeId, leaseEpoch: 2n, proposal })).toBe("lease_lost");
+	});
+
+	it("throws on a failure it cannot act on", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({}, 503),
+		});
+		await expect(client.renew({ nodeId, runId, leaseEpoch: 7n })).rejects.toThrow(/503/);
+		await expect(client.context({ nodeId, runId, leaseEpoch: 2n })).rejects.toThrow(/503/);
+		const proposal = {} as Parameters<typeof client.propose>[0]["proposal"];
+		await expect(client.propose({ nodeId, leaseEpoch: 2n, proposal })).rejects.toThrow(/503/);
+	});
+});

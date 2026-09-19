@@ -9,7 +9,10 @@ import {
 	ClaimResponse,
 	RenewResponse,
 	ReportResponse,
+	RunContextResponse,
 	type RunReportEvent,
+	type SignRequest,
+	SignResponse,
 } from "@maschina/contracts";
 
 export type ClaimedRun = {
@@ -19,6 +22,20 @@ export type ClaimedRun = {
 	dueAt: Date;
 	leaseEpoch: bigint;
 	leaseExpiresAt: Date;
+};
+
+/** What a node is told about a run it holds, with amounts as numbers again. */
+export type RunContext = {
+	runId: string;
+	machineId: string;
+	wallet: string;
+	kind: string;
+	settings: unknown;
+	dueAt: Date;
+	state: string;
+	canAct: boolean;
+	availableBudget: bigint;
+	totals: { spent: bigint; buys: number };
 };
 
 type ReportResult = { recorded: true } | { recorded: false; reason: "lease_lost" };
@@ -33,6 +50,18 @@ export type Orchestrator = {
 	}): Promise<ReportResult>;
 	/** Keeps the node's hold on a run. `held: false` means the run has moved on. */
 	renew(lease: { nodeId: string; runId: string; leaseEpoch: bigint }): Promise<{ held: boolean }>;
+	/** What the node needs to run the machine, or nothing once it no longer holds the run. */
+	context(lease: {
+		nodeId: string;
+		runId: string;
+		leaseEpoch: bigint;
+	}): Promise<RunContext | undefined>;
+	/** Proposes a trade. The signer's answer comes back unchanged. */
+	propose(proposal: {
+		nodeId: string;
+		leaseEpoch: bigint;
+		proposal: SignRequest;
+	}): Promise<SignResponse | "lease_lost">;
 };
 
 export function orchestratorClient(options: {
@@ -42,7 +71,7 @@ export function orchestratorClient(options: {
 }): Orchestrator {
 	const fetchFn = options.fetch ?? fetch;
 
-	const post = (path: string, body: unknown) =>
+	const post = (path: string, body: unknown, timeoutMs = 10_000) =>
 		fetchFn(new URL(path, options.url), {
 			method: "POST",
 			headers: {
@@ -50,7 +79,7 @@ export function orchestratorClient(options: {
 				"content-type": "application/json",
 			},
 			body: JSON.stringify(body),
-			signal: AbortSignal.timeout(10_000),
+			signal: AbortSignal.timeout(timeoutMs),
 		});
 
 	return {
@@ -90,6 +119,34 @@ export function orchestratorClient(options: {
 			if (!response.ok) throw new Error(`renewing a lease failed with ${response.status}`);
 			RenewResponse.parse(await response.json());
 			return { held: true };
+		},
+
+		async context(lease) {
+			const response = await post("/internal/v1/runs/context", {
+				...lease,
+				leaseEpoch: lease.leaseEpoch.toString(),
+			});
+			if (response.status === 409) return undefined;
+			if (!response.ok) throw new Error(`asking about a run failed with ${response.status}`);
+			const read = RunContextResponse.parse(await response.json());
+			return {
+				...read,
+				dueAt: new Date(read.dueAt),
+				availableBudget: BigInt(read.availableBudget),
+				totals: { spent: BigInt(read.totals.spent), buys: read.totals.buys },
+			};
+		},
+
+		async propose({ nodeId, leaseEpoch, proposal }) {
+			// The signer waits for the chain before it answers, which can take a minute or more.
+			const response = await post(
+				"/internal/v1/runs/propose",
+				{ nodeId, leaseEpoch: leaseEpoch.toString(), proposal },
+				180_000,
+			);
+			if (response.status === 409) return "lease_lost";
+			if (!response.ok) throw new Error(`proposing a trade failed with ${response.status}`);
+			return SignResponse.parse(await response.json());
 		},
 	};
 }
