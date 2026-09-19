@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
+import { Failure, failureMessage } from "../components/failure.tsx";
 import type { Api } from "../lib/api.ts";
 
 export type RouterContext = {
@@ -10,9 +11,7 @@ export type RouterContext = {
 export const Route = createRootRouteWithContext<RouterContext>()({
 	component: RootLayout,
 	notFoundComponent: NotFound,
-	errorComponent: ({ error }) => (
-		<Failure message={error instanceof Error ? error.message : "Unexpected error"} />
-	),
+	errorComponent: ({ error }) => <Failure message={failureMessage(error)} />,
 });
 
 function RootLayout() {
@@ -34,13 +33,4 @@ function RootLayout() {
 
 function NotFound() {
 	return <p className="text-muted-foreground">There's nothing here.</p>;
-}
-
-function Failure({ message }: { message: string }) {
-	return (
-		<div role="alert" className="rounded-lg border border-destructive/40 p-4">
-			<p className="font-medium">Something went wrong.</p>
-			<p className="text-muted-foreground text-sm">{message}</p>
-		</div>
-	);
 }

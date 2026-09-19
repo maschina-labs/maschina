@@ -6,7 +6,8 @@
  * copied from, and what makes "the definition changed" impossible to say without a new id.
  */
 
-import { contentId, err, MaschinaError, ok, type Result } from "@maschina/core";
+import { err, MaschinaError, ok, type Result } from "@maschina/core";
+import { contentId } from "@maschina/core/content";
 import { sql } from "drizzle-orm";
 import type { Database } from "./client.ts";
 
