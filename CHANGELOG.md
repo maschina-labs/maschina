@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.14](https://github.com/maschina-labs/maschina/compare/v0.0.13...v0.0.14) (2026-09-19)
+
+
+### Added
+
+* **daemon:** claim runs, run them, and report how they ended ([#547](https://github.com/maschina-labs/maschina/issues/547)) ([6b6a314](https://github.com/maschina-labs/maschina/commit/6b6a314901dda4e826a5badeaa423b7a8878d24e))
+* **db:** give the signer its view of the record ([#553](https://github.com/maschina-labs/maschina/issues/553)) ([980feb4](https://github.com/maschina-labs/maschina/commit/980feb4c892b3124cc47759fe1e1098a9d55fe64))
+
 ## [0.0.13](https://github.com/maschina-labs/maschina/compare/v0.0.12...v0.0.13) (2026-09-19)
 
 
