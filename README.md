@@ -1,11 +1,14 @@
 # Maschina
 
-A machine with its own wallet, a budget it cannot exceed, and no way to withdraw your money.
+Give software a job and money, safely, so it can go to work for you.
 
-Maschina runs trading machines that work while their owner does not. An owner sets what a machine may
-do: what it may spend, which tokens it may touch, how far a price may move, when it may act. The
-machine does that and only that, and writes down everything it did. Later, machines will also work
-jobs, pay for things and pay each other.
+A machine on Maschina has its own Solana wallet, a budget it cannot exceed, rules it cannot break and a
+permanent record, and its money can only ever go back to its owner. An owner sets what a machine may
+do. The machine does that and only that, and writes down everything it did.
+
+Trading is the first job, because it is the hardest test: real money, around the clock, fast. Next,
+machines sell services, hire each other and work in teams, proven machines are published, copied and
+sold, and machines run on a network of people's computers, which get paid.
 
 **This repository is source-available for review. It is not open source.** All rights are reserved: no
 licence is granted to use, copy, modify or distribute this code. It is public while Maschina is in the
@@ -25,10 +28,13 @@ Working today, each proved against real services rather than mocks:
 | Maschina's own rules, checked before every signature | `packages/rules/src/trade.ts` |
 | Budgets held and settled inside one database transaction | `packages/db/src/ledger.ts` |
 | A trade sent at most once, ever | `services/signer/src/submit-once.ts` |
+| The signer end to end: rules, then the budget, then sign, send and settle at the real cost | `services/signer/src/compose.ts` |
+| What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |
+| Nodes claiming runs and reporting on them, under a lease | `services/orchestrator`, `services/daemon` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
-Not built yet: scheduling and running machines on their own, the API, and the web app beyond a landing
-page.
+Not built yet: machines running on a node from start to finish, a machine's own wallet created with
+it, the API, and the web app beyond a landing page.
 
 ## How the limits actually hold
 

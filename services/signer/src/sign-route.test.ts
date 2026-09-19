@@ -3,7 +3,6 @@ import { MaschinaError, newId } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { notWiredYet } from "./not-wired.ts";
 import { readProposal, type TradeSigner } from "./sign-route.ts";
 
 const token = "s".repeat(40);
@@ -180,15 +179,15 @@ describe("what counts as a proposal", () => {
 	});
 });
 
-describe("before the signer can sign", () => {
-	it("refuses everything, and says it is temporary rather than a refusal of the trade", async () => {
-		await expect(notWiredYet.sign(proposal() as unknown as SignRequest)).rejects.toMatchObject({
-			code: "unavailable",
-		});
-	});
+describe("when the signer cannot sign right now", () => {
+	const unavailable = {
+		sign: async (): Promise<never> => {
+			throw new MaschinaError("unavailable", "the provider is down");
+		},
+	};
 
 	it("answers a proposal with a 503, which the run loop treats as try again later", async () => {
-		const response = await post(appWith(notWiredYet), proposal());
+		const response = await post(appWith(unavailable), proposal());
 
 		expect(response.status).toBe(503);
 	});

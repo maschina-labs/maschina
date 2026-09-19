@@ -32,7 +32,14 @@
 			]
 		},
 		"services/signer": {
-			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "pino", "uuidv7", "zod"]
+			"ignoreDependencies": [
+				"@hono/node-server",
+				"@sentry/node",
+				"drizzle-orm",
+				"pino",
+				"postgres",
+				"uuidv7"
+			]
 		}
 	},
 	"ignoreBinaries": ["act", "gitleaks"]
