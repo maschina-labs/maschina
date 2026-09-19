@@ -229,3 +229,22 @@ export async function reportRun(
 		return ok(undefined);
 	});
 }
+
+/**
+ * Whether a node holds a run right now, and for which machine. Nothing is locked: this answers a
+ * question before work is forwarded, and whatever the work writes checks the lease again itself.
+ */
+export async function holdsRun(
+	db: Database,
+	lease: { runId: string; nodeId: string; leaseEpoch: bigint; now: Date },
+): Promise<{ machineId: string } | undefined> {
+	const rows = await db.execute<{ machine_id: string }>(sql`
+		select machine_id from runs
+		where id = ${lease.runId}::uuid
+			and state = 'leased'
+			and leased_by = ${lease.nodeId}::uuid
+			and lease_epoch = ${lease.leaseEpoch.toString()}::bigint
+			and lease_expires_at > ${lease.now.toISOString()}::timestamptz`);
+	const row = rows[0];
+	return row ? { machineId: row.machine_id } : undefined;
+}

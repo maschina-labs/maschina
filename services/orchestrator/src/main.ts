@@ -1,8 +1,9 @@
-import { claimDueRun, createDatabase, reportRun, runContext } from "@maschina/db";
+import { claimDueRun, createDatabase, holdsRun, reportRun, runContext } from "@maschina/db";
 import { startServer } from "@maschina/service";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
 import { loadConfig } from "./config.ts";
+import { signerClient } from "./signer-client.ts";
 
 const config = loadConfig();
 const logger = createLogger({
@@ -38,6 +39,8 @@ const app = buildApp({
 	contexts: {
 		contextFor: (lease) => runContext(database.db, { ...lease, now: new Date() }),
 	},
+	leases: { holds: (lease) => holdsRun(database.db, { ...lease, now: new Date() }) },
+	signer: signerClient({ url: config.SIGNER_URL, token: config.SIGNER_ORCHESTRATOR_TOKEN }),
 });
 
 startServer({

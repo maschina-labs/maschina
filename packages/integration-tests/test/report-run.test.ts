@@ -10,6 +10,7 @@ import {
 	claimDueRun,
 	createDatabase,
 	type DatabaseHandle,
+	holdsRun,
 	queueRun,
 	readMachineEvents,
 	reportRun,
@@ -174,5 +175,34 @@ describe("reportRun", () => {
 		});
 
 		expect(!reported.ok && reported.error.code).toBe("invalid_input");
+	});
+});
+
+describe("holdsRun", () => {
+	it("names the machine when the node holds the run right now", async () => {
+		const { machineId, nodeId, run } = await aClaimedRun();
+		const held = await holdsRun(handle.db, {
+			runId: run.id,
+			nodeId,
+			leaseEpoch: run.leaseEpoch,
+			now: new Date(),
+		});
+		expect(held).toEqual({ machineId });
+	});
+
+	it("says nothing for another node, an old epoch or a lapsed lease", async () => {
+		const { nodeId, run } = await aClaimedRun();
+		const ask = (overrides: object) =>
+			holdsRun(handle.db, {
+				runId: run.id,
+				nodeId,
+				leaseEpoch: run.leaseEpoch,
+				now: new Date(),
+				...overrides,
+			});
+
+		expect(await ask({ nodeId: newId<"node">() })).toBeUndefined();
+		expect(await ask({ leaseEpoch: run.leaseEpoch - 1n })).toBeUndefined();
+		expect(await ask({ now: new Date(Date.now() + 120_000) })).toBeUndefined();
 	});
 });

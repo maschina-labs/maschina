@@ -16,6 +16,12 @@ function app(runs: RunQueue) {
 		runs,
 		reports: { report: async () => ok(undefined) },
 		contexts: { contextFor: async () => undefined },
+		leases: { holds: async () => undefined },
+		signer: {
+			sign: async () => {
+				throw new Error("not used here");
+			},
+		},
 	});
 }
 

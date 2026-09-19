@@ -16,6 +16,12 @@ function app(contexts: RunContexts) {
 		runs: { claim: async () => ok(undefined) },
 		reports: { report: async () => ok(undefined) },
 		contexts,
+		leases: { holds: async () => undefined },
+		signer: {
+			sign: async () => {
+				throw new Error("not used here");
+			},
+		},
 	});
 }
 

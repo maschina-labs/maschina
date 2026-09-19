@@ -7,6 +7,7 @@ import {
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import { claimRoutes, type RunQueue } from "./claim-route.ts";
 import { contextRoutes, type RunContexts } from "./context-route.ts";
+import { type Leases, proposeRoutes, type Signer } from "./propose-route.ts";
 import { type RunReports, reportRoutes } from "./report-route.ts";
 
 export type OrchestratorDeps = {
@@ -18,6 +19,8 @@ export type OrchestratorDeps = {
 	runs: RunQueue;
 	reports: RunReports;
 	contexts: RunContexts;
+	leases: Leases;
+	signer: Signer;
 };
 
 export const SERVICE = "orchestrator";
@@ -36,6 +39,7 @@ export function buildApp(deps: OrchestratorDeps) {
 	app.route("/internal/v1", claimRoutes(deps.runs));
 	app.route("/internal/v1", reportRoutes(deps.reports));
 	app.route("/internal/v1", contextRoutes(deps.contexts));
+	app.route("/internal/v1", proposeRoutes(deps.leases, deps.signer));
 
 	return app;
 }

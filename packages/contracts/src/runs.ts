@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import { eventPayload } from "./events.ts";
+import { SignRequest } from "./signing.ts";
 
 const id = z
 	.string()
@@ -92,3 +93,8 @@ export const RunContextResponse = z
 	})
 	.meta({ id: "RunContextResponse" });
 export type RunContextResponse = z.infer<typeof RunContextResponse>;
+/** A node proposing a trade for a run it holds. The orchestrator checks the lease and asks the signer. */
+export const ProposeRequest = z
+	.strictObject({ nodeId: id, leaseEpoch: whole, proposal: SignRequest })
+	.meta({ id: "ProposeRequest" });
+export type ProposeRequest = z.infer<typeof ProposeRequest>;
