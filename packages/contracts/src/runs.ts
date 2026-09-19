@@ -69,3 +69,26 @@ export const ReportResponse = z
 	.strictObject({ recorded: z.literal(true) })
 	.meta({ id: "ReportResponse" });
 export type ReportResponse = z.infer<typeof ReportResponse>;
+
+/** A node asking about a run it holds. */
+export const RunContextRequest = z
+	.strictObject({ nodeId: id, runId: id, leaseEpoch: whole })
+	.meta({ id: "RunContextRequest" });
+export type RunContextRequest = z.infer<typeof RunContextRequest>;
+
+/** What a node needs to run the machine. Balances it reads from the chain itself. */
+export const RunContextResponse = z
+	.strictObject({
+		runId: id,
+		machineId: id,
+		wallet: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, "not an address"),
+		kind: z.string().min(1),
+		settings: z.unknown(),
+		dueAt: z.iso.datetime(),
+		state: z.string().min(1),
+		canAct: z.boolean(),
+		availableBudget: whole,
+		totals: z.strictObject({ spent: whole, buys: z.int().nonnegative() }),
+	})
+	.meta({ id: "RunContextResponse" });
+export type RunContextResponse = z.infer<typeof RunContextResponse>;

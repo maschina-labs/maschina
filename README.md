@@ -30,7 +30,7 @@ Working today, each proved against real services rather than mocks:
 | A trade sent at most once, ever | `services/signer/src/submit-once.ts` |
 | The signer end to end: rules, then the budget, then sign, send and settle at the real cost | `services/signer/src/compose.ts` |
 | What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |
-| Nodes claiming runs and reporting on them, under a lease | `services/orchestrator`, `services/daemon` |
+| Nodes claiming runs, asking about them and reporting on them, only while they hold the lease | `services/orchestrator`, `services/daemon` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 Not built yet: machines running on a node from start to finish, a machine's own wallet created with

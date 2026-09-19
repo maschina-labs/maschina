@@ -4,6 +4,7 @@ export * from "./definitions.ts";
 export * from "./ledger.ts";
 export * from "./read-events.ts";
 export * from "./record.ts";
+export * from "./run-context.ts";
 export * from "./runs.ts";
 export * as schema from "./schema/index.ts";
 export * from "./signer-record.ts";
