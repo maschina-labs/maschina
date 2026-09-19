@@ -17,3 +17,10 @@ Deploys to Vercel as a static site.
 
 **Never:** holds a secret, reaches the database, or talks to any service but the gateway. Only
 `VITE_` variables reach the browser.
+
+## The landing page is a test page
+
+`src/routes/index.tsx` is a placeholder put up on 2026-09-18 so maschina.dev serves something true
+instead of a blank page while the product is built. Plain text, no design. It says what a machine is
+and what it cannot do, promises nothing about returns, and needs no running service. It gets replaced
+by the real front page (public machines and their records, D-076) once machines are running.
