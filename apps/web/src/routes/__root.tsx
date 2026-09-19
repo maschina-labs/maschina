@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
+import { Wordmark } from "../components/brand.tsx";
 import { Failure, failureMessage } from "../components/failure.tsx";
 import type { Api } from "../lib/api.ts";
 
@@ -19,8 +20,8 @@ function RootLayout() {
 		<div className="flex min-h-dvh flex-col">
 			<header className="border-b">
 				<nav className="mx-auto flex h-14 max-w-6xl items-center px-4">
-					<Link to="/" className="font-semibold tracking-tight">
-						Maschina
+					<Link to="/" aria-label="Maschina, home">
+						<Wordmark className="h-5 w-auto" />
 					</Link>
 				</nav>
 			</header>

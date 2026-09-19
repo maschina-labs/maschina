@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><title>Maschina</title><rect width="32" height="32" rx="7" fill="#111"/><path d="M8 23V9l8 8 8-8v14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+<title>Maschina</title>
+	<style>
+		path { fill: #111111; }
+		@media (prefers-color-scheme: dark) { path { fill: #F5F5F0; } }
+	</style>
+	<path fill-rule="evenodd" clip-rule="evenodd" d="M250 0C388.071 0 500 111.929 500 250C500 388.071 388.071 500 250 500C111.929 500 0 388.071 0 250C0 111.929 111.929 0 250 0ZM260.998 61.7725C254.81 58.1998 247.186 58.1998 240.998 61.7725L92.123 147.725C85.935 151.297 82.123 157.901 82.123 165.046V336.951C82.123 344.096 85.935 350.7 92.123 354.272L240.998 440.225C247.186 443.797 254.81 443.797 260.998 440.225L409.873 354.272C416.061 350.7 419.873 344.096 419.873 336.951V165.046C419.873 157.901 416.061 151.297 409.873 147.725L260.998 61.7725Z"/>
+</svg>
