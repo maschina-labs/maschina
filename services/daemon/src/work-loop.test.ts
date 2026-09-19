@@ -183,8 +183,9 @@ describe("keeping the lease while a run works", () => {
 			{
 				orchestrator,
 				nodeId,
+				// Waits for the beats rather than for the clock, so a busy machine cannot fail this.
 				execute: async () => {
-					await pause(60);
+					while (renewals < 3) await pause(5);
 					return { end: "finished", failed: false };
 				},
 				logger,
@@ -209,7 +210,7 @@ describe("keeping the lease while a run works", () => {
 				orchestrator,
 				nodeId,
 				execute: async (_run, lost) => {
-					await pause(60);
+					while (!lost.aborted) await pause(5);
 					sawStop = lost.aborted;
 					return { end: "finished", failed: false };
 				},
