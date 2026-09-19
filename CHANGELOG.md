@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.17](https://github.com/maschina-labs/maschina/compare/v0.0.16...v0.0.17) (2026-09-19)
+
+
+### Added
+
+* **daemon:** keep a run's lease alive while it works ([#570](https://github.com/maschina-labs/maschina/issues/570)) ([32a5474](https://github.com/maschina-labs/maschina/commit/32a5474a5e9a819f8876a334f871c06ec9786fbb))
+
 ## [0.0.16](https://github.com/maschina-labs/maschina/compare/v0.0.15...v0.0.16) (2026-09-19)
 
 
