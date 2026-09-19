@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.15](https://github.com/maschina-labs/maschina/compare/v0.0.14...v0.0.15) (2026-09-19)
+
+
+### Added
+
+* **signer:** sign, send once, and settle at what the chain says ([#560](https://github.com/maschina-labs/maschina/issues/560)) ([2b3acdc](https://github.com/maschina-labs/maschina/commit/2b3acdccc90103bb907e44f8c3795fb37ea4d871))
+
 ## [0.0.14](https://github.com/maschina-labs/maschina/compare/v0.0.13...v0.0.14) (2026-09-19)
 
 
