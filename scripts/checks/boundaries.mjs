@@ -169,6 +169,47 @@ export function checkRecordWrites(root) {
 }
 
 /**
+ * The web app reaches `@maschina/core` through `@maschina/env`, so anything that barrel re-exports ends
+ * up in the browser. A node builtin there is not a warning: the bundler replaces it with a module that
+ * throws the moment anything touches it, and the page renders blank with no failing test to show for it
+ * (`internal/MISTAKES.md` M14). Content addressing needs `node:crypto`, so it lives behind a subpath
+ * that only server code imports.
+ */
+const BROWSER_ENTRY = "packages/core/src/index.ts";
+
+export function checkBrowserSafety(root) {
+	const rule = {
+		name: "The browser-facing entry pulls in no node builtins",
+		why: "A node builtin reaching the browser is a blank page, not an error message.",
+	};
+	const problems = [];
+	const entryPath = join(root, BROWSER_ENTRY);
+	if (!existsSync(entryPath)) return problems;
+
+	const entry = readFileSync(entryPath, "utf8");
+	const files = [[BROWSER_ENTRY, entry]];
+	for (const match of entry.matchAll(/from "\.\/([\w-]+)\.ts"/g)) {
+		const where = `packages/core/src/${match[1]}.ts`;
+		const full = join(root, `packages/core/src/${match[1]}.ts`);
+		if (existsSync(full)) files.push([where, readFileSync(full, "utf8")]);
+	}
+
+	for (const [where, source] of files) {
+		source.split("\n").forEach((line, index) => {
+			const found = /from "(node:[\w/]+)"/.exec(line);
+			if (found) {
+				problems.push({
+					rule,
+					where: `${where}:${index + 1}`,
+					what: `${found[1]}, reachable from the browser`,
+				});
+			}
+		});
+	}
+	return problems;
+}
+
+/**
  * Machine kinds are data, not branches. The runtime runs every kind through one interface, so naming a
  * kind outside its own module means the core has started to care which kind it is, and adding a kind
  * would mean editing the loop. Each kind's module, and tests, may name it.
@@ -245,7 +286,12 @@ const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
 if (isMain) {
 	const root = join(fileURLToPath(import.meta.url), "../../..");
-	const problems = [...checkBoundaries(root), ...checkRecordWrites(root), ...checkKindNames(root)];
+	const problems = [
+		...checkBoundaries(root),
+		...checkRecordWrites(root),
+		...checkBrowserSafety(root),
+		...checkKindNames(root),
+	];
 	if (problems.length === 0) {
 		console.log("Architecture boundaries hold.");
 		process.exit(0);
