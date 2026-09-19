@@ -1,4 +1,11 @@
-import { claimDueRun, createDatabase, holdsRun, reportRun, runContext } from "@maschina/db";
+import {
+	claimDueRun,
+	createDatabase,
+	holdsRun,
+	renewLease,
+	reportRun,
+	runContext,
+} from "@maschina/db";
 import { startServer } from "@maschina/service";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
@@ -41,6 +48,14 @@ const app = buildApp({
 	},
 	leases: { holds: (lease) => holdsRun(database.db, { ...lease, now: new Date() }) },
 	signer: signerClient({ url: config.SIGNER_URL, token: config.SIGNER_ORCHESTRATOR_TOKEN }),
+	renewals: {
+		renew: (lease) =>
+			renewLease(database.db, {
+				...lease,
+				now: new Date(),
+				leaseSeconds: config.ORCHESTRATOR_LEASE_SECONDS,
+			}),
+	},
 });
 
 startServer({

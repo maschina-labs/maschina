@@ -5,7 +5,12 @@
  * contract before the daemon acts on it. A daemon trusts the orchestrator, but not the network between.
  */
 
-import { ClaimResponse, ReportResponse, type RunReportEvent } from "@maschina/contracts";
+import {
+	ClaimResponse,
+	RenewResponse,
+	ReportResponse,
+	type RunReportEvent,
+} from "@maschina/contracts";
 
 export type ClaimedRun = {
 	id: string;
@@ -26,6 +31,8 @@ export type Orchestrator = {
 		leaseEpoch: bigint;
 		event: RunReportEvent;
 	}): Promise<ReportResult>;
+	/** Keeps the node's hold on a run. `held: false` means the run has moved on. */
+	renew(lease: { nodeId: string; runId: string; leaseEpoch: bigint }): Promise<{ held: boolean }>;
 };
 
 export function orchestratorClient(options: {
@@ -72,6 +79,17 @@ export function orchestratorClient(options: {
 			if (!response.ok) throw new Error(`reporting on a run failed with ${response.status}`);
 			ReportResponse.parse(await response.json());
 			return { recorded: true };
+		},
+
+		async renew(lease) {
+			const response = await post("/internal/v1/runs/renew", {
+				...lease,
+				leaseEpoch: lease.leaseEpoch.toString(),
+			});
+			if (response.status === 409) return { held: false };
+			if (!response.ok) throw new Error(`renewing a lease failed with ${response.status}`);
+			RenewResponse.parse(await response.json());
+			return { held: true };
 		},
 	};
 }

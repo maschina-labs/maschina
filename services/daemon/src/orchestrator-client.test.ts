@@ -109,3 +109,32 @@ describe("the orchestrator client", () => {
 		await expect(client.claim(nodeId)).rejects.toThrow();
 	});
 });
+
+describe("renewing a lease", () => {
+	it("says the node still holds the run", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({ leaseExpiresAt: "2026-09-21T09:02:00.000Z" }),
+		});
+		expect(await client.renew({ nodeId, runId, leaseEpoch: 7n })).toEqual({ held: true });
+	});
+
+	it("says the run has moved on, rather than throwing", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({ error: { code: "conflict" } }, 409),
+		});
+		expect(await client.renew({ nodeId, runId, leaseEpoch: 7n })).toEqual({ held: false });
+	});
+
+	it("throws on an outage, so one missed beat is not taken for a lost run", async () => {
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({}, 503),
+		});
+		await expect(client.renew({ nodeId, runId, leaseEpoch: 7n })).rejects.toThrow(/503/);
+	});
+});

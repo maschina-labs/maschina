@@ -98,3 +98,14 @@ export const ProposeRequest = z
 	.strictObject({ nodeId: id, leaseEpoch: whole, proposal: SignRequest })
 	.meta({ id: "ProposeRequest" });
 export type ProposeRequest = z.infer<typeof ProposeRequest>;
+
+/** A node keeping its hold on a run while the run is still working. */
+export const RenewRequest = z
+	.strictObject({ nodeId: id, runId: id, leaseEpoch: whole })
+	.meta({ id: "RenewRequest" });
+export type RenewRequest = z.infer<typeof RenewRequest>;
+
+export const RenewResponse = z
+	.strictObject({ leaseExpiresAt: z.iso.datetime() })
+	.meta({ id: "RenewResponse" });
+export type RenewResponse = z.infer<typeof RenewResponse>;
