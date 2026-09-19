@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.13](https://github.com/maschina-labs/maschina/compare/v0.0.12...v0.0.13) (2026-09-19)
+
+
+### Added
+
+* **orchestrator:** let nodes claim runs ([#543](https://github.com/maschina-labs/maschina/issues/543)) ([4897361](https://github.com/maschina-labs/maschina/commit/489736145842f6c1032bce8a71b5bfde48b60e29))
+* **orchestrator:** let nodes report run outcomes ([#544](https://github.com/maschina-labs/maschina/issues/544)) ([9916e34](https://github.com/maschina-labs/maschina/commit/9916e34079b88e3cd7ff1c9d38093f60e6063aa5))
+
+
+### Fixed
+
+* **web:** say trading is the first job, not the product ([#541](https://github.com/maschina-labs/maschina/issues/541)) ([8256094](https://github.com/maschina-labs/maschina/commit/8256094b978dbd69e31991f92a8c1f62c7ca65c1))
+
 ## [0.0.12](https://github.com/maschina-labs/maschina/compare/v0.0.11...v0.0.12) (2026-09-19)
 
 
