@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.16](https://github.com/maschina-labs/maschina/compare/v0.0.15...v0.0.16) (2026-09-19)
+
+
+### Added
+
+* **orchestrator:** pass a node's trade proposals to the signer ([#568](https://github.com/maschina-labs/maschina/issues/568)) ([38ed66d](https://github.com/maschina-labs/maschina/commit/38ed66d8e29231fe135f787ed5e5f012e6c9872f))
+* **orchestrator:** tell a node about the run it holds ([#566](https://github.com/maschina-labs/maschina/issues/566)) ([0b4ef96](https://github.com/maschina-labs/maschina/commit/0b4ef9623670c7581bd7c04cc236888670abf1f4))
+* **signer:** start with the record, the chain and the signing key ([#563](https://github.com/maschina-labs/maschina/issues/563)) ([48fca5e](https://github.com/maschina-labs/maschina/commit/48fca5e163f451dd3d80154628d3d67b0ca88a95))
+
 ## [0.0.15](https://github.com/maschina-labs/maschina/compare/v0.0.14...v0.0.15) (2026-09-19)
 
 
