@@ -25,7 +25,7 @@ type RunEnd =
 export type RunExecutor = (run: ClaimedRun, lost: AbortSignal) => Promise<RunEnd>;
 
 export type WorkLoopOptions = {
-	orchestrator: Orchestrator;
+	orchestrator: Pick<Orchestrator, "claim" | "report" | "renew">;
 	nodeId: string;
 	execute: RunExecutor;
 	logger: Logger;
