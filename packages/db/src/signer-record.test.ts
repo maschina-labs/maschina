@@ -112,3 +112,45 @@ describe("signerRecord writing under the lease", () => {
 		);
 	});
 });
+
+describe("signerRecord after a trade is signed", () => {
+	const lease = { lease_epoch: "3", due_at: "2026-09-21T15:00:00.000Z" };
+	const written = [{ id: newId<"event">(), occurred_at: "2026-09-21T15:00:01.000Z" }];
+	const cost = { inputAmount: 1n, outputAmount: 2n, feeLamports: 3n };
+
+	it("reads the provider's wallet id, or nothing", async () => {
+		expect(await record(fakeDatabase([{ provider_wallet_id: "w-1" }])).walletIdFor(request)).toBe(
+			"w-1",
+		);
+		expect(await record(fakeDatabase([])).walletIdFor(request)).toBeUndefined();
+	});
+
+	it("refuses to write without a run to write for", async () => {
+		const submission = { signature: "5".repeat(88), lastValidBlockHeight: 1n };
+		await expect(record(fakeDatabase()).recordSubmission(request, submission)).rejects.toThrow(
+			/no held run/,
+		);
+		await expect(record(fakeDatabase()).settle(request, "sig", cost)).rejects.toThrow(
+			/no held run/,
+		);
+		await expect(record(fakeDatabase()).release(request, "submit", "x", "sig")).rejects.toThrow(
+			/no held run/,
+		);
+	});
+
+	it("settles and releases when the record accepts them, and says so when it does not", async () => {
+		const signature = "5".repeat(88);
+		await expect(
+			record(fakeDatabase([lease], written)).settle(request, signature, cost),
+		).resolves.toBeUndefined();
+		await expect(
+			record(fakeDatabase([lease], written)).release(request, "confirm", "expired", signature),
+		).resolves.toBeUndefined();
+		await expect(
+			record(fakeDatabase([lease], [])).settle(request, signature, cost),
+		).rejects.toThrow(/newer lease/);
+		await expect(
+			record(fakeDatabase([lease], [])).release(request, "confirm", "expired", signature),
+		).rejects.toThrow(/newer lease/);
+	});
+});
