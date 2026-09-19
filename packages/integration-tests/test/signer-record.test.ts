@@ -190,3 +190,80 @@ describe("what the signer writes", () => {
 		expect(await record().hold(aRequest(machine, "100000"))).toBeUndefined();
 	});
 });
+
+describe("what the signer writes once a trade is signed", () => {
+	const SIGNATURE = "5".repeat(88);
+
+	it("finds the machine's wallet at the provider", async () => {
+		const machine = await aRunningMachine();
+		expect(await record().walletIdFor(aRequest(machine))).toBe("wallet-1");
+		expect(await record().walletIdFor({ ...aRequest(machine), wallet: address() })).toBeUndefined();
+	});
+
+	it("writes the signature down once, and reads it back", async () => {
+		const machine = await aRunningMachine();
+		const request = aRequest(machine);
+		expect(await record().submissionFor(request)).toBeUndefined();
+
+		await record().recordSubmission(request, { signature: SIGNATURE, lastValidBlockHeight: 1000n });
+		expect(await record().submissionFor(request)).toEqual({
+			signature: SIGNATURE,
+			lastValidBlockHeight: 1000n,
+		});
+		await expect(
+			record().recordSubmission(request, { signature: SIGNATURE, lastValidBlockHeight: 1000n }),
+		).rejects.toThrow(/already been signed/);
+	});
+
+	it("settles at what the trade really cost, releasing the rest of the hold", async () => {
+		const machine = await aRunningMachine();
+		const request = aRequest(machine, "100000");
+		await record().hold(request);
+
+		await record().settle(request, SIGNATURE, {
+			inputAmount: 99_000n,
+			outputAmount: 14_010_000n,
+			feeLamports: 6_000n,
+		});
+
+		const budget = await budgetFor(handle.db, machine.machineId);
+		expect(budget.available).toBe(1_000_000n - 99_000n - 6_000n);
+		const events = await readMachineEvents(handle.db, machine.machineId);
+		expect(events.at(-1)).toMatchObject({
+			type: "trade.completed",
+			payload: { signature: SIGNATURE },
+		});
+	});
+
+	it("releases a trade that failed on chain, keeping its signature", async () => {
+		const machine = await aRunningMachine();
+		const request = aRequest(machine);
+		await record().hold(request);
+
+		await record().release(request, "submit", "slippage exceeded", SIGNATURE);
+
+		expect((await budgetFor(handle.db, machine.machineId)).available).toBe(1_000_000n);
+		const events = await readMachineEvents(handle.db, machine.machineId);
+		expect(events.at(-1)).toMatchObject({
+			type: "trade.failed",
+			payload: { stage: "submit", signature: SIGNATURE },
+		});
+	});
+});
+
+describe("recording what the chain did after the run moved on", () => {
+	it("still settles a signed trade once no node holds the run", async () => {
+		const machine = await aRunningMachine();
+		const request = aRequest(machine, "100000");
+		await record().hold(request);
+		await handle.sql`update runs set state = 'done', leased_by = null, lease_expires_at = null
+			where id = ${machine.run.id}::uuid`;
+
+		await record().settle(request, "5".repeat(88), {
+			inputAmount: 100_000n,
+			outputAmount: 1n,
+			feeLamports: 5_000n,
+		});
+		expect((await budgetFor(handle.db, machine.machineId)).available).toBe(895_000n);
+	});
+});
