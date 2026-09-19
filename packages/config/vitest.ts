@@ -9,6 +9,11 @@ type Options = {
 	coverageExclude?: string[];
 	/** Test file patterns, when a workspace keeps tests somewhere other than src and test. */
 	include?: string[];
+	/**
+	 * How long one test may take. Property tests that check thousands of cases need more than the default
+	 * on a busy machine, and a timeout there says nothing about the code.
+	 */
+	testTimeoutMs?: number;
 };
 
 /** The one Vitest setup every workspace uses, so tests behave the same everywhere. */
@@ -18,12 +23,14 @@ export function vitestConfig({
 	coverage = 80,
 	coverageExclude = [],
 	include = ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+	testTimeoutMs = 5_000,
 }: Options = {}): ViteUserConfig {
 	return defineConfig({
 		test: {
 			environment,
 			setupFiles,
 			include,
+			testTimeout: testTimeoutMs,
 			exclude: ["**/node_modules/**", "**/dist/**"],
 			restoreMocks: true,
 			unstubEnvs: true,
