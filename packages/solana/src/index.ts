@@ -15,4 +15,5 @@ export * from "./swap-transaction.ts";
 export * from "./testing.ts";
 export * from "./token-list.ts";
 export * from "./tokens.ts";
+export * from "./trade-cost.ts";
 export * from "./transfer.ts";
