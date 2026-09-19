@@ -26,11 +26,9 @@
 				"@hono/node-server",
 				"@sentry/node",
 				"drizzle-orm",
-				"hono",
 				"pino",
 				"postgres",
-				"uuidv7",
-				"zod"
+				"uuidv7"
 			]
 		},
 		"services/signer": {
