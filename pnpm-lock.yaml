@@ -737,6 +737,9 @@ importers:
       '@maschina/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@maschina/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@maschina/core':
         specifier: workspace:*
         version: link:../../packages/core

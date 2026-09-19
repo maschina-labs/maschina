@@ -21,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
+		"@maschina/contracts": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/env": "workspace:*",
 		"@maschina/telemetry": "workspace:*",
