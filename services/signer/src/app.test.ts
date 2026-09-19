@@ -1,7 +1,7 @@
+import { MaschinaError } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { notWiredYet } from "./not-wired.ts";
 
 const token = "s".repeat(40);
 const app = () =>
@@ -9,7 +9,11 @@ const app = () =>
 		version: "1.0.0",
 		orchestratorToken: token,
 		logger: createLogger({ service: "t", level: "silent" }),
-		signer: notWiredYet,
+		signer: {
+			sign: async () => {
+				throw new MaschinaError("unavailable", "not used here");
+			},
+		},
 	});
 
 describe("signer", () => {
