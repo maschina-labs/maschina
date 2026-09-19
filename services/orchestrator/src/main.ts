@@ -1,4 +1,4 @@
-import { claimDueRun, createDatabase } from "@maschina/db";
+import { claimDueRun, createDatabase, reportRun } from "@maschina/db";
 import { startServer } from "@maschina/service";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
@@ -31,6 +31,9 @@ const app = buildApp({
 				now: new Date(),
 				leaseSeconds: config.ORCHESTRATOR_LEASE_SECONDS,
 			}),
+	},
+	reports: {
+		report: (report) => reportRun(database.db, { ...report, now: new Date() }),
 	},
 });
 

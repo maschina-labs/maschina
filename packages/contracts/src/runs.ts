@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { eventPayload } from "./events.ts";
 
 const id = z
 	.string()
@@ -41,3 +42,30 @@ export const ClaimResponse = z
 	.strictObject({ run: LeasedRunBody.nullable() })
 	.meta({ id: "ClaimResponse" });
 export type ClaimResponse = z.infer<typeof ClaimResponse>;
+
+/**
+ * What a node may report about a run it holds: that it started, that it skipped, or how it finished.
+ * Trades are never reported here. They go to the signer, through the orchestrator, on their own path.
+ */
+export const RunReportEvent = z.discriminatedUnion("type", [
+	z.strictObject({ type: z.literal("run.started"), payload: eventPayload("run.started") }),
+	z.strictObject({ type: z.literal("run.skipped"), payload: eventPayload("run.skipped") }),
+	z.strictObject({ type: z.literal("run.finished"), payload: eventPayload("run.finished") }),
+]);
+export type RunReportEvent = z.infer<typeof RunReportEvent>;
+
+export const ReportRequest = z
+	.strictObject({
+		nodeId: id,
+		runId: id,
+		/** The epoch the node was given when it claimed the run. */
+		leaseEpoch: whole,
+		event: RunReportEvent,
+	})
+	.meta({ id: "ReportRequest" });
+export type ReportRequest = z.infer<typeof ReportRequest>;
+
+export const ReportResponse = z
+	.strictObject({ recorded: z.literal(true) })
+	.meta({ id: "ReportResponse" });
+export type ReportResponse = z.infer<typeof ReportResponse>;

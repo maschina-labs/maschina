@@ -6,6 +6,7 @@ import {
 } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import { claimRoutes, type RunQueue } from "./claim-route.ts";
+import { type RunReports, reportRoutes } from "./report-route.ts";
 
 export type OrchestratorDeps = {
 	version: string;
@@ -14,6 +15,7 @@ export type OrchestratorDeps = {
 	reporter?: ErrorReporter | undefined;
 	checks: ReadinessCheck[];
 	runs: RunQueue;
+	reports: RunReports;
 };
 
 export const SERVICE = "orchestrator";
@@ -30,6 +32,7 @@ export function buildApp(deps: OrchestratorDeps) {
 	app.use("/internal/*", requireServiceToken(deps.daemonToken));
 	app.get("/internal/v1/hello", (c) => c.json({ service: SERVICE, version: deps.version }));
 	app.route("/internal/v1", claimRoutes(deps.runs));
+	app.route("/internal/v1", reportRoutes(deps.reports));
 
 	return app;
 }
