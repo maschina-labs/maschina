@@ -6,3 +6,4 @@ export * from "./read-events.ts";
 export * from "./record.ts";
 export * from "./runs.ts";
 export * as schema from "./schema/index.ts";
+export * from "./signer-record.ts";
