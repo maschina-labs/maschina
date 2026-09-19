@@ -21,6 +21,7 @@ function app(databaseUp = true) {
 				throw new Error("not used here");
 			},
 		},
+		renewals: { renew: async () => ok(new Date()) },
 	});
 }
 

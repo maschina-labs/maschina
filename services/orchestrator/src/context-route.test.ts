@@ -22,6 +22,7 @@ function app(contexts: RunContexts) {
 				throw new Error("not used here");
 			},
 		},
+		renewals: { renew: async () => ok(new Date()) },
 	});
 }
 

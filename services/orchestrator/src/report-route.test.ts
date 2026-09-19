@@ -24,6 +24,7 @@ function app(reports: RunReports) {
 				throw new Error("not used here");
 			},
 		},
+		renewals: { renew: async () => ok(new Date()) },
 	});
 }
 

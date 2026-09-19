@@ -27,6 +27,7 @@ function fakeOrchestrator(runs: ClaimedRun[], options: { lose?: boolean } = {}) 
 			reports.push(event);
 			return options.lose ? { recorded: false, reason: "lease_lost" } : { recorded: true };
 		},
+		renew: async () => ({ held: true }),
 	};
 	return { orchestrator, reports, remaining: () => queue.length };
 }
@@ -42,6 +43,7 @@ async function drain(orchestrator: Orchestrator, execute: RunExecutor, done: () 
 			execute,
 			logger,
 			pollMs: 5_000,
+			renewEveryMs: 20_000,
 			sleep: async (ms) => {
 				sleeps.push(ms);
 				if (done()) stop.abort();
@@ -135,6 +137,7 @@ describe("the daemon's work loop", () => {
 				throw new Error("connection refused");
 			},
 			report: async () => ({ recorded: true }),
+			renew: async () => ({ held: true }),
 		};
 		const sleeps = await drain(
 			orchestrator,
@@ -156,10 +159,69 @@ describe("the daemon's work loop", () => {
 				execute: async () => ({ end: "finished", failed: false }),
 				logger,
 				pollMs: 5_000,
+				renewEveryMs: 20_000,
 				sleep: async () => {},
 			},
 			stop.signal,
 		);
 		expect(remaining()).toBe(1);
+	});
+});
+
+describe("keeping the lease while a run works", () => {
+	const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	it("renews on a beat for as long as the run is working", async () => {
+		const { orchestrator, remaining } = fakeOrchestrator([aRun()]);
+		let renewals = 0;
+		orchestrator.renew = async () => {
+			renewals++;
+			return { held: true };
+		};
+		const stop = new AbortController();
+		await runWorkLoop(
+			{
+				orchestrator,
+				nodeId,
+				execute: async () => {
+					await pause(60);
+					return { end: "finished", failed: false };
+				},
+				logger,
+				pollMs: 5_000,
+				renewEveryMs: 10,
+				sleep: async () => {
+					if (remaining() === 0) stop.abort();
+				},
+			},
+			stop.signal,
+		);
+		expect(renewals).toBeGreaterThanOrEqual(3);
+	});
+
+	it("tells the machine to stop the moment the run has moved to another node", async () => {
+		const { orchestrator, remaining } = fakeOrchestrator([aRun()]);
+		orchestrator.renew = async () => ({ held: false });
+		let sawStop = false;
+		const stop = new AbortController();
+		await runWorkLoop(
+			{
+				orchestrator,
+				nodeId,
+				execute: async (_run, lost) => {
+					await pause(60);
+					sawStop = lost.aborted;
+					return { end: "finished", failed: false };
+				},
+				logger,
+				pollMs: 5_000,
+				renewEveryMs: 10,
+				sleep: async () => {
+					if (remaining() === 0) stop.abort();
+				},
+			},
+			stop.signal,
+		);
+		expect(sawStop).toBe(true);
 	});
 });

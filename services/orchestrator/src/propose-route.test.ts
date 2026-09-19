@@ -46,6 +46,7 @@ function app(leases: Leases, signer: Signer) {
 		contexts: { contextFor: async () => undefined },
 		leases,
 		signer,
+		renewals: { renew: async () => ok(new Date()) },
 	});
 }
 
