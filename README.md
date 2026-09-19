@@ -33,9 +33,10 @@ Working today, each proved against real services rather than mocks:
 | Nodes claiming runs, asking about them and reporting on them, only while they hold the lease | `services/orchestrator`, `services/daemon` |
 | Trades proposed by a node, passed to the signer only for a run it holds | `services/orchestrator/src/propose-route.ts` |
 | A node running a machine: its balances, its decision, a quote checked against an independent price, a proposal | `services/daemon/src/machine-runner.ts` |
+| A node running machines on its own: claim, run, report, repeat, keeping its lease alive | `services/daemon/src/work-loop.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
-Not built yet: machines running on a node from start to finish, a machine's own wallet created with
+Not built yet: anything that queues runs on a schedule or a price, a machine's own wallet created with
 it, the API, and the web app beyond a landing page.
 
 ## How the limits actually hold
