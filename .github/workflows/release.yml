@@ -69,3 +69,16 @@ jobs:
             args+=(--release-as "$QUEUED")
           fi
           pnpm exec release-please "${args[@]}"
+
+      # Releases are automatic: the release pull request merges itself once its checks pass, so the
+      # published version keeps up with main without anyone having to remember it.
+      - name: Merge the release pull request when it passes
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --label "autorelease: pending" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --squash --auto
+            echo "Release pull request #$number will merge when its checks pass."
+          fi
