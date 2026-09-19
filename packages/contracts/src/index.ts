@@ -6,6 +6,7 @@
 import { z } from "zod";
 
 export * from "./events.ts";
+export * from "./runs.ts";
 export * from "./signing.ts";
 
 export const HealthResponse = z

@@ -5,6 +5,7 @@ import {
 	requireServiceToken,
 } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
+import { claimRoutes, type RunQueue } from "./claim-route.ts";
 
 export type OrchestratorDeps = {
 	version: string;
@@ -12,6 +13,7 @@ export type OrchestratorDeps = {
 	logger: Logger;
 	reporter?: ErrorReporter | undefined;
 	checks: ReadinessCheck[];
+	runs: RunQueue;
 };
 
 export const SERVICE = "orchestrator";
@@ -27,6 +29,7 @@ export function buildApp(deps: OrchestratorDeps) {
 	// Everything daemons call lives under /internal and needs the daemon token.
 	app.use("/internal/*", requireServiceToken(deps.daemonToken));
 	app.get("/internal/v1/hello", (c) => c.json({ service: SERVICE, version: deps.version }));
+	app.route("/internal/v1", claimRoutes(deps.runs));
 
 	return app;
 }
