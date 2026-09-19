@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.18](https://github.com/maschina-labs/maschina/compare/v0.0.17...v0.0.18) (2026-09-19)
+
+
+### Added
+
+* **daemon:** run a machine for a claimed run ([#578](https://github.com/maschina-labs/maschina/issues/578)) ([c0ef94c](https://github.com/maschina-labs/maschina/commit/c0ef94cd76cd3af9d2ac545b4bb3ea1494c7d8d3))
+
 ## [0.0.17](https://github.com/maschina-labs/maschina/compare/v0.0.16...v0.0.17) (2026-09-19)
 
 
