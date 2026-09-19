@@ -1,7 +1,7 @@
 import { newId } from "@maschina/core";
 import { describe, expect, it, vi } from "vitest";
 import type { Database } from "./client.ts";
-import { claimDueRun, finishRun, queueRun, renewLease } from "./runs.ts";
+import { claimDueRun, finishRun, holdsRun, queueRun, renewLease } from "./runs.ts";
 
 const machineId = newId<"machine">();
 const nodeId = newId<"node">();
@@ -127,5 +127,19 @@ describe("finishRun", () => {
 		const result = await finishRun(db, { runId, nodeId, leaseEpoch: 2n });
 		expect(result.ok).toBe(false);
 		if (!result.ok) expect(result.error.message).toMatch(/holding the lease/);
+	});
+});
+
+describe("holdsRun", () => {
+	const lease = { runId, nodeId, leaseEpoch: 3n, now: new Date() };
+
+	it("names the machine when the node holds the run", async () => {
+		const { db } = fakeDatabase([{ machine_id: machineId }]);
+		expect(await holdsRun(db, lease)).toEqual({ machineId });
+	});
+
+	it("says nothing otherwise", async () => {
+		const { db } = fakeDatabase([]);
+		expect(await holdsRun(db, lease)).toBeUndefined();
 	});
 });

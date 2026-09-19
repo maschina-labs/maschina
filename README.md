@@ -31,6 +31,7 @@ Working today, each proved against real services rather than mocks:
 | The signer end to end: rules, then the budget, then sign, send and settle at the real cost | `services/signer/src/compose.ts` |
 | What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |
 | Nodes claiming runs, asking about them and reporting on them, only while they hold the lease | `services/orchestrator`, `services/daemon` |
+| Trades proposed by a node, passed to the signer only for a run it holds | `services/orchestrator/src/propose-route.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 Not built yet: machines running on a node from start to finish, a machine's own wallet created with
