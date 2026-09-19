@@ -12,9 +12,11 @@
  * epoch, so the record refuses its writes (`appendEvent`), and its work can't be mistaken for current.
  */
 
+import type { RunReportEvent } from "@maschina/contracts";
 import { err, MaschinaError, newId, ok, type Result } from "@maschina/core";
 import { sql } from "drizzle-orm";
 import type { Database } from "./client.ts";
+import { appendEvent } from "./record.ts";
 
 export type QueuedRun = {
 	id: string;
@@ -170,4 +172,60 @@ export async function finishRun(
 	return rows[0]
 		? ok(undefined)
 		: err(new MaschinaError("conflict", "only the node holding the lease may finish the run"));
+}
+
+/** What a node may say about a run it holds. Trades go through the signer, never through here. */
+export type RunReport = RunReportEvent;
+
+/** Reports that end the run: once recorded, the run is done and its lease is let go. */
+const FINAL: ReadonlySet<RunReport["type"]> = new Set(["run.skipped", "run.finished"]);
+
+/**
+ * Records what a node says happened on a run, if and only if that node holds the run right now.
+ *
+ * The lease is checked and locked, the event appended, and a final report closes the run, all in one
+ * transaction. So a report can never land after its lease lapsed and another node took the run, and a
+ * run can never be closed without its outcome in the record.
+ */
+export async function reportRun(
+	db: Database,
+	report: { nodeId: string; runId: string; leaseEpoch: bigint; now: Date; event: RunReport },
+): Promise<Result<void, MaschinaError>> {
+	if (report.event.payload.runId !== report.runId) {
+		return err(new MaschinaError("invalid_input", "the report is about a different run"));
+	}
+
+	return db.transaction(async (tx) => {
+		const held = await tx.execute<{ machine_id: string }>(sql`
+			select machine_id from runs
+			where id = ${report.runId}::uuid
+				and state = 'leased'
+				and leased_by = ${report.nodeId}::uuid
+				and lease_epoch = ${report.leaseEpoch.toString()}::bigint
+				and lease_expires_at > ${report.now.toISOString()}::timestamptz
+			for update`);
+		const run = held[0];
+		if (!run) {
+			return err(
+				new MaschinaError("conflict", "this node no longer holds the run", {
+					details: { runId: report.runId, leaseEpoch: report.leaseEpoch.toString() },
+				}),
+			);
+		}
+
+		const appended = await appendEvent(tx, {
+			machineId: run.machine_id,
+			type: report.event.type,
+			payload: report.event.payload,
+			leaseEpoch: report.leaseEpoch,
+		});
+		if (!appended.ok) throw appended.error;
+
+		if (FINAL.has(report.event.type)) {
+			await tx.execute(sql`
+				update runs set state = 'done', leased_by = null, lease_expires_at = null
+				where id = ${report.runId}::uuid`);
+		}
+		return ok(undefined);
+	});
 }

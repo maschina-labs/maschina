@@ -8,7 +8,14 @@ const token = "d".repeat(40);
 const logger = createLogger({ service: "test", level: "silent" });
 
 function app(runs: RunQueue) {
-	return buildApp({ version: "1.0.0", daemonToken: token, logger, checks: [], runs });
+	return buildApp({
+		version: "1.0.0",
+		daemonToken: token,
+		logger,
+		checks: [],
+		runs,
+		reports: { report: async () => ok(undefined) },
+	});
 }
 
 const claim = (target: ReturnType<typeof app>, body: unknown) =>
