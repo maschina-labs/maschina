@@ -47,6 +47,16 @@ describe("the web app", () => {
 		expect(screen.queryByText(/unreachable/i)).not.toBeInTheDocument();
 	});
 
+	it("does not describe Maschina as only a trading product", async () => {
+		renderAt("/", up);
+		await screen.findByText("Its own wallet");
+		const page = document.body.textContent ?? "";
+
+		// Trading is the first job a machine does, not what Maschina is.
+		expect(page).not.toMatch(/trading machines/i);
+		expect(page).toMatch(/trading is the first job/i);
+	});
+
 	it("promises nothing about returns", async () => {
 		renderAt("/", up);
 		const page = document.body.textContent ?? "";

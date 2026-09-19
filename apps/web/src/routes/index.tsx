@@ -58,8 +58,8 @@ function Home() {
 					money.
 				</h1>
 				<p className="max-w-2xl text-lg text-muted-foreground">
-					Maschina runs trading machines that work while you do not. You set what one is allowed to
-					do. It does that, and only that, and writes down everything it did.
+					Maschina runs machines that work while you do not. Trading is the first job. You set what
+					one is allowed to do. It does that, and only that, and writes down everything it did.
 				</p>
 				<p className="text-muted-foreground text-sm">
 					Being built in the open, on Solana. Not open yet.
