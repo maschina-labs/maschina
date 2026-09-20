@@ -8,3 +8,4 @@ export * from "./run-context.ts";
 export * from "./runs.ts";
 export * as schema from "./schema/index.ts";
 export * from "./signer-record.ts";
+export * from "./watching-machines.ts";
