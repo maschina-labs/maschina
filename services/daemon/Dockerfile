@@ -19,5 +19,8 @@ WORKDIR /app
 COPY --from=build --chown=node:node /out/package.json ./package.json
 COPY --from=build --chown=node:node /out/node_modules ./node_modules
 COPY --from=build --chown=node:node /repo/services/daemon/dist ./dist
+# A fresh volume takes this directory's ownership, so it exists here and belongs to the node user.
+RUN mkdir -p /home/node/.maschina && chown node:node /home/node/.maschina && chmod 700 /home/node/.maschina
+
 USER node
 CMD ["node", "--enable-source-maps", "dist/main.mjs"]

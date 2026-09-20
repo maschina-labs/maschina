@@ -30,9 +30,19 @@ sudo ufw allow OpenSSH
 sudo ufw --force enable
 
 say "Refusing password logins, so only the key works"
-sudo sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-sudo sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
-sudo systemctl reload ssh || sudo systemctl reload sshd
+# A drop-in named to sort first: sshd keeps the first value it reads for a setting, and cloud-init's own
+# file turns password logins back on.
+sudo rm -f /etc/ssh/sshd_config.d/99-maschina.conf
+sudo tee /etc/ssh/sshd_config.d/00-maschina.conf >/dev/null <<'SSHD'
+# Maschina: keys only. Written by scripts/server/bootstrap.sh.
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin prohibit-password
+SSHD
+sudo sshd -t
+for unit in ssh.socket ssh.service sshd.service; do
+  sudo systemctl try-reload-or-restart "$unit" 2>/dev/null || true
+done
 
 say "Turning on automatic security updates"
 sudo systemctl enable --now unattended-upgrades
