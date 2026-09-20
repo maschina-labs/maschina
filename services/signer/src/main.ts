@@ -2,11 +2,10 @@ import { createDatabase, signerRecord } from "@maschina/db";
 import { startServer } from "@maschina/service";
 import { solanaRpc } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
+import { signerUserIdFor, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { buildApp, SERVICE } from "./app.ts";
 import { tradeSigner } from "./compose.ts";
 import { loadConfig } from "./config.ts";
-import { turnkeyProvider } from "./provider/turnkey.ts";
-import { signerUserIdFor, turnkeyApi } from "./provider/turnkey-client.ts";
 
 const config = loadConfig();
 const logger = createLogger({

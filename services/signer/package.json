@@ -21,6 +21,7 @@
 		"@maschina/db": "workspace:*",
 		"@maschina/rules": "workspace:*",
 		"@maschina/solana": "workspace:*",
+		"@maschina/wallet": "workspace:*",
 		"@sentry/node": "catalog:",
 		"@turnkey/sdk-server": "catalog:",
 		"drizzle-orm": "catalog:",

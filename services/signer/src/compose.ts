@@ -20,8 +20,8 @@ import {
 	signatureOf,
 	tradeCostOf,
 } from "@maschina/solana";
+import type { WalletProvider } from "@maschina/wallet";
 import { chainSigner } from "./chain-signer.ts";
-import type { WalletProvider } from "./provider/wallet-provider.ts";
 import type { TradeSigner } from "./sign-route.ts";
 import type { ChainAnswer } from "./submit-once.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";

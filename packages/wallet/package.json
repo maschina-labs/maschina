@@ -1,0 +1,25 @@
+{
+	"name": "@maschina/wallet",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Machine wallets and the policies that hold them, behind one provider interface.",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@maschina/core": "workspace:*",
+		"@turnkey/sdk-server": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@vitest/coverage-v8": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

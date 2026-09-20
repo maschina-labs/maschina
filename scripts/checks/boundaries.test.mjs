@@ -54,12 +54,32 @@ describe("architecture boundaries", () => {
 		assert.deepEqual(rulesBroken(root), ["Only packages/solana talks to Solana"]);
 	});
 
-	it("catches a wallet provider SDK outside the signer", () => {
+	it("catches a wallet provider SDK outside the wallet package and its two services", () => {
 		const root = repo({
 			"services/orchestrator/package.json": pkg("@maschina/orchestrator"),
 			"services/orchestrator/src/main.ts": 'import { Turnkey } from "@turnkey/sdk-server";',
 		});
-		assert.deepEqual(rulesBroken(root), ["Only services/signer holds wallet provider SDKs"]);
+		assert.deepEqual(rulesBroken(root), [
+			"Only packages/wallet and the two services that use it hold wallet provider SDKs",
+		]);
+	});
+
+	it("allows a wallet provider SDK inside the wallet package", () => {
+		const root = repo({
+			"packages/wallet/package.json": pkg("@maschina/wallet", { "@turnkey/sdk-server": "1" }),
+			"packages/wallet/src/turnkey.ts": 'import { Turnkey } from "@turnkey/sdk-server";',
+		});
+		assert.deepEqual(checkBoundaries(root), []);
+	});
+
+	it("allows the provisioner to create wallets with the admin key", () => {
+		const root = repo({
+			"services/provisioner/package.json": pkg("@maschina/provisioner", {
+				"@turnkey/sdk-server": "1",
+			}),
+			"services/provisioner/src/main.ts": 'import { Turnkey } from "@turnkey/sdk-server";',
+		});
+		assert.deepEqual(checkBoundaries(root), []);
 	});
 
 	it("allows a wallet provider SDK inside the signer", () => {
