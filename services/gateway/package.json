@@ -16,9 +16,12 @@
 	"dependencies": {
 		"@hono/node-server": "catalog:",
 		"@hono/zod-openapi": "catalog:",
+		"@maschina/db": "workspace:*",
 		"@sentry/node": "catalog:",
+		"drizzle-orm": "catalog:",
 		"hono": "catalog:",
 		"pino": "catalog:",
+		"postgres": "catalog:",
 		"uuidv7": "catalog:",
 		"zod": "catalog:"
 	},

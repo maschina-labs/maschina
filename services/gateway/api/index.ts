@@ -4,6 +4,7 @@ import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { handle } from "hono/vercel";
 import { buildApp, SERVICE } from "../src/app.ts";
 import { loadConfig } from "../src/config.ts";
+import { machinePorts } from "../src/deps.ts";
 
 const config = loadConfig();
 const logger = createLogger({ service: SERVICE, level: config.LOG_LEVEL });
@@ -20,5 +21,6 @@ export default handle(
 		corsOrigins: config.GATEWAY_CORS_ORIGINS,
 		logger,
 		reporter,
+		machines: machinePorts(config).ports,
 	}),
 );

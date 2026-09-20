@@ -6,8 +6,26 @@ import { buildApp } from "./app.ts";
 
 const logger = createLogger({ service: "t", level: "silent" });
 const clock = new ManualClock("2026-09-16T12:00:00.000Z");
+/** Nothing in these tests reaches the machines API; its own file covers that. */
+const noMachines = {
+	ownerOf: async () => undefined,
+	list: async () => [],
+	read: async () => undefined,
+	record: async () => [],
+	act: async () => ({ state: "ready" }),
+	create: async () => {
+		throw new Error("not used here");
+	},
+};
+
 const app = () =>
-	buildApp({ version: "1.2.3", corsOrigins: ["http://localhost:3000"], logger, clock });
+	buildApp({
+		version: "1.2.3",
+		corsOrigins: ["http://localhost:3000"],
+		logger,
+		clock,
+		machines: noMachines,
+	});
 
 describe("gateway", () => {
 	it("serves health outside the versioned API", async () => {
@@ -55,7 +73,13 @@ describe("gateway", () => {
 
 	it("rate limits each client, refilling on the gateway's clock", async () => {
 		const time = new ManualClock("2026-09-16T12:00:00.000Z");
-		const gateway = buildApp({ version: "1", corsOrigins: [], logger, clock: time });
+		const gateway = buildApp({
+			version: "1",
+			corsOrigins: [],
+			logger,
+			clock: time,
+			machines: noMachines,
+		});
 		const headers = { "x-real-ip": "203.0.113.9" };
 		const status = async () => (await gateway.request("/v1/status", { headers })).status;
 
@@ -74,7 +98,12 @@ describe("gateway", () => {
 	});
 
 	it("uses the real clock when none is given", async () => {
-		const res = await buildApp({ version: "1", corsOrigins: [], logger }).request("/v1/status");
+		const res = await buildApp({
+			version: "1",
+			corsOrigins: [],
+			logger,
+			machines: noMachines,
+		}).request("/v1/status");
 		const body = (await res.json()) as { time: string };
 		expect(Date.parse(body.time)).toBeGreaterThan(Date.parse("2026-01-01"));
 	});

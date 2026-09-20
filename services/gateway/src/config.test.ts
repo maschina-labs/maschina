@@ -2,11 +2,16 @@ import { describe, expect, it } from "vitest";
 import { clientKey } from "./app.ts";
 import { loadConfig } from "./config.ts";
 
+const complete = {
+	GATEWAY_CORS_ORIGINS: "http://localhost:3000, https://maschina.dev",
+	DATABASE_URL: "postgres://maschina_app:pw@localhost:5442/maschina",
+	PROVISIONER_URL: "http://provisioner:4400",
+	PROVISIONER_GATEWAY_TOKEN: "g".repeat(40),
+};
+
 describe("gateway config", () => {
 	it("reads the allowed origins as a list", () => {
-		expect(
-			loadConfig({ GATEWAY_CORS_ORIGINS: "http://localhost:3000, https://maschina.dev" }),
-		).toMatchObject({
+		expect(loadConfig(complete)).toMatchObject({
 			GATEWAY_PORT: 4000,
 			GATEWAY_CORS_ORIGINS: ["http://localhost:3000", "https://maschina.dev"],
 		});
@@ -14,6 +19,19 @@ describe("gateway config", () => {
 
 	it("needs the origins set", () => {
 		expect(() => loadConfig({})).toThrow(/GATEWAY_CORS_ORIGINS/);
+	});
+
+	it("needs the record and the provisioner", () => {
+		expect(() => loadConfig({ GATEWAY_CORS_ORIGINS: "http://localhost:3000" })).toThrow(
+			/DATABASE_URL[\s\S]*PROVISIONER_URL/,
+		);
+	});
+
+	it("takes a development owner, which production refuses", () => {
+		const wallet = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+		expect(loadConfig({ ...complete, GATEWAY_DEV_OWNER_WALLET: wallet })).toMatchObject({
+			GATEWAY_DEV_OWNER_WALLET: wallet,
+		});
 	});
 });
 
