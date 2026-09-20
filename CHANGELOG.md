@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.20](https://github.com/maschina-labs/maschina/compare/v0.0.19...v0.0.20) (2026-09-20)
+
+
+### Fixed
+
+* **ci:** deploy after the images, and watch the right port ([#610](https://github.com/maschina-labs/maschina/issues/610)) ([10ce7f8](https://github.com/maschina-labs/maschina/commit/10ce7f83364cd835a715d2ee73b1d7171f6c1c3a))
+
 ## [0.0.19](https://github.com/maschina-labs/maschina/compare/v0.0.18...v0.0.19) (2026-09-20)
 
 
