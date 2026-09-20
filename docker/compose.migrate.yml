@@ -1,0 +1,12 @@
+# Used only while migrations run, and never left on.
+#
+# Postgres normally has no way in from outside the server at all. Running migrations needs a connection
+# from a machine that has the repository, so this binds the database to the server's own loopback, which
+# an SSH tunnel can reach and the internet cannot. Taking it off again is one command:
+#
+#   docker compose -f compose.prod.yml up -d postgres
+#
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
