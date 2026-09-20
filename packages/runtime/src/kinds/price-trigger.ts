@@ -169,3 +169,9 @@ export const priceTrigger: MachineKind<PriceTriggerSettings> = {
 		};
 	},
 };
+
+/**
+ * The kinds that wait for a price rather than a schedule, named here because this is the module that
+ * owns the kind. Anything that follows prices for machines reads this rather than the name.
+ */
+export const PRICE_WATCHING_KINDS: readonly string[] = [priceTrigger.kind];

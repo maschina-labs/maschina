@@ -2,14 +2,18 @@ import {
 	claimDueRun,
 	createDatabase,
 	holdsRun,
+	machinesWatchingPrices,
+	queueRun,
 	renewLease,
 	reportRun,
 	runContext,
 } from "@maschina/db";
 import { startServer } from "@maschina/service";
+import { jupiterPrices, parseAddress } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
 import { loadConfig } from "./config.ts";
+import { watchPrices } from "./price-watcher.ts";
 import { signerClient } from "./signer-client.ts";
 
 const config = loadConfig();
@@ -58,11 +62,41 @@ const app = buildApp({
 	},
 });
 
+// Machines waiting on a level cannot watch prices themselves, so the orchestrator watches for them and
+// queues a run when one crosses.
+const watching = new AbortController();
+const key = config.JUPITER_API_KEY;
+const prices = jupiterPrices(key ? { apiKey: key } : {});
+const watcher = watchPrices(
+	{
+		watching: () => machinesWatchingPrices(database.db),
+		pricesFor: async (mints) => {
+			const priced = await prices.usdPrices(mints.map((mint) => parseAddress(mint)));
+			return new Map([...priced].map(([mint, price]) => [String(mint), price.micros]));
+		},
+		queue: async (run) => {
+			const queued = await queueRun(database.db, run);
+			if (!queued.ok) throw queued.error;
+		},
+		logger,
+		now: () => new Date(),
+		everyMs: config.ORCHESTRATOR_PRICE_EVERY_MS,
+	},
+	watching.signal,
+);
+
 startServer({
 	app,
 	port: config.ORCHESTRATOR_PORT,
 	logger,
 	shutdown: [
+		{
+			name: "price watcher",
+			run: async () => {
+				watching.abort();
+				await watcher;
+			},
+		},
 		{ name: "database", run: database.close },
 		{ name: "error reporting", run: () => reporter.flush() },
 	],
