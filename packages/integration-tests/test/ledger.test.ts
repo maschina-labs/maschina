@@ -47,7 +47,8 @@ const SIGNATURE = "5".repeat(88);
 async function aMachineWith(granted: bigint) {
 	const sql = handle.sql;
 	const [owner] = await sql<{ id: string }[]>`
-		insert into owners (wallet_address) values (${address()}) returning id`;
+		insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${address()})
+		returning id`;
 	const saved = await saveDefinition(handle.db, {
 		kind: "recurring_buy",
 		settings: { amount: address() },
