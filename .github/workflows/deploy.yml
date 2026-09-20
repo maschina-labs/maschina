@@ -4,8 +4,11 @@ name: Deploy
 # images it was told to run; nothing is built here, and no secrets leave the box.
 
 on:
-  release:
-    types: [published]
+  # After the images, never beside them. Both used to start on the release, so the server pulled a tag
+  # that was still being built and the deploy failed on an image that did not exist yet.
+  workflow_run:
+    workflows: [Images]
+    types: [completed]
   workflow_dispatch:
     inputs:
       version:
@@ -24,6 +27,10 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # A failed image build has nothing to deploy.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -36,9 +43,16 @@ jobs:
       - name: Work out which version to run
         id: version
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          # The images run on a release, so its tag is the branch that run was for.
+          TAG: ${{ github.event.workflow_run.head_branch }}
           ASKED: ${{ inputs.version }}
-        run: echo "version=${ASKED:-${TAG#v}}" >> "$GITHUB_OUTPUT"
+        run: |
+          version="${ASKED:-${TAG#v}}"
+          case "$version" in
+            [0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "::error::'$version' is not a released version; nothing to deploy."; exit 1 ;;
+          esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Update the server
         env:
