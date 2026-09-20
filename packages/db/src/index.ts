@@ -2,6 +2,7 @@ export * from "./client.ts";
 export * from "./connection.ts";
 export * from "./definitions.ts";
 export * from "./ledger.ts";
+export * from "./owners.ts";
 export * from "./read-events.ts";
 export * from "./record.ts";
 export * from "./run-context.ts";

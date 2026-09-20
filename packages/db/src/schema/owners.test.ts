@@ -14,11 +14,13 @@ describe("the owners table", () => {
 		]);
 	});
 
-	it("needs a wallet address, and fills in the rest", () => {
+	it("needs an id and a wallet address, and fills in the rest", () => {
 		const required = table.columns
 			.filter((column) => column.notNull && !column.hasDefault)
-			.map((column) => column.name);
-		expect(required).toEqual(["wallet_address"]);
+			.map((column) => column.name)
+			.sort();
+		// The id comes from the code, because the database's own default was not a v7 id (#551).
+		expect(required).toEqual(["id", "wallet_address"]);
 	});
 
 	it("allows one owner per wallet address", () => {
@@ -26,7 +28,10 @@ describe("the owners table", () => {
 		expect(unique).toEqual(["wallet_address"]);
 	});
 
-	it("checks the shape of the address in the database itself", () => {
-		expect(table.checks.map((check) => check.name)).toEqual(["owners_wallet_address_shape"]);
+	it("checks the shape of the address and the id in the database itself", () => {
+		expect(table.checks.map((check) => check.name).sort()).toEqual([
+			"owners_id_is_v7",
+			"owners_wallet_address_shape",
+		]);
 	});
 });
