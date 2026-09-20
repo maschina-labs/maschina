@@ -12,9 +12,8 @@
  */
 
 import { buildTransfer, parseAddress } from "@maschina/solana";
-import type { WalletPolicy } from "../src/provider/policy.ts";
-import { turnkeyProvider } from "../src/provider/turnkey.ts";
-import { signerUserIdFor, TURNKEY_API, turnkeyApi } from "../src/provider/turnkey-client.ts";
+import type { WalletPolicy } from "@maschina/wallet";
+import { signerUserIdFor, TURNKEY_API, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 
 const need = (name: string): string => {
 	const value = process.env[name];

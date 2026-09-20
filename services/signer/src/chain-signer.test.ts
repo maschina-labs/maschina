@@ -1,8 +1,8 @@
 import type { SignRequest } from "@maschina/contracts";
 import { err, newId, ok } from "@maschina/core";
+import { providerError } from "@maschina/wallet";
 import { describe, expect, it } from "vitest";
 import { type ChainPorts, chainSigner } from "./chain-signer.ts";
-import { providerError } from "./provider/wallet-provider.ts";
 import type { ChainAnswer, Submission } from "./submit-once.ts";
 
 const request: SignRequest = {

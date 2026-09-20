@@ -11,7 +11,7 @@
  */
 
 import type { SignRequest, SignResponse } from "@maschina/contracts";
-import { toMaschinaError, type WalletProvider } from "./provider/wallet-provider.ts";
+import { toMaschinaError, type WalletProvider } from "@maschina/wallet";
 import type { TradeSigner } from "./sign-route.ts";
 import { type ChainAnswer, type Submission, submitOnce } from "./submit-once.ts";
 

@@ -35,6 +35,7 @@
 			"ignoreDependencies": [
 				"@hono/node-server",
 				"@sentry/node",
+				"@turnkey/sdk-server",
 				"drizzle-orm",
 				"pino",
 				"postgres",

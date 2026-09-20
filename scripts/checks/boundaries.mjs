@@ -45,9 +45,9 @@ export const RULES = [
 		forbidden: SOLANA,
 	},
 	{
-		name: "Only services/signer holds wallet provider SDKs",
-		why: "The signer is the only piece allowed to ask for a signature.",
-		appliesTo: (ws) => ws !== "services/signer",
+		name: "Only packages/wallet and the two services that use it hold wallet provider SDKs",
+		why: "One place knows how a provider works: the signer signs with a key that can do nothing else, and the provisioner creates wallets with the admin key. Nothing else goes near them.",
+		appliesTo: (ws) => !["packages/wallet", "services/signer", "services/provisioner"].includes(ws),
 		forbidden: WALLET_PROVIDERS,
 	},
 	{
