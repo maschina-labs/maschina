@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.0.19](https://github.com/maschina-labs/maschina/compare/v0.0.18...v0.0.19) (2026-09-20)
+
+
+### Added
+
+* **daemon:** run machines on a node ([#582](https://github.com/maschina-labs/maschina/issues/582)) ([cd45a13](https://github.com/maschina-labs/maschina/commit/cd45a13f4a6c1c3483dc90f942edc0fd66048bac))
+* **docker:** run Maschina on one server, nothing open to the internet ([#589](https://github.com/maschina-labs/maschina/issues/589)) ([e8931fe](https://github.com/maschina-labs/maschina/commit/e8931fec1a39499ca68cd36babadc5681948dd31))
+* **gateway:** an API for the machines an owner has ([#603](https://github.com/maschina-labs/maschina/issues/603)) ([91bc5ce](https://github.com/maschina-labs/maschina/commit/91bc5ce35cefd0a4151e06aea8a82d7f22f2f6c7))
+* **gateway:** run the API on the server behind a Cloudflare Tunnel ([#605](https://github.com/maschina-labs/maschina/issues/605)) ([0958a61](https://github.com/maschina-labs/maschina/commit/0958a6101dd29e3c9341743938099144bbc85841))
+* **orchestrator:** queue a run when a price crosses a machine's level ([#593](https://github.com/maschina-labs/maschina/issues/593)) ([18280ee](https://github.com/maschina-labs/maschina/commit/18280ee28b416a3328ccde2b3067406caa8d6e66))
+* **runtime:** a machine that buys when a price reaches a level ([#587](https://github.com/maschina-labs/maschina/issues/587)) ([7c5c07f](https://github.com/maschina-labs/maschina/commit/7c5c07f8f91a3c4eba3b99ba3f4af599e2c2b26d))
+* **runtime:** fire a level once per crossing, not on every wobble ([#586](https://github.com/maschina-labs/maschina/issues/586)) ([76fb97e](https://github.com/maschina-labs/maschina/commit/76fb97e180f9f2e822c0f6ad0bca6ded6ed2f89f))
+* **signer:** create a machine with its own wallet and policy ([#599](https://github.com/maschina-labs/maschina/issues/599)) ([3e9e787](https://github.com/maschina-labs/maschina/commit/3e9e787a1807c46cefd3f6b703f650703543d63c))
+
+
+### Fixed
+
+* **daemon:** own the identity directory, so a fresh volume works ([#591](https://github.com/maschina-labs/maschina/issues/591)) ([129f8bd](https://github.com/maschina-labs/maschina/commit/129f8bd4beda320f52f79c0b9c6a4d43dce82e0c))
+* **db:** give owners ids the record accepts ([#596](https://github.com/maschina-labs/maschina/issues/596)) ([eef8050](https://github.com/maschina-labs/maschina/commit/eef80504048315546ff43c63cf7ac1cc3f9270cb))
+
+
+### Changed
+
+* **signer:** move the wallet provider into its own package ([#598](https://github.com/maschina-labs/maschina/issues/598)) ([e9a1224](https://github.com/maschina-labs/maschina/commit/e9a1224973af86633a411655c00701ed835af8ff))
+
 ## [0.0.18](https://github.com/maschina-labs/maschina/compare/v0.0.17...v0.0.18) (2026-09-19)
 
 
