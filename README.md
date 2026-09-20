@@ -36,6 +36,7 @@ Working today, each proved against real services rather than mocks:
 | A node running machines on its own: claim, run, report, repeat, keeping its lease alive | `services/daemon/src/work-loop.ts` |
 | Watching prices for waiting machines, and queueing a run once per crossing | `services/orchestrator/src/price-watcher.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
+| An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 Not built yet: anything that queues runs on a schedule, a machine's own wallet created with

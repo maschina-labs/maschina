@@ -4,6 +4,7 @@ import { createServiceApp, rateLimit, registerHealth } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
+import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
@@ -12,6 +13,8 @@ export type GatewayDeps = {
 	logger: Logger;
 	reporter?: ErrorReporter | undefined;
 	clock?: Clock | undefined;
+	/** Everything the machines API needs. Owners come from the session, never from a request. */
+	machines: MachinePorts;
 };
 
 export const SERVICE = "gateway";
@@ -25,10 +28,9 @@ export function clientKey(c: Context): string {
 
 /** Every versioned route. */
 function v1(deps: GatewayDeps) {
-	return new OpenAPIHono().route(
-		"/",
-		systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock }),
-	);
+	return new OpenAPIHono()
+		.route("/", systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock }))
+		.route("/", machineRoutes(deps.machines));
 }
 
 export function buildApp(deps: GatewayDeps) {

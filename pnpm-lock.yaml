@@ -807,15 +807,24 @@ importers:
       '@hono/zod-openapi':
         specifier: 'catalog:'
         version: 1.6.3(hono@4.13.8)(zod@4.6.5)
+      '@maschina/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@sentry/node':
         specifier: 'catalog:'
         version: 10.74.0(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(supports-color@7.2.0)
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@opentelemetry/api@1.9.1)(postgres@3.4.9)
       hono:
         specifier: 'catalog:'
         version: 4.13.8
       pino:
         specifier: 'catalog:'
         version: 10.3.1
+      postgres:
+        specifier: 'catalog:'
+        version: 3.4.9
       uuidv7:
         specifier: 'catalog:'
         version: 1.2.1

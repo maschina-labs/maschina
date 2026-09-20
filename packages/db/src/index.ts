@@ -3,6 +3,7 @@ export * from "./connection.ts";
 export * from "./create-machine.ts";
 export * from "./definitions.ts";
 export * from "./ledger.ts";
+export * from "./owner-machines.ts";
 export * from "./owners.ts";
 export * from "./read-events.ts";
 export * from "./record.ts";
