@@ -19,10 +19,19 @@ export type GatewayDeps = {
 
 export const SERVICE = "gateway";
 
-/** The client address, as reported by the platform in front of the gateway. */
+/**
+ * The client address, as reported by whatever stands in front of the gateway.
+ *
+ * Cloudflare is first because that is where every public request comes from: the tunnel talks to the
+ * gateway over the private network, so its own address is the same for everybody and would make one
+ * busy client spend the whole rate limit.
+ */
 export function clientKey(c: Context): string {
 	return (
-		c.req.header("x-real-ip") ?? c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+		c.req.header("cf-connecting-ip") ??
+		c.req.header("x-real-ip") ??
+		c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+		"unknown"
 	);
 }
 
