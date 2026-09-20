@@ -20,7 +20,7 @@ COPY --from=build --chown=node:node /out/package.json ./package.json
 COPY --from=build --chown=node:node /out/node_modules ./node_modules
 COPY --from=build --chown=node:node /repo/services/provisioner/dist ./dist
 USER node
-EXPOSE 4200
+EXPOSE 4400
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
-	CMD wget -qO- http://127.0.0.1:4200/health || exit 1
+	CMD wget -qO- http://127.0.0.1:4400/health || exit 1
 CMD ["node", "--enable-source-maps", "dist/main.mjs"]
