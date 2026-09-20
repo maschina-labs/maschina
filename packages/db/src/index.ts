@@ -1,5 +1,6 @@
 export * from "./client.ts";
 export * from "./connection.ts";
+export * from "./create-machine.ts";
 export * from "./definitions.ts";
 export * from "./ledger.ts";
 export * from "./owners.ts";

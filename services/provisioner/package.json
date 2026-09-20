@@ -1,0 +1,44 @@
+{
+	"name": "@maschina/provisioner",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Creates a machine: its wallet, its policy, and its place in the record.",
+	"scripts": {
+		"dev": "tsx watch --env-file-if-exists=../../.env src/main.ts",
+		"build": "tsdown",
+		"start": "node --enable-source-maps dist/main.mjs",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
+	},
+	"dependencies": {
+		"@hono/node-server": "catalog:",
+		"@maschina/contracts": "workspace:*",
+		"@maschina/core": "workspace:*",
+		"@maschina/db": "workspace:*",
+		"@maschina/solana": "workspace:*",
+		"@maschina/wallet": "workspace:*",
+		"@sentry/node": "catalog:",
+		"@turnkey/sdk-server": "catalog:",
+		"drizzle-orm": "catalog:",
+		"hono": "catalog:",
+		"pino": "catalog:",
+		"postgres": "catalog:",
+		"uuidv7": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@maschina/env": "workspace:*",
+		"@maschina/service": "workspace:*",
+		"@maschina/telemetry": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"tsdown": "catalog:",
+		"tsx": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}
