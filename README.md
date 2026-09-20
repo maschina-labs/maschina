@@ -39,8 +39,12 @@ Working today, each proved against real services rather than mocks:
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
-Not built yet: anything that queues runs on a schedule, a machine's own wallet created with
-it, the API, and the web app beyond a landing page.
+The API is live at `https://api.maschina.dev`: `/v1/status` says it is up and `/openapi.json` describes
+every route. Owner routes need a signed-in wallet, which is being built, so today they answer "not
+signed in" to everybody.
+
+Not built yet: anything that queues runs on a schedule, wallet sign-in, and the web app beyond a
+landing page.
 
 ## How the limits actually hold
 

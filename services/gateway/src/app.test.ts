@@ -97,6 +97,29 @@ describe("gateway", () => {
 		expect(other.status).toBe(200);
 	});
 
+	it("counts the visitor behind Cloudflare, not the tunnel", async () => {
+		const time = new ManualClock("2026-09-16T12:00:00.000Z");
+		const gateway = buildApp({
+			version: "1",
+			corsOrigins: [],
+			logger,
+			clock: time,
+			machines: noMachines,
+		});
+		// Cloudflare names the visitor; everything else in the chain is the tunnel talking about itself.
+		const proxied = (ip: string) => ({
+			"cf-connecting-ip": ip,
+			"x-forwarded-for": "172.18.0.4",
+			"x-real-ip": "172.18.0.4",
+		});
+		const status = async (ip: string) =>
+			(await gateway.request("/v1/status", { headers: proxied(ip) })).status;
+
+		for (let i = 0; i < 60; i++) expect(await status("203.0.113.9")).toBe(200);
+		expect(await status("203.0.113.9")).toBe(429);
+		expect(await status("198.51.100.7")).toBe(200);
+	});
+
 	it("uses the real clock when none is given", async () => {
 		const res = await buildApp({
 			version: "1",
