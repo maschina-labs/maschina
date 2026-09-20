@@ -35,6 +35,7 @@ Working today, each proved against real services rather than mocks:
 | A node running a machine: its balances, its decision, a quote checked against an independent price, a proposal | `services/daemon/src/machine-runner.ts` |
 | A node running machines on its own: claim, run, report, repeat, keeping its lease alive | `services/daemon/src/work-loop.ts` |
 | Watching prices for waiting machines, and queueing a run once per crossing | `services/orchestrator/src/price-watcher.ts` |
+| A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 Not built yet: anything that queues runs on a schedule, a machine's own wallet created with
@@ -67,6 +68,7 @@ services/
   gateway/             the public API
   orchestrator/        schedules machines and hands out work
   signer/              the only service that can request a signature
+  provisioner/         creates a machine: its wallet, its policy, its place in the record
   daemon/              runs machines on a node
   bots/                chat platforms, starting with Telegram
 packages/
@@ -75,6 +77,7 @@ packages/
   rules/               budgets and limits
   db/                  the database schema and the permanent record
   solana/              everything that talks to Solana
+  wallet/              machine wallets and the policies that hold them
   contracts/           API schemas shared by the gateway and apps
   env/                 environment validation
   telemetry/           logging and error reporting

@@ -45,6 +45,15 @@ services:
       postgres:
         condition: service_healthy
 
+  provisioner:
+    image: ghcr.io/maschina-labs/provisioner:${MASCHINA_VERSION:?the version to run is required}
+    container_name: maschina-provisioner
+    restart: unless-stopped
+    env_file: /opt/maschina/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   daemon:
     image: ghcr.io/maschina-labs/daemon:${MASCHINA_VERSION:?the version to run is required}
     container_name: maschina-daemon

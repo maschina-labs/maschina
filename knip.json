@@ -31,6 +31,17 @@
 				"uuidv7"
 			]
 		},
+		"services/provisioner": {
+			"ignoreDependencies": [
+				"@hono/node-server",
+				"@sentry/node",
+				"@turnkey/sdk-server",
+				"drizzle-orm",
+				"pino",
+				"postgres",
+				"uuidv7"
+			]
+		},
 		"services/signer": {
 			"ignoreDependencies": [
 				"@hono/node-server",

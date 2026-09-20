@@ -1,0 +1,4 @@
+{
+	"extends": "@maschina/config/tsconfig/node.json",
+	"include": ["src", "api", "vitest.config.ts", "tsdown.config.ts"]
+}
