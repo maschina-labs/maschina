@@ -1,0 +1,53 @@
+name: Deploy
+
+# Every release goes to the server, so what is running is always what was released. The server pulls the
+# images it was told to run; nothing is built here, and no secrets leave the box.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to run, for example 0.0.19
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Work out which version to run
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          ASKED: ${{ inputs.version }}
+        run: echo "version=${ASKED:-${TAG#v}}" >> "$GITHUB_OUTPUT"
+
+      - name: Update the server
+        env:
+          KEY: ${{ secrets.SERVER_SSH_KEY }}
+          HOST: ${{ secrets.SERVER_HOST }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          umask 077
+          printf '%s\n' "$KEY" > /tmp/deploy.key
+          ssh -i /tmp/deploy.key -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
+            "ubuntu@$HOST" "/opt/maschina/update.sh $VERSION"
+          rm -f /tmp/deploy.key
