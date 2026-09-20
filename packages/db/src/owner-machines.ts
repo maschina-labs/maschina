@@ -8,7 +8,9 @@
 
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
 import {
+	allowedActions,
 	type MachineAction,
+	type MachineState,
 	machineBudget,
 	machineLimits,
 	machineState,
@@ -25,7 +27,7 @@ export type OwnedMachine = {
 	kind: string;
 	walletAddress: string;
 	createdAt: Date;
-	state: string;
+	state: MachineState;
 	stateReason?: string;
 	budget: { granted: bigint; reserved: bigint; settled: bigint; available: bigint };
 };
@@ -114,7 +116,7 @@ export async function machineForOwner(
 			maxPerDay: limits.maxPerDay,
 			approvedMints: limits.approvedMints,
 		},
-		actions: allowedFor(summary.state),
+		actions: allowedActions(summary.state),
 	};
 }
 
@@ -192,12 +194,3 @@ const payloadFor = (action: MachineAction) =>
 		: action === "stop"
 			? { by: "owner" as const }
 			: {};
-
-/** Kept here so the API can tell an owner what they may do next, in the lifecycle's own words. */
-function allowedFor(state: string): MachineAction[] {
-	const known = ["draft", "ready", "running", "paused", "stopped"] as const;
-	type Known = (typeof known)[number];
-	if (!known.includes(state as Known)) return [];
-	const actions: MachineAction[] = ["fund", "start", "pause", "resume", "stop"];
-	return actions.filter((action) => transition(state as Known, action).ok);
-}

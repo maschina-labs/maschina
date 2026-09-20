@@ -33,7 +33,11 @@ describe("what the API says about a machine", () => {
 	});
 
 	it("says why a machine is paused when the record knows", () => {
-		const paused = { ...machine, state: "paused", stateReason: "budget nearly spent" };
+		const paused = {
+			...machine,
+			state: "paused" as const,
+			stateReason: "budget nearly spent",
+		};
 		expect(asSummary(paused)).toMatchObject({ stateReason: "budget nearly spent" });
 		expect("stateReason" in asSummary(machine)).toBe(false);
 	});
