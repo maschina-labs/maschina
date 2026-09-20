@@ -263,7 +263,8 @@ describe("owners", () => {
 		const sql = connect(database.appUrl);
 		try {
 			const [row] = await sql<{ id: string; created_at: Date }[]>`
-				insert into owners (wallet_address) values (${OWNER}) returning id, created_at`;
+				insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${OWNER})
+				returning id, created_at`;
 			expect(row?.id).toBeDefined();
 			expect(row?.created_at.getTime()).toBeGreaterThan(Date.now() - 60_000);
 		} finally {
@@ -275,10 +276,10 @@ describe("owners", () => {
 		const sql = connect(database.appUrl);
 		const address = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 		try {
-			await sql`insert into owners (wallet_address) values (${address})`;
-			await expect(sql`insert into owners (wallet_address) values (${address})`).rejects.toThrow(
-				/duplicate key|unique/i,
-			);
+			await sql`insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${address})`;
+			await expect(
+				sql`insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${address})`,
+			).rejects.toThrow(/duplicate key|unique/i);
 		} finally {
 			await sql.end();
 		}
@@ -295,9 +296,10 @@ describe("owners", () => {
 				"8GTgV1mscEjSoNmTdmNLaPjV1",
 				" 8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR",
 			]) {
-				await expect(sql`insert into owners (wallet_address) values (${bad})`, bad).rejects.toThrow(
-					/owners_wallet_address_shape|violates check constraint/i,
-				);
+				await expect(
+					sql`insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${bad})`,
+					bad,
+				).rejects.toThrow(/owners_wallet_address_shape|violates check constraint/i);
 			}
 		} finally {
 			await sql.end();
@@ -404,7 +406,8 @@ describe("machines", () => {
 	async function ownerAndDefinition(sql: postgres.Sql) {
 		const address = base58Address();
 		const [owner] = await sql<{ id: string }[]>`
-			insert into owners (wallet_address) values (${address}) returning id`;
+			insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${address})
+			returning id`;
 		const { db, close } = createDatabase({
 			url: database.appUrl,
 			applicationName: "machines-test",
