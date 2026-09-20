@@ -1,0 +1,4 @@
+ALTER TABLE "events" DROP CONSTRAINT "events_type_known";--> statement-breakpoint
+ALTER TABLE "owners" ALTER COLUMN "id" DROP DEFAULT;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_type_known" CHECK ("type" in ('run.queued', 'run.started', 'run.skipped', 'run.finished', 'trade.intended', 'trade.refused', 'trade.submitted', 'trade.completed', 'trade.failed', 'machine.created', 'machine.started', 'machine.paused', 'machine.resumed', 'machine.stopped', 'machine.limits_changed', 'authority.used', 'authority.denied'));--> statement-breakpoint
+ALTER TABLE "owners" ADD CONSTRAINT "owners_id_is_v7" CHECK ("id"::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
