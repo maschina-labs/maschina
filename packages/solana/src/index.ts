@@ -11,6 +11,7 @@ export * from "./priority-fee.ts";
 export * from "./raydium.ts";
 export * from "./router.ts";
 export * from "./rpc.ts";
+export * from "./siws.ts";
 export * from "./swap-transaction.ts";
 export * from "./testing.ts";
 export * from "./token-list.ts";
