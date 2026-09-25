@@ -29,4 +29,5 @@ export const ErrorBody = z
 	})
 	.meta({ id: "ErrorBody" });
 export type ErrorBody = z.infer<typeof ErrorBody>;
+export * from "./auth.ts";
 export * from "./machines.ts";

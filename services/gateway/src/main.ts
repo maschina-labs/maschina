@@ -17,7 +17,7 @@ const reporter = await initErrorReporting({
 	release: config.SERVICE_VERSION,
 });
 
-const machines = machinePorts(config);
+const gateway = machinePorts(config);
 
 startServer({
 	app: buildApp({
@@ -25,12 +25,14 @@ startServer({
 		corsOrigins: config.GATEWAY_CORS_ORIGINS,
 		logger,
 		reporter,
-		machines: machines.ports,
+		machines: gateway.ports,
+		auth: gateway.auth,
+		cookie: gateway.cookie,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,
 	shutdown: [
-		{ name: "database", run: machines.close },
+		{ name: "database", run: gateway.close },
 		{ name: "error reporting", run: () => reporter.flush() },
 	],
 });

@@ -15,12 +15,16 @@ const reporter = await initErrorReporting({
 	release: config.SERVICE_VERSION,
 });
 
+const gateway = machinePorts(config);
+
 export default handle(
 	buildApp({
 		version: config.SERVICE_VERSION,
 		corsOrigins: config.GATEWAY_CORS_ORIGINS,
 		logger,
 		reporter,
-		machines: machinePorts(config).ports,
+		machines: gateway.ports,
+		auth: gateway.auth,
+		cookie: gateway.cookie,
 	}),
 );

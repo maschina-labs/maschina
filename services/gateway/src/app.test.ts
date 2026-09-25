@@ -18,6 +18,17 @@ const noMachines = {
 	},
 };
 
+/** Nothing in these tests signs in; routes/auth.test.ts covers that. */
+const noAuth = {
+	challenge: async () => ({ message: "", nonce: "", expiresAt: "" }),
+	verify: async () => {
+		throw new Error("not used here");
+	},
+	ownerOf: async () => undefined,
+	signOut: async () => undefined,
+};
+const noCookie = { secure: false };
+
 const app = () =>
 	buildApp({
 		version: "1.2.3",
@@ -25,6 +36,8 @@ const app = () =>
 		logger,
 		clock,
 		machines: noMachines,
+		auth: noAuth,
+		cookie: noCookie,
 	});
 
 describe("gateway", () => {
@@ -79,6 +92,8 @@ describe("gateway", () => {
 			logger,
 			clock: time,
 			machines: noMachines,
+			auth: noAuth,
+			cookie: noCookie,
 		});
 		const headers = { "x-real-ip": "203.0.113.9" };
 		const status = async () => (await gateway.request("/v1/status", { headers })).status;
@@ -105,6 +120,8 @@ describe("gateway", () => {
 			logger,
 			clock: time,
 			machines: noMachines,
+			auth: noAuth,
+			cookie: noCookie,
 		});
 		// Cloudflare names the visitor; everything else in the chain is the tunnel talking about itself.
 		const proxied = (ip: string) => ({
@@ -126,6 +143,8 @@ describe("gateway", () => {
 			corsOrigins: [],
 			logger,
 			machines: noMachines,
+			auth: noAuth,
+			cookie: noCookie,
 		}).request("/v1/status");
 		const body = (await res.json()) as { time: string };
 		expect(Date.parse(body.time)).toBeGreaterThan(Date.parse("2026-01-01"));

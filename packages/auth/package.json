@@ -1,26 +1,26 @@
 {
-	"name": "@maschina/solana",
+	"name": "@maschina/auth",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts",
-		"./testing": "./src/testing.ts"
+		".": "./src/index.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage"
 	},
-	"dependencies": {
-		"@maschina/core": "workspace:*",
-		"@solana-program/system": "catalog:",
-		"@solana/kit": "catalog:"
-	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
+		"@maschina/solana": "workspace:*",
+		"@types/node": "catalog:",
 		"@vitest/coverage-v8": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
+	},
+	"description": "Proving who is asking.",
+	"dependencies": {
+		"@maschina/core": "workspace:*"
 	}
 }

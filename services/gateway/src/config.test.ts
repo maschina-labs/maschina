@@ -27,10 +27,24 @@ describe("gateway config", () => {
 		);
 	});
 
-	it("takes a development owner, which production refuses", () => {
-		const wallet = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
-		expect(loadConfig({ ...complete, GATEWAY_DEV_OWNER_WALLET: wallet })).toMatchObject({
-			GATEWAY_DEV_OWNER_WALLET: wallet,
+	it("signs in against localhost until it is told otherwise", () => {
+		expect(loadConfig(complete)).toMatchObject({
+			GATEWAY_DOMAIN: "localhost",
+			GATEWAY_APP_URL: "http://localhost:3000",
+		});
+	});
+
+	it("takes the domain a signature is good for, and the domain the cookie is shared across", () => {
+		expect(
+			loadConfig({
+				...complete,
+				GATEWAY_DOMAIN: "maschina.dev",
+				GATEWAY_APP_URL: "https://maschina.dev",
+				GATEWAY_COOKIE_DOMAIN: ".maschina.dev",
+			}),
+		).toMatchObject({
+			GATEWAY_DOMAIN: "maschina.dev",
+			GATEWAY_COOKIE_DOMAIN: ".maschina.dev",
 		});
 	});
 });

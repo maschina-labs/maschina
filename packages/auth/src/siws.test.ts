@@ -1,5 +1,5 @@
 import { MaschinaError } from "@maschina/core";
-import { generateKeyPair, getAddressFromPublicKey, getBase58Decoder, signBytes } from "@solana/kit";
+import { testWallet } from "@maschina/solana/testing";
 import { describe, expect, it } from "vitest";
 import { signInMessage, verifySignIn } from "./siws.ts";
 
@@ -8,15 +8,7 @@ const NONCE = "8f2c1a9b4d7e0f63";
 const ISSUED = new Date("2026-09-25T12:00:00.000Z");
 const EXPIRES = new Date("2026-09-25T12:05:00.000Z");
 
-async function wallet() {
-	const keys = await generateKeyPair();
-	const address = await getAddressFromPublicKey(keys.publicKey);
-	const sign = async (message: string) => {
-		const signature = await signBytes(keys.privateKey, new TextEncoder().encode(message));
-		return getBase58Decoder().decode(signature);
-	};
-	return { address, sign };
-}
+const wallet = testWallet;
 
 const asked = (address: string) =>
 	signInMessage({

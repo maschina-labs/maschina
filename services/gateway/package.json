@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@hono/node-server": "catalog:",
 		"@hono/zod-openapi": "catalog:",
+		"@maschina/auth": "workspace:*",
 		"@maschina/db": "workspace:*",
 		"@sentry/node": "catalog:",
 		"drizzle-orm": "catalog:",
@@ -31,6 +32,7 @@
 		"@maschina/core": "workspace:*",
 		"@maschina/env": "workspace:*",
 		"@maschina/service": "workspace:*",
+		"@maschina/solana": "workspace:*",
 		"@maschina/telemetry": "workspace:*",
 		"@types/node": "catalog:",
 		"@vitest/coverage-v8": "catalog:",
