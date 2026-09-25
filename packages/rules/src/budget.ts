@@ -55,6 +55,19 @@ export function settle(budget: Budget, reservedAmount: BaseUnits, actualCost: Ba
 	};
 }
 
+/**
+ * Returns money to the budget, for an action that brought it back.
+ *
+ * A machine that sells into the currency its budget is held in is holding the owner's money again, so
+ * the grant is a limit on what may be deployed at once rather than a total that can only ever be spent
+ * down. Settled never falls below zero: a machine that earns more than it spent has made a profit,
+ * which belongs to its owner, and not a wider mandate than the owner agreed to.
+ */
+export function credit(budget: Budget, amount: BaseUnits): Budget {
+	const settled = budget.settled - amount;
+	return { ...budget, settled: baseUnitsOf(settled < 0n ? 0n : settled) };
+}
+
 /** Returns a reservation untouched, for an action that never happened. */
 export function release(budget: Budget, reservedAmount: BaseUnits): Budget {
 	assertHeld(budget, reservedAmount);
