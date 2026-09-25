@@ -22,7 +22,6 @@ import {
 	spendNonce,
 	startSession,
 } from "@maschina/db";
-import { getCookie } from "hono/cookie";
 import type { StartedSession } from "./routes/auth.ts";
 import { SESSION_COOKIE } from "./routes/auth.ts";
 import type { Owner } from "./routes/machines.ts";
@@ -129,5 +128,3 @@ function cookieFrom(headers: Headers, name: string): string | undefined {
 	}
 	return undefined;
 }
-
-export { getCookie };

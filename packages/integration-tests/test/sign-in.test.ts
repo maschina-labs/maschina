@@ -78,7 +78,14 @@ describe("nonces", () => {
 });
 
 describe("sessions", () => {
-	const wallet = () => `So1111111111111111111111111111111111111111${Math.floor(Math.random() * 9)}`;
+	// Base58 has no zero, no capital O and no lowercase l, so the suffix is picked from what it does have.
+	let made = 0;
+	const wallet = () => {
+		const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+		made += 1;
+		const suffix = alphabet[made % alphabet.length] ?? "2";
+		return `So111111111111111111111111111111111111111${suffix}`;
+	};
 
 	it("carries an owner from one request to the next, until it is ended", async () => {
 		const owner = await createOwner(handle.db, wallet());
