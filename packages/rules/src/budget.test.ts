@@ -1,7 +1,15 @@
 import { type BaseUnits, baseUnitsOf, MaschinaError } from "@maschina/core";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { available, type Budget, createBudget, release, reserve, settle } from "./budget.ts";
+import {
+	available,
+	type Budget,
+	createBudget,
+	credit,
+	release,
+	reserve,
+	settle,
+} from "./budget.ts";
 
 const units = (n: bigint) => baseUnitsOf(n);
 
@@ -106,5 +114,37 @@ describe("budget", () => {
 				},
 			),
 		);
+	});
+});
+
+describe("credit", () => {
+	const funded = (granted: bigint) => createBudget(baseUnitsOf(granted));
+
+	it("returns money that came back, so the grant is what may be deployed at once", () => {
+		const spent = settle(
+			reserve(funded(1000n), baseUnitsOf(400n)),
+			baseUnitsOf(400n),
+			baseUnitsOf(400n),
+		);
+		expect(available(spent).toString()).toBe("600");
+
+		const returned = credit(spent, baseUnitsOf(400n));
+		expect(available(returned).toString()).toBe("1000");
+	});
+
+	it("never credits past the grant, because profit is not a wider mandate", () => {
+		const spent = settle(
+			reserve(funded(1000n), baseUnitsOf(400n)),
+			baseUnitsOf(400n),
+			baseUnitsOf(400n),
+		);
+
+		expect(available(credit(spent, baseUnitsOf(900n))).toString()).toBe("1000");
+	});
+
+	it("leaves a reservation alone", () => {
+		const holding = reserve(funded(1000n), baseUnitsOf(400n));
+
+		expect(credit(holding, baseUnitsOf(100n)).reserved.toString()).toBe("400");
 	});
 });

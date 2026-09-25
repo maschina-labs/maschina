@@ -43,6 +43,37 @@ const refused = (id: string) =>
 		reason: "no",
 	});
 
+const SOL = "So11111111111111111111111111111111111111112";
+const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
+/** A trade in either direction, for a machine whose budget is held in one of the two. */
+const leg = (
+	id: string,
+	inputMint: string,
+	outputMint: string,
+	inputAmount: string,
+	feeAllowance?: string,
+) =>
+	event("trade.intended", {
+		runId: RUN,
+		tradeId: id,
+		inputMint,
+		outputMint,
+		inputAmount,
+		quotedOutputAmount: "1",
+		slippageBps: 50,
+		...(feeAllowance === undefined ? {} : { feeAllowance }),
+	});
+const filled = (id: string, inputAmount: string, outputAmount: string, feeLamports = "0") =>
+	event("trade.completed", {
+		runId: RUN,
+		tradeId: id,
+		signature: "5".repeat(88),
+		inputAmount,
+		outputAmount,
+		feeLamports,
+	});
+
 const numbers = (events: RecordedEvent[]) => {
 	const budget = machineBudget(events);
 	return {
@@ -262,5 +293,100 @@ describe("the fee a trade will cost to send", () => {
 		const budget = machineBudget([granted("1000"), intended(trade(8), "100")]);
 
 		expect(budget.reserved).toBe(100n);
+	});
+});
+
+describe("machineBudget, told which currency the budget is held in", () => {
+	const spent = (events: RecordedEvent[]) => {
+		const budget = machineBudget(events, { budgetMint: USDC });
+		return {
+			reserved: budget.reserved.toString(),
+			settled: budget.settled.toString(),
+			available: budget.available.toString(),
+		};
+	};
+
+	it("gives the budget back when a machine sells into the currency it started with", () => {
+		const events = [
+			granted("15000000"),
+			leg(trade(1), USDC, SOL, "5000000"),
+			filled(trade(1), "5000000", "45000000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			filled(trade(2), "45000000", "5100000"),
+		];
+
+		// Five spent and five point one returned: the machine is holding its own money again.
+		expect(spent(events)).toMatchObject({ reserved: "0", available: "15000000" });
+	});
+
+	it("holds nothing against the budget for a trade that spends something else", () => {
+		const events = [granted("15000000"), leg(trade(1), SOL, USDC, "45000000")];
+
+		// The sold asset is not the budget's currency, so there is nothing here to reserve.
+		expect(spent(events)).toMatchObject({ reserved: "0", available: "15000000" });
+	});
+
+	it("keeps working a range far past the point a one-way machine would be finished", () => {
+		const events = [granted("15000000")];
+		for (let cycle = 0; cycle < 8; cycle++) {
+			const buy = trade(cycle * 2 + 1);
+			const sell = trade(cycle * 2 + 2);
+			events.push(leg(buy, USDC, SOL, "5000000"), filled(buy, "5000000", "45000000"));
+			events.push(leg(sell, SOL, USDC, "45000000"), filled(sell, "45000000", "5000000"));
+		}
+
+		// Sixteen trades on a budget that pays for three, because the money keeps coming home.
+		expect(spent(events).available).toBe("15000000");
+	});
+
+	it("does not let profit quietly widen the mandate the owner agreed to", () => {
+		const events = [
+			granted("10000000"),
+			leg(trade(1), USDC, SOL, "5000000"),
+			filled(trade(1), "5000000", "45000000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			filled(trade(2), "45000000", "9000000"),
+		];
+
+		// Four up on the round trip, and the machine may still only deploy what it was granted.
+		expect(spent(events).available).toBe("10000000");
+	});
+
+	it("still counts a loss against the budget", () => {
+		const events = [
+			granted("10000000"),
+			leg(trade(1), USDC, SOL, "5000000"),
+			filled(trade(1), "5000000", "45000000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			filled(trade(2), "45000000", "4000000"),
+		];
+
+		expect(spent(events)).toMatchObject({ settled: "1000000", available: "9000000" });
+	});
+
+	it("leaves the fee as the only cost of a round trip that broke even", () => {
+		const events = [
+			granted("10000000"),
+			leg(trade(1), USDC, SOL, "5000000", "5000"),
+			filled(trade(1), "5000000", "45000000", "5000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			filled(trade(2), "45000000", "5000000"),
+		];
+
+		// Out and back at the same price, so the machine is down exactly what it cost to send.
+		expect(spent(events)).toMatchObject({ settled: "5000", available: "9995000" });
+	});
+
+	it("behaves exactly as before when nobody says which currency the budget is in", () => {
+		const events = [
+			granted("15000000"),
+			leg(trade(1), USDC, SOL, "5000000"),
+			filled(trade(1), "5000000", "45000000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			filled(trade(2), "45000000", "5100000"),
+		];
+
+		// The sale is not credited, and its input is far too large to reserve, so it changes nothing.
+		expect(machineBudget(events).available.toString()).toBe("10000000");
 	});
 });
