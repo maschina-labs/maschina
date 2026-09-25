@@ -29,7 +29,7 @@ describe("gateway config", () => {
 
 	it("signs in against localhost until it is told otherwise", () => {
 		expect(loadConfig(complete)).toMatchObject({
-			GATEWAY_DOMAIN: "localhost",
+			GATEWAY_DOMAIN: "localhost:3000",
 			GATEWAY_APP_URL: "http://localhost:3000",
 		});
 	});

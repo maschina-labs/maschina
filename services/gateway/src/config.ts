@@ -11,8 +11,12 @@ export function loadConfig(source?: EnvSource) {
 			/** Where machines are created. The gateway never holds a wallet provider key itself. */
 			PROVISIONER_URL: env.url(),
 			PROVISIONER_GATEWAY_TOKEN: env.secret(),
-			/** The domain a sign in message names, and the only domain its signature is good for. */
-			GATEWAY_DOMAIN: z.string().min(1).default("localhost"),
+			/**
+			 * The domain a sign in message names, and the only domain its signature is good for. Wallets
+			 * check it against the page's own origin, which includes the port in development, so this is
+			 * a host rather than a hostname.
+			 */
+			GATEWAY_DOMAIN: z.string().min(1).default("localhost:3000"),
 			/** Where the app lives, shown in the message so a person sees what they are signing into. */
 			GATEWAY_APP_URL: env.url().default("http://localhost:3000"),
 			/**

@@ -15,7 +15,14 @@ export type Provisioner = {
 	create(request: MachineRequest): Promise<
 		| {
 				ok: true;
-				value: { machineId: string; ownerId: string; walletAddress: string; definitionId: string };
+				value: {
+					machineId: string;
+					ownerId: string;
+					walletAddress: string;
+					definitionId: string;
+					/** The provider's own id for the wallet. Ours to keep, never sent on. */
+					providerWalletId: string;
+				};
 		  }
 		| { ok: false; error: MaschinaError }
 	>;
@@ -82,7 +89,13 @@ export function buildApp(deps: ProvisionerDeps) {
 			});
 			if (!made.ok) throw made.error;
 
-			return c.json(CreateMachineResponse.parse(made.value), 201);
+			// Only what the contract names: the provider's wallet id is an internal fact about a system
+			// the caller has no business knowing, and the response shape is strict on purpose.
+			const { machineId, ownerId, walletAddress, definitionId } = made.value;
+			return c.json(
+				CreateMachineResponse.parse({ machineId, ownerId, walletAddress, definitionId }),
+				201,
+			);
 		}),
 	);
 
