@@ -4,6 +4,7 @@ import { createServiceApp, rateLimit, registerHealth } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
+import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { systemRoutes } from "./routes/system.ts";
 
@@ -15,6 +16,9 @@ export type GatewayDeps = {
 	clock?: Clock | undefined;
 	/** Everything the machines API needs. Owners come from the session, never from a request. */
 	machines: MachinePorts;
+	/** Signing in with a wallet, and the cookie a session travels in. */
+	auth: AuthPorts;
+	cookie: CookieSettings;
 };
 
 export const SERVICE = "gateway";
@@ -39,7 +43,8 @@ export function clientKey(c: Context): string {
 function v1(deps: GatewayDeps) {
 	return new OpenAPIHono()
 		.route("/", systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock }))
-		.route("/", machineRoutes(deps.machines));
+		.route("/", machineRoutes(deps.machines))
+		.route("/", authRoutes(deps.auth, deps.cookie));
 }
 
 export function buildApp(deps: GatewayDeps) {

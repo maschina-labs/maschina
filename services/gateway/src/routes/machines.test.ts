@@ -53,6 +53,16 @@ function app(ports: Partial<MachinePorts> = {}) {
 		corsOrigins: ["http://localhost:3000"],
 		logger,
 		machines: { ...base, ...ports },
+		// Signing in has its own tests; these reach the machines API with the session already decided.
+		auth: {
+			challenge: async () => ({ message: "", nonce: "", expiresAt: "" }),
+			verify: async () => {
+				throw new Error("not used here");
+			},
+			ownerOf: base.ownerOf,
+			signOut: async () => undefined,
+		},
+		cookie: { secure: false },
 	});
 }
 

@@ -17,12 +17,7 @@
  */
 
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
-import {
-	getAddressEncoder,
-	getBase58Encoder,
-	type Address as KitAddress,
-	verifySignature,
-} from "@solana/kit";
+import { decodeBase58 } from "./base58.ts";
 
 /** A browser and a server rarely agree on the time to the second. */
 const CLOCK_DRIFT_MS = 30_000;
@@ -143,18 +138,19 @@ export async function verifySignIn(
 	});
 }
 
-/** Ed25519, over the exact bytes of the message, against the public key the address is made of. */
+/**
+ * Ed25519, over the exact bytes of the message, against the public key the address is made of.
+ *
+ * A Solana address is a public key written in base58 and this is ordinary ed25519, so no chain library
+ * is involved and none is wanted: whatever verifies a signature here never touches a chain.
+ */
 async function verifyBytes(address: string, signature: string, message: string): Promise<boolean> {
 	try {
-		const publicKey = getAddressEncoder().encode(address as KitAddress);
+		const publicKey = decodeBase58(address);
+		const bytes = decodeBase58(signature);
+		if (publicKey.length !== 32 || bytes.length !== 64) return false;
 		const key = await crypto.subtle.importKey("raw", publicKey, "Ed25519", true, ["verify"]);
-		const bytes = getBase58Encoder().encode(signature);
-		if (bytes.length !== 64) return false;
-		return await verifySignature(
-			key,
-			bytes as Parameters<typeof verifySignature>[1],
-			new TextEncoder().encode(message),
-		);
+		return await crypto.subtle.verify("Ed25519", key, bytes, new TextEncoder().encode(message));
 	} catch {
 		// A malformed address or signature is a refusal, not a crash.
 		return false;

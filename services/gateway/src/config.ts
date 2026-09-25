@@ -11,11 +11,15 @@ export function loadConfig(source?: EnvSource) {
 			/** Where machines are created. The gateway never holds a wallet provider key itself. */
 			PROVISIONER_URL: env.url(),
 			PROVISIONER_GATEWAY_TOKEN: env.secret(),
+			/** The domain a sign in message names, and the only domain its signature is good for. */
+			GATEWAY_DOMAIN: z.string().min(1).default("localhost"),
+			/** Where the app lives, shown in the message so a person sees what they are signing into. */
+			GATEWAY_APP_URL: env.url().default("http://localhost:3000"),
 			/**
-			 * A stand-in for a session while wallet sign-in is being built: the owner every request is
-			 * treated as. Refused in production, where only a real signature makes an owner.
+			 * The parent domain the session cookie is scoped to, so the app and the API share it. Left
+			 * unset in development, where there is no shared parent and no https.
 			 */
-			GATEWAY_DEV_OWNER_WALLET: z.string().min(32).max(44).optional(),
+			GATEWAY_COOKIE_DOMAIN: z.string().min(1).optional(),
 		},
 		source,
 	);

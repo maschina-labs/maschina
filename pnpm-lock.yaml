@@ -277,6 +277,31 @@ importers:
         specifier: 'catalog:'
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@24.13.5)(@vitest/coverage-v8@5.0.1)(jsdom@30.0.1(@noble/hashes@1.8.0))(vite@8.3.0(@types/node@24.13.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
 
+  packages/auth:
+    dependencies:
+      '@maschina/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@maschina/config':
+        specifier: workspace:*
+        version: link:../config
+      '@maschina/solana':
+        specifier: workspace:*
+        version: link:../solana
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.5
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 5.0.1(vitest@5.0.1)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@24.13.5)(@vitest/coverage-v8@5.0.1)(jsdom@30.0.1(@noble/hashes@1.8.0))(vite@8.3.0(@types/node@24.13.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+
   packages/config:
     devDependencies:
       '@types/node':
@@ -807,6 +832,9 @@ importers:
       '@hono/zod-openapi':
         specifier: 'catalog:'
         version: 1.6.3(hono@4.13.8)(zod@4.6.5)
+      '@maschina/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@maschina/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -847,6 +875,9 @@ importers:
       '@maschina/service':
         specifier: workspace:*
         version: link:../../packages/service
+      '@maschina/solana':
+        specifier: workspace:*
+        version: link:../../packages/solana
       '@maschina/telemetry':
         specifier: workspace:*
         version: link:../../packages/telemetry

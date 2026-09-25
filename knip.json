@@ -19,7 +19,14 @@
 		},
 		"services/gateway": {
 			"entry": ["api/index.ts"],
-			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "pino", "uuidv7"]
+			"ignoreDependencies": [
+				"@hono/node-server",
+				"@sentry/node",
+				"drizzle-orm",
+				"pino",
+				"postgres",
+				"uuidv7"
+			]
 		},
 		"services/orchestrator": {
 			"ignoreDependencies": [

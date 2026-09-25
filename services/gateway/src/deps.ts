@@ -4,6 +4,7 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
+import { type Clock, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
 	createDatabase,
@@ -11,38 +12,38 @@ import {
 	machinesOf,
 	readMachineEvents,
 } from "@maschina/db";
-import { sql } from "drizzle-orm";
 import { provisionerClient } from "./provisioner-client.ts";
+import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
-import { developmentSession } from "./session.ts";
+import { walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
+
+/** A session lasts a week, and a sentence waiting to be signed lasts five minutes. */
+const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+const CHALLENGE_MS = 5 * 60 * 1000;
 
 export type GatewayConfig = {
 	NODE_ENV: string;
 	DATABASE_URL: string;
 	PROVISIONER_URL: string;
 	PROVISIONER_GATEWAY_TOKEN: string;
-	GATEWAY_DEV_OWNER_WALLET?: string | undefined;
+	GATEWAY_DOMAIN: string;
+	GATEWAY_APP_URL: string;
+	GATEWAY_COOKIE_DOMAIN?: string | undefined;
 };
 
-export function machinePorts(config: GatewayConfig) {
+export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) {
 	const database = createDatabase({ url: config.DATABASE_URL, applicationName: "gateway" });
 	const provisioner = provisionerClient({
 		url: config.PROVISIONER_URL,
 		token: config.PROVISIONER_GATEWAY_TOKEN,
 	});
 
-	const sessions = developmentSession({
-		production: config.NODE_ENV === "production",
-		ownerWallet: config.GATEWAY_DEV_OWNER_WALLET,
-		// The owner must already exist: the gateway does not create owners, sign-in does.
-		ownerFor: async (walletAddress) => {
-			const rows = await database.db.execute<{ id: string }>(
-				sql`select id from owners where wallet_address = ${walletAddress}`,
-			);
-			const row = rows[0];
-			return row ? { ownerId: row.id, walletAddress } : undefined;
-		},
+	const sessions = walletSessions(database.db, clock, {
+		domain: config.GATEWAY_DOMAIN,
+		uri: config.GATEWAY_APP_URL,
+		challengeValidForMs: CHALLENGE_MS,
+		sessionValidForMs: SESSION_MS,
 	});
 
 	const ports: MachinePorts = {
@@ -62,5 +63,17 @@ export function machinePorts(config: GatewayConfig) {
 		create: async (request) => provisioner.create(request),
 	};
 
-	return { ports, close: database.close };
+	const auth: AuthPorts = {
+		challenge: sessions.challenge,
+		verify: sessions.verify,
+		ownerOf: sessions.ownerOf,
+		signOut: sessions.signOut,
+	};
+
+	const cookie = {
+		secure: config.NODE_ENV === "production",
+		...(config.GATEWAY_COOKIE_DOMAIN === undefined ? {} : { domain: config.GATEWAY_COOKIE_DOMAIN }),
+	};
+
+	return { ports, auth, cookie, close: database.close };
 }

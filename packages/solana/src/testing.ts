@@ -15,11 +15,15 @@ import {
 	type Blockhash,
 	compileTransaction,
 	createTransactionMessage,
+	generateKeyPair,
+	getAddressFromPublicKey,
+	getBase58Decoder,
 	getTransactionEncoder,
 	type Address as KitAddress,
 	pipe,
 	setTransactionMessageFeePayer,
 	setTransactionMessageLifetimeUsingBlockhash,
+	signBytes,
 } from "@solana/kit";
 import type { Address } from "./address.ts";
 
@@ -69,3 +73,25 @@ export const unsignedTransactionBase64 = (
 	wallet: Address | string,
 	options: FakeTransaction = {},
 ): string => Buffer.from(unsignedTransactionFor(wallet, options)).toString("base64");
+
+/**
+ * A wallet that can sign, for tests of anything that checks a signature.
+ *
+ * Every service that verifies a signed sentence needs a real keypair to test against, because a made up
+ * signature proves nothing about the code that checks it. Solana libraries live only in this package,
+ * so the keypair is made here and everything else asks for one.
+ */
+export async function testWallet(): Promise<{
+	address: string;
+	sign(message: string): Promise<string>;
+}> {
+	const keys = await generateKeyPair();
+	const address = await getAddressFromPublicKey(keys.publicKey);
+	return {
+		address,
+		sign: async (message: string) => {
+			const signature = await signBytes(keys.privateKey, new TextEncoder().encode(message));
+			return getBase58Decoder().decode(signature);
+		},
+	};
+}
