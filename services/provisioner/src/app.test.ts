@@ -8,11 +8,13 @@ const logger = createLogger({ service: "test", level: "silent" });
 const SOL = "So11111111111111111111111111111111111111112";
 const OWNER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
+// What creating a machine really hands back, including the provider's own id for the wallet.
 const made = {
 	machineId: newId<"machine">(),
 	ownerId: newId<"owner">(),
 	walletAddress: "7xKp4Q9mVbN2sRtL8wEaZc3HfYuD6gJq1oMiTn5vBdRe",
 	definitionId: "d".repeat(64),
+	providerWalletId: "wallet-9f2c",
 };
 
 const app = (provisioner: Provisioner) =>
@@ -34,6 +36,19 @@ const request = {
 };
 
 describe("the provisioner", () => {
+	it("keeps the provider's own wallet id to itself", async () => {
+		const res = await create(app({ create: async () => ({ ok: true, value: made }) }), request);
+
+		expect(res.status).toBe(201);
+		// The provider's id is ours, not the caller's: it names a wallet inside somebody else's system.
+		expect(await res.json()).toEqual({
+			machineId: made.machineId,
+			ownerId: made.ownerId,
+			walletAddress: made.walletAddress,
+			definitionId: made.definitionId,
+		});
+	});
+
 	it("creates a machine and says where its wallet is", async () => {
 		const asked: unknown[] = [];
 		const res = await create(
@@ -47,7 +62,8 @@ describe("the provisioner", () => {
 		);
 
 		expect(res.status).toBe(201);
-		expect(await res.json()).toEqual(made);
+		const { providerWalletId, ...sent } = made;
+		expect(await res.json()).toEqual(sent);
 		expect(asked[0]).toMatchObject({
 			ownerWallet: OWNER,
 			limits: { budgetGranted: 20_000_000n, maxPerTrade: 5_000_000n },
