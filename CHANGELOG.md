@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.21](https://github.com/maschina-labs/maschina/compare/v0.0.20...v0.0.21) (2026-09-25)
+
+
+### Added
+
+* **db:** remember a sign in nonce once, and a session until it ends ([#621](https://github.com/maschina-labs/maschina/issues/621)) ([c94a41b](https://github.com/maschina-labs/maschina/commit/c94a41b08e0dd21288e5830639519ce1e79f8b7a))
+* **gateway:** sign in with a wallet, and carry it in a cookie ([#622](https://github.com/maschina-labs/maschina/issues/622)) ([031f85a](https://github.com/maschina-labs/maschina/commit/031f85a1e0a8e0d9e22367b566ec582a3d5f03c3))
+* **solana:** sign in with a wallet, by signing a sentence ([#619](https://github.com/maschina-labs/maschina/issues/619)) ([fd5342c](https://github.com/maschina-labs/maschina/commit/fd5342ca547c35150e50e2906965c015b5e5eede))
+
+
+### Fixed
+
+* **runtime:** give a machine its budget back when it sells into it ([#616](https://github.com/maschina-labs/maschina/issues/616)) ([09721e5](https://github.com/maschina-labs/maschina/commit/09721e54b6df932c2528e9bedcc3652247f53fbe))
+
 ## [0.0.20](https://github.com/maschina-labs/maschina/compare/v0.0.19...v0.0.20) (2026-09-20)
 
 
