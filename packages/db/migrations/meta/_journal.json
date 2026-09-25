@@ -57,6 +57,13 @@
       "when": 1789866143924,
       "tag": "0007_uneven_wong",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790317129609,
+      "tag": "0008_brief_longshot",
+      "breakpoints": true
     }
   ]
 }
