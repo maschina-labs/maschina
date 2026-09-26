@@ -76,7 +76,7 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 					continue;
 				}
 				settings.set(machine.machineId, read);
-				mints.add(read.value.buyMint);
+				mints.add(read.value.pricedMint);
 			}
 
 			const prices = await pricesFor([...mints]);
@@ -86,9 +86,9 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 			}
 
 			for (const [machineId, read] of settings) {
-				const price = prices.get(read.value.buyMint);
+				const price = prices.get(read.value.pricedMint);
 				if (price === undefined) {
-					logger.warn({ machineId, mint: read.value.buyMint }, "no price for this token");
+					logger.warn({ machineId, mint: read.value.pricedMint }, "no price for this token");
 					continue;
 				}
 

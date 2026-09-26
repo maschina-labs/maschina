@@ -17,6 +17,14 @@ import type { TriggerDirection } from "../price-trigger.ts";
 export type PriceTriggerSettings = {
 	spendMint: string;
 	buyMint: string;
+	/**
+	 * The token the level is a price of.
+	 *
+	 * Buying SOL with USDC and selling SOL for USDC are the same level watched from opposite sides, and
+	 * in both cases the price that matters is SOL's. Without this a selling machine would watch the
+	 * price of the dollar it is selling into, which never moves.
+	 */
+	pricedMint: string;
 	/** The price to act at, in micro-dollars. */
 	level: BaseUnits;
 	direction: TriggerDirection;
@@ -66,6 +74,12 @@ export const priceTrigger: MachineKind<PriceTriggerSettings> = {
 			return { ok: false, problem: "a machine cannot buy the token it is spending" };
 		}
 
+		// The priced token defaults to what is being bought, which is right for a machine that buys.
+		const priced = raw["pricedMint"] ?? buyMint;
+		if (typeof priced !== "string" || (priced !== spendMint && priced !== buyMint)) {
+			return { ok: false, problem: "pricedMint is not one of the two tokens" };
+		}
+
 		const level = readAmount(raw["level"]);
 		if (level === undefined || level === 0n) {
 			return { ok: false, problem: "level must be a price above zero, in micro-dollars" };
@@ -112,6 +126,7 @@ export const priceTrigger: MachineKind<PriceTriggerSettings> = {
 			value: {
 				spendMint,
 				buyMint,
+				pricedMint: priced,
 				level,
 				direction,
 				amountPerTrade,

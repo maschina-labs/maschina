@@ -142,3 +142,44 @@ describe("what a price trigger machine does when its run comes", () => {
 		expect(decision).toMatchObject({ decide: "stop" });
 	});
 });
+
+describe("which token the level is a price of", () => {
+	const base = {
+		spendMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+		buyMint: "So11111111111111111111111111111111111111112",
+		level: "108000000",
+		direction: "falls_to",
+		amountPerTrade: "5000000",
+		slippageBps: 50,
+	};
+
+	it("prices what is being bought, for a machine that buys", () => {
+		const read = priceTrigger.readSettings(base);
+
+		expect(read.ok).toBe(true);
+		if (read.ok) expect(read.value.pricedMint).toBe(base.buyMint);
+	});
+
+	it("prices what is being sold, when a machine says so", () => {
+		// Selling SOL for dollars watches the price of SOL, not the price of the dollar.
+		const read = priceTrigger.readSettings({
+			...base,
+			spendMint: base.buyMint,
+			buyMint: base.spendMint,
+			pricedMint: base.buyMint,
+			direction: "rises_to",
+		});
+
+		expect(read.ok).toBe(true);
+		if (read.ok) expect(read.value.pricedMint).toBe(base.buyMint);
+	});
+
+	it("refuses a token the machine does not touch", () => {
+		const read = priceTrigger.readSettings({
+			...base,
+			pricedMint: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
+		});
+
+		expect(read.ok).toBe(false);
+	});
+});
