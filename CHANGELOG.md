@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.23](https://github.com/maschina-labs/maschina/compare/v0.0.22...v0.0.23) (2026-09-26)
+
+
+### Added
+
+* **orchestrator:** let an owner ask for a machine's funds back ([#651](https://github.com/maschina-labs/maschina/issues/651)) ([2dd1afd](https://github.com/maschina-labs/maschina/commit/2dd1afda8200c6eccc90b1bc8710822ea82e518d))
+* **signer:** return a machine's funds to its owner ([#644](https://github.com/maschina-labs/maschina/issues/644)) ([4b92108](https://github.com/maschina-labs/maschina/commit/4b921088e97ac70fe2d9ba8c67beaaa44a2d6828))
+* **signer:** the rails that have to hold before real money ([#652](https://github.com/maschina-labs/maschina/issues/652)) ([bb33469](https://github.com/maschina-labs/maschina/commit/bb3346947fe4c5401a1c8ada22fc65a86eca3fff))
+
+
+### Fixed
+
+* **ci:** apply migrations as part of the deploy ([#647](https://github.com/maschina-labs/maschina/issues/647)) ([b0907ec](https://github.com/maschina-labs/maschina/commit/b0907ecdcd37722d90be7fd5544ee1f52c090281))
+
 ## [0.0.22](https://github.com/maschina-labs/maschina/compare/v0.0.21...v0.0.22) (2026-09-26)
 
 
