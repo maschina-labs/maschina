@@ -23,6 +23,18 @@ export const asSummary = (machine: OwnedMachine) => ({
 		settled: digits(machine.budget.settled),
 		available: digits(machine.budget.available),
 	},
+	result: {
+		// Signed: a machine can be down, and rounding that to zero would be a lie.
+		realised: digits(machine.result.realised),
+		position: digits(machine.result.position),
+		basis: digits(machine.result.basis),
+		feesLamports: digits(machine.result.feesLamports),
+		trades: machine.result.trades,
+		roundTrips: machine.result.roundTrips,
+		wins: machine.result.wins,
+		losses: machine.result.losses,
+		simulated: machine.result.simulated,
+	},
 });
 
 export const asDetail = (machine: OwnedMachineDetail) => ({

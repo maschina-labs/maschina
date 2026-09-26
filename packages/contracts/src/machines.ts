@@ -9,6 +9,8 @@ import { z } from "zod";
 
 const address = z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, "not an address");
 const whole = z.string().regex(/^\d+$/, "not a whole number");
+/** A whole number that may be negative, because a result can be a loss. */
+const signedWhole = z.string().regex(/^-?\d+$/, "not a whole number");
 
 export const CreateMachineRequest = z
 	.strictObject({
@@ -56,6 +58,28 @@ export const MachineSummary = z
 			reserved: whole,
 			settled: whole,
 			available: whole,
+		}),
+		/**
+		 * What the machine has actually made, which the budget never said.
+		 *
+		 * Signed, because a machine can be down. Only closed trades count: an open position is reported
+		 * as what it cost, not as profit, because until it is sold that is an opinion.
+		 *
+		 * Fees are their own number and in lamports, while the result is in whatever the machine spends.
+		 * Adding them needs a price, and a single number that quietly assumes one is worse than two that
+		 * do not.
+		 */
+		result: z.strictObject({
+			realised: signedWhole,
+			position: whole,
+			basis: whole,
+			feesLamports: whole,
+			trades: z.int().nonnegative(),
+			roundTrips: z.int().nonnegative(),
+			wins: z.int().nonnegative(),
+			losses: z.int().nonnegative(),
+			/** True when any of it came from a machine on paper, so the numbers are not money. */
+			simulated: z.boolean(),
 		}),
 	})
 	.meta({ id: "MachineSummary" });

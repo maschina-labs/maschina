@@ -15,9 +15,14 @@
  * What it spends is dollars and what it holds is the token, so its budget is counted in dollars: a sale
  * puts the money back and the machine can go again. That is what makes it a machine that can run rather
  * than one that runs down.
+ *
+ * A band narrower than the cost of working it is refused outright. Two swaps per round trip, each paying
+ * a pool fee and some slippage and costing something to send, and a band inside all of that loses money
+ * every time the machine works perfectly. See `meetsMinimumEdge`.
  */
 
 import { type BaseUnits, baseUnitsOf } from "@maschina/core";
+import { DEFAULT_ROUND_TRIP_COST_BPS, meetsMinimumEdge } from "@maschina/rules";
 import type { Decision, MachineKind, MachineView, WatchedLevel } from "../machine-kind.ts";
 
 export type RangeSettings = {
@@ -41,6 +46,13 @@ export type RangeSettings = {
 	slippageBps: number;
 	/** How far clear of an edge the price must go before that edge can fire again. */
 	hysteresisBps: number;
+	/**
+	 * The narrowest band this machine will accept, in basis points.
+	 *
+	 * Raised by an owner who wants more room, never lowered below what a round trip costs: lowering it
+	 * does not make trading cheaper.
+	 */
+	minEdgeBps: number;
 	/** The least time between two runs from the same edge. */
 	minGapMs: number;
 };
@@ -95,6 +107,15 @@ export const range: MachineKind<RangeSettings> = {
 			return { ok: false, problem: "the top of the band has to be above the bottom" };
 		}
 
+		const minEdgeBps = whole(raw["minEdgeBps"], DEFAULT_ROUND_TRIP_COST_BPS);
+		if (minEdgeBps === undefined) {
+			return { ok: false, problem: "minEdgeBps is a whole number of basis points" };
+		}
+		// The most expensive mistake available here: a band narrower than the cost of working it loses
+		// money every time the machine does exactly what it was asked to. Nothing about it looks wrong.
+		const edge = meetsMinimumEdge({ buyLevel, sellLevel, minEdgeBps });
+		if (!edge.ok) return { ok: false, problem: edge.problem };
+
 		const amountPerBuy = readAmount(raw["amountPerBuy"]);
 		if (amountPerBuy === undefined || amountPerBuy <= 0n) {
 			return { ok: false, problem: "amountPerBuy is how much to spend on one buy" };
@@ -129,6 +150,7 @@ export const range: MachineKind<RangeSettings> = {
 				minBase,
 				slippageBps,
 				hysteresisBps,
+				minEdgeBps,
 				minGapMs,
 			},
 		};

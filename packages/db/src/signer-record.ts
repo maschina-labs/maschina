@@ -13,6 +13,7 @@ import type { SignRequest } from "@maschina/contracts";
 import { machineLimits, machineState, settledSince } from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Database } from "./client.ts";
+import { haltInForce } from "./halts.ts";
 import {
 	budgetFor,
 	recordSubmission,
@@ -101,6 +102,11 @@ export function signerRecord(
 				spentToday: settledSince(events, startOfDayUtc(now())),
 				dueAt: lease.dueAt,
 			};
+		},
+
+		/** The halt in force, if any. Read on every proposal, so it is a single indexed row. */
+		async haltInForce() {
+			return haltInForce(db);
 		},
 
 		async recordRefusal(

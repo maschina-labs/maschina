@@ -95,3 +95,60 @@ export async function testWallet(): Promise<{
 		},
 	};
 }
+
+/** What a transaction asks to pay for priority, for tests that check it is held to a cap. */
+export type ComputeBudgetOptions = {
+	microLamportsPerUnit?: bigint;
+	computeUnitLimit?: number;
+};
+
+/**
+ * A transaction carrying compute budget instructions, built by hand.
+ *
+ * The instruction data is a discriminator and a little-endian number, which is the whole format. Built
+ * here rather than with a program library so the decoder is tested against bytes somebody else laid out
+ * from the specification, not against the same code that reads them.
+ */
+export function computeBudgetTransaction(
+	wallet: Address | string,
+	options: ComputeBudgetOptions,
+): Uint8Array {
+	type Draft = Parameters<typeof appendTransactionMessageInstruction>[1];
+	type Compilable = Parameters<typeof compileTransaction>[0];
+
+	let message = pipe(
+		createTransactionMessage({ version: 0 }),
+		(draft) => setTransactionMessageFeePayer(wallet as KitAddress, draft),
+		(draft) =>
+			setTransactionMessageLifetimeUsingBlockhash(
+				{
+					blockhash: "11111111111111111111111111111111" as Blockhash,
+					lastValidBlockHeight: 426_070_577n,
+				},
+				draft,
+			),
+	) as Draft;
+
+	const compute = "ComputeBudget111111111111111111111111111111" as KitAddress;
+
+	if (options.computeUnitLimit !== undefined) {
+		const data = new Uint8Array(5);
+		data[0] = 2;
+		new DataView(data.buffer).setUint32(1, options.computeUnitLimit, true);
+		message = appendTransactionMessageInstruction(
+			{ programAddress: compute, data },
+			message,
+		) as Draft;
+	}
+	if (options.microLamportsPerUnit !== undefined) {
+		const data = new Uint8Array(9);
+		data[0] = 3;
+		new DataView(data.buffer).setBigUint64(1, options.microLamportsPerUnit, true);
+		message = appendTransactionMessageInstruction(
+			{ programAddress: compute, data },
+			message,
+		) as Draft;
+	}
+
+	return new Uint8Array(getTransactionEncoder().encode(compileTransaction(message as Compilable)));
+}

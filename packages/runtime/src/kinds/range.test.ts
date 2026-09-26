@@ -247,3 +247,39 @@ describe("settings a range machine refuses", () => {
 		});
 	});
 });
+
+describe("a band that cannot pay for itself", () => {
+	it("is refused, however well the machine would work it", () => {
+		// 120 to 120.12 is ten basis points. A round trip costs several times that.
+		const tight = read({ ...settings, buyLevel: "120000000", sellLevel: "120120000" });
+
+		expect(tight.ok).toBe(false);
+		if (!tight.ok) expect(tight.problem).toMatch(/costs/);
+	});
+
+	it("is accepted once it is wider than the cost of trading it", () => {
+		expect(read({ ...settings, buyLevel: "120000000", sellLevel: "121000000" }).ok).toBe(true);
+	});
+
+	it("takes an owner's wider floor", () => {
+		const band = { ...settings, buyLevel: "120000000", sellLevel: "121000000" };
+
+		expect(read(band).ok).toBe(true);
+		expect(read({ ...band, minEdgeBps: 200 }).ok).toBe(false);
+	});
+
+	it("will not accept an owner's narrower floor, because it does not make trading cheaper", () => {
+		const wished = read({
+			...settings,
+			buyLevel: "120000000",
+			sellLevel: "120120000",
+			minEdgeBps: 1,
+		});
+
+		expect(wished.ok).toBe(false);
+	});
+
+	it("refuses a floor that is not a whole number of basis points", () => {
+		expect(read({ ...settings, minEdgeBps: 12.5 }).ok).toBe(false);
+	});
+});

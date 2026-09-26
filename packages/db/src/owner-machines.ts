@@ -12,9 +12,11 @@ import {
 	budgetMintOf,
 	KNOWN_KINDS,
 	type MachineAction,
+	type MachinePnl,
 	type MachineState,
 	machineBudget,
 	machineLimits,
+	machinePnl,
 	machineState,
 	transition,
 } from "@maschina/runtime";
@@ -32,6 +34,8 @@ export type OwnedMachine = {
 	state: MachineState;
 	stateReason?: string;
 	budget: { granted: bigint; reserved: bigint; settled: bigint; available: bigint };
+	/** What it has actually made. The budget says what it may spend; this says how it went. */
+	result: MachinePnl;
 };
 
 export type OwnedMachineDetail = OwnedMachine & {
@@ -77,6 +81,9 @@ async function summarise(db: Executor, row: Row): Promise<OwnedMachine> {
 			settled: budget.settled,
 			available: budget.available,
 		},
+		// Counted in the same currency the budget is, because that is the currency the machine spends
+		// and comes back to. A kind that never says gives a result of nothing rather than a guess.
+		result: machinePnl(events, budgetMint === undefined ? {} : { budgetMint }),
 	};
 }
 

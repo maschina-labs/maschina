@@ -53,6 +53,7 @@ startServer({
 			record: signerRecord(database.db, { feeAllowance: config.SIGNER_FEE_ALLOWANCE_LAMPORTS }),
 			provider,
 			rpc: solanaRpc(config.SOLANA_RPC_URL),
+			feeAllowance: config.SIGNER_FEE_ALLOWANCE_LAMPORTS,
 		}),
 		withdrawer: withdrawer({
 			record: {
