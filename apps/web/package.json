@@ -12,6 +12,7 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
+		"@maschina/auth": "workspace:*",
 		"@maschina/env": "workspace:*",
 		"@maschina/runtime": "workspace:*",
 		"@maschina/ui": "workspace:*",
