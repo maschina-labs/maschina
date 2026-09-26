@@ -9,6 +9,7 @@ export * from "./lifecycle.ts";
 export * from "./machine-budget.ts";
 export * from "./machine-kind.ts";
 export * from "./machine-limits.ts";
+export * from "./machine-pnl.ts";
 export * from "./machine-state.ts";
 export * from "./paper-holdings.ts";
 export * from "./price-trigger.ts";

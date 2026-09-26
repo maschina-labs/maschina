@@ -13,6 +13,17 @@ const machine: OwnedMachineDetail = {
 	createdAt: new Date("2026-09-21T09:00:00Z"),
 	state: "running",
 	budget: { granted: 20_000_000n, reserved: 5_000n, settled: 1_000n, available: 19_994_000n },
+	result: {
+		realised: -14_920n,
+		position: 41_000_000n,
+		basis: 5_000_000n,
+		feesLamports: 10_000n,
+		trades: 2,
+		roundTrips: 1,
+		wins: 0,
+		losses: 1,
+		simulated: false,
+	},
 	settings: { level: "142000000" },
 	limits: { maxPerTrade: 5_000_000n, maxPerDay: undefined, approvedMints: [SOL] },
 	actions: ["pause", "stop"],
@@ -60,5 +71,22 @@ describe("what the API says a machine did", () => {
 		expect(record).toHaveLength(2);
 		expect(record.map((entry) => (entry.payload as unknown as { n: number }).n)).toEqual([3, 2]);
 		expect(record[0]?.occurredAt).toBe("2026-09-21T09:03:00.000Z");
+	});
+});
+
+describe("what the API says a machine has made", () => {
+	it("carries a loss as a negative number, rather than rounding it to nothing", () => {
+		expect(asSummary(machine).result).toMatchObject({ realised: "-14920", losses: 1 });
+	});
+
+	it("keeps fees as their own number, because they are not in the same currency", () => {
+		// Adding lamports to dollars needs a price. A single number that assumed one would be worse.
+		expect(asSummary(machine).result).toMatchObject({ feesLamports: "10000" });
+	});
+
+	it("says when a result came from a machine on paper, so nobody reads it as money", () => {
+		const onPaper = { ...machine, result: { ...machine.result, simulated: true } };
+
+		expect(asSummary(onPaper).result.simulated).toBe(true);
 	});
 });

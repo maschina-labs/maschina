@@ -20,6 +20,17 @@ const summary = {
 	createdAt: "2026-09-21T09:00:00.000Z",
 	state: "ready" as const,
 	budget: { granted: "20000000", reserved: "0", settled: "0", available: "20000000" },
+	result: {
+		realised: "0",
+		position: "0",
+		basis: "0",
+		feesLamports: "0",
+		trades: 0,
+		roundTrips: 0,
+		wins: 0,
+		losses: 0,
+		simulated: false,
+	},
 };
 
 const detail = {

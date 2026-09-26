@@ -65,6 +65,18 @@ describe("machinesOf", () => {
 				createdAt: new Date(row.created_at),
 				state: "running",
 				budget: { granted: 1000n, reserved: 0n, settled: 0n, available: 1000n },
+				// A machine that has not traded has made nothing, which is not the same as having lost.
+				result: {
+					realised: 0n,
+					position: 0n,
+					basis: 0n,
+					feesLamports: 0n,
+					trades: 0,
+					roundTrips: 0,
+					wins: 0,
+					losses: 0,
+					simulated: false,
+				},
 			},
 		]);
 	});
