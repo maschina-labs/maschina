@@ -10,6 +10,7 @@
  *   machine.limits_changed (budgetGranted)  sets granted to what the owner allowed
  *   trade.intended                          reserves what the trade could cost
  *   trade.completed                         settles what it really cost, releasing the rest
+ *   trade.simulated                         settles what it would have cost, for a machine on paper
  *   trade.failed, trade.refused             releases the reservation: nothing was spent
  *
  * Told which currency the budget is held in, it also reads the other direction. A trade that sells back
@@ -84,6 +85,22 @@ export function machineBudget(
 				if (wanted > available(budget)) break;
 				if (wanted > 0n) budget = reserve(budget, wanted);
 				held.set(tradeId, { reserved: wanted, inputMint, outputMint });
+				break;
+			}
+			// A machine on paper spends its budget exactly as a real one does, because the whole point of
+			// running on paper is that the numbers can be trusted before any money is involved.
+			case "trade.simulated": {
+				const { tradeId, inputAmount, quotedOutputAmount, feeAllowance } = event.payload;
+				const open = held.get(tradeId);
+				if (open === undefined) break;
+				if (open.reserved > 0n) {
+					const spent = baseUnitsOf(BigInt(inputAmount) + BigInt(feeAllowance ?? "0"));
+					budget = settle(budget, open.reserved, spent > open.reserved ? open.reserved : spent);
+				}
+				if (budgetMint !== undefined && open.outputMint === budgetMint) {
+					budget = credit(budget, baseUnitsOf(BigInt(quotedOutputAmount)));
+				}
+				held.delete(tradeId);
 				break;
 			}
 			case "trade.completed": {

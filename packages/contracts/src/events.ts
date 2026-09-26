@@ -87,6 +87,20 @@ const TRADE_PAYLOADS = {
 		/** After this height the transaction can never land, which is how "it failed" becomes provable. */
 		lastValidBlockHeight: amount,
 	}),
+	/**
+	 * What a paper machine would have done. It is written instead of a signature, never beside one: a
+	 * machine is either spending money or it is not, and the record should never blur the two.
+	 */
+	"trade.simulated": object({
+		runId: id,
+		tradeId: id,
+		inputMint: address,
+		outputMint: address,
+		inputAmount: amount,
+		quotedOutputAmount: amount,
+		/** What sending it would have cost, so paper and real arithmetic stay comparable. */
+		feeAllowance: amount.optional(),
+	}),
 	"trade.completed": object({
 		runId: id,
 		tradeId: id,

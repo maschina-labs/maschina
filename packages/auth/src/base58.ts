@@ -8,9 +8,30 @@
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const VALUES = new Map([...ALPHABET].map((character, index) => [character, index]));
 
+/** The base58 an API expects, for bytes a wallet just handed back. */
+export function encodeBase58(bytes: Uint8Array): string {
+	if (bytes.length === 0) return "";
+
+	let number = 0n;
+	for (const byte of bytes) number = number * 256n + BigInt(byte);
+
+	let text = "";
+	while (number > 0n) {
+		text = ALPHABET[Number(number % 58n)] + text;
+		number /= 58n;
+	}
+
+	// A leading zero byte carries no value, so it has to be written back as a leading '1'.
+	for (const byte of bytes) {
+		if (byte !== 0) break;
+		text = `1${text}`;
+	}
+	return text;
+}
+
 /** The bytes a base58 string stands for. Throws on anything that is not base58. */
-export function decodeBase58(text: string): Uint8Array {
-	if (text.length === 0) return new Uint8Array();
+export function decodeBase58(text: string): Uint8Array<ArrayBuffer> {
+	if (text.length === 0) return new Uint8Array(new ArrayBuffer(0));
 
 	let number = 0n;
 	for (const character of text) {

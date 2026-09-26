@@ -11,6 +11,31 @@
 		"packages/integration-tests": {
 			"entry": ["test/**/*.test.ts"]
 		},
+		"packages/ui": {
+			"ignore": ["src/shadcn/**", "src/beautifui/**", "src/hooks/**"],
+			"ignoreDependencies": [
+				"@base-ui/react",
+				"@hookform/resolvers",
+				"@shadcn/react",
+				"cmdk",
+				"cn",
+				"date-fns",
+				"embla-carousel-react",
+				"glimm",
+				"input-otp",
+				"liveline",
+				"lucide-react",
+				"next-themes",
+				"radix-ui",
+				"react-day-picker",
+				"react-hook-form",
+				"react-resizable-panels",
+				"recharts",
+				"sonner",
+				"vaul",
+				"zod"
+			]
+		},
 		"services/bots": {
 			"ignoreDependencies": ["@hono/node-server", "@sentry/node", "hono", "pino", "uuidv7"]
 		},

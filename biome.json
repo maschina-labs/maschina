@@ -7,7 +7,13 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!**/routeTree.gen.ts", "!**/migrations/meta", "!**/dist"]
+		"includes": [
+			"**",
+			"!**/routeTree.gen.ts",
+			"!**/migrations/meta",
+			"!**/dist",
+			"!packages/ui/src/beautifui/css"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -32,7 +38,12 @@
 			},
 			"suspicious": {
 				"noExplicitAny": "error",
-				"noConsole": { "level": "error", "options": { "allow": ["error", "warn"] } }
+				"noConsole": {
+					"level": "error",
+					"options": {
+						"allow": ["error", "warn"]
+					}
+				}
 			}
 		}
 	},
@@ -60,7 +71,9 @@
 			"includes": ["**/scripts/**", "**/*.config.*", "**/*.test.*", "**/test/**"],
 			"linter": {
 				"rules": {
-					"suspicious": { "noConsole": "off" }
+					"suspicious": {
+						"noConsole": "off"
+					}
 				}
 			}
 		},
@@ -72,6 +85,16 @@
 						"useSemanticElements": "off"
 					}
 				}
+			}
+		},
+		{
+			"includes": [
+				"packages/ui/src/shadcn/**",
+				"packages/ui/src/beautifui/**",
+				"packages/ui/src/hooks/**"
+			],
+			"linter": {
+				"enabled": false
 			}
 		}
 	]

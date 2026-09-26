@@ -29,6 +29,14 @@ const payloads: Record<EventType, unknown> = {
 		quotedOutputAmount: "24000000",
 		slippageBps: 50,
 	},
+	"trade.simulated": {
+		runId: RUN,
+		tradeId: TRADE,
+		inputMint: SOL,
+		outputMint: USDC,
+		inputAmount: "1000000",
+		quotedOutputAmount: "24000000",
+	},
 	"trade.refused": {
 		runId: RUN,
 		tradeId: TRADE,
@@ -80,6 +88,7 @@ describe("EVENT_TYPES", () => {
 			"trade.failed",
 			"trade.intended",
 			"trade.refused",
+			"trade.simulated",
 			"trade.submitted",
 		]);
 	});
