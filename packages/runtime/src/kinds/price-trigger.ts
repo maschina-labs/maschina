@@ -149,6 +149,20 @@ export const priceTrigger: MachineKind<PriceTriggerSettings> = {
 		return settings.spendMint;
 	},
 
+	/** One level, named, so the watcher treats it the same way it treats a machine with several. */
+	levels(settings) {
+		return [
+			{
+				id: "level",
+				pricedMint: settings.pricedMint,
+				level: settings.level,
+				direction: settings.direction,
+				hysteresisBps: settings.hysteresisBps,
+				minGapMs: settings.minGapMs,
+			},
+		];
+	},
+
 	decide(settings, view: MachineView): Decision {
 		const { amountPerTrade, stopAfterTotal } = settings;
 

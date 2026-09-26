@@ -6,17 +6,30 @@
  * counts is not done here (see `observePrice` in the runtime), because that decision has nothing to do
  * with the network and is better tested without it.
  *
+ * Which prices to watch is the kind's answer, not this module's. A machine may be waiting on several
+ * levels at once, and each one arms and fires on its own: a range machine that has just bought its low
+ * edge is still waiting on its high edge, and one crossing must never arm the other.
+ *
  * Two things this must never do: queue a run for a crossing that did not happen, and stop watching
  * because a price source had a bad minute. An outage is reported and the loop carries on.
  */
 
 import { MaschinaError } from "@maschina/core";
-import { type CrossingState, observePrice, priceTrigger, startWatching } from "@maschina/runtime";
+import {
+	type CrossingState,
+	levelsOf,
+	type MachineKindRegistry,
+	observePrice,
+	startWatching,
+	type WatchedLevel,
+} from "@maschina/runtime";
 import type { Logger } from "@maschina/telemetry";
 
 type WatchingMachine = { machineId: string; kind: string; settings: unknown };
 
 export type PriceWatcherPorts = {
+	/** The kinds this orchestrator knows. A kind says which prices it waits on; the watcher asks. */
+	kinds: MachineKindRegistry;
 	/** The machines that could act on a crossing right now. */
 	watching(): Promise<WatchingMachine[]>;
 	/** Prices in micro-dollars, for the tokens machines are waiting on. */
@@ -47,10 +60,10 @@ const pause = (ms: number, signal: AbortSignal) =>
 
 /** Runs until `signal` aborts. */
 export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal): Promise<void> {
-	const { watching, pricesFor, queue, logger, now } = ports;
+	const { kinds, watching, pricesFor, queue, logger, now } = ports;
 	const sleep = ports.sleep ?? pause;
 	const everyMs = ports.everyMs ?? DEFAULT_EVERY_MS;
-	/** What each machine has seen so far, so a level fires once per crossing. */
+	/** What each level has seen so far, keyed by machine and level, so each fires once per crossing. */
 	const seen = new Map<string, CrossingState>();
 	let failures = 0;
 
@@ -63,20 +76,29 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 				continue;
 			}
 
-			type Settings = Extract<ReturnType<typeof priceTrigger.readSettings>, { ok: true }>;
-			const settings = new Map<string, Settings>();
+			/** Every level being waited on this tick, with the machine it belongs to. */
+			const watched: { machineId: string; level: WatchedLevel }[] = [];
 			const mints = new Set<string>();
 			for (const machine of machines) {
-				const read = priceTrigger.readSettings(machine.settings);
-				if (!read.ok) {
+				if (!kinds.has(machine.kind)) {
 					logger.warn(
-						{ machineId: machine.machineId, problem: read.problem },
-						"a machine is waiting on a price it did not describe properly",
+						{ machineId: machine.machineId, kind: machine.kind },
+						"this orchestrator does not know the kind of a machine that is waiting",
 					);
 					continue;
 				}
-				settings.set(machine.machineId, read);
-				mints.add(read.value.pricedMint);
+				const levels = levelsOf(kinds, machine.kind, machine.settings);
+				if (levels.length === 0) continue;
+				for (const level of levels) {
+					watched.push({ machineId: machine.machineId, level });
+					mints.add(level.pricedMint);
+				}
+			}
+
+			if (watched.length === 0) {
+				// Machines are waiting, but none of them on a price. Asking would cost quota for nothing.
+				await sleep(everyMs, signal);
+				continue;
 			}
 
 			const prices = await pricesFor([...mints]);
@@ -85,33 +107,37 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 				failures = 0;
 			}
 
-			for (const [machineId, read] of settings) {
-				const price = prices.get(read.value.pricedMint);
+			for (const { machineId, level } of watched) {
+				const price = prices.get(level.pricedMint);
 				if (price === undefined) {
-					logger.warn({ machineId, mint: read.value.pricedMint }, "no price for this token");
+					logger.warn({ machineId, mint: level.pricedMint }, "no price for this token");
 					continue;
 				}
 
-				const crossing = observePrice(seen.get(machineId) ?? startWatching(), {
+				// Crossings are kept per level, not per machine, so one edge firing leaves the other
+				// exactly as it was.
+				const key = `${machineId}:${level.id}`;
+				const crossing = observePrice(seen.get(key) ?? startWatching(), {
 					price,
-					level: read.value.level,
-					direction: read.value.direction,
-					hysteresisBps: read.value.hysteresisBps,
-					minGapMs: read.value.minGapMs,
+					level: level.level,
+					direction: level.direction,
+					hysteresisBps: level.hysteresisBps,
+					minGapMs: level.minGapMs,
 					now: now(),
 				});
-				seen.set(machineId, crossing.state);
+				seen.set(key, crossing.state);
 				if (!crossing.fire) continue;
 
 				const at = now();
 				await queue({
 					machineId,
-					// One run per crossing: the moment it crossed names the occurrence.
-					occurrenceKey: `price:${read.value.level}:${at.toISOString()}`,
+					// One run per crossing, and the level that fired is named in it, so the machine can be
+					// told which of its levels woke it.
+					occurrenceKey: `price:${level.id}:${level.level}:${at.toISOString()}`,
 					dueAt: at,
 				});
 				logger.info(
-					{ machineId, price: price.toString(), level: read.value.level.toString() },
+					{ machineId, level: level.id, price: price.toString(), at: level.level.toString() },
 					"a price crossed a level, so a run is queued",
 				);
 			}

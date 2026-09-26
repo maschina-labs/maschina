@@ -1,6 +1,7 @@
-import { newId } from "@maschina/core";
+import { baseUnitsOf, newId } from "@maschina/core";
+import { KNOWN_KINDS, type MachineKind, registryOf } from "@maschina/runtime";
 import { createLogger } from "@maschina/telemetry";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { type PriceWatcherPorts, watchPrices } from "./price-watcher.ts";
 
 const logger = createLogger({ service: "test", level: "silent" });
@@ -34,6 +35,7 @@ function ports(
 	const asked: string[][] = [];
 	let tick = 0;
 	const base: PriceWatcherPorts = {
+		kinds: KNOWN_KINDS,
 		watching: async () => machines,
 		pricesFor: async (mints) => {
 			asked.push([...mints]);
@@ -124,5 +126,107 @@ describe("watching prices for machines", () => {
 		await ticks(2, p);
 
 		expect(queued.map((run) => run.machineId)).toEqual([machineId]);
+	});
+});
+
+/** A machine kind waiting on two edges at once, which is what a range machine is. */
+const twoEdges: MachineKind<{ low: bigint; high: bigint }> = {
+	kind: "two_edges",
+	readSettings: (settings) => {
+		const read = settings as { low?: string; high?: string } | null;
+		if (!read?.low || !read.high) return { ok: false, problem: "both edges are needed" };
+		return { ok: true, value: { low: BigInt(read.low), high: BigInt(read.high) } };
+	},
+	decide: () => ({ decide: "wait", because: "not_due" }),
+	levels: (settings) => [
+		{
+			id: "low",
+			pricedMint: SOL,
+			level: baseUnitsOf(settings.low),
+			direction: "falls_to",
+			hysteresisBps: 50,
+			minGapMs: 0,
+		},
+		{
+			id: "high",
+			pricedMint: SOL,
+			level: baseUnitsOf(settings.high),
+			direction: "rises_to",
+			hysteresisBps: 50,
+			minGapMs: 0,
+		},
+	],
+};
+
+/** A kind that runs on a schedule, so it is waiting on no price at all. */
+const onASchedule: MachineKind<unknown> = {
+	kind: "recurring_buy",
+	readSettings: () => ({ ok: true, value: {} }),
+	decide: () => ({ decide: "wait", because: "not_due" }),
+};
+
+describe("a machine waiting on more than one level", () => {
+	const ranged = {
+		machineId,
+		kind: "two_edges",
+		settings: { low: "120000000", high: "130000000" },
+	};
+	const kinds = registryOf([twoEdges, onASchedule] as never);
+
+	it("fires each edge on its own, and names which one woke the machine", async () => {
+		// Clear of both edges, then through the low one, then back up and through the high one.
+		const { ports: p, queued } = ports(
+			[125_000_000n, 119_000_000n, 125_000_000n, 131_000_000n],
+			[ranged],
+		);
+		await ticks(4, { ...p, kinds });
+
+		expect(queued).toHaveLength(2);
+		expect(queued[0]?.occurrenceKey).toContain("low");
+		expect(queued[1]?.occurrenceKey).toContain("high");
+	});
+
+	it("does not let one edge's crossing arm the other", async () => {
+		// Sitting under the low edge the whole time. The high edge never fires, however long it sits.
+		const { ports: p, queued } = ports([119_000_000n, 118_000_000n, 117_000_000n], [ranged]);
+		await ticks(3, { ...p, kinds });
+
+		expect(queued.every((run) => run.occurrenceKey.includes("low"))).toBe(true);
+	});
+
+	it("asks for each watched token once, however many levels want it", async () => {
+		const { ports: p, asked } = ports([125_000_000n], [ranged]);
+		await ticks(1, { ...p, kinds });
+
+		expect(asked[0]).toEqual([SOL]);
+	});
+});
+
+describe("kinds the watcher was not given", () => {
+	it("leaves a machine that waits on no price alone", async () => {
+		const scheduled = { machineId, kind: "recurring_buy", settings: {} };
+		const { ports: p, queued, asked } = ports([119_000_000n], [scheduled]);
+		await ticks(2, { ...p, kinds: registryOf([onASchedule] as never) });
+
+		expect(queued).toEqual([]);
+		// No level to watch means no price is asked for at all: quota is not spent on nothing.
+		expect(asked).toEqual([]);
+	});
+
+	it("says so when a machine's kind is one it does not know", async () => {
+		const unknown = { machineId, kind: "sniper", settings: {} };
+		const { ports: p, queued } = ports([119_000_000n], [unknown]);
+		const warn = vi.fn();
+		await ticks(1, {
+			...p,
+			kinds: registryOf([onASchedule] as never),
+			logger: { ...p.logger, warn } as unknown as PriceWatcherPorts["logger"],
+		});
+
+		expect(queued).toEqual([]);
+		expect(warn).toHaveBeenCalledWith(
+			expect.objectContaining({ kind: "sniper" }),
+			expect.stringContaining("does not know"),
+		);
 	});
 });

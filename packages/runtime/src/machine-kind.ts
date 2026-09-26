@@ -16,6 +16,35 @@
  */
 
 import type { BaseUnits } from "@maschina/core";
+import type { TriggerDirection } from "./price-trigger.ts";
+
+/**
+ * A price this machine is waiting on.
+ *
+ * A machine only wakes when it has a run, so it cannot watch a price itself. It says here what it is
+ * waiting for, and the orchestrator watches on its behalf. A machine may be waiting on several at once:
+ * a range machine waits on the edge it buys at and the edge it sells at, and either can come first.
+ */
+export type WatchedLevel = {
+	/**
+	 * Names this level within the machine. It goes in the run's occurrence key and tells the machine
+	 * which level woke it, so two levels never share a crossing or a run.
+	 */
+	id: string;
+	/**
+	 * The token whose price this level is about, which is not always the one being bought. Selling SOL
+	 * for dollars and buying SOL with dollars are the same level watched from opposite sides, and in
+	 * both cases the price that moves is SOL's.
+	 */
+	pricedMint: string;
+	/** The price to act at, in micro-dollars. */
+	level: BaseUnits;
+	direction: TriggerDirection;
+	/** How far clear of the level the price must go before this level can fire again. */
+	hysteresisBps: number;
+	/** The least time between two runs from this level. */
+	minGapMs: number;
+};
 
 /** What a machine can see when it decides. Everything is given; nothing is fetched. */
 export type MachineView = {
@@ -77,6 +106,14 @@ export type MachineKind<Settings> = {
 	 * out, and its budget will only ever fall.
 	 */
 	budgetMint?(settings: Settings): string;
+	/**
+	 * The prices this machine is waiting on, if any.
+	 *
+	 * Left out by a kind that runs on a schedule rather than on the market. The orchestrator asks the
+	 * kind rather than reading settings itself, so adding a kind that waits on prices never means
+	 * editing the watcher.
+	 */
+	levels?(settings: Settings): readonly WatchedLevel[];
 };
 
 /** The kinds a running Maschina knows about, by name. */
@@ -108,6 +145,34 @@ export function budgetMintOf(
 	if (!known?.budgetMint) return undefined;
 	const read = known.readSettings(settings);
 	return read.ok ? known.budgetMint(read.value) : undefined;
+}
+
+/**
+ * Every price level a machine is waiting on, or nothing.
+ *
+ * Nothing is the answer for a kind that waits on no price, a kind nobody registered, and settings that
+ * cannot be read. That last one matters: a level guessed from half-read settings would queue runs the
+ * owner never asked for, and a run is the thing that leads to a trade.
+ */
+export function levelsOf(
+	kinds: MachineKindRegistry,
+	kind: string,
+	settings: unknown,
+): readonly WatchedLevel[] {
+	const known = kinds.get(kind);
+	if (!known?.levels) return [];
+	const read = known.readSettings(settings);
+	if (!read.ok) return [];
+
+	const levels = known.levels(read.value);
+	const names = new Set<string>();
+	for (const level of levels) {
+		if (names.has(level.id)) {
+			throw new Error(`two levels of a ${kind} machine are both called ${level.id}`);
+		}
+		names.add(level.id);
+	}
+	return levels;
 }
 
 /** Reads settings and decides in one step, so callers never hold half-checked settings. */
