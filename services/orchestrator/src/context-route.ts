@@ -19,6 +19,8 @@ type RunContext = {
 	paper: boolean;
 	/** The level that woke this run, for a machine waiting on more than one. */
 	wokeOn?: string;
+	/** What a machine on paper holds, by mint. Absent for a machine that trades for real. */
+	holdings?: Record<string, bigint>;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -64,6 +66,13 @@ export function contextRoutes(contexts: RunContexts) {
 		return c.json(
 			RunContextResponse.parse({
 				...context,
+				...(context.holdings === undefined
+					? {}
+					: {
+							holdings: Object.fromEntries(
+								Object.entries(context.holdings).map(([mint, held]) => [mint, held.toString()]),
+							),
+						}),
 				dueAt: context.dueAt.toISOString(),
 				availableBudget: context.availableBudget.toString(),
 				totals: { spent: context.totals.spent.toString(), buys: context.totals.buys },

@@ -93,6 +93,13 @@ export const RunContextResponse = z
 		 * which one fired from the price at the moment it happens to run, so it is told.
 		 */
 		wokeOn: z.string().min(1).max(40).optional(),
+		/**
+		 * What a machine on paper is holding, by mint, worked out from its record.
+		 *
+		 * Only for a machine on paper. A real machine's holdings are in its wallet, and the node reads
+		 * them from the chain itself.
+		 */
+		holdings: z.record(z.string(), whole).optional(),
 		settings: z.unknown(),
 		dueAt: z.iso.datetime(),
 		state: z.string().min(1),

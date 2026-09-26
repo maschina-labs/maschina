@@ -95,11 +95,11 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 		const kind = ports.kinds.get(context.kind);
 		if (!kind) return skip(`this node cannot run a ${context.kind} machine`);
 
-		// On paper the wallet is imaginary, so what it "holds" is what the budget allows it to deploy.
-		// Reading the chain instead would refuse every paper machine for having an empty wallet, which
-		// would make paper mode useless for the one thing it exists for.
+		// On paper the wallet is imaginary, so what it holds comes from the record: what its simulated
+		// trades bought, less what they spent, plus whatever of its budget is still to be deployed.
+		// Reading the chain instead would refuse every paper machine for having an empty wallet.
 		const balances = context.paper
-			? paperBalances(kind, context.settings, baseUnitsOf(context.availableBudget))
+			? paperBalances(kind, context.settings, context, baseUnitsOf(context.availableBudget))
 			: await ports.balances(context.wallet);
 
 		const decision = decideFor(kind, context.settings, {
@@ -187,15 +187,29 @@ const tradeOf = (quote: QuotedTrade): SignRequest["trade"] => ({
 /**
  * What a machine on paper is treated as holding.
  *
- * Its budget, in the currency it spends. Everything else is empty, so a paper machine is refused for
- * exactly the same reasons a real one would be, apart from the one that cannot apply to it.
+ * Two parts. What it bought and has not sold, which the orchestrator works out from the record, and its
+ * remaining budget in the currency it spends, which is what it still has to deploy.
+ *
+ * The budget is used for the spending currency rather than the record's own figure, because the budget
+ * is the mandate: an owner can raise or lower it, and what a paper machine may spend is what it is
+ * allowed to spend, not what its simulated trades happen to have left over.
+ *
+ * Without the first part a machine that closes what it opened can never see its own position, and buys
+ * the same edge forever.
  */
 function paperBalances(
 	kind: { budgetMint?: (settings: never) => string; readSettings(settings: unknown): unknown },
 	settings: unknown,
+	context: Pick<RunContext, "holdings">,
 	available: BaseUnits,
 ): ReadonlyMap<string, BaseUnits> {
+	const balances = new Map<string, BaseUnits>(
+		[...(context.holdings ?? [])].map(([mint, held]) => [mint, baseUnitsOf(held)]),
+	);
+
 	const read = kind.readSettings(settings) as { ok: boolean; value?: never };
-	if (!read.ok || !kind.budgetMint) return new Map();
-	return new Map([[kind.budgetMint(read.value as never), available]]);
+	if (read.ok && kind.budgetMint) {
+		balances.set(kind.budgetMint(read.value as never), available);
+	}
+	return balances;
 }

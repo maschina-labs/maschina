@@ -31,6 +31,8 @@ export type RunContext = {
 	paper: boolean;
 	/** The level that woke this run, for a machine waiting on more than one. */
 	wokeOn?: string;
+	/** What a machine on paper holds, by mint. Absent for a machine that trades for real. */
+	holdings?: ReadonlyMap<string, bigint>;
 	runId: string;
 	machineId: string;
 	wallet: string;
@@ -140,9 +142,16 @@ export function orchestratorClient(options: {
 			if (response.status === 409) return undefined;
 			if (!response.ok) throw new Error(`asking about a run failed with ${response.status}`);
 			const read = RunContextResponse.parse(await response.json());
-			const { wokeOn, ...rest } = read;
+			const { wokeOn, holdings, ...rest } = read;
 			return {
 				...rest,
+				...(holdings === undefined
+					? {}
+					: {
+							holdings: new Map(
+								Object.entries(holdings).map(([mint, held]) => [mint, BigInt(held)]),
+							),
+						}),
 				// Absent stays absent: a run woken by no level must not arrive carrying an empty one.
 				...(wokeOn === undefined ? {} : { wokeOn }),
 				dueAt: new Date(read.dueAt),
