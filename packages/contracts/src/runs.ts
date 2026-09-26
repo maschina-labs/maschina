@@ -7,7 +7,7 @@
 
 import { z } from "zod";
 import { eventPayload } from "./events.ts";
-import { SignRequest } from "./signing.ts";
+import { SignRequest, SimulateRequest } from "./signing.ts";
 
 const id = z
 	.string()
@@ -100,6 +100,18 @@ export const ProposeRequest = z
 	.strictObject({ nodeId: id, leaseEpoch: whole, proposal: SignRequest })
 	.meta({ id: "ProposeRequest" });
 export type ProposeRequest = z.infer<typeof ProposeRequest>;
+
+/**
+ * A node reporting what a machine on paper would have done.
+ *
+ * Deliberately a different request from proposing. Nothing here can be signed, so a mistake in routing
+ * cannot turn a paper run into a real one, and a real run cannot be written into the record as if it
+ * had been priced on paper.
+ */
+export const SimulateRouteRequest = z
+	.strictObject({ nodeId: id, leaseEpoch: whole, proposal: SimulateRequest })
+	.meta({ id: "SimulateRouteRequest" });
+export type SimulateRouteRequest = z.infer<typeof SimulateRouteRequest>;
 
 /** A node keeping its hold on a run while the run is still working. */
 export const RenewRequest = z

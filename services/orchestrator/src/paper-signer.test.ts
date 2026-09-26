@@ -11,8 +11,6 @@ const request = {
 	tradeId: newId<"trade">(),
 	machineId: newId<"machine">(),
 	wallet: SOL,
-	transaction: "a".repeat(64),
-	lastValidBlockHeight: "123456",
 	trade: {
 		inputMint: USDC,
 		outputMint: SOL,
@@ -20,9 +18,14 @@ const request = {
 		quotedOutputAmount: "45000000",
 		slippageBps: 50,
 	},
-} as unknown as Parameters<ReturnType<typeof paperSigner>["sign"]>[0];
+} as unknown as Parameters<ReturnType<typeof paperSigner>["simulate"]>[0];
 
-type Written = { machineId: string; type: string; payload: Record<string, unknown> };
+type Written = {
+	machineId: string;
+	type: string;
+	payload: Record<string, unknown>;
+	leaseEpoch: bigint;
+};
 
 const ports = () => {
 	const record = vi.fn(async (_event: Written) => ok(true));
@@ -33,7 +36,7 @@ describe("a machine on paper", () => {
 	it("says the trade was simulated rather than signed", async () => {
 		const { signer } = ports();
 
-		expect(await signer.sign(request)).toEqual({
+		expect(await signer.simulate(request, 1n)).toEqual({
 			status: "simulated",
 			proposalId: request.proposalId,
 			tradeId: request.tradeId,
@@ -42,7 +45,7 @@ describe("a machine on paper", () => {
 
 	it("writes the intent and the outcome, so the budget moves exactly as it would with money", async () => {
 		const { record, signer } = ports();
-		await signer.sign(request);
+		await signer.simulate(request, 1n);
 
 		expect(record).toHaveBeenCalledTimes(2);
 		expect(record.mock.calls[0]?.[0]).toMatchObject({ type: "trade.intended" });
@@ -54,16 +57,27 @@ describe("a machine on paper", () => {
 
 	it("records against the machine that proposed it and no other", async () => {
 		const { record, signer } = ports();
-		await signer.sign(request);
+		await signer.simulate(request, 1n);
 
 		for (const call of record.mock.calls) {
 			expect(call[0]).toMatchObject({ machineId: request.machineId });
 		}
 	});
 
+	it("writes under the lease the node holds, so the record's fencing accepts it", async () => {
+		const { record, signer } = ports();
+		// Writing under a lower epoch than the run's own events is a stale write, and the record is right
+		// to refuse it. A simulated trade is written by the node that holds the run, at its epoch.
+		await signer.simulate(request, 4n);
+
+		for (const call of record.mock.calls) {
+			expect(call[0]).toMatchObject({ leaseEpoch: 4n });
+		}
+	});
+
 	it("never claims a signature", async () => {
 		const { signer } = ports();
-		const answer = await signer.sign(request);
+		const answer = await signer.simulate(request, 1n);
 
 		expect(JSON.stringify(answer)).not.toContain("signature");
 	});

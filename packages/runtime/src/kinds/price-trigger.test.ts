@@ -183,3 +183,21 @@ describe("which token the level is a price of", () => {
 		expect(read.ok).toBe(false);
 	});
 });
+
+describe("the currency this machine's budget is counted in", () => {
+	it("is what it spends, so selling back into it returns the money", () => {
+		expect(priceTrigger.budgetMint?.(settingsOf(settings))).toBe(USDC);
+	});
+
+	it("follows the machine round, for one that sells instead of buying", () => {
+		const selling = settingsOf({
+			...settings,
+			spendMint: SOL,
+			buyMint: USDC,
+			pricedMint: SOL,
+			direction: "rises_to",
+		});
+
+		expect(priceTrigger.budgetMint?.(selling)).toBe(SOL);
+	});
+});

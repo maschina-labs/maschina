@@ -138,6 +138,17 @@ export const priceTrigger: MachineKind<PriceTriggerSettings> = {
 		};
 	},
 
+	/**
+	 * What it spends is what its budget is counted in, whichever way round the machine runs.
+	 *
+	 * A machine that sells SOL for dollars holds its budget in SOL, so selling into dollars spends it and
+	 * buying back returns it. Without this the budget would only ever fall, and a machine working a range
+	 * would run itself out however well it traded.
+	 */
+	budgetMint(settings) {
+		return settings.spendMint;
+	},
+
 	decide(settings, view: MachineView): Decision {
 		const { amountPerTrade, stopAfterTotal } = settings;
 

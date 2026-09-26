@@ -55,9 +55,7 @@ const app = buildApp({
 	leases: { holds: (lease) => holdsRun(database.db, { ...lease, now: new Date() }) },
 	signer: signerClient({ url: config.SIGNER_URL, token: config.SIGNER_ORCHESTRATOR_TOKEN }),
 	// A machine on paper is judged here instead, and the signer never hears about it.
-	paperSigner: paperSigner({
-		record: (event) => appendEvent(database.db, { ...event, leaseEpoch: 0n }),
-	}),
+	paperSigner: paperSigner({ record: (event) => appendEvent(database.db, event) }),
 	renewals: {
 		renew: (lease) =>
 			renewLease(database.db, {

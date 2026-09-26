@@ -7,7 +7,7 @@ import {
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import { claimRoutes, type RunQueue } from "./claim-route.ts";
 import { contextRoutes, type RunContexts } from "./context-route.ts";
-import { type Leases, proposeRoutes, type Signer } from "./propose-route.ts";
+import { type Leases, proposeRoutes, type Signer, type Simulator } from "./propose-route.ts";
 import { type LeaseRenewals, renewRoutes } from "./renew-route.ts";
 import { type RunReports, reportRoutes } from "./report-route.ts";
 
@@ -23,7 +23,7 @@ export type OrchestratorDeps = {
 	leases: Leases;
 	signer: Signer;
 	/** The same interface, for machines that only pretend to trade. */
-	paperSigner: Signer;
+	paperSigner: Simulator;
 	renewals: LeaseRenewals;
 };
 

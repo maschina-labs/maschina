@@ -6,29 +6,36 @@
  * built, then proposed. Whether it is allowed, and whether money moves, is the signer's call against
  * the record, never the node's.
  *
+ * A machine on paper takes every step of that except the last two: it is quoted and checked the same
+ * way, and then the trade is recorded rather than built and signed. The decision it makes is the real
+ * decision, which is the only thing paper mode is for.
+ *
  * The run can move to another node at any moment. Before each step that could lead to a trade, the node
  * checks it still holds the run, and stops if not.
  */
 
-import type { SignRequest, SignResponse } from "@maschina/contracts";
+import type { SignRequest, SignResponse, SimulateRequest } from "@maschina/contracts";
 import { type BaseUnits, baseUnitsOf, newId } from "@maschina/core";
 import { decideFor, type MachineKindRegistry, type SwapAction } from "@maschina/runtime";
 import type { ClaimedRun, RunContext } from "./orchestrator-client.ts";
 import type { RunExecutor } from "./work-loop.ts";
 
+/** A quote, checked against an independent price. All a machine on paper ever needs. */
+export type QuotedTrade = {
+	router: string;
+	inputMint: string;
+	outputMint: string;
+	inputAmount: bigint;
+	outputAmount: bigint;
+	minimumOutputAmount: bigint;
+	slippageBps: number;
+};
+
 /** A swap built and checked, ready to propose. */
 export type PreparedSwap = {
 	transaction: Uint8Array;
 	lastValidBlockHeight: bigint;
-	quote: {
-		router: string;
-		inputMint: string;
-		outputMint: string;
-		inputAmount: bigint;
-		outputAmount: bigint;
-		minimumOutputAmount: bigint;
-		slippageBps: number;
-	};
+	quote: QuotedTrade;
 };
 
 export type MachineRunnerPorts = {
@@ -41,6 +48,11 @@ export type MachineRunnerPorts = {
 	}): Promise<RunContext | undefined>;
 	/** The wallet's balances by mint, read from the chain. SOL is counted under wrapped SOL's mint. */
 	balances(wallet: string): Promise<ReadonlyMap<string, BaseUnits>>;
+	/** Quotes and checks against the independent price, without building. Says why when it will not. */
+	quote(
+		action: SwapAction,
+		signal: AbortSignal,
+	): Promise<{ ok: true; quote: QuotedTrade } | { ok: false; because: string }>;
 	/** Quotes, checks against the independent price, and builds. Says why when it will not. */
 	prepare(
 		action: SwapAction,
@@ -51,6 +63,12 @@ export type MachineRunnerPorts = {
 		nodeId: string;
 		leaseEpoch: bigint;
 		proposal: SignRequest;
+	}): Promise<SignResponse | "lease_lost">;
+	/** For a machine on paper: the same trade, with nothing to sign. */
+	simulate(proposal: {
+		nodeId: string;
+		leaseEpoch: bigint;
+		proposal: SimulateRequest;
 	}): Promise<SignResponse | "lease_lost">;
 	now(): Date;
 };
@@ -106,6 +124,28 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 		if (decision.decide === "stop") return skip(decision.because);
 
 		if (lost.aborted) return skip(LOST);
+
+		// On paper the run stops at the quote. Building would hand the router a wallet with nothing in
+		// it, and the router would refuse, which says nothing about whether the machine decided well.
+		if (context.paper) {
+			const quoted = await ports.quote(decision.action, lost);
+			if (!quoted.ok) return skip(quoted.because);
+			if (lost.aborted) return skip(LOST);
+
+			const answer = await ports.simulate({
+				...lease,
+				proposal: {
+					proposalId: newId<"proposal">(),
+					runId: run.id,
+					tradeId: newId<"trade">(),
+					machineId: run.machineId,
+					wallet: context.wallet,
+					trade: tradeOf(quoted.quote),
+				},
+			});
+			return answer === "lease_lost" ? skip(LOST) : { end: "finished", failed: false };
+		}
+
 		const prepared = await ports.prepare(decision.action, context.wallet, lost);
 		if (!prepared.ok) return skip(prepared.because);
 		// The last moment to stop: nothing has been proposed yet, so nothing can be signed.
@@ -122,15 +162,7 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 				wallet: context.wallet,
 				transaction: Buffer.from(swap.transaction).toString("base64"),
 				lastValidBlockHeight: swap.lastValidBlockHeight.toString(),
-				trade: {
-					inputMint: swap.quote.inputMint,
-					outputMint: swap.quote.outputMint,
-					inputAmount: swap.quote.inputAmount.toString(),
-					quotedOutputAmount: swap.quote.outputAmount.toString(),
-					minimumOutputAmount: swap.quote.minimumOutputAmount.toString(),
-					slippageBps: swap.quote.slippageBps,
-					router: swap.quote.router,
-				},
+				trade: tradeOf(swap.quote),
 			},
 		});
 		if (answer === "lease_lost") return skip(LOST);
@@ -139,6 +171,17 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 		return { end: "finished", failed: false };
 	};
 }
+
+/** The trade as the record and the rules speak of it: amounts as digits, not numbers. */
+const tradeOf = (quote: QuotedTrade): SignRequest["trade"] => ({
+	inputMint: quote.inputMint,
+	outputMint: quote.outputMint,
+	inputAmount: quote.inputAmount.toString(),
+	quotedOutputAmount: quote.outputAmount.toString(),
+	minimumOutputAmount: quote.minimumOutputAmount.toString(),
+	slippageBps: quote.slippageBps,
+	router: quote.router,
+});
 
 /**
  * What a machine on paper is treated as holding.

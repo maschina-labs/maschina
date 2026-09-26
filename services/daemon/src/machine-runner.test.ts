@@ -1,4 +1,4 @@
-import type { SignRequest, SignResponse } from "@maschina/contracts";
+import type { SignRequest, SignResponse, SimulateRequest } from "@maschina/contracts";
 import { baseUnitsOf, newId } from "@maschina/core";
 import { type MachineKind, recurringBuy, registryOf } from "@maschina/runtime";
 import { describe, expect, it, vi } from "vitest";
@@ -48,19 +48,25 @@ const swap = {
 
 function ports(overrides: Partial<MachineRunnerPorts> = {}) {
 	const proposed: SignRequest[] = [];
+	const simulated: SimulateRequest[] = [];
 	const base: MachineRunnerPorts = {
 		nodeId: newId<"node">(),
 		kinds: registryOf([recurringBuy as MachineKind<never>]),
 		context: async () => context,
 		balances: async () => new Map([[USDC, baseUnitsOf(50_000_000n)]]),
+		quote: async () => ({ ok: true, quote: swap.quote }),
 		prepare: async () => ({ ok: true, swap }),
 		propose: async ({ proposal }): Promise<SignResponse> => {
 			proposed.push(proposal);
 			return { status: "signed", proposalId: proposal.proposalId, signature: "5".repeat(88) };
 		},
+		simulate: async ({ proposal }): Promise<SignResponse> => {
+			simulated.push(proposal);
+			return { status: "simulated", proposalId: proposal.proposalId, tradeId: proposal.tradeId };
+		},
 		now: () => new Date("2026-09-21T09:00:05Z"),
 	};
-	return { ports: { ...base, ...overrides }, proposed };
+	return { ports: { ...base, ...overrides }, proposed, simulated };
 }
 
 const live = () => new AbortController().signal;
@@ -165,17 +171,53 @@ describe("running a machine", () => {
 });
 
 describe("a machine on paper", () => {
+	const onPaper = async () => ({ ...context, paper: true });
+
 	it("is treated as holding its budget, so an empty wallet is not a reason to refuse", async () => {
 		const balances = vi.fn(async () => new Map());
-		const { ports: paper, proposed } = ports({
-			balances,
-			context: async () => ({ ...context, paper: true }),
-		});
+		const { ports: paper, simulated } = ports({ balances, context: onPaper });
 
 		await machineRunner(paper)(run, live());
 
 		// The chain is never asked: a paper wallet holds nothing, and that is not a refusal.
 		expect(balances).not.toHaveBeenCalled();
-		expect(proposed).toHaveLength(1);
+		expect(simulated).toHaveLength(1);
+	});
+
+	it("records the trade it would have made, and never builds or proposes one", async () => {
+		const prepare = vi.fn(async () => ({ ok: true as const, swap }));
+		const { ports: paper, proposed, simulated } = ports({ prepare, context: onPaper });
+
+		expect(await machineRunner(paper)(run, live())).toEqual({ end: "finished", failed: false });
+
+		// Nothing is built, because building needs a wallet that can pay, and nothing is proposed,
+		// because proposing is the path that signs.
+		expect(prepare).not.toHaveBeenCalled();
+		expect(proposed).toHaveLength(0);
+		expect(simulated[0]).toMatchObject({
+			runId: run.id,
+			machineId: run.machineId,
+			wallet: WALLET,
+			trade: {
+				inputMint: USDC,
+				outputMint: SOL,
+				inputAmount: "5000000",
+				quotedOutputAmount: "35000000",
+				minimumOutputAmount: "34800000",
+			},
+		});
+	});
+
+	it("skips when the quote disagrees with the independent price, the same as a real machine", async () => {
+		const { ports: paper, simulated } = ports({
+			context: onPaper,
+			quote: async () => ({ ok: false, because: "2% away from the price" }),
+		});
+
+		expect(await machineRunner(paper)(run, live())).toMatchObject({
+			end: "skipped",
+			detail: "2% away from the price",
+		});
+		expect(simulated).toHaveLength(0);
 	});
 });
