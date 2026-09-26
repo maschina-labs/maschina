@@ -170,6 +170,45 @@ describe("running a machine", () => {
 	});
 });
 
+describe("what woke the run", () => {
+	it("is given to the machine, so one waiting on two levels knows which fired", async () => {
+		const seen: { wokeOn?: string }[] = [];
+		const watching: MachineKind<never> = {
+			kind: "recurring_buy",
+			readSettings: () => ({ ok: true, value: undefined as never }),
+			decide: (_settings, view) => {
+				seen.push({ ...(view.wokeOn === undefined ? {} : { wokeOn: view.wokeOn }) });
+				return { decide: "wait", because: "not_due" };
+			},
+		};
+		const { ports: p } = ports({
+			kinds: registryOf([watching]),
+			context: async () => ({ ...context, wokeOn: "low" }),
+		});
+
+		await machineRunner(p)(run, live());
+
+		expect(seen).toEqual([{ wokeOn: "low" }]);
+	});
+
+	it("is absent for a run that came from a schedule, rather than an empty level", async () => {
+		const seen: boolean[] = [];
+		const scheduled: MachineKind<never> = {
+			kind: "recurring_buy",
+			readSettings: () => ({ ok: true, value: undefined as never }),
+			decide: (_settings, view) => {
+				seen.push("wokeOn" in view);
+				return { decide: "wait", because: "not_due" };
+			},
+		};
+		const { ports: p } = ports({ kinds: registryOf([scheduled]) });
+
+		await machineRunner(p)(run, live());
+
+		expect(seen).toEqual([false]);
+	});
+});
+
 describe("a machine on paper", () => {
 	const onPaper = async () => ({ ...context, paper: true });
 

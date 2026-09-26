@@ -60,3 +60,19 @@ describe("runContext", () => {
 		expect(context?.dueAt).toEqual(due);
 	});
 });
+
+describe("the level that woke a machine", () => {
+	it("is passed on, so a machine with two levels knows which one fired", async () => {
+		const db = fakeDatabase([{ ...row, kind: "price_trigger", woke_on: "low" }], []);
+
+		expect(await runContext(db, lease)).toMatchObject({ wokeOn: "low" });
+	});
+
+	it("is absent for a run that came from a schedule rather than a price", async () => {
+		const db = fakeDatabase([{ ...row, woke_on: null }], []);
+		const context = await runContext(db, lease);
+
+		// Absent, not empty: a scheduled run was not woken by any level, and saying "" would be a lie.
+		expect(context && "wokeOn" in context).toBe(false);
+	});
+});

@@ -71,6 +71,13 @@
       "when": 1790397859628,
       "tag": "0009_complex_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790437135632,
+      "tag": "0010_great_omega_flight",
+      "breakpoints": true
     }
   ]
 }

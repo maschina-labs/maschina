@@ -27,6 +27,13 @@ export const runs = pgTable(
 		occurrenceKey: text("occurrence_key").notNull(),
 		/** When the run was due, which is not when it was queued or started. */
 		dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+		/**
+		 * The level that woke the machine, named by its kind. Empty for a run that came from a schedule.
+		 *
+		 * A machine waiting on one level can work out what happened; a machine waiting on two cannot, and
+		 * guessing from the price at the time it finally runs is guessing.
+		 */
+		wokeOn: text("woke_on"),
 		state: text("state").notNull().default("queued"),
 		/** The node holding the lease, while one does. */
 		leasedBy: uuid("leased_by"),

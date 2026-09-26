@@ -29,6 +29,8 @@ export type ClaimedRun = {
 export type RunContext = {
 	/** True when this machine only pretends to trade. */
 	paper: boolean;
+	/** The level that woke this run, for a machine waiting on more than one. */
+	wokeOn?: string;
 	runId: string;
 	machineId: string;
 	wallet: string;
@@ -138,8 +140,11 @@ export function orchestratorClient(options: {
 			if (response.status === 409) return undefined;
 			if (!response.ok) throw new Error(`asking about a run failed with ${response.status}`);
 			const read = RunContextResponse.parse(await response.json());
+			const { wokeOn, ...rest } = read;
 			return {
-				...read,
+				...rest,
+				// Absent stays absent: a run woken by no level must not arrive carrying an empty one.
+				...(wokeOn === undefined ? {} : { wokeOn }),
 				dueAt: new Date(read.dueAt),
 				availableBudget: BigInt(read.availableBudget),
 				totals: { spent: BigInt(read.totals.spent), buys: read.totals.buys },

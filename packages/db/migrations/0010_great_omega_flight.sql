@@ -1,0 +1,1 @@
+ALTER TABLE "runs" ADD COLUMN "woke_on" text;

@@ -54,6 +54,14 @@ export type MachineView = {
 	availableBudget: BaseUnits;
 	/** The moment this run is for, not the moment the code happens to run. */
 	now: Date;
+	/**
+	 * The level that woke this run, by the id the kind gave it, when a level did.
+	 *
+	 * A machine watching one level can infer this. A machine watching two cannot: by the time it runs,
+	 * the price may have moved back inside the band, and acting on where the price is now rather than on
+	 * which edge fired is how a range machine buys its own sell.
+	 */
+	wokeOn?: string;
 	/** What this machine has already done, as totals it needs to decide. */
 	totals: { spent: BaseUnits; buys: number };
 };
