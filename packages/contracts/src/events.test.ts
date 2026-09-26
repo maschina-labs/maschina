@@ -9,6 +9,8 @@ const TRADE = "0199a0a0-0000-7000-8000-000000000005";
 const VERSION = "b".repeat(64);
 const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const WITHDRAWAL = "0199a0a0-0000-7000-8000-000000000006";
+const OWNER_WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
 /** One valid payload for every event type, so nothing can be added without an example. */
 const payloads: Record<EventType, unknown> = {
@@ -67,10 +69,20 @@ const payloads: Record<EventType, unknown> = {
 	"machine.limits_changed": { limit: "maxPerTrade", from: "1000000", to: "2000000" },
 	"authority.used": { action: "sign_transaction", runId: RUN, amount: "1000000" },
 	"authority.denied": { action: "sign_transaction", rule: "budget", reason: "budget exhausted" },
+	"withdrawal.requested": { withdrawalId: WITHDRAWAL, to: OWNER_WALLET, lamports: "250000000" },
+	"withdrawal.completed": {
+		withdrawalId: WITHDRAWAL,
+		to: OWNER_WALLET,
+		lamports: "250000000",
+		signature: "5".repeat(88),
+		feeLamports: "5000",
+		slot: "426070577",
+	},
+	"withdrawal.failed": { withdrawalId: WITHDRAWAL, reason: "the transaction expired" },
 };
 
 describe("EVENT_TYPES", () => {
-	it("covers runs, trades, machines and authority", () => {
+	it("covers runs, trades, machines, withdrawals and authority", () => {
 		expect([...EVENT_TYPES].sort()).toEqual([
 			"authority.denied",
 			"authority.used",
@@ -90,6 +102,9 @@ describe("EVENT_TYPES", () => {
 			"trade.refused",
 			"trade.simulated",
 			"trade.submitted",
+			"withdrawal.completed",
+			"withdrawal.failed",
+			"withdrawal.requested",
 		]);
 	});
 
@@ -176,7 +191,13 @@ describe("the event schemas", () => {
 			"run.finished",
 		]);
 		expect(eventTypesOf("authority")).toEqual(["authority.used", "authority.denied"]);
-		const grouped = (["run", "trade", "machine", "authority"] as const).flatMap((g) =>
+		// A withdrawal is not a trade: an owner taking their money back is not the machine doing its job.
+		expect(eventTypesOf("withdrawal")).toEqual([
+			"withdrawal.requested",
+			"withdrawal.completed",
+			"withdrawal.failed",
+		]);
+		const grouped = (["run", "trade", "machine", "withdrawal", "authority"] as const).flatMap((g) =>
 			eventTypesOf(g),
 		);
 		expect([...grouped].sort()).toEqual([...EVENT_TYPES].sort());

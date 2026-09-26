@@ -6,6 +6,7 @@
  * this package where the boundary check expects it.
  */
 
+import { MaschinaError } from "@maschina/core";
 import { createSolanaRpc, type Signature } from "@solana/kit";
 import type { Address } from "./address.ts";
 import type { BalanceReader, FetchedTokenAccount } from "./balances.ts";
@@ -116,6 +117,32 @@ export function rpcSender(rpc: SolanaRpc): TransactionSender {
 					maxRetries: 0n,
 				})
 				.send();
+		},
+	};
+}
+
+/** A recent blockhash, and the height past which a transaction built on it can never land. */
+export type BlockhashReader = {
+	latest(): Promise<{ blockhash: string; lastValidBlockHeight: bigint }>;
+};
+
+/**
+ * Reads a recent blockhash through an RPC node.
+ *
+ * A trade gets its blockhash from the router along with the transaction. Anything Maschina builds itself,
+ * such as returning a machine's funds to its owner, has to ask for one.
+ *
+ * Confirmed rather than finalized: a finalized blockhash is older, and every block of age is a block of
+ * the transaction's window to land already spent.
+ */
+export function rpcBlockhashReader(rpc: SolanaRpc): BlockhashReader {
+	return {
+		async latest() {
+			const { value } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
+			if (!value?.blockhash) {
+				throw new MaschinaError("unavailable", "the node gave no blockhash to build on");
+			}
+			return { blockhash: value.blockhash, lastValidBlockHeight: value.lastValidBlockHeight };
 		},
 	};
 }

@@ -3,6 +3,7 @@ import { parseAddress } from "./address.ts";
 import {
 	rpcAccountReader,
 	rpcBalanceReader,
+	rpcBlockhashReader,
 	rpcConfirmationReader,
 	rpcFeeReader,
 	type SolanaRpc,
@@ -170,5 +171,42 @@ describe("reading what recent transactions paid", () => {
 		await rpcFeeReader(rpc).recentFees([USDC, SIGNATURE_ACCOUNT]);
 
 		expect(asked).toEqual([USDC, SIGNATURE_ACCOUNT]);
+	});
+});
+
+describe("reading a recent blockhash", () => {
+	const answer = (value: unknown) =>
+		({ getLatestBlockhash: () => ({ send: async () => ({ value }) }) }) as unknown as SolanaRpc;
+
+	it("gives the blockhash and the height after which it can never land", async () => {
+		const reader = rpcBlockhashReader(
+			answer({
+				blockhash: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+				lastValidBlockHeight: 426_070_577n,
+			}),
+		);
+
+		expect(await reader.latest()).toEqual({
+			blockhash: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+			lastValidBlockHeight: 426_070_577n,
+		});
+	});
+
+	it("asks for a blockhash nothing has confirmed yet, because the transaction has to outlive it", async () => {
+		let asked: unknown;
+		const rpc = {
+			getLatestBlockhash: (options: unknown) => {
+				asked = options;
+				return { send: async () => ({ value: { blockhash: "x", lastValidBlockHeight: 1n } }) };
+			},
+		} as unknown as SolanaRpc;
+
+		await rpcBlockhashReader(rpc).latest();
+
+		expect(asked).toEqual({ commitment: "confirmed" });
+	});
+
+	it("refuses an answer with no blockhash in it, rather than building on nothing", async () => {
+		await expect(rpcBlockhashReader(answer(null)).latest()).rejects.toThrow(/blockhash/);
 	});
 });
