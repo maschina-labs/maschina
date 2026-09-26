@@ -18,6 +18,8 @@ export type RunContext = {
 	kind: string;
 	/** True when this machine only pretends to trade, so its wallet is imaginary. */
 	paper: boolean;
+	/** The level that woke this run, for a machine waiting on more than one. */
+	wokeOn?: string;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -29,6 +31,7 @@ export type RunContext = {
 
 type ContextRow = {
 	paper: boolean;
+	woke_on: string | null;
 	machine_id: string;
 	wallet_address: string;
 	kind: string;
@@ -42,7 +45,7 @@ export async function runContext(
 ): Promise<RunContext | undefined> {
 	const rows = await db.execute<ContextRow>(sql`
 		select runs.machine_id, machines.wallet_address, machines.paper, machine_definitions.kind,
-			machine_definitions.settings, runs.due_at
+			machine_definitions.settings, runs.due_at, runs.woke_on
 		from runs
 		join machines on machines.id = runs.machine_id
 		join machine_definitions on machine_definitions.id = machines.definition_id
@@ -73,6 +76,8 @@ export async function runContext(
 		wallet: row.wallet_address,
 		kind: row.kind,
 		paper: row.paper,
+		// Left out rather than set to nothing: a scheduled run was woken by no level at all.
+		...(row.woke_on === null || row.woke_on === undefined ? {} : { wokeOn: row.woke_on }),
 		settings: row.settings,
 		dueAt: row.due_at instanceof Date ? row.due_at : new Date(row.due_at),
 		state,

@@ -86,6 +86,13 @@ export const RunContextResponse = z
 		kind: z.string().min(1),
 		/** True when this machine only pretends to trade, so its wallet is imaginary. */
 		paper: z.boolean(),
+		/**
+		 * The level that woke this run, named by the machine's kind.
+		 *
+		 * Absent for a run that came from a schedule. A machine waiting on two levels cannot work out
+		 * which one fired from the price at the moment it happens to run, so it is told.
+		 */
+		wokeOn: z.string().min(1).max(40).optional(),
 		settings: z.unknown(),
 		dueAt: z.iso.datetime(),
 		state: z.string().min(1),

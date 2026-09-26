@@ -17,6 +17,8 @@ type RunContext = {
 	kind: string;
 	/** True when this machine only pretends to trade. The node needs it to know which way to go. */
 	paper: boolean;
+	/** The level that woke this run, for a machine waiting on more than one. */
+	wokeOn?: string;
 	settings: unknown;
 	dueAt: Date;
 	state: string;

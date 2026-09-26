@@ -53,15 +53,15 @@ const asDate = (value: string | Date) => (value instanceof Date ? value : new Da
  */
 export async function queueRun(
 	db: Database,
-	run: { machineId: string; occurrenceKey: string; dueAt: Date },
+	run: { machineId: string; occurrenceKey: string; dueAt: Date; wokeOn?: string },
 ): Promise<Result<QueuedRun, MaschinaError>> {
 	if (run.occurrenceKey.trim() === "") {
 		return err(new MaschinaError("invalid_input", "an occurrence key is never empty"));
 	}
 	const id = newId<"run">();
 	const inserted = await db.execute<RunRow>(sql`
-		insert into runs (id, machine_id, occurrence_key, due_at)
-		values (${id}::uuid, ${run.machineId}::uuid, ${run.occurrenceKey}, ${run.dueAt.toISOString()}::timestamptz)
+		insert into runs (id, machine_id, occurrence_key, due_at, woke_on)
+		values (${id}::uuid, ${run.machineId}::uuid, ${run.occurrenceKey}, ${run.dueAt.toISOString()}::timestamptz, ${run.wokeOn ?? null})
 		on conflict (machine_id, occurrence_key) do nothing
 		returning id, machine_id, occurrence_key, due_at`);
 

@@ -35,7 +35,13 @@ export type PriceWatcherPorts = {
 	/** Prices in micro-dollars, for the tokens machines are waiting on. */
 	pricesFor(mints: string[]): Promise<Map<string, bigint>>;
 	/** Puts a run in the queue. The same occurrence is only ever queued once. */
-	queue(run: { machineId: string; occurrenceKey: string; dueAt: Date }): Promise<void>;
+	queue(run: {
+		machineId: string;
+		occurrenceKey: string;
+		dueAt: Date;
+		/** Which level fired, so the machine can be told what woke it. */
+		wokeOn: string;
+	}): Promise<void>;
 	logger: Logger;
 	now(): Date;
 	/** How long to wait between looks at the market. */
@@ -131,6 +137,7 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 				const at = now();
 				await queue({
 					machineId,
+					wokeOn: level.id,
 					// One run per crossing, and the level that fired is named in it, so the machine can be
 					// told which of its levels woke it.
 					occurrenceKey: `price:${level.id}:${level.level}:${at.toISOString()}`,

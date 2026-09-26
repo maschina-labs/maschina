@@ -31,7 +31,7 @@ function ports(
 		? never
 		: Awaited<ReturnType<PriceWatcherPorts["watching"]>> = [waiting],
 ) {
-	const queued: { machineId: string; occurrenceKey: string }[] = [];
+	const queued: { machineId: string; occurrenceKey: string; wokeOn: string }[] = [];
 	const asked: string[][] = [];
 	let tick = 0;
 	const base: PriceWatcherPorts = {
@@ -43,7 +43,11 @@ function ports(
 			return new Map(mints.map((mint) => [mint, price]));
 		},
 		queue: async (run) => {
-			queued.push({ machineId: run.machineId, occurrenceKey: run.occurrenceKey });
+			queued.push({
+				machineId: run.machineId,
+				occurrenceKey: run.occurrenceKey,
+				wokeOn: run.wokeOn,
+			});
 		},
 		logger,
 		now: () => new Date(2026, 8, 21, 9, tick),
@@ -182,6 +186,8 @@ describe("a machine waiting on more than one level", () => {
 		await ticks(4, { ...p, kinds });
 
 		expect(queued).toHaveLength(2);
+		// Named on the run itself, not only in the key, because that is what the machine is told.
+		expect(queued.map((run) => run.wokeOn)).toEqual(["low", "high"]);
 		expect(queued[0]?.occurrenceKey).toContain("low");
 		expect(queued[1]?.occurrenceKey).toContain("high");
 	});

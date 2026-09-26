@@ -106,6 +106,7 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 			balances,
 			availableBudget: baseUnitsOf(context.availableBudget),
 			now: ports.now(),
+			...(context.wokeOn === undefined ? {} : { wokeOn: context.wokeOn }),
 			totals: {
 				spent: baseUnitsOf(context.totals.spent),
 				buys: context.totals.buys,

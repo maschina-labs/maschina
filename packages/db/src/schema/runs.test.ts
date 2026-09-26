@@ -17,6 +17,7 @@ describe("the runs table", () => {
 			"machine_id",
 			"occurrence_key",
 			"state",
+			"woke_on",
 		]);
 	});
 
