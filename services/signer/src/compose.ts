@@ -12,6 +12,7 @@ import type { WithdrawRequest } from "@maschina/contracts";
 import {
 	type BlockhashReader,
 	type Confirmation,
+	checkFeeAgainstTransaction,
 	checkUnsignedSwap,
 	confirmSignature,
 	parseAddress,
@@ -63,6 +64,21 @@ export function answerFrom(confirmation: Confirmation): ChainAnswer {
 	}
 }
 
+/**
+ * Everything a transaction has to be before it is signed.
+ *
+ * Two things, and neither believes anything it was told. It is a plain swap, signed and paid for by the
+ * machine's own wallet, and the fee it will actually pay for priority is inside the allowance. The
+ * router's own answer was already held to the cap when the swap was built, but that check believes the
+ * router's description of what it did. This one reads the bytes.
+ */
+export function shapeCheckFor(feeAllowance: bigint) {
+	return (transaction: Uint8Array, wallet: string): void => {
+		checkUnsignedSwap(transaction, parseAddress(wallet));
+		checkFeeAgainstTransaction(transaction, feeAllowance);
+	};
+}
+
 /** Everything the record gives the signer. The database's version is `signerRecord`. */
 export type SignerRecord = RecordKeeper &
 	BudgetLedger &
@@ -77,6 +93,8 @@ export function tradeSigner(parts: {
 	record: SignerRecord;
 	provider: Pick<WalletProvider, "sign">;
 	rpc: SolanaRpc;
+	/** The most a trade may pay to be included. The same number the budget holds back for it. */
+	feeAllowance: bigint;
 }): TradeSigner {
 	const { record, provider, rpc } = parts;
 	const sender = rpcSender(rpc);
@@ -84,9 +102,7 @@ export function tradeSigner(parts: {
 	const transactions = rpcTransactionReader(rpc);
 
 	const inner = chainSigner({
-		checkShape: (transaction, wallet) => {
-			checkUnsignedSwap(transaction, parseAddress(wallet));
-		},
+		checkShape: shapeCheckFor(parts.feeAllowance),
 		walletIdFor: record.walletIdFor,
 		provider,
 		signatureOf,

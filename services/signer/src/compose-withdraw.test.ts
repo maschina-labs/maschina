@@ -1,7 +1,7 @@
 import { newId } from "@maschina/core";
-import { parseAddress, type SolanaRpc } from "@maschina/solana";
+import { computeBudgetTransaction, parseAddress, type SolanaRpc } from "@maschina/solana";
 import { describe, expect, it, vi } from "vitest";
-import { withdrawer } from "./compose.ts";
+import { shapeCheckFor, withdrawer } from "./compose.ts";
 
 const MACHINE_WALLET = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
 const OWNER_WALLET = "G3q54fR9GtMX2EvEtwitP2tnmPRSvuXdVhpEE5nwuzKu";
@@ -120,5 +120,35 @@ describe("the withdrawer, wired to its real parts", () => {
 
 		expect(sent).toEqual([]);
 		expect(String(answer)).toContain("the policy says no");
+	});
+});
+
+describe("what the signer insists a transaction is", () => {
+	const check = shapeCheckFor(1_000n);
+
+	it("refuses a transaction that pays more for priority than the allowance", () => {
+		const greedy = computeBudgetTransaction(MACHINE_WALLET, {
+			microLamportsPerUnit: 5_000_000n,
+			computeUnitLimit: 200_000,
+		});
+
+		// A million lamports of priority against an allowance of a thousand. The router said whatever it
+		// said; this reads what the chain will charge.
+		expect(() => check(greedy, MACHINE_WALLET)).toThrow(/for priority/);
+	});
+
+	it("accepts a transaction inside the allowance", () => {
+		const modest = computeBudgetTransaction(MACHINE_WALLET, {
+			microLamportsPerUnit: 4_000n,
+			computeUnitLimit: 200_000,
+		});
+
+		expect(() => check(modest, MACHINE_WALLET)).not.toThrow();
+	});
+
+	it("still refuses a transaction that asks somebody else to sign, fee or no fee", () => {
+		const cheap = computeBudgetTransaction(MACHINE_WALLET, {});
+
+		expect(() => check(cheap, OWNER_WALLET)).toThrow(/different wallet to sign/);
 	});
 });
