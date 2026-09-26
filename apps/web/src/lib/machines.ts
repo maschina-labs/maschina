@@ -11,7 +11,7 @@ import type { Api } from "./api.ts";
 
 export type MachineAction = "fund" | "start" | "pause" | "resume" | "stop";
 
-export type Budget = {
+type Budget = {
 	granted: string;
 	reserved: string;
 	settled: string;
@@ -50,7 +50,7 @@ async function read<T>(response: Response): Promise<T> {
 	throw new Error(body?.error?.message ?? `The API answered ${response.status}.`);
 }
 
-export const machinesQuery = (api: Api) =>
+const machinesQuery = (api: Api) =>
 	queryOptions({
 		queryKey: ["machines"],
 		// The API wraps its lists, so the shape stays open to adding a cursor later.
@@ -58,14 +58,14 @@ export const machinesQuery = (api: Api) =>
 			(await read<{ machines: MachineSummary[] }>(await api.v1.machines.$get())).machines,
 	});
 
-export const machineQuery = (api: Api, machineId: string) =>
+const machineQuery = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId],
 		queryFn: async () =>
 			read<MachineDetail>(await api.v1.machines[":machineId"].$get({ param: { machineId } })),
 	});
 
-export const recordQuery = (api: Api, machineId: string) =>
+const recordQuery = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId, "record"],
 		queryFn: async () =>

@@ -22,7 +22,7 @@ async function read<T>(response: Response): Promise<T> {
 }
 
 /** Who is signed in, according to the API rather than to anything this app remembers. */
-export const sessionQuery = (api: Api) =>
+const sessionQuery = (api: Api) =>
 	queryOptions({
 		queryKey: ["session"],
 		queryFn: async (): Promise<SignedInOwner | null> => {

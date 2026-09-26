@@ -70,6 +70,56 @@ describe("the provisioner", () => {
 		});
 	});
 
+	it("passes on everything optional the caller asked for, including paper", async () => {
+		const asked: unknown[] = [];
+		const res = await create(
+			app({
+				create: async (machine) => {
+					asked.push(machine);
+					return { ok: true, value: made };
+				},
+			}),
+			{
+				...request,
+				paper: true,
+				rules: { dailyCap: "10000000" },
+				limits: { ...request.limits, maxPerDay: "25000000" },
+			},
+		);
+
+		expect(res.status).toBe(201);
+		expect(asked[0]).toMatchObject({
+			paper: true,
+			rules: { dailyCap: "10000000" },
+			limits: { maxPerTrade: 5_000_000n, maxPerDay: 25_000_000n },
+		});
+	});
+
+	it("leaves out what was not asked for, rather than inventing a default", async () => {
+		const asked: Record<string, unknown>[] = [];
+		const res = await create(
+			app({
+				create: async (machine) => {
+					asked.push(machine as unknown as Record<string, unknown>);
+					return { ok: true, value: made };
+				},
+			}),
+			{
+				...request,
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			},
+		);
+
+		expect(res.status).toBe(201);
+		// Absent is not the same as false or zero: the machine's own defaults decide, not this route.
+		const sent = asked[0] ?? {};
+		expect("paper" in sent).toBe(false);
+		expect("rules" in sent).toBe(false);
+		const limits = sent["limits"] as Record<string, unknown>;
+		expect("maxPerTrade" in limits).toBe(false);
+		expect("maxPerDay" in limits).toBe(false);
+	});
+
 	it("refuses a machine nobody could act on", async () => {
 		const never: Provisioner = {
 			create: async () => {
