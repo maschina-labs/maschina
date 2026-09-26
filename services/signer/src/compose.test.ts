@@ -8,7 +8,7 @@ import type { TradeSigner } from "./sign-route.ts";
 const request = { proposalId: newId<"proposal">() } as unknown as SignRequest;
 
 describe("how the signer is put together", () => {
-	it("checks the rules first, holds the money second, and signs last", async () => {
+	it("checks the halt first, then the rules, holds the money, and signs last", async () => {
 		const order: string[] = [];
 		const inner: TradeSigner = {
 			sign: async () => {
@@ -17,6 +17,10 @@ describe("how the signer is put together", () => {
 			},
 		};
 		const signer = layered(inner, {
+			haltInForce: async () => {
+				order.push("halt checked");
+				return undefined;
+			},
 			factsFor: async () => {
 				order.push("rules");
 				return undefined;
@@ -36,7 +40,8 @@ describe("how the signer is put together", () => {
 
 		// An unknown machine is refused by the rules before any money is held or anything signed.
 		expect(answer.status).toBe("refused");
-		expect(order).toEqual(["rules", "refusal recorded"]);
+		// The halt is asked before anything judges the trade, because it is not about the trade.
+		expect(order).toEqual(["halt checked", "rules", "refusal recorded"]);
 	});
 });
 
