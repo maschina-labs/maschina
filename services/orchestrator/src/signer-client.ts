@@ -5,7 +5,12 @@
  * replies. The timeout allows for that. Everything that comes back is checked against the contract.
  */
 
-import { type SignRequest, SignResponse } from "@maschina/contracts";
+import {
+	type SignRequest,
+	SignResponse,
+	type WithdrawRequest,
+	WithdrawResponse,
+} from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 
 /** Longer than the signer waits for the chain, so the signer always answers first. */
@@ -37,6 +42,33 @@ export function signerClient(options: { url: string; token: string; fetch?: type
 			}
 			if (response.status === 400) {
 				throw new MaschinaError("invalid_input", "the signer could not read the proposal");
+			}
+			throw new MaschinaError("internal", `the signer answered ${response.status}`);
+		},
+
+		/** Asks the signer to return a machine's funds. Where they go is the signer's to work out. */
+		async withdraw(request: WithdrawRequest): Promise<WithdrawResponse> {
+			let response: Response;
+			try {
+				response = await fetchFn(new URL("/internal/v1/withdraw", options.url), {
+					method: "POST",
+					headers: {
+						authorization: `Bearer ${options.token}`,
+						"content-type": "application/json",
+					},
+					body: JSON.stringify(request),
+					signal: AbortSignal.timeout(TIMEOUT_MS),
+				});
+			} catch (cause) {
+				throw new MaschinaError("unavailable", "the signer could not be reached", { cause });
+			}
+
+			if (response.ok) return WithdrawResponse.parse(await response.json());
+			if (response.status === 503) {
+				throw new MaschinaError("unavailable", "the signer cannot send right now");
+			}
+			if (response.status === 400) {
+				throw new MaschinaError("invalid_input", "the signer could not read the withdrawal");
 			}
 			throw new MaschinaError("internal", `the signer answered ${response.status}`);
 		},

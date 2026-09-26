@@ -1,5 +1,5 @@
 import {
-	appendEvent,
+	appendOwnerEvent,
 	createDatabase,
 	machineForWithdrawal,
 	signerRecord,
@@ -68,8 +68,9 @@ startServer({
 					};
 				},
 				record: async (event) => {
-					// A withdrawal is not held under anybody's lease: an owner asked for it, not a node.
-					const written = await appendEvent(database.db, { ...event, leaseEpoch: 0n });
+					// A withdrawal is an owner's action, not a node's, so it is not fenced by a lease. At
+					// epoch zero the fence would refuse it on any machine that had ever run.
+					const written = await appendOwnerEvent(database.db, event);
 					if (!written.ok) throw written.error;
 				},
 				submissionFor: (machineId, withdrawalId) =>

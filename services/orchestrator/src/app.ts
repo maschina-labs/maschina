@@ -10,6 +10,7 @@ import { contextRoutes, type RunContexts } from "./context-route.ts";
 import { type Leases, proposeRoutes, type Signer, type Simulator } from "./propose-route.ts";
 import { type LeaseRenewals, renewRoutes } from "./renew-route.ts";
 import { type RunReports, reportRoutes } from "./report-route.ts";
+import { type MachineStates, type Withdrawer, withdrawRoutes } from "./withdraw-route.ts";
 
 export type OrchestratorDeps = {
 	version: string;
@@ -24,6 +25,10 @@ export type OrchestratorDeps = {
 	signer: Signer;
 	/** The same interface, for machines that only pretend to trade. */
 	paperSigner: Simulator;
+	/** Where a machine's state is read from, for the one check a withdrawal needs. */
+	states: MachineStates;
+	/** What returns a machine's funds. The signer, over the wire. */
+	withdrawer: Withdrawer;
 	renewals: LeaseRenewals;
 };
 
@@ -45,6 +50,7 @@ export function buildApp(deps: OrchestratorDeps) {
 	app.route("/internal/v1", contextRoutes(deps.contexts));
 	app.route("/internal/v1", proposeRoutes(deps.leases, deps.signer, deps.paperSigner));
 	app.route("/internal/v1", renewRoutes(deps.renewals));
+	app.route("/internal/v1", withdrawRoutes(deps.states, deps.withdrawer));
 
 	return app;
 }
