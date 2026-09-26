@@ -16,7 +16,7 @@ export type Leases = {
 		runId: string;
 		nodeId: string;
 		leaseEpoch: bigint;
-	}): Promise<{ machineId: string } | undefined>;
+	}): Promise<{ machineId: string; paper: boolean } | undefined>;
 };
 
 export type Signer = { sign(request: SignRequest): Promise<SignResponse> };
@@ -32,7 +32,11 @@ function readProposal(body: unknown): ProposeRequest {
 	});
 }
 
-export function proposeRoutes(leases: Leases, signer: Signer) {
+/**
+ * Two signers behind one interface. A machine on paper goes to the one that records and never signs,
+ * and every check before this point is the same, which is the whole reason paper is worth anything.
+ */
+export function proposeRoutes(leases: Leases, signer: Signer, paper: Signer) {
 	return new Hono<ServiceEnv>().post("/runs/propose", async (c) => {
 		const body = await c.req.json().catch(() => {
 			throw new MaschinaError("invalid_input", "the proposal is not JSON");
@@ -49,6 +53,6 @@ export function proposeRoutes(leases: Leases, signer: Signer) {
 			throw new MaschinaError("forbidden", "the proposal is for another machine than the run's");
 		}
 
-		return c.json(await signer.sign(proposal), 200);
+		return c.json(await (held.paper ? paper : signer).sign(proposal), 200);
 	});
 }

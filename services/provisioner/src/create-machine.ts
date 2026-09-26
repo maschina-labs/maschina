@@ -27,6 +27,8 @@ export type MachineRequest = {
 	ownerWallet: string;
 	name: string;
 	kind: string;
+	/** True when this machine only ever pretends to trade. */
+	paper?: boolean;
 	settings: Record<string, unknown>;
 	rules?: Record<string, unknown>;
 	limits: {
@@ -102,6 +104,7 @@ export async function createMachine(
 		kind: request.kind,
 		settings: request.settings,
 		rules: request.rules ?? {},
+		...(request.paper === undefined ? {} : { paper: request.paper }),
 		wallet: {
 			address: created.value.address,
 			providerWalletId: created.value.walletId,

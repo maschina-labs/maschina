@@ -188,7 +188,8 @@ describe("holdsRun", () => {
 			leaseEpoch: run.leaseEpoch,
 			now: new Date(),
 		});
-		expect(held).toEqual({ machineId });
+		// The lease answer also says whether this machine spends money or only pretends to.
+		expect(held).toEqual({ machineId, paper: false });
 	});
 
 	it("says nothing for another node, an old epoch or a lapsed lease", async () => {

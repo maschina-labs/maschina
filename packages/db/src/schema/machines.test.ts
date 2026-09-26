@@ -13,6 +13,7 @@ describe("the machines table", () => {
 			"id",
 			"name",
 			"owner_id",
+			"paper",
 			"provider",
 			"provider_wallet_id",
 			"wallet_address",
