@@ -194,3 +194,56 @@ describe("what a range machine does when an edge fires", () => {
 		expect(range.decide(settingsOf(settings), spent)).toMatchObject({ decide: "act" });
 	});
 });
+
+describe("settings a range machine refuses", () => {
+	const cases: [string, unknown][] = [
+		["nothing at all", null],
+		["a number instead of settings", 42],
+		["no quote token", { ...settings, quoteMint: undefined }],
+		["a quote token that is not an address", { ...settings, quoteMint: "dollars" }],
+		["no base token", { ...settings, baseMint: undefined }],
+		["a base token that is not an address", { ...settings, baseMint: "sol" }],
+		["a bottom edge of nothing", { ...settings, buyLevel: "0" }],
+		["a bottom edge that is not a number", { ...settings, buyLevel: "low" }],
+		["a top edge of nothing", { ...settings, sellLevel: "0" }],
+		["a top edge that is not a number", { ...settings, sellLevel: "high" }],
+		["an amount that is not a number", { ...settings, amountPerBuy: "some" }],
+		["a negative amount", { ...settings, amountPerBuy: -5n }],
+		["a position floor that is not a number", { ...settings, minBase: "dust" }],
+		["slippage that is not whole", { ...settings, slippageBps: 12.5 }],
+		["slippage beyond everything", { ...settings, slippageBps: 10_001 }],
+		["hysteresis that is not whole", { ...settings, hysteresisBps: -1 }],
+		["a gap that is not whole", { ...settings, minGapMs: 1.5 }],
+	];
+
+	for (const [what, raw] of cases) {
+		it(`refuses ${what}`, () => {
+			const parsed = read(raw);
+			expect(parsed.ok, `${what} was accepted`).toBe(false);
+			if (!parsed.ok) expect(parsed.problem.length).toBeGreaterThan(0);
+		});
+	}
+
+	it("takes the defaults for what an owner leaves out", () => {
+		const bare = settingsOf({
+			quoteMint: USDC,
+			baseMint: SOL,
+			buyLevel: "120000000",
+			sellLevel: "130000000",
+			amountPerBuy: "5000000",
+		});
+
+		expect(bare).toMatchObject({
+			slippageBps: 50,
+			hysteresisBps: 50,
+			minGapMs: 60_000,
+			minBase: 0n,
+		});
+	});
+
+	it("takes amounts as bigints as well as digits", () => {
+		expect(settingsOf({ ...settings, amountPerBuy: 5_000_000n })).toMatchObject({
+			amountPerBuy: 5_000_000n,
+		});
+	});
+});
