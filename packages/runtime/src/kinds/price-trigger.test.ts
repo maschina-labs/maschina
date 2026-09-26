@@ -201,3 +201,30 @@ describe("the currency this machine's budget is counted in", () => {
 		expect(priceTrigger.budgetMint?.(selling)).toBe(SOL);
 	});
 });
+
+describe("the level this machine waits on", () => {
+	it("is its own level, named so a run can say what woke it", () => {
+		expect(priceTrigger.levels?.(settingsOf(settings))).toEqual([
+			{
+				id: "level",
+				pricedMint: SOL,
+				level: 142_000_000n,
+				direction: "falls_to",
+				hysteresisBps: 50,
+				minGapMs: 900_000,
+			},
+		]);
+	});
+
+	it("watches the token the level is a price of, not the one being bought", () => {
+		const selling = settingsOf({
+			...settings,
+			spendMint: SOL,
+			buyMint: USDC,
+			pricedMint: SOL,
+			direction: "rises_to",
+		});
+
+		expect(priceTrigger.levels?.(selling)[0]).toMatchObject({ pricedMint: SOL });
+	});
+});

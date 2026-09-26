@@ -9,6 +9,7 @@ import {
 	reportRun,
 	runContext,
 } from "@maschina/db";
+import { KNOWN_KINDS } from "@maschina/runtime";
 import { startServer } from "@maschina/service";
 import { jupiterPrices, parseAddress } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
@@ -73,6 +74,7 @@ const key = config.JUPITER_API_KEY;
 const prices = jupiterPrices(key ? { apiKey: key } : {});
 const watcher = watchPrices(
 	{
+		kinds: KNOWN_KINDS,
 		watching: () => machinesWatchingPrices(database.db),
 		pricesFor: async (mints) => {
 			const priced = await prices.usdPrices(mints.map((mint) => parseAddress(mint)));
