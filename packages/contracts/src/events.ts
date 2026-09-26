@@ -162,10 +162,42 @@ const AUTHORITY_PAYLOADS = {
 	}),
 };
 
+/**
+ * Returning a machine's funds to its owner.
+ *
+ * Its own group, not a kind of trade. A trade is a machine doing its job and a withdrawal is an owner
+ * taking their money back, and the two must never be counted together: a withdrawal is not spending, it
+ * does not touch the budget, and it is the one movement whose destination an owner chose.
+ */
+const WITHDRAWAL_PAYLOADS = {
+	"withdrawal.requested": object({
+		withdrawalId: id,
+		/** The owner's wallet. The only place a machine's funds may ever go. */
+		to: address,
+		lamports: amount,
+	}),
+	"withdrawal.completed": object({
+		withdrawalId: id,
+		to: address,
+		lamports: amount,
+		signature,
+		/** What it cost to send, which the owner paid out of the machine's wallet. */
+		feeLamports: amount,
+		slot: amount,
+	}),
+	"withdrawal.failed": object({
+		withdrawalId: id,
+		reason: z.string().min(1).max(500),
+		/** Present when it was signed and sent, and failed after that. */
+		signature: signature.optional(),
+	}),
+};
+
 const PAYLOADS = {
 	...RUN_PAYLOADS,
 	...TRADE_PAYLOADS,
 	...MACHINE_PAYLOADS,
+	...WITHDRAWAL_PAYLOADS,
 	...AUTHORITY_PAYLOADS,
 } as const;
 
@@ -181,6 +213,7 @@ const GROUPS = {
 	run: RUN_PAYLOADS,
 	trade: TRADE_PAYLOADS,
 	machine: MACHINE_PAYLOADS,
+	withdrawal: WITHDRAWAL_PAYLOADS,
 	authority: AUTHORITY_PAYLOADS,
 } as const;
 
