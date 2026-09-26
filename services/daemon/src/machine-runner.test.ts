@@ -1,7 +1,7 @@
 import type { SignRequest, SignResponse } from "@maschina/contracts";
 import { baseUnitsOf, newId } from "@maschina/core";
 import { type MachineKind, recurringBuy, registryOf } from "@maschina/runtime";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { type MachineRunnerPorts, machineRunner } from "./machine-runner.ts";
 import type { ClaimedRun, RunContext } from "./orchestrator-client.ts";
 
@@ -19,6 +19,7 @@ const run: ClaimedRun = {
 };
 
 const context: RunContext = {
+	paper: false,
 	runId: run.id,
 	machineId: run.machineId,
 	wallet: WALLET,
@@ -160,5 +161,21 @@ describe("running a machine", () => {
 	it("skips when the orchestrator says the node no longer holds the run", async () => {
 		const { ports: p } = ports({ context: async () => undefined });
 		expect((await machineRunner(p)(run, live())).end).toBe("skipped");
+	});
+});
+
+describe("a machine on paper", () => {
+	it("is treated as holding its budget, so an empty wallet is not a reason to refuse", async () => {
+		const balances = vi.fn(async () => new Map());
+		const { ports: paper, proposed } = ports({
+			balances,
+			context: async () => ({ ...context, paper: true }),
+		});
+
+		await machineRunner(paper)(run, live());
+
+		// The chain is never asked: a paper wallet holds nothing, and that is not a refusal.
+		expect(balances).not.toHaveBeenCalled();
+		expect(proposed).toHaveLength(1);
 	});
 });

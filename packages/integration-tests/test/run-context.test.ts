@@ -103,6 +103,8 @@ describe("runContext", () => {
 			machineId: claimed.machineId,
 			wallet: claimed.wallet,
 			kind: "recurring_buy",
+			// A node is told whether this machine spends money or only pretends to.
+			paper: false,
 			settings: SETTINGS,
 			dueAt: claimed.run.dueAt,
 			state: "running",

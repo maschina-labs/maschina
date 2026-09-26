@@ -26,6 +26,8 @@ export type ClaimedRun = {
 
 /** What a node is told about a run it holds, with amounts as numbers again. */
 export type RunContext = {
+	/** True when this machine only pretends to trade. */
+	paper: boolean;
 	runId: string;
 	machineId: string;
 	wallet: string;

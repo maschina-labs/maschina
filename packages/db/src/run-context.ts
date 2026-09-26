@@ -16,6 +16,8 @@ export type RunContext = {
 	machineId: string;
 	wallet: string;
 	kind: string;
+	/** True when this machine only pretends to trade, so its wallet is imaginary. */
+	paper: boolean;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -26,6 +28,7 @@ export type RunContext = {
 };
 
 type ContextRow = {
+	paper: boolean;
 	machine_id: string;
 	wallet_address: string;
 	kind: string;
@@ -38,7 +41,7 @@ export async function runContext(
 	lease: { runId: string; nodeId: string; leaseEpoch: bigint; now: Date },
 ): Promise<RunContext | undefined> {
 	const rows = await db.execute<ContextRow>(sql`
-		select runs.machine_id, machines.wallet_address, machine_definitions.kind,
+		select runs.machine_id, machines.wallet_address, machines.paper, machine_definitions.kind,
 			machine_definitions.settings, runs.due_at
 		from runs
 		join machines on machines.id = runs.machine_id
@@ -69,6 +72,7 @@ export async function runContext(
 		machineId: row.machine_id,
 		wallet: row.wallet_address,
 		kind: row.kind,
+		paper: row.paper,
 		settings: row.settings,
 		dueAt: row.due_at instanceof Date ? row.due_at : new Date(row.due_at),
 		state,

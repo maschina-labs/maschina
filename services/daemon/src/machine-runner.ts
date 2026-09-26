@@ -77,8 +77,15 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 		const kind = ports.kinds.get(context.kind);
 		if (!kind) return skip(`this node cannot run a ${context.kind} machine`);
 
+		// On paper the wallet is imaginary, so what it "holds" is what the budget allows it to deploy.
+		// Reading the chain instead would refuse every paper machine for having an empty wallet, which
+		// would make paper mode useless for the one thing it exists for.
+		const balances = context.paper
+			? paperBalances(kind, context.settings, baseUnitsOf(context.availableBudget))
+			: await ports.balances(context.wallet);
+
 		const decision = decideFor(kind, context.settings, {
-			balances: await ports.balances(context.wallet),
+			balances,
 			availableBudget: baseUnitsOf(context.availableBudget),
 			now: ports.now(),
 			totals: {
@@ -131,4 +138,20 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 		// Signed or refused, the run did its job: the signer has recorded which, and why.
 		return { end: "finished", failed: false };
 	};
+}
+
+/**
+ * What a machine on paper is treated as holding.
+ *
+ * Its budget, in the currency it spends. Everything else is empty, so a paper machine is refused for
+ * exactly the same reasons a real one would be, apart from the one that cannot apply to it.
+ */
+function paperBalances(
+	kind: { budgetMint?: (settings: never) => string; readSettings(settings: unknown): unknown },
+	settings: unknown,
+	available: BaseUnits,
+): ReadonlyMap<string, BaseUnits> {
+	const read = kind.readSettings(settings) as { ok: boolean; value?: never };
+	if (!read.ok || !kind.budgetMint) return new Map();
+	return new Map([[kind.budgetMint(read.value as never), available]]);
 }

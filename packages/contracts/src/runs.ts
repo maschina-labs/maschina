@@ -84,6 +84,8 @@ export const RunContextResponse = z
 		machineId: id,
 		wallet: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, "not an address"),
 		kind: z.string().min(1),
+		/** True when this machine only pretends to trade, so its wallet is imaginary. */
+		paper: z.boolean(),
 		settings: z.unknown(),
 		dueAt: z.iso.datetime(),
 		state: z.string().min(1),
