@@ -14,6 +14,11 @@ const app = () =>
 				throw new MaschinaError("unavailable", "not used here");
 			},
 		},
+		withdrawer: {
+			withdraw: async () => {
+				throw new MaschinaError("unavailable", "not used here");
+			},
+		},
 	});
 
 describe("signer", () => {

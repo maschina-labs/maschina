@@ -8,11 +8,14 @@
  * passing both.
  */
 
+import type { WithdrawRequest } from "@maschina/contracts";
 import {
+	type BlockhashReader,
 	type Confirmation,
 	checkUnsignedSwap,
 	confirmSignature,
 	parseAddress,
+	rpcBlockhashReader,
 	rpcConfirmationReader,
 	rpcSender,
 	rpcTransactionReader,
@@ -20,12 +23,13 @@ import {
 	signatureOf,
 	tradeCostOf,
 } from "@maschina/solana";
-import type { WalletProvider } from "@maschina/wallet";
+import { toMaschinaError, type WalletProvider } from "@maschina/wallet";
 import { chainSigner } from "./chain-signer.ts";
 import type { TradeSigner } from "./sign-route.ts";
 import type { ChainAnswer } from "./submit-once.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
 import { type RecordKeeper, withRules } from "./with-rules.ts";
+import { type WithdrawPorts, withdrawFunds } from "./withdraw.ts";
 
 /** Wraps the inner signer in the rules and the budget, rules outermost. */
 export function layered(inner: TradeSigner, record: RecordKeeper & BudgetLedger): TradeSigner {
@@ -99,4 +103,60 @@ export function tradeSigner(parts: {
 	});
 
 	return layered(inner, record);
+}
+
+/** Everything the record gives a withdrawal. The database's version is in `@maschina/db`. */
+export type WithdrawalRecord = {
+	machineFor: WithdrawPorts["machineFor"];
+	record: WithdrawPorts["record"];
+	submissionFor: WithdrawPorts["submissionFor"];
+};
+
+/**
+ * Returning a machine's funds, from its real parts.
+ *
+ * Built from the same pieces a trade uses, on purpose: the same sender, the same confirmation reader,
+ * the same at-most-once submission. What differs is what is judged and what is recorded, and neither of
+ * those belongs to a trade.
+ */
+export function withdrawer(parts: {
+	record: WithdrawalRecord;
+	provider: Pick<WalletProvider, "sign">;
+	rpc: SolanaRpc;
+}) {
+	const { record, provider, rpc } = parts;
+	const sender = rpcSender(rpc);
+	const confirmations = rpcConfirmationReader(rpc);
+	const transactions = rpcTransactionReader(rpc);
+	const blockhashes: BlockhashReader = rpcBlockhashReader(rpc);
+
+	const ports: WithdrawPorts = {
+		machineFor: record.machineFor,
+		record: record.record,
+		submissionFor: record.submissionFor,
+		latestBlockhash: () => blockhashes.latest(),
+		sign: async (walletId, transaction) => {
+			const signed = await provider.sign(walletId, transaction);
+			if (signed.ok) return signed.value;
+			throw toMaschinaError(signed.error);
+		},
+		signatureOf,
+		send: async (signed) => {
+			await sender.send(signed);
+		},
+		confirm: async (submission) =>
+			answerFrom(
+				await confirmSignature(confirmations, {
+					signature: submission.signature,
+					lastValidBlockHeight: submission.lastValidBlockHeight,
+				}),
+			),
+		costOf: async (signature) => {
+			const landed = await transactions.transactionOf(signature);
+			if (!landed) throw new Error(`the chain has no transaction ${signature} to read a cost from`);
+			return landed.fee;
+		},
+	};
+
+	return { withdraw: (request: WithdrawRequest) => withdrawFunds(ports, request) };
 }

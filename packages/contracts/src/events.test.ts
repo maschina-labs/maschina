@@ -70,6 +70,11 @@ const payloads: Record<EventType, unknown> = {
 	"authority.used": { action: "sign_transaction", runId: RUN, amount: "1000000" },
 	"authority.denied": { action: "sign_transaction", rule: "budget", reason: "budget exhausted" },
 	"withdrawal.requested": { withdrawalId: WITHDRAWAL, to: OWNER_WALLET, lamports: "250000000" },
+	"withdrawal.submitted": {
+		withdrawalId: WITHDRAWAL,
+		signature: "5".repeat(88),
+		lastValidBlockHeight: "426070577",
+	},
 	"withdrawal.completed": {
 		withdrawalId: WITHDRAWAL,
 		to: OWNER_WALLET,
@@ -105,6 +110,7 @@ describe("EVENT_TYPES", () => {
 			"withdrawal.completed",
 			"withdrawal.failed",
 			"withdrawal.requested",
+			"withdrawal.submitted",
 		]);
 	});
 
@@ -194,6 +200,7 @@ describe("the event schemas", () => {
 		// A withdrawal is not a trade: an owner taking their money back is not the machine doing its job.
 		expect(eventTypesOf("withdrawal")).toEqual([
 			"withdrawal.requested",
+			"withdrawal.submitted",
 			"withdrawal.completed",
 			"withdrawal.failed",
 		]);

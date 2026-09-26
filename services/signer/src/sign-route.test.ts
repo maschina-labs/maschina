@@ -3,7 +3,7 @@ import { MaschinaError, newId } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { readProposal, type TradeSigner } from "./sign-route.ts";
+import { readProposal, type TradeSigner, type Withdrawer } from "./sign-route.ts";
 
 const token = "s".repeat(40);
 const WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
@@ -50,12 +50,17 @@ function fakeSigner(answer?: (request: SignRequest) => SignResponse) {
 	return { signer, asked };
 }
 
-const appWith = (signer: TradeSigner) =>
+const appWith = (signer: TradeSigner, withdrawer?: Withdrawer) =>
 	buildApp({
 		version: "1.0.0",
 		orchestratorToken: token,
 		logger: createLogger({ service: "t", level: "silent" }),
 		signer,
+		withdrawer: withdrawer ?? {
+			withdraw: async () => {
+				throw new Error("the withdrawer must not be asked");
+			},
+		},
 	});
 
 const post = (app: ReturnType<typeof appWith>, body: unknown, auth = true) =>
@@ -190,5 +195,83 @@ describe("when the signer cannot sign right now", () => {
 		const response = await post(appWith(unavailable), proposal());
 
 		expect(response.status).toBe(503);
+	});
+});
+
+describe("the withdraw route", () => {
+	const withdrawal = {
+		withdrawalId: newId<"withdrawal">(),
+		machineId: newId<"machine">(),
+		lamports: "250000000",
+	};
+
+	const ask = (target: ReturnType<typeof appWith>, body: unknown) =>
+		target.request("/internal/v1/withdraw", {
+			method: "POST",
+			headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+			body: JSON.stringify(body),
+		});
+
+	const never: TradeSigner = {
+		sign: async () => {
+			throw new Error("the signer must not be asked");
+		},
+	};
+
+	it("passes the withdrawal on and gives the answer back unchanged", async () => {
+		const asked: unknown[] = [];
+		const answer = {
+			status: "sent" as const,
+			withdrawalId: withdrawal.withdrawalId,
+			signature: "5".repeat(88),
+			to: "G3q54fR9GtMX2EvEtwitP2tnmPRSvuXdVhpEE5nwuzKu",
+			lamports: "250000000",
+		};
+
+		const res = await ask(
+			appWith(never, {
+				withdraw: async (request) => {
+					asked.push(request);
+					return answer;
+				},
+			}),
+			withdrawal,
+		);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual(answer);
+		expect(asked).toEqual([withdrawal]);
+	});
+
+	it("refuses a withdrawal that names a destination, because it does not get to choose one", async () => {
+		// The one thing an owner cannot ask for. Where the money goes is looked up, never passed in.
+		const res = await ask(appWith(never), {
+			...withdrawal,
+			to: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
+		});
+
+		expect(res.status).toBe(400);
+	});
+
+	it("refuses a withdrawal with no amount", async () => {
+		const { lamports: _amount, ...withoutAmount } = withdrawal;
+		expect((await ask(appWith(never), withoutAmount)).status).toBe(400);
+	});
+
+	it("refuses a body that is not JSON", async () => {
+		const res = await appWith(never).request("/internal/v1/withdraw", {
+			method: "POST",
+			headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+			body: "not json",
+		});
+		expect(res.status).toBe(400);
+	});
+
+	it("is closed to anyone without the orchestrator's token", async () => {
+		const res = await appWith(never).request("/internal/v1/withdraw", {
+			method: "POST",
+			body: JSON.stringify(withdrawal),
+		});
+		expect(res.status).toBe(401);
 	});
 });

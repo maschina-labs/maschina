@@ -176,6 +176,18 @@ const WITHDRAWAL_PAYLOADS = {
 		to: address,
 		lamports: amount,
 	}),
+	/**
+	 * The signature, written down before the transaction is sent.
+	 *
+	 * The same guarantee a trade gets: a crash between signing and sending leaves a name to ask the chain
+	 * about, rather than a question nobody can answer. Without it a withdrawal could be signed twice and
+	 * pay an owner twice out of a machine that only holds it once.
+	 */
+	"withdrawal.submitted": object({
+		withdrawalId: id,
+		signature,
+		lastValidBlockHeight: amount,
+	}),
 	"withdrawal.completed": object({
 		withdrawalId: id,
 		to: address,
