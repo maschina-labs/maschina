@@ -2,55 +2,84 @@
 
 @source "./";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
 
 /*
  * Design tokens. Components use these, never raw colours, so the whole interface can be restyled in
- * one place. Light is the default; .dark on the root switches everything.
+ * one place.
+ *
+ * Black, with every other surface a step of grey above it, so something can sit above the page.
+ *
+ * Colour still means something: green for done, red for refused or broken, amber for needs attention,
+ * blue for information. Nothing is coloured to look nice, so when something is coloured it is worth
+ * reading.
+ *
+ * Dark is the product. `.light` is there for print and documents.
  */
 :root {
+	--background: #0b0b0b;
+	--foreground: oklch(0.96 0 0);
+	--muted: oklch(0.24 0 0);
+	--muted-foreground: oklch(0.66 0 0);
+	--card: oklch(0.2 0 0);
+	--card-foreground: oklch(0.96 0 0);
+	--popover: oklch(0.2 0 0);
+	--popover-foreground: oklch(0.96 0 0);
+	--border: oklch(0.28 0 0);
+	--input: oklch(0.31 0 0);
+	--ring: oklch(0.55 0 0);
+	--primary: oklch(0.96 0 0);
+	--primary-foreground: oklch(0.2 0 0);
+	--secondary: oklch(0.24 0 0);
+	--secondary-foreground: oklch(0.96 0 0);
+	--accent: oklch(0.26 0 0);
+	--accent-foreground: oklch(0.96 0 0);
+
+	/* The only colours in the interface, and each one means something. */
+	--success: oklch(0.7 0.15 150);
+	--success-foreground: oklch(0.14 0 0);
+	--destructive: oklch(0.62 0.2 25);
+	--destructive-foreground: oklch(0.98 0 0);
+	--warning: oklch(0.78 0.14 80);
+	--warning-foreground: oklch(0.14 0 0);
+	--info: oklch(0.7 0.12 240);
+	--info-foreground: oklch(0.14 0 0);
+
+	--radius: 0.625rem;
+	color-scheme: dark;
+	--sidebar: hsl(0 0% 98%);
+	--sidebar-foreground: hsl(240 5.3% 26.1%);
+	--sidebar-primary: hsl(240 5.9% 10%);
+	--sidebar-primary-foreground: hsl(0 0% 98%);
+	--sidebar-accent: hsl(240 4.8% 95.9%);
+	--sidebar-accent-foreground: hsl(240 5.9% 10%);
+	--sidebar-border: hsl(220 13% 91%);
+	--sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.light {
 	--background: oklch(0.99 0 0);
 	--foreground: oklch(0.15 0 0);
 	--muted: oklch(0.96 0 0);
 	--muted-foreground: oklch(0.45 0 0);
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.15 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.15 0 0);
 	--border: oklch(0.91 0 0);
-	--input: oklch(0.91 0 0);
+	--input: oklch(0.89 0 0);
 	--ring: oklch(0.55 0 0);
-	--primary: oklch(0.2 0 0);
+	--primary: oklch(0.18 0 0);
 	--primary-foreground: oklch(0.98 0 0);
 	--secondary: oklch(0.95 0 0);
 	--secondary-foreground: oklch(0.2 0 0);
 	--accent: oklch(0.95 0 0);
 	--accent-foreground: oklch(0.2 0 0);
-	--destructive: oklch(0.58 0.22 27);
-	--destructive-foreground: oklch(0.98 0 0);
-	--success: oklch(0.62 0.15 150);
-	--warning: oklch(0.75 0.15 75);
-	--radius: 0.625rem;
-}
-
-.dark {
-	--background: oklch(0.14 0 0);
-	--foreground: oklch(0.96 0 0);
-	--muted: oklch(0.21 0 0);
-	--muted-foreground: oklch(0.68 0 0);
-	--card: oklch(0.17 0 0);
-	--card-foreground: oklch(0.96 0 0);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 14%);
-	--ring: oklch(0.6 0 0);
-	--primary: oklch(0.94 0 0);
-	--primary-foreground: oklch(0.17 0 0);
-	--secondary: oklch(0.24 0 0);
-	--secondary-foreground: oklch(0.96 0 0);
-	--accent: oklch(0.24 0 0);
-	--accent-foreground: oklch(0.96 0 0);
-	--destructive: oklch(0.66 0.2 27);
-	--destructive-foreground: oklch(0.98 0 0);
-	--success: oklch(0.7 0.15 150);
-	--warning: oklch(0.8 0.15 75);
+	--success: oklch(0.55 0.15 150);
+	--destructive: oklch(0.55 0.22 27);
+	--warning: oklch(0.65 0.14 75);
+	--info: oklch(0.55 0.12 240);
+	color-scheme: light;
 }
 
 @theme inline {
@@ -72,11 +101,25 @@
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
 	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
 	--radius-xl: calc(var(--radius) + 4px);
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
 }
 
 @layer base {
@@ -86,6 +129,35 @@
 
 	body {
 		@apply bg-background text-foreground antialiased;
+	}
+
+	/*
+	 * Scrollbars are for when you need them and invisible when you do not: a thin thumb at a tenth of
+	 * the text colour, no track at all, a little brighter under the pointer.
+	 */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: color-mix(in oklab, var(--foreground) 10%, transparent) transparent;
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: color-mix(in oklab, var(--foreground) 10%, transparent);
+		border: 3px solid transparent;
+		background-clip: content-box;
+		border-radius: 9999px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background-color: color-mix(in oklab, var(--foreground) 22%, transparent);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -98,4 +170,19 @@
 			transition-duration: 0.01ms !important;
 		}
 	}
+}
+
+/*
+ ---break---
+ */
+
+.dark {
+	--sidebar: hsl(240 5.9% 10%);
+	--sidebar-foreground: hsl(240 4.8% 95.9%);
+	--sidebar-primary: hsl(224.3 76.3% 48%);
+	--sidebar-primary-foreground: hsl(0 0% 100%);
+	--sidebar-accent: hsl(240 3.7% 15.9%);
+	--sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+	--sidebar-border: hsl(240 3.7% 15.9%);
+	--sidebar-ring: hsl(217.2 91.2% 59.8%);
 }

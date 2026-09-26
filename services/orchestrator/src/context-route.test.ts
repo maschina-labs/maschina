@@ -22,6 +22,15 @@ function app(contexts: RunContexts) {
 				throw new Error("not used here");
 			},
 		},
+		paperSigner: {
+			simulate: async () => ({
+				status: "refused" as const,
+				proposalId: "01a0da00-0000-7000-8000-000000000000",
+				by: "maschina" as const,
+				rule: "not used here",
+				reason: "not used here",
+			}),
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }
@@ -46,6 +55,7 @@ describe("a node asking about its run", () => {
 					machineId,
 					wallet: "WaLLet1111111111111111111111111111111111111",
 					kind: "recurring_buy",
+					paper: false,
 					settings: { amountPerBuy: "5" },
 					dueAt: new Date("2026-09-21T09:00:00Z"),
 					state: "running",
@@ -62,6 +72,7 @@ describe("a node asking about its run", () => {
 			runId,
 			machineId,
 			kind: "recurring_buy",
+			paper: false,
 			settings: { amountPerBuy: "5" },
 			dueAt: "2026-09-21T09:00:00.000Z",
 			canAct: true,

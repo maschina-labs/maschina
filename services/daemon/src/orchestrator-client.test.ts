@@ -145,6 +145,7 @@ describe("asking about a run and proposing a trade", () => {
 		machineId,
 		wallet: "WaLLet1111111111111111111111111111111111111",
 		kind: "recurring_buy",
+		paper: false,
 		settings: { amountPerBuy: "5" },
 		dueAt: "2026-09-21T09:00:00.000Z",
 		state: "running",
@@ -162,6 +163,7 @@ describe("asking about a run and proposing a trade", () => {
 		const read = await client.context({ nodeId, runId, leaseEpoch: 2n });
 		expect(read).toMatchObject({
 			kind: "recurring_buy",
+			paper: false,
 			availableBudget: 20_000_000n,
 			totals: { spent: 0n, buys: 0 },
 		});

@@ -24,6 +24,15 @@ function app(reports: RunReports) {
 				throw new Error("not used here");
 			},
 		},
+		paperSigner: {
+			simulate: async () => ({
+				status: "refused" as const,
+				proposalId: "01a0da00-0000-7000-8000-000000000000",
+				by: "maschina" as const,
+				rule: "not used here",
+				reason: "not used here",
+			}),
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }

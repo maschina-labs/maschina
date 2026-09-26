@@ -1,0 +1,3 @@
+ALTER TABLE "events" DROP CONSTRAINT "events_type_known";--> statement-breakpoint
+ALTER TABLE "machines" ADD COLUMN "paper" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_type_known" CHECK ("type" in ('run.queued', 'run.started', 'run.skipped', 'run.finished', 'trade.intended', 'trade.refused', 'trade.submitted', 'trade.simulated', 'trade.completed', 'trade.failed', 'machine.created', 'machine.started', 'machine.paused', 'machine.resumed', 'machine.stopped', 'machine.limits_changed', 'authority.used', 'authority.denied'));

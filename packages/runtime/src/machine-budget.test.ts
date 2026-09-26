@@ -74,6 +74,22 @@ const filled = (id: string, inputAmount: string, outputAmount: string, feeLampor
 		feeLamports,
 	});
 
+const simulated = (
+	id: string,
+	inputMint: string,
+	outputMint: string,
+	inputAmount: string,
+	quotedOutputAmount: string,
+) =>
+	event("trade.simulated", {
+		runId: RUN,
+		tradeId: id,
+		inputMint,
+		outputMint,
+		inputAmount,
+		quotedOutputAmount,
+	});
+
 const numbers = (events: RecordedEvent[]) => {
 	const budget = machineBudget(events);
 	return {
@@ -388,5 +404,46 @@ describe("machineBudget, told which currency the budget is held in", () => {
 
 		// The sale is not credited, and its input is far too large to reserve, so it changes nothing.
 		expect(machineBudget(events).available.toString()).toBe("10000000");
+	});
+});
+
+describe("a machine running on paper", () => {
+	it("spends its budget exactly as a real machine would", () => {
+		const events = [
+			granted("1000000"),
+			leg(trade(1), USDC, SOL, "400000"),
+			simulated(trade(1), USDC, SOL, "400000", "3600"),
+		];
+
+		// The point of paper mode is that the arithmetic is the same, so the answer can be trusted.
+		expect(numbers(events)).toMatchObject({
+			reserved: "0",
+			settled: "400000",
+			available: "600000",
+		});
+	});
+
+	it("gives the budget back when a paper machine sells into the currency it started with", () => {
+		const events = [
+			granted("15000000"),
+			leg(trade(1), USDC, SOL, "5000000"),
+			simulated(trade(1), USDC, SOL, "5000000", "45000000"),
+			leg(trade(2), SOL, USDC, "45000000"),
+			simulated(trade(2), SOL, USDC, "45000000", "5100000"),
+		];
+
+		const budget = machineBudget(events, { budgetMint: USDC });
+		expect(budget.available.toString()).toBe("15000000");
+	});
+
+	it("counts a simulated trade once, however many times the record repeats it", () => {
+		const events = [
+			granted("1000000"),
+			leg(trade(1), USDC, SOL, "400000"),
+			simulated(trade(1), USDC, SOL, "400000", "3600"),
+			simulated(trade(1), USDC, SOL, "400000", "3600"),
+		];
+
+		expect(numbers(events).settled).toBe("400000");
 	});
 });

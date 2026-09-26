@@ -1,6 +1,7 @@
 export * from "./classify.ts";
 export * from "./effect.ts";
 export * from "./failure.ts";
+export * from "./kinds/index.ts";
 export * from "./kinds/price-trigger.ts";
 export * from "./kinds/recurring-buy.ts";
 export * from "./lifecycle.ts";

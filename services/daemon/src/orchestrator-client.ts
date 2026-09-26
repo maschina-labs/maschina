@@ -13,6 +13,7 @@ import {
 	type RunReportEvent,
 	type SignRequest,
 	SignResponse,
+	type SimulateRequest,
 } from "@maschina/contracts";
 
 export type ClaimedRun = {
@@ -26,6 +27,8 @@ export type ClaimedRun = {
 
 /** What a node is told about a run it holds, with amounts as numbers again. */
 export type RunContext = {
+	/** True when this machine only pretends to trade. */
+	paper: boolean;
 	runId: string;
 	machineId: string;
 	wallet: string;
@@ -61,6 +64,12 @@ export type Orchestrator = {
 		nodeId: string;
 		leaseEpoch: bigint;
 		proposal: SignRequest;
+	}): Promise<SignResponse | "lease_lost">;
+	/** Reports what a machine on paper would have done. Nothing here can be signed. */
+	simulate(proposal: {
+		nodeId: string;
+		leaseEpoch: bigint;
+		proposal: SimulateRequest;
 	}): Promise<SignResponse | "lease_lost">;
 };
 
@@ -146,6 +155,18 @@ export function orchestratorClient(options: {
 			);
 			if (response.status === 409) return "lease_lost";
 			if (!response.ok) throw new Error(`proposing a trade failed with ${response.status}`);
+			return SignResponse.parse(await response.json());
+		},
+
+		async simulate({ nodeId, leaseEpoch, proposal }) {
+			// Nothing waits for the chain here, so the ordinary timeout is plenty.
+			const response = await post("/internal/v1/runs/simulate", {
+				nodeId,
+				leaseEpoch: leaseEpoch.toString(),
+				proposal,
+			});
+			if (response.status === 409) return "lease_lost";
+			if (!response.ok) throw new Error(`simulating a trade failed with ${response.status}`);
 			return SignResponse.parse(await response.json());
 		},
 	};

@@ -1,4 +1,3 @@
-import { type MachineKind, recurringBuy, registryOf } from "@maschina/runtime";
 import {
 	cachedMints,
 	jupiterPrices,
@@ -11,6 +10,7 @@ import { createLogger, initErrorReporting, onShutdown } from "@maschina/telemetr
 import { loadConfig } from "./config.ts";
 import { runHeartbeat } from "./heartbeat.ts";
 import { loadOrCreateIdentity } from "./identity.ts";
+import { NODE_KINDS } from "./kinds.ts";
 import { machineRunner } from "./machine-runner.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { solanaMarket } from "./solana-market.ts";
@@ -64,11 +64,13 @@ const working = runWorkLoop(
 		execute: machineRunner({
 			nodeId: identity.nodeId,
 			// The kinds this node can run. A machine of any other kind is left for a node that knows it.
-			kinds: registryOf([recurringBuy as MachineKind<never>]),
+			kinds: NODE_KINDS,
 			context: orchestrator.context,
 			balances: market.balances,
+			quote: market.quote,
 			prepare: market.prepare,
 			propose: orchestrator.propose,
+			simulate: orchestrator.simulate,
 			now: () => new Date(),
 		}),
 		logger,

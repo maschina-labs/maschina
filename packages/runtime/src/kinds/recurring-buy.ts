@@ -85,6 +85,11 @@ export const recurringBuy: MachineKind<RecurringBuySettings> = {
 		};
 	},
 
+	/** What it spends is what its budget is counted in. */
+	budgetMint(settings) {
+		return settings.spendMint;
+	},
+
 	decide(settings, view: MachineView): Decision {
 		const { amountPerBuy, stopAfterTotal } = settings;
 

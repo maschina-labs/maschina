@@ -19,6 +19,11 @@ function app(renewals: LeaseRenewals) {
 		reports: { report: async () => ok(undefined) },
 		contexts: { contextFor: async () => undefined },
 		leases: { holds: async () => undefined },
+		paperSigner: {
+			simulate: async () => {
+				throw new Error("not used here");
+			},
+		},
 		signer: {
 			sign: async () => {
 				throw new Error("not used here");

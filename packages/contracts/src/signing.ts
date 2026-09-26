@@ -67,10 +67,33 @@ export const SignRequest = z
 export type SignRequest = z.infer<typeof SignRequest>;
 
 /**
+ * What a machine on paper proposes.
+ *
+ * The same trade, minus the transaction, because there is nothing to sign and nothing to land. The
+ * shape is the guarantee: a paper run cannot reach the signer by mistake, because it never has the one
+ * thing the signer needs.
+ */
+export const SimulateRequest = z
+	.strictObject({
+		proposalId: id,
+		runId: id,
+		tradeId: id,
+		machineId: id,
+		wallet: address,
+		trade: ProposedTrade,
+	})
+	.meta({ id: "SimulateRequest" });
+export type SimulateRequest = z.infer<typeof SimulateRequest>;
+
+/**
  * What came back.
  *
  * A refusal is a normal answer, not an error: Maschina's rules refusing a trade is the system working.
  * It carries the rule by name so the record says exactly what stopped it.
+ *
+ * A simulation is the third answer. A machine running on paper is priced and recorded exactly like a
+ * real one, and then nothing is signed, so an owner can read what it would have done before it is
+ * trusted with anything.
  */
 export const SignResponse = z
 	.discriminatedUnion("status", [
@@ -78,6 +101,12 @@ export const SignResponse = z
 			status: z.literal("signed"),
 			proposalId: id,
 			signature,
+		}),
+		z.strictObject({
+			/** A machine on paper: the trade was priced and recorded, and nothing was signed. */
+			status: z.literal("simulated"),
+			proposalId: id,
+			tradeId: id,
 		}),
 		z.strictObject({
 			status: z.literal("refused"),

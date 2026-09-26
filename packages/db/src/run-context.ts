@@ -6,7 +6,7 @@
  * statement that reads the machine, so a node whose lease lapsed learns nothing.
  */
 
-import { machineBudget, machineState } from "@maschina/runtime";
+import { budgetMintOf, KNOWN_KINDS, machineBudget, machineState } from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
@@ -16,6 +16,8 @@ export type RunContext = {
 	machineId: string;
 	wallet: string;
 	kind: string;
+	/** True when this machine only pretends to trade, so its wallet is imaginary. */
+	paper: boolean;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -26,6 +28,7 @@ export type RunContext = {
 };
 
 type ContextRow = {
+	paper: boolean;
 	machine_id: string;
 	wallet_address: string;
 	kind: string;
@@ -38,7 +41,7 @@ export async function runContext(
 	lease: { runId: string; nodeId: string; leaseEpoch: bigint; now: Date },
 ): Promise<RunContext | undefined> {
 	const rows = await db.execute<ContextRow>(sql`
-		select runs.machine_id, machines.wallet_address, machine_definitions.kind,
+		select runs.machine_id, machines.wallet_address, machines.paper, machine_definitions.kind,
 			machine_definitions.settings, runs.due_at
 		from runs
 		join machines on machines.id = runs.machine_id
@@ -53,6 +56,9 @@ export async function runContext(
 
 	const events = await readMachineEvents(db, row.machine_id);
 	const state = machineState(events).state;
+	// The node is told the same number the ledger will enforce, counted in the machine's own currency.
+	const budgetMint = budgetMintOf(KNOWN_KINDS, row.kind, row.settings);
+	const budget = machineBudget(events, budgetMint === undefined ? {} : { budgetMint });
 	let spent = 0n;
 	let buys = 0;
 	for (const event of events) {
@@ -66,11 +72,12 @@ export async function runContext(
 		machineId: row.machine_id,
 		wallet: row.wallet_address,
 		kind: row.kind,
+		paper: row.paper,
 		settings: row.settings,
 		dueAt: row.due_at instanceof Date ? row.due_at : new Date(row.due_at),
 		state,
 		canAct: state === "running",
-		availableBudget: machineBudget(events).available,
+		availableBudget: budget.available,
 		totals: { spent, buys },
 	};
 }

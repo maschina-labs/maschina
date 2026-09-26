@@ -12,10 +12,13 @@
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@maschina/ui/components",
-		"utils": "@maschina/ui/lib/utils",
-		"ui": "@maschina/ui/components",
-		"lib": "@maschina/ui/lib",
-		"hooks": "@maschina/ui/hooks"
+		"components": "src/shadcn",
+		"ui": "src/shadcn",
+		"utils": "src/lib/utils.ts",
+		"lib": "src/lib",
+		"hooks": "src/hooks"
+	},
+	"registries": {
+		"@beautifui": "https://www.beautifului.dev/r/{name}.json"
 	}
 }

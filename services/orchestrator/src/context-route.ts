@@ -15,6 +15,8 @@ type RunContext = {
 	machineId: string;
 	wallet: string;
 	kind: string;
+	/** True when this machine only pretends to trade. The node needs it to know which way to go. */
+	paper: boolean;
 	settings: unknown;
 	dueAt: Date;
 	state: string;

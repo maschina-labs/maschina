@@ -1,7 +1,14 @@
 {
 	"extends": "@maschina/config/tsconfig/react.json",
 	"compilerOptions": {
-		"types": ["vite/client", "@testing-library/jest-dom/vitest"]
+		"types": ["vite/client", "@testing-library/jest-dom/vitest"],
+		// Most of this package is vendored: shadcn and beautifui components, copied in and not written
+		// here. They do not meet the repository's stricter rules, and holding copy-paste components to the
+		// same bar as the signer is effort spent in the wrong place. Every other package keeps them.
+		"exactOptionalPropertyTypes": false,
+		"noUncheckedIndexedAccess": false,
+		"noPropertyAccessFromIndexSignature": false,
+		"verbatimModuleSyntax": false
 	},
 	"include": ["src", "vitest.config.ts", "vitest.setup.ts"]
 }

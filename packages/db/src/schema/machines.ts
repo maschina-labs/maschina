@@ -11,7 +11,7 @@
  */
 
 import { sql } from "drizzle-orm";
-import { check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { machineDefinitions } from "./definitions.ts";
 import { owners, SOLANA_ADDRESS } from "./owners.ts";
 
@@ -32,6 +32,12 @@ export const machines = pgTable(
 			.notNull()
 			.references(() => machineDefinitions.id),
 		name: text("name").notNull(),
+		/**
+		 * A machine on paper is priced and recorded like any other and never signs anything, so an owner
+		 * can read what it would have done before trusting it with money. Decided when it is made: a
+		 * machine does not quietly change between pretending and spending.
+		 */
+		paper: boolean("paper").notNull().default(false),
 		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 	},
 	(table) => [

@@ -237,14 +237,17 @@ export async function reportRun(
 export async function holdsRun(
 	db: Database,
 	lease: { runId: string; nodeId: string; leaseEpoch: bigint; now: Date },
-): Promise<{ machineId: string } | undefined> {
-	const rows = await db.execute<{ machine_id: string }>(sql`
-		select machine_id from runs
-		where id = ${lease.runId}::uuid
-			and state = 'leased'
-			and leased_by = ${lease.nodeId}::uuid
-			and lease_epoch = ${lease.leaseEpoch.toString()}::bigint
-			and lease_expires_at > ${lease.now.toISOString()}::timestamptz`);
+): Promise<{ machineId: string; paper: boolean } | undefined> {
+	// Whether the machine is on paper comes back with the lease, so "may this node act" and "does acting
+	// cost anything" are decided from one read.
+	const rows = await db.execute<{ machine_id: string; paper: boolean }>(sql`
+		select runs.machine_id, machines.paper from runs
+		join machines on machines.id = runs.machine_id
+		where runs.id = ${lease.runId}::uuid
+			and runs.state = 'leased'
+			and runs.leased_by = ${lease.nodeId}::uuid
+			and runs.lease_epoch = ${lease.leaseEpoch.toString()}::bigint
+			and runs.lease_expires_at > ${lease.now.toISOString()}::timestamptz`);
 	const row = rows[0];
-	return row ? { machineId: row.machine_id } : undefined;
+	return row ? { machineId: row.machine_id, paper: row.paper } : undefined;
 }

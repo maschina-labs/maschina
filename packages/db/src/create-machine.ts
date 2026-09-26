@@ -21,6 +21,8 @@ export type MachineToWrite = {
 	/** The owner's own wallet: the only address this machine's funds can ever reach. */
 	ownerWallet: string;
 	name: string;
+	/** True when the machine only ever pretends to trade. Decided here and never changed after. */
+	paper?: boolean;
 	kind: string;
 	settings: Record<string, unknown>;
 	rules: Record<string, unknown>;
@@ -88,10 +90,10 @@ async function writeInOneGo(
 		const machineId = newId<"machine">();
 		await tx.execute(sql`
 				insert into machines
-					(id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+					(id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name, paper)
 				values (${machineId}::uuid, ${owner.value.id}::uuid, ${machine.wallet.address},
 					${machine.wallet.providerWalletId}, ${machine.wallet.provider}, ${definition.value.id},
-					${machine.name})`);
+					${machine.name}, ${machine.paper ?? false})`);
 
 		const limits: { limit: string; to: string }[] = [
 			{ limit: "budgetGranted", to: machine.limits.budgetGranted.toString() },

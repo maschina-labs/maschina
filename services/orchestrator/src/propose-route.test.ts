@@ -1,9 +1,9 @@
 import type { SignRequest, SignResponse } from "@maschina/contracts";
 import { MaschinaError, newId, ok } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildApp } from "./app.ts";
-import type { Leases, Signer } from "./propose-route.ts";
+import type { Leases, Signer, Simulator } from "./propose-route.ts";
 
 const token = "d".repeat(40);
 const logger = createLogger({ service: "test", level: "silent" });
@@ -35,7 +35,7 @@ const signed: SignResponse = {
 	signature: "5".repeat(88),
 };
 
-function app(leases: Leases, signer: Signer) {
+function app(leases: Leases, signer: Signer, paperSigner?: Simulator) {
 	return buildApp({
 		version: "1.0.0",
 		daemonToken: token,
@@ -46,6 +46,11 @@ function app(leases: Leases, signer: Signer) {
 		contexts: { contextFor: async () => undefined },
 		leases,
 		signer,
+		paperSigner: paperSigner ?? {
+			simulate: async () => {
+				throw new Error("the paper signer must not be asked");
+			},
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }
@@ -57,7 +62,7 @@ const propose = (target: ReturnType<typeof app>, body: unknown) =>
 		body: JSON.stringify(body),
 	});
 
-const holding: Leases = { holds: async () => ({ machineId }) };
+const holding: Leases = { holds: async () => ({ paper: false, machineId }) };
 const neverAsk: Signer = {
 	sign: async () => {
 		throw new Error("the signer must not be asked");
@@ -93,7 +98,7 @@ describe("a node proposing a trade", () => {
 
 	it("is refused when the proposal is for another machine than the run's", async () => {
 		const res = await propose(
-			app({ holds: async () => ({ machineId: newId<"machine">() }) }, neverAsk),
+			app({ holds: async () => ({ paper: false, machineId: newId<"machine">() }) }, neverAsk),
 			{
 				nodeId,
 				leaseEpoch: "2",
@@ -122,5 +127,93 @@ describe("a node proposing a trade", () => {
 			proposal: { ...proposal, extra: true },
 		});
 		expect(res.status).toBe(400);
+	});
+});
+
+const simulated = {
+	status: "simulated" as const,
+	proposalId: proposal.proposalId,
+	tradeId: proposal.tradeId,
+};
+
+/** The same trade with nothing to sign, which is all a paper machine ever sends. */
+const { transaction: _transaction, lastValidBlockHeight: _height, ...onPaper } = proposal;
+
+const simulate = (target: ReturnType<typeof app>, body: unknown) =>
+	target.request("/internal/v1/runs/simulate", {
+		method: "POST",
+		headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+		body: JSON.stringify(body),
+	});
+
+describe("a machine on paper", () => {
+	it("is recorded by the signer that never signs, and the real one is not asked", async () => {
+		const real = vi.fn(async () => signed);
+		const paper = vi.fn(async () => simulated);
+
+		const res = await simulate(
+			app({ holds: async () => ({ paper: true, machineId }) }, { sign: real }, { simulate: paper }),
+			{ nodeId, leaseEpoch: "1", proposal: onPaper },
+		);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({ status: "simulated" });
+		// Not merely unused: the path that spends money is never asked in the first place.
+		expect(real).not.toHaveBeenCalled();
+		expect(paper).toHaveBeenCalledOnce();
+	});
+
+	it("cannot be signed for, even if the node proposes a real trade for it", async () => {
+		const real = vi.fn(async () => signed);
+		const res = await propose(
+			app({ holds: async () => ({ paper: true, machineId }) }, { sign: real }),
+			{ nodeId, leaseEpoch: "1", proposal },
+		);
+
+		expect(res.status).toBe(403);
+		expect(real).not.toHaveBeenCalled();
+	});
+
+	it("still refuses a node that does not hold the run, paper or not", async () => {
+		const paper = vi.fn(async () => simulated);
+
+		const res = await simulate(
+			app({ holds: async () => undefined }, neverAsk, { simulate: paper }),
+			{
+				nodeId,
+				leaseEpoch: "1",
+				proposal: onPaper,
+			},
+		);
+
+		expect(res.status).toBe(409);
+		expect(paper).not.toHaveBeenCalled();
+	});
+
+	it("refuses a simulation that still carries a transaction", async () => {
+		const paper = vi.fn(async () => simulated);
+
+		const res = await simulate(
+			app({ holds: async () => ({ paper: true, machineId }) }, neverAsk, { simulate: paper }),
+			{ nodeId, leaseEpoch: "1", proposal },
+		);
+
+		expect(res.status).toBe(400);
+		expect(paper).not.toHaveBeenCalled();
+	});
+});
+
+describe("a machine that trades for real", () => {
+	it("cannot have a trade written into its record as if it were on paper", async () => {
+		const paper = vi.fn(async () => simulated);
+
+		const res = await simulate(app(holding, neverAsk, { simulate: paper }), {
+			nodeId,
+			leaseEpoch: "1",
+			proposal: onPaper,
+		});
+
+		expect(res.status).toBe(403);
+		expect(paper).not.toHaveBeenCalled();
 	});
 });
