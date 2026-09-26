@@ -247,6 +247,33 @@ describe("a machine on paper", () => {
 		});
 	});
 
+	it("holds what its record says it bought, so it can see its own position", async () => {
+		const seen: ReadonlyMap<string, bigint>[] = [];
+		const watching: MachineKind<never> = {
+			kind: "recurring_buy",
+			readSettings: () => ({ ok: true, value: undefined as never }),
+			budgetMint: () => USDC,
+			decide: (_settings, view) => {
+				seen.push(view.balances);
+				return { decide: "wait", because: "not_due" };
+			},
+		};
+		const { ports: paper } = ports({
+			kinds: registryOf([watching]),
+			context: async () => ({
+				...context,
+				paper: true,
+				holdings: new Map([[SOL, 41_000_000n]]),
+			}),
+		});
+
+		await machineRunner(paper)(run, live());
+
+		// The token it bought, from the record, and its budget in what it spends.
+		expect(seen[0]?.get(SOL)).toBe(41_000_000n);
+		expect(seen[0]?.get(USDC)).toBe(context.availableBudget);
+	});
+
 	it("skips when the quote disagrees with the independent price, the same as a real machine", async () => {
 		const { ports: paper, simulated } = ports({
 			context: onPaper,

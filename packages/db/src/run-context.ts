@@ -6,7 +6,13 @@
  * statement that reads the machine, so a node whose lease lapsed learns nothing.
  */
 
-import { budgetMintOf, KNOWN_KINDS, machineBudget, machineState } from "@maschina/runtime";
+import {
+	budgetMintOf,
+	KNOWN_KINDS,
+	machineBudget,
+	machineState,
+	paperHoldings,
+} from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
@@ -20,6 +26,8 @@ export type RunContext = {
 	paper: boolean;
 	/** The level that woke this run, for a machine waiting on more than one. */
 	wokeOn?: string;
+	/** What a machine on paper holds, by mint, from its own record. */
+	holdings?: Record<string, bigint>;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -78,6 +86,8 @@ export async function runContext(
 		paper: row.paper,
 		// Left out rather than set to nothing: a scheduled run was woken by no level at all.
 		...(row.woke_on === null || row.woke_on === undefined ? {} : { wokeOn: row.woke_on }),
+		// Only a machine on paper needs telling what it holds. A real one reads its own wallet.
+		...(row.paper ? { holdings: Object.fromEntries(paperHoldings(events)) } : {}),
 		settings: row.settings,
 		dueAt: row.due_at instanceof Date ? row.due_at : new Date(row.due_at),
 		state,
