@@ -3,6 +3,7 @@ import {
 	claimDueRun,
 	createDatabase,
 	holdsRun,
+	machineStateOf,
 	machinesWatchingPrices,
 	queueRun,
 	renewLease,
@@ -31,6 +32,11 @@ const reporter = await initErrorReporting({
 	environment: config.NODE_ENV,
 	release: config.SERVICE_VERSION,
 });
+const signer = signerClient({
+	url: config.SIGNER_URL,
+	token: config.SIGNER_ORCHESTRATOR_TOKEN,
+});
+
 const database = createDatabase({ url: config.DATABASE_URL, applicationName: SERVICE });
 
 const app = buildApp({
@@ -54,7 +60,11 @@ const app = buildApp({
 		contextFor: (lease) => runContext(database.db, { ...lease, now: new Date() }),
 	},
 	leases: { holds: (lease) => holdsRun(database.db, { ...lease, now: new Date() }) },
-	signer: signerClient({ url: config.SIGNER_URL, token: config.SIGNER_ORCHESTRATOR_TOKEN }),
+	signer: signer,
+	states: { stateOf: (machineId) => machineStateOf(database.db, machineId) },
+	// The same client. The orchestrator is the only thing that talks to the signer, for a withdrawal as
+	// much as for a trade.
+	withdrawer: signer,
 	// A machine on paper is judged here instead, and the signer never hears about it.
 	paperSigner: paperSigner({ record: (event) => appendEvent(database.db, event) }),
 	renewals: {

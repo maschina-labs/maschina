@@ -161,12 +161,14 @@ describe("actOnMachine", () => {
 		expect(lastStatement(db)).toContain("machine.started");
 	});
 
-	it("passes on a refusal from the record", async () => {
+	it("says so rather than claiming success when the record writes nothing", async () => {
 		const db = fakeDatabase([{ id: machineId }], [funded], []);
 		const result = await actOnMachine(db, { ownerId, machineId, action: "start" });
 
+		// An owner's action is not fenced by a node's lease, so nothing being written is not a conflict
+		// with another writer: it means the insert itself did not happen.
 		expect(result.ok).toBe(false);
-		if (!result.ok) expect(result.error.code).toBe("conflict");
+		if (!result.ok) expect(result.error.code).toBe("internal");
 	});
 
 	it("stops a machine on the owner's say so", async () => {

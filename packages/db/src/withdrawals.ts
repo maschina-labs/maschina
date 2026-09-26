@@ -6,6 +6,7 @@
  * funds can ever reach is the one recorded against its owner.
  */
 
+import { machineState } from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
@@ -61,4 +62,17 @@ export async function withdrawalSubmission(
 		};
 	}
 	return undefined;
+}
+
+/**
+ * What state a machine is in, or nothing when there is no such machine.
+ *
+ * Worked out from the record like every other fact about a machine. Used before a withdrawal, because a
+ * machine that is still acting may have money committed to a trade in flight.
+ */
+export async function machineStateOf(db: Executor, machineId: string): Promise<string | undefined> {
+	const rows = await db.execute<{ id: string }>(sql`
+		select id from machines where id = ${machineId}::uuid`);
+	if (!rows[0]) return undefined;
+	return machineState(await readMachineEvents(db, machineId)).state;
 }

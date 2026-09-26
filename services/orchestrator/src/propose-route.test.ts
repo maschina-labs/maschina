@@ -51,6 +51,12 @@ function app(leases: Leases, signer: Signer, paperSigner?: Simulator) {
 				throw new Error("the paper signer must not be asked");
 			},
 		},
+		states: { stateOf: async () => "stopped" },
+		withdrawer: {
+			withdraw: async () => {
+				throw new Error("not used here");
+			},
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }

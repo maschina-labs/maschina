@@ -21,7 +21,7 @@ import {
 import { sql } from "drizzle-orm";
 import type { Database, Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
-import { appendEvent } from "./record.ts";
+import { appendOwnerEvent } from "./record.ts";
 
 export type OwnedMachine = {
 	machineId: string;
@@ -159,10 +159,9 @@ export async function actOnMachine(
 
 		if (request.action === "fund") {
 			const granted = request.budgetGranted ?? 0n;
-			const written = await appendEvent(tx, {
+			const written = await appendOwnerEvent(tx, {
 				machineId: request.machineId,
 				type: "machine.limits_changed",
-				leaseEpoch: 0n,
 				payload: {
 					limit: "budgetGranted",
 					from: machineBudget(events).granted.toString(),
@@ -173,10 +172,9 @@ export async function actOnMachine(
 			return ok({ state: moved.value.to });
 		}
 
-		const written = await appendEvent(tx, {
+		const written = await appendOwnerEvent(tx, {
 			machineId: request.machineId,
 			type: eventFor(request.action),
-			leaseEpoch: 0n,
 			payload: payloadFor(request.action),
 		});
 		if (!written.ok) return written;

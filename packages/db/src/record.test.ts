@@ -1,7 +1,7 @@
 import { newId } from "@maschina/core";
 import { describe, expect, it, vi } from "vitest";
 import type { Database } from "./client.ts";
-import { appendEvent } from "./record.ts";
+import { appendEvent, appendOwnerEvent } from "./record.ts";
 
 const machineId = newId<"machine">();
 const runId = newId<"run">();
@@ -58,5 +58,57 @@ describe("appendEvent", () => {
 			expect(result.error.code).toBe("conflict");
 			expect(result.error.message).toMatch(/newer lease/);
 		}
+	});
+});
+
+describe("an owner's own action", () => {
+	it("is written even after a node has run the machine", async () => {
+		// The bug this exists for: owner actions used to be written at epoch zero, which the fence
+		// refuses once any run has written at a higher one. That made pause, stop and withdraw
+		// impossible on any machine that had ever done anything.
+		const inserted: string[] = [];
+		const db = {
+			execute: async (query: { queryChunks?: unknown[] }) => {
+				inserted.push(JSON.stringify(query.queryChunks ?? query));
+				return [{ id: newId<"event">(), occurred_at: "2026-09-26T09:00:00.000Z" }];
+			},
+		} as unknown as Database;
+
+		const written = await appendOwnerEvent(db, {
+			machineId,
+			type: "machine.paused",
+			payload: { reason: "owner" },
+		});
+
+		expect(written.ok).toBe(true);
+		// No fence: an owner is not a node that might have been replaced.
+		expect(inserted[0]).not.toContain("not exists");
+	});
+
+	it("inherits the newest epoch, so a stale node still cannot write afterwards", async () => {
+		const inserted: string[] = [];
+		const db = {
+			execute: async (query: { queryChunks?: unknown[] }) => {
+				inserted.push(JSON.stringify(query.queryChunks ?? query));
+				return [{ id: newId<"event">(), occurred_at: "2026-09-26T09:00:00.000Z" }];
+			},
+		} as unknown as Database;
+
+		await appendOwnerEvent(db, { machineId, type: "machine.resumed", payload: {} });
+
+		// Writing at zero would lower the watermark and let a replaced node back in.
+		expect(inserted[0]).toContain("max(lease_epoch)");
+	});
+
+	it("still refuses a payload that does not match its type", async () => {
+		const db = { execute: async () => [] } as unknown as Database;
+
+		const written = await appendOwnerEvent(db, {
+			machineId,
+			type: "machine.paused",
+			payload: { reason: "because" },
+		});
+
+		expect(written.ok).toBe(false);
 	});
 });

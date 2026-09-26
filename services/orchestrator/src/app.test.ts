@@ -30,6 +30,12 @@ function app(databaseUp = true) {
 				reason: "not used here",
 			}),
 		},
+		states: { stateOf: async () => "stopped" },
+		withdrawer: {
+			withdraw: async () => {
+				throw new Error("not used here");
+			},
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }

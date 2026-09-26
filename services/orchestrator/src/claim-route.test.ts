@@ -31,6 +31,12 @@ function app(runs: RunQueue) {
 				reason: "not used here",
 			}),
 		},
+		states: { stateOf: async () => "stopped" },
+		withdrawer: {
+			withdraw: async () => {
+				throw new Error("not used here");
+			},
+		},
 		renewals: { renew: async () => ok(new Date()) },
 	});
 }

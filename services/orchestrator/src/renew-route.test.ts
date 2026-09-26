@@ -29,6 +29,12 @@ function app(renewals: LeaseRenewals) {
 				throw new Error("not used here");
 			},
 		},
+		states: { stateOf: async () => "stopped" },
+		withdrawer: {
+			withdraw: async () => {
+				throw new Error("not used here");
+			},
+		},
 		renewals,
 	});
 }
