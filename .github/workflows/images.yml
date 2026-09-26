@@ -23,7 +23,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [bots, daemon, gateway, orchestrator, provisioner, signer]
+        service: [bots, daemon, gateway, orchestrator, provisioner, signer, migrator]
+        include:
+          # The migrator is not a service: it is the schema, shipped with the release so the database
+          # moves with the code instead of being migrated by hand afterwards.
+          - service: migrator
+            dockerfile: packages/db/Dockerfile
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -54,7 +59,7 @@ jobs:
         id: build
         with:
           context: .
-          file: services/${{ matrix.service }}/Dockerfile
+          file: ${{ matrix.dockerfile || format('services/{0}/Dockerfile', matrix.service) }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

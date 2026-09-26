@@ -8,6 +8,7 @@
 		"./migrate": "./src/migrator.ts"
 	},
 	"scripts": {
+		"build": "tsdown",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
@@ -28,6 +29,7 @@
 		"@types/node": "catalog:",
 		"@vitest/coverage-v8": "catalog:",
 		"drizzle-kit": "catalog:",
+		"tsdown": "catalog:",
 		"tsx": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"

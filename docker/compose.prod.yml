@@ -27,6 +27,18 @@ services:
       timeout: 5s
       retries: 10
 
+  # Run once per deploy, before the new code starts, and never left running. `update.sh` invokes it.
+  migrator:
+    image: ghcr.io/maschina-labs/migrator:${MASCHINA_VERSION:?the version to run is required}
+    container_name: maschina-migrator
+    restart: "no"
+    profiles: ["migrate"]
+    environment:
+      DATABASE_MIGRATION_URL: postgres://maschina_owner:${POSTGRES_PASSWORD:?the database password is required}@postgres:5432/maschina
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   orchestrator:
     image: ghcr.io/maschina-labs/orchestrator:${MASCHINA_VERSION:?the version to run is required}
     container_name: maschina-orchestrator

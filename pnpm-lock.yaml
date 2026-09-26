@@ -397,6 +397,9 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.31.10
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.0(oxc-resolver@11.24.2)(tsx@4.23.13)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.23.13
