@@ -18,6 +18,20 @@ type Budget = {
 	available: string;
 };
 
+/** What a machine has actually made. Signed, because a machine can be down. */
+export type MachineResult = {
+	realised: string;
+	position: string;
+	basis: string;
+	feesLamports: string;
+	trades: number;
+	roundTrips: number;
+	wins: number;
+	losses: number;
+	/** True when any of it came from a machine on paper, so the numbers are not money. */
+	simulated: boolean;
+};
+
 export type MachineSummary = {
 	machineId: string;
 	name: string;
@@ -27,6 +41,7 @@ export type MachineSummary = {
 	walletAddress: string;
 	createdAt: string;
 	budget: Budget;
+	result: MachineResult;
 };
 
 export type MachineDetail = MachineSummary & {
@@ -125,8 +140,13 @@ export function useCreateMachine(api: Api, queryClient: QueryClient) {
 
 /** Base units to something a person reads. USDC has six decimals, SOL has nine. */
 export function amount(base: string, decimals = 6): string {
-	const whole = BigInt(base) / 10n ** BigInt(decimals);
-	const fraction = BigInt(base) % 10n ** BigInt(decimals);
+	// A result can be a loss, so the sign is taken off, the digits are read, and the sign goes back on.
+	// Working in bigint the other way rounds towards zero and turns a small loss into a positive number.
+	const negative = base.startsWith("-");
+	const size = BigInt(negative ? base.slice(1) : base);
+	const unit = 10n ** BigInt(decimals);
+	const whole = size / unit;
+	const fraction = size % unit;
 	const shown = fraction.toString().padStart(decimals, "0").slice(0, 2);
-	return `${whole.toLocaleString("en-US")}.${shown}`;
+	return `${negative && size > 0n ? "-" : ""}${whole.toLocaleString("en-US")}.${shown}`;
 }

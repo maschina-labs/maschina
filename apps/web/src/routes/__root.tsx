@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { Failure, failureMessage } from "../components/failure.tsx";
+import { failureMessage } from "../components/failure.tsx";
+import { Broken, NotFound } from "../components/states.tsx";
 import type { Api } from "../lib/api.ts";
 
 export type RouterContext = {
@@ -11,9 +12,6 @@ export type RouterContext = {
 export const Route = createRootRouteWithContext<RouterContext>()({
 	component: Outlet,
 	notFoundComponent: NotFound,
-	errorComponent: ({ error }) => <Failure message={failureMessage(error)} />,
+	// The real message, not a friendlier one. Whoever is reading it is whoever can fix it.
+	errorComponent: ({ error, reset }) => <Broken detail={failureMessage(error)} reset={reset} />,
 });
-
-function NotFound() {
-	return <p className="p-10 text-muted-foreground">There's nothing here.</p>;
-}

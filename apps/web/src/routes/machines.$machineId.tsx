@@ -1,10 +1,54 @@
+/**
+ * One machine, as a control surface.
+ *
+ * Read top to bottom it answers four questions in order: what is this, what is it allowed to spend, what
+ * has it done, and what was it told to do. The record is the centre of the screen because the record is
+ * the product's argument: everything a machine did is there, in order, with the numbers it used.
+ *
+ * Every event type is a fact rather than a mood. Only two get colour: a trade is blue because it is the
+ * thing an owner is watching for, and a failure is red. A skipped run is the most common entry in a
+ * healthy machine's record and is kept quiet on purpose.
+ */
+
+import {
+	ArrowDown,
+	ArrowUp,
+	CheckCircle,
+	Circle,
+	Coin,
+	type Icon,
+	MinusCircle,
+	Pause,
+	PencilSimple,
+	Play,
+	Prohibit,
+	Pulse,
+	Receipt,
+	SlidersHorizontal,
+	Stop,
+	WarningCircle,
+} from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../components/shell.tsx";
 import {
+	Button,
+	Empty,
+	Failed,
+	Loading,
+	Meter,
+	Metric,
+	PageHead,
+	Panel,
+	Payload,
+	Pill,
+	Row,
+} from "../components/ui.tsx";
+import {
 	amount,
 	type MachineAction,
+	type RecordEntry,
 	useMachine,
 	useMachineAction,
 	useRecord,
@@ -14,13 +58,78 @@ export const Route = createFileRoute("/machines/$machineId")({
 	component: Machine,
 });
 
-const LABEL: Record<MachineAction, string> = {
-	fund: "Fund",
-	start: "Start",
-	pause: "Pause",
-	resume: "Resume",
-	stop: "Stop",
+const ACTION: Record<MachineAction, { label: string; icon: Icon }> = {
+	fund: { label: "Set budget", icon: Coin },
+	start: { label: "Start", icon: Play },
+	pause: { label: "Pause", icon: Pause },
+	resume: { label: "Resume", icon: Play },
+	stop: { label: "Stop", icon: Stop },
 };
+
+/** How each event reads: its glyph, the words for it, and whether it is worth colour. */
+const EVENTS: Record<string, { icon: Icon; said: string; tone?: "live" | "danger" }> = {
+	"machine.created": { icon: Circle, said: "made" },
+	"machine.started": { icon: Play, said: "started" },
+	"machine.paused": { icon: Pause, said: "paused" },
+	"machine.resumed": { icon: Play, said: "resumed" },
+	"machine.stopped": { icon: Stop, said: "stopped" },
+	"machine.limits_changed": { icon: SlidersHorizontal, said: "limits changed" },
+	"run.queued": { icon: Circle, said: "run queued" },
+	"run.started": { icon: Play, said: "run started" },
+	"run.skipped": { icon: MinusCircle, said: "run skipped" },
+	"run.finished": { icon: CheckCircle, said: "run finished" },
+	"trade.intended": { icon: ArrowUp, said: "trade intended", tone: "live" },
+	"trade.simulated": { icon: Receipt, said: "trade simulated", tone: "live" },
+	"trade.submitted": { icon: ArrowUp, said: "trade sent", tone: "live" },
+	"trade.completed": { icon: ArrowDown, said: "trade done", tone: "live" },
+	"trade.refused": { icon: Prohibit, said: "trade refused", tone: "danger" },
+	"trade.failed": { icon: WarningCircle, said: "trade failed", tone: "danger" },
+	"withdrawal.requested": { icon: ArrowUp, said: "withdrawal asked for" },
+	"withdrawal.submitted": { icon: ArrowUp, said: "withdrawal sent" },
+	"withdrawal.completed": { icon: CheckCircle, said: "withdrawal done" },
+	"withdrawal.failed": { icon: WarningCircle, said: "withdrawal failed", tone: "danger" },
+};
+
+const at = (when: string) =>
+	new Date(when).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+const on = (when: string) =>
+	new Date(when).toLocaleDateString([], { day: "2-digit", month: "short" });
+
+function Entry({ entry }: { entry: RecordEntry }) {
+	const known = EVENTS[entry.type];
+	const Glyph = known?.icon ?? Circle;
+	const colour =
+		known?.tone === "live"
+			? "text-accent-text"
+			: known?.tone === "danger"
+				? "text-danger-text"
+				: "text-text-faint";
+	/** The one line of the payload worth reading without opening it. */
+	const detail =
+		(entry.payload["detail"] as string | undefined) ??
+		(entry.payload["reason"] as string | undefined) ??
+		undefined;
+
+	return (
+		<li className="flex gap-3 border-line/50 border-b px-4 py-2.5 last:border-0">
+			<Glyph size={14} className={`mt-[2px] shrink-0 ${colour}`} />
+			<div className="min-w-0 flex-1">
+				<div className="flex items-baseline justify-between gap-3">
+					<span className="truncate font-mono text-[12px] text-text">{entry.type}</span>
+					<span className="shrink-0 font-mono text-[11px] text-text-faint">
+						{on(entry.occurredAt)} {at(entry.occurredAt)}
+					</span>
+				</div>
+				<p className="mt-0.5 text-[12px] text-text-muted">
+					{known?.said ?? "recorded"}
+					{detail ? <span className="text-text-faint"> · {detail}</span> : null}
+				</p>
+				<Payload value={entry.payload} />
+			</div>
+		</li>
+	);
+}
 
 function Machine() {
 	const { machineId } = Route.useParams();
@@ -29,163 +138,218 @@ function Machine() {
 	const machine = useMachine(api, machineId);
 	const record = useRecord(api, machineId);
 	const act = useMachineAction(api, queryClient, machineId);
-	const [funding, setFunding] = useState("");
+	const [budget, setBudget] = useState("");
+	const [editing, setEditing] = useState(false);
+
+	if (machine.isPending) {
+		return (
+			<Shell>
+				<PageHead title="Loading" />
+				<div className="px-7 py-6">
+					<Loading rows={5} />
+				</div>
+			</Shell>
+		);
+	}
+
+	if (machine.error) {
+		return (
+			<Shell>
+				<PageHead title="Machine" />
+				<Failed
+					title="This machine could not be read"
+					detail={machine.error.message}
+					retry={() => machine.refetch()}
+				/>
+			</Shell>
+		);
+	}
+
+	const it = machine.data;
+	const live = it.state === "running";
+	const spendable = Number(it.budget.granted) / 1_000_000;
 
 	return (
 		<Shell>
-			<div className="mx-auto w-full max-w-[1100px] px-8 py-8">
-				{machine.isPending ? (
-					<p className="text-muted-foreground text-sm">Loading.</p>
-				) : machine.error ? (
-					<p className="text-destructive text-sm">{machine.error.message}</p>
-				) : (
+			<PageHead
+				title={it.name}
+				actions={
 					<>
-						<div className="mb-6 flex items-start justify-between">
-							<div>
-								<h1 className="font-medium text-[20px] tracking-tight">{machine.data.name}</h1>
-								<p className="mt-1 text-[13px] text-muted-foreground">
-									{machine.data.kind} · {machine.data.state}
-									{machine.data.stateReason ? ` · ${machine.data.stateReason}` : ""}
-								</p>
-								<p className="mt-2 font-mono text-[12px] text-muted-foreground/70">
-									{machine.data.walletAddress}
-								</p>
-							</div>
-							<div className="flex flex-wrap items-center justify-end gap-2">
-								{machine.data.actions.map((action) =>
-									action === "fund" ? null : (
-										<button
-											key={action}
-											type="button"
-											disabled={act.isPending}
-											onClick={() => act.mutate({ action })}
-											className={`rounded-lg border px-3 py-1.5 text-[13px] ${
-												action === "stop"
-													? "border-destructive/30 text-destructive hover:bg-destructive/10"
-													: "border-border/60 hover:bg-muted"
-											}`}
-										>
-											{LABEL[action]}
-										</button>
-									),
-								)}
-							</div>
-						</div>
-
-						{machine.data.actions.includes("fund") ? (
-							<div className="mb-6 flex items-center gap-2 rounded-xl border border-border/60 p-3">
-								<input
-									value={funding}
-									onChange={(event) => setFunding(event.target.value)}
-									placeholder="Total budget in USDC, for example 25"
-									className="min-w-0 flex-1 bg-transparent px-1 text-[13px] outline-none placeholder:text-muted-foreground/50"
-								/>
-								<button
-									type="button"
-									disabled={act.isPending || !/^\d+(\.\d{1,6})?$/.test(funding)}
-									onClick={() => {
-										const base = BigInt(Math.round(Number(funding) * 1_000_000));
-										act.mutate(
-											{ action: "fund", budgetGranted: base.toString() },
-											{ onSuccess: () => setFunding("") },
-										);
-									}}
-									className="rounded-lg bg-primary px-3 py-1.5 font-medium text-[13px] text-primary-foreground disabled:opacity-40"
+						{it.actions.includes("fund") ? (
+							<Button icon={Coin} onClick={() => setEditing(!editing)}>
+								Set budget
+							</Button>
+						) : null}
+						{it.actions
+							.filter((action) => action !== "fund")
+							.map((action) => (
+								<Button
+									key={action}
+									icon={ACTION[action].icon}
+									tone={action === "stop" ? "danger" : action === "start" ? "primary" : "outline"}
+									disabled={act.isPending}
+									onClick={() => act.mutate({ action })}
 								>
-									Set budget
-								</button>
-							</div>
-						) : null}
-
-						{act.error ? (
-							<p className="mb-4 text-[13px] text-destructive">{act.error.message}</p>
-						) : null}
-
-						<div className="mb-6 grid grid-cols-4 gap-3">
-							{(
-								[
-									["Granted", machine.data.budget.granted],
-									["Held", machine.data.budget.reserved],
-									["Spent", machine.data.budget.settled],
-									["Left", machine.data.budget.available],
-								] as const
-							).map(([label, value]) => (
-								<div key={label} className="rounded-xl border border-border/60 p-4">
-									<p className="text-[11px] text-muted-foreground/60 uppercase tracking-[0.12em]">
-										{label}
-									</p>
-									<p className="mt-2 font-mono text-[22px] leading-none tabular-nums">
-										{amount(value)}
-									</p>
-								</div>
+									{ACTION[action].label}
+								</Button>
 							))}
-						</div>
-
-						<div className="grid grid-cols-[1fr_300px] gap-4">
-							<div className="overflow-hidden rounded-xl border border-border/60">
-								<p className="border-border/60 border-b px-4 py-2.5 text-[11px] text-muted-foreground/60 uppercase tracking-[0.12em]">
-									What it did
-								</p>
-								{record.isPending ? (
-									<p className="px-4 py-3 text-[13px] text-muted-foreground">Loading.</p>
-								) : record.data?.length ? (
-									record.data.map((entry) => (
-										<div
-											key={entry.id}
-											className="border-border/40 border-b px-4 py-2.5 text-[13px] last:border-0"
-										>
-											<div className="flex items-baseline justify-between gap-4">
-												<span className="font-mono text-[12px] text-muted-foreground/70">
-													{entry.type}
-												</span>
-												<span className="font-mono text-[11px] text-muted-foreground/50 tabular-nums">
-													{new Date(entry.occurredAt).toLocaleString()}
-												</span>
-											</div>
-											<pre className="mt-1 overflow-x-auto text-[11px] text-muted-foreground/60">
-												{JSON.stringify(entry.payload)}
-											</pre>
-										</div>
-									))
-								) : (
-									<p className="px-4 py-3 text-[13px] text-muted-foreground/60">Nothing yet.</p>
-								)}
-							</div>
-
-							<div className="space-y-3">
-								<div className="rounded-xl border border-border/60 p-4">
-									<p className="mb-3 text-[11px] text-muted-foreground/60 uppercase tracking-[0.12em]">
-										What it may not do
-									</p>
-									<Row label="Most per trade" value={machine.data.limits.maxPerTrade} />
-									<Row label="Most per day" value={machine.data.limits.maxPerDay} />
-									<p className="mt-3 text-[12px] text-muted-foreground/60">
-										{machine.data.limits.approvedMints.length} approved tokens
-									</p>
-								</div>
-
-								<div className="rounded-xl border border-border/60 p-4">
-									<p className="mb-3 text-[11px] text-muted-foreground/60 uppercase tracking-[0.12em]">
-										What it does
-									</p>
-									<pre className="overflow-x-auto text-[11px] text-muted-foreground/70">
-										{JSON.stringify(machine.data.settings, null, 2)}
-									</pre>
-								</div>
-							</div>
-						</div>
 					</>
-				)}
+				}
+			>
+				<div className="mt-2 flex flex-wrap items-center gap-2">
+					<Pill tone={live ? "live" : "quiet"} dot={live}>
+						{it.state}
+					</Pill>
+					<Pill tone="quiet">{it.kind}</Pill>
+					{it.result.simulated ? <Pill tone="neutral">on paper</Pill> : null}
+					<span className="font-mono text-[11.5px] text-text-faint">{it.walletAddress}</span>
+				</div>
+				{it.stateReason ? (
+					<p className="mt-2 text-[12px] text-text-muted">{it.stateReason}</p>
+				) : null}
+			</PageHead>
+
+			<div className="px-7 py-6">
+				{editing ? (
+					<div className="mb-5 flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5">
+						<Coin size={14} className="shrink-0 text-text-faint" />
+						<input
+							value={budget}
+							onChange={(event) => setBudget(event.target.value)}
+							placeholder="Total this machine may ever spend, in USDC"
+							aria-label="Total budget in USDC"
+							className="min-w-0 flex-1 bg-transparent font-mono text-[12.5px] outline-none placeholder:font-sans placeholder:text-text-faint"
+						/>
+						<Button
+							tone="primary"
+							disabled={act.isPending || !/^\d+(\.\d{1,6})?$/.test(budget)}
+							onClick={() => {
+								const base = BigInt(Math.round(Number(budget) * 1_000_000));
+								act.mutate(
+									{ action: "fund", budgetGranted: base.toString() },
+									{
+										onSuccess: () => {
+											setBudget("");
+											setEditing(false);
+										},
+									},
+								);
+							}}
+						>
+							Set
+						</Button>
+						<Button tone="quiet" onClick={() => setEditing(false)}>
+							Cancel
+						</Button>
+					</div>
+				) : null}
+
+				{act.error ? (
+					<p className="mb-5 rounded-md border border-danger/30 bg-danger-wash/40 px-3 py-2 font-mono text-[12px] text-danger-text">
+						{act.error.message}
+					</p>
+				) : null}
+
+				<div className="mb-5 rounded-lg border border-line bg-surface">
+					<div className="grid grid-cols-2 gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-4">
+						<Metric label="Granted" value={amount(it.budget.granted)} unit="USDC" />
+						<Metric label="Held" value={amount(it.budget.reserved)} tone="muted" />
+						<Metric label="Spent" value={amount(it.budget.settled)} tone="accent" />
+						<Metric label="Left" value={amount(it.budget.available)} />
+					</div>
+					<div className="px-4 pb-4">
+						<Meter
+							granted={spendable}
+							held={Number(it.budget.reserved) / 1_000_000}
+							spent={Number(it.budget.settled) / 1_000_000}
+						/>
+					</div>
+					<div className="grid grid-cols-2 gap-x-6 gap-y-4 border-line border-t px-4 py-4 sm:grid-cols-4">
+						<Metric
+							label="Made"
+							value={amount(it.result.realised)}
+							unit="USDC"
+							tone={
+								it.result.realised.startsWith("-")
+									? "danger"
+									: it.result.realised === "0"
+										? "muted"
+										: "accent"
+							}
+						/>
+						<Metric label="Holding" value={amount(it.result.position, 9)} unit="SOL" tone="muted" />
+						<Metric
+							label="Round trips"
+							value={`${it.result.roundTrips}`}
+							unit={`${it.result.wins}W ${it.result.losses}L`}
+							tone="muted"
+						/>
+						<Metric
+							label="Fees paid"
+							value={amount(it.result.feesLamports, 9)}
+							unit="SOL"
+							tone="muted"
+						/>
+					</div>
+				</div>
+
+				<div className="grid gap-4 lg:grid-cols-[1fr_310px]">
+					<Panel
+						title="What it did"
+						note="Every run and every trade, newest first, exactly as the record holds it."
+						actions={
+							record.isFetching ? (
+								<span className="text-[11px] text-text-faint">reading</span>
+							) : null
+						}
+					>
+						{record.isPending ? (
+							<Loading rows={6} />
+						) : record.error ? (
+							<Failed detail={record.error.message} retry={() => record.refetch()} />
+						) : record.data?.length ? (
+							<ul className="max-h-[560px] overflow-y-auto">
+								{record.data.map((entry) => (
+									<Entry key={entry.id} entry={entry} />
+								))}
+							</ul>
+						) : (
+							<Empty
+								icon={Pulse}
+								title="It has not done anything yet"
+								note="The record fills in as the machine runs. Nothing is written here that the machine did not actually do."
+							/>
+						)}
+					</Panel>
+
+					<div className="space-y-4">
+						<Panel title="What it may not do" note="Enforced by the signer, not by the machine.">
+							<Row label="Most per trade">
+								{it.limits.maxPerTrade ? amount(it.limits.maxPerTrade) : "not set"}
+							</Row>
+							<Row label="Most per day">
+								{it.limits.maxPerDay ? amount(it.limits.maxPerDay) : "not set"}
+							</Row>
+							<Row label="Approved tokens">{it.limits.approvedMints.length}</Row>
+							{it.limits.approvedMints.map((mint) => (
+								<Row key={mint} label="">
+									<span className="text-text-faint">{`${mint.slice(0, 6)}…${mint.slice(-4)}`}</span>
+								</Row>
+							))}
+						</Panel>
+
+						<Panel
+							title="What it does"
+							note="The definition it was pinned to when it was made."
+							actions={<PencilSimple size={13} className="text-text-faint" />}
+						>
+							<pre className="max-h-[320px] overflow-auto px-4 py-3 font-mono text-[11px] text-text-muted leading-[1.7]">
+								{JSON.stringify(it.settings, null, 2)}
+							</pre>
+						</Panel>
+					</div>
+				</div>
 			</div>
 		</Shell>
-	);
-}
-
-function Row({ label, value }: { label: string; value?: string | undefined }) {
-	return (
-		<div className="flex items-baseline justify-between py-0.5 text-[13px]">
-			<span className="text-muted-foreground">{label}</span>
-			<span className="font-mono tabular-nums">{value ? amount(value) : "not set"}</span>
-		</div>
 	);
 }
