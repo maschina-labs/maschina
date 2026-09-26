@@ -28,7 +28,7 @@ import {
 import { type ChainAnswer, type Submission, submitOnce } from "./submit-once.ts";
 
 /** Who a machine belongs to, and which wallet the provider signs for. */
-export type WithdrawingMachine = {
+type WithdrawingMachine = {
 	wallet: Address;
 	/** The owner's own wallet. The only place these funds may go. */
 	ownerWallet: Address;

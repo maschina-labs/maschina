@@ -3,7 +3,7 @@ import { MaschinaError, newId } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { readProposal, type TradeSigner, type Withdrawer } from "./sign-route.ts";
+import { readProposal, readWithdrawal, type TradeSigner, type Withdrawer } from "./sign-route.ts";
 
 const token = "s".repeat(40);
 const WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
@@ -195,6 +195,26 @@ describe("when the signer cannot sign right now", () => {
 		const response = await post(appWith(unavailable), proposal());
 
 		expect(response.status).toBe(503);
+	});
+});
+
+describe("reading a withdrawal", () => {
+	it("says which field was wrong, not just that something was", () => {
+		try {
+			readWithdrawal({ withdrawalId: "nope", machineId: newId<"machine">(), lamports: "1" });
+			expect.unreachable("a bad id should have been refused");
+		} catch (error) {
+			expect(String(error)).toContain("withdrawalId");
+		}
+	});
+
+	it("names the body itself when the body is not an object at all", () => {
+		try {
+			readWithdrawal("a withdrawal, please");
+			expect.unreachable("a string is not a withdrawal");
+		} catch (error) {
+			expect(String(error)).toContain("(body)");
+		}
 	});
 });
 
