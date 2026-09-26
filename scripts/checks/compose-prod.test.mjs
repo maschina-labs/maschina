@@ -34,12 +34,21 @@ test("refuses to start without the version and the database password", () => {
 	assert.match(file, /POSTGRES_PASSWORD:\?/);
 });
 
-test("restarts everything after a reboot", () => {
+test("restarts everything that is meant to keep running", () => {
 	// Only the services block: the volumes below it are named the same way.
 	const services = file.slice(file.indexOf("\nservices:"), file.lastIndexOf("\nvolumes:"));
 	const named = services.match(/^ {2}[a-z-]+:$/gm) ?? [];
 	const restarts = file.match(/restart: unless-stopped/g) ?? [];
-	assert.equal(restarts.length, named.length, "every service restarts itself");
+	// The migrator runs once per deploy and exits. Restarting it would run migrations in a loop, so it
+	// says `restart: "no"` on purpose and is behind a profile so it never starts with the others.
+	const oneShot = file.match(/restart: "no"/g) ?? [];
+	const profiles = file.match(/^ {4}profiles:/gm) ?? [];
+	assert.equal(
+		restarts.length + oneShot.length,
+		named.length,
+		"every service either restarts itself or says plainly that it runs once",
+	);
+	assert.equal(profiles.length, oneShot.length, "anything that runs once stays behind a profile");
 });
 
 test("pins the tunnel image by digest, like every other image not built here", () => {
