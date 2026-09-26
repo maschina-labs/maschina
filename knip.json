@@ -12,7 +12,7 @@
 			"entry": ["test/**/*.test.ts"]
 		},
 		"packages/ui": {
-			"ignore": ["src/shadcn/**", "src/beautifui/**", "src/hooks/**"],
+			"ignore": ["src/shadcn/**", "src/beautifui/**"],
 			"ignoreDependencies": [
 				"@base-ui/react",
 				"@hookform/resolvers",

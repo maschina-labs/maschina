@@ -86,6 +86,51 @@ export const SimulateRequest = z
 export type SimulateRequest = z.infer<typeof SimulateRequest>;
 
 /**
+ * An owner asking for a machine's funds back.
+ *
+ * Deliberately says almost nothing. It names the machine and an amount, and that is all, because
+ * everything else is either derived or refused. The destination is not in here on purpose: the signer
+ * looks up who owns the machine and pays them. A destination that travelled with the request would be a
+ * destination somebody could change, and the one promise this whole system makes is that a machine's
+ * funds reach its owner and nowhere else.
+ */
+export const WithdrawRequest = z
+	.strictObject({
+		/** Identifies this withdrawal. The same one may arrive twice and must move money once. */
+		withdrawalId: id,
+		machineId: id,
+		lamports: whole,
+	})
+	.meta({ id: "WithdrawRequest" });
+export type WithdrawRequest = z.infer<typeof WithdrawRequest>;
+
+/**
+ * What came back from a withdrawal.
+ *
+ * A refusal is a normal answer here too: an amount larger than the wallet holds, or a machine nobody
+ * owns, is the system working.
+ */
+export const WithdrawResponse = z
+	.discriminatedUnion("status", [
+		z.strictObject({
+			status: z.literal("sent"),
+			withdrawalId: id,
+			signature,
+			/** Where it went, echoed back so an owner can check it against their own wallet. */
+			to: address,
+			lamports: whole,
+		}),
+		z.strictObject({
+			status: z.literal("refused"),
+			withdrawalId: id,
+			rule: z.string().min(1).max(100),
+			reason: z.string().min(1).max(500),
+		}),
+	])
+	.meta({ id: "WithdrawResponse" });
+export type WithdrawResponse = z.infer<typeof WithdrawResponse>;
+
+/**
  * What came back.
  *
  * A refusal is a normal answer, not an error: Maschina's rules refusing a trade is the system working.

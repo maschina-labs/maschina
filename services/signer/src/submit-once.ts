@@ -1,5 +1,5 @@
 /**
- * Sending a trade at most once, ever.
+ * Sending a transaction at most once, ever.
  *
  * This is the last place a crash can cost real money, and the only defence is the order things happen
  * in. A transaction's signature is decided the moment it is signed, before anything is sent, so the
@@ -8,15 +8,23 @@
  *
  *   sign  ->  write down the signature  ->  send  ->  ask the chain  ->  record the outcome
  *
- * A trade that already has a signature in the record is never signed again. Not "probably did not
+ * Anything that already has a signature in the record is never signed again. Not "probably did not
  * land", not "it has been a while": never. The only thing that decides what happened to it is the
- * chain, and until the chain answers, the trade stays unfinished rather than being retried.
+ * chain, and until the chain answers, it stays unfinished rather than being retried.
  *
- * The dangerous failure this prevents is not losing a trade. It is making the same one twice.
+ * The dangerous failure this prevents is not losing a trade. It is making the same one twice, and it
+ * applies just as much to returning an owner's money as to spending it.
  */
 
-import type { SignRequest } from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
+
+/**
+ * What any request this sends has to say: when its transaction stops being valid.
+ *
+ * Everything else about the request is the caller's business. A trade and a withdrawal are judged in
+ * completely different ways, and both need sending exactly once, which is the part that lives here.
+ */
+export type Expiring = { lastValidBlockHeight: string };
 
 export type Submission = {
 	signature: string;
@@ -30,21 +38,21 @@ export type ChainAnswer =
 	| { outcome: "expired"; signature: string }
 	| { outcome: "unknown"; signature: string; because: string };
 
-export type SubmitPorts = {
-	/** The signature already written down for this trade, when there is one. */
-	submissionFor(request: SignRequest): Promise<Submission | undefined>;
+export type SubmitPorts<Request extends Expiring = Expiring> = {
+	/** The signature already written down for this request, when there is one. */
+	submissionFor(request: Request): Promise<Submission | undefined>;
 	/** Signs, without sending. The signature exists from this moment. */
-	sign(request: SignRequest): Promise<Uint8Array>;
+	sign(request: Request): Promise<Uint8Array>;
 	/** Reads the signature out of signed bytes, before anything is sent. */
 	signatureOf(signedTransaction: Uint8Array): string;
 	/** Writes the signature down. Nothing is sent until this has happened. */
-	recordSubmission(request: SignRequest, submission: Submission): Promise<void>;
+	recordSubmission(request: Request, submission: Submission): Promise<void>;
 	/** Sends it. */
 	send(signedTransaction: Uint8Array): Promise<void>;
 	/** Waits for the chain to say what happened. */
-	waitFor(request: SignRequest, submission: Submission): Promise<ChainAnswer>;
-	/** Asks the chain about a signature from a run that did not finish. */
-	askChain(request: SignRequest, submission: Submission): Promise<ChainAnswer>;
+	waitFor(request: Request, submission: Submission): Promise<ChainAnswer>;
+	/** Asks the chain about a signature from an attempt that did not finish. */
+	askChain(request: Request, submission: Submission): Promise<ChainAnswer>;
 };
 
 export type SubmitResult =
@@ -54,16 +62,19 @@ export type SubmitResult =
 	| { done: "unresolved"; signature: string; because: string };
 
 /**
- * Signs, sends and finds out what happened, at most once per trade.
+ * Signs, sends and finds out what happened, at most once.
  *
- * Called again for a trade that already went out, it sends nothing and asks the chain instead. That is
+ * Called again for something that already went out, it sends nothing and asks the chain instead. That is
  * true whether the first attempt crashed one line after signing or an hour ago.
  */
-export async function submitOnce(ports: SubmitPorts, request: SignRequest): Promise<SubmitResult> {
+export async function submitOnce<Request extends Expiring>(
+	ports: SubmitPorts<Request>,
+	request: Request,
+): Promise<SubmitResult> {
 	const already = await ports.submissionFor(request);
 	if (already) {
-		// Somebody already signed this trade. Whatever happened next, signing it again would risk a
-		// second one landing, and no amount of waiting makes that safe.
+		// Somebody already signed this. Whatever happened next, signing it again would risk a second one
+		// landing, and no amount of waiting makes that safe.
 		return answerToResult(await ports.askChain(request, already));
 	}
 

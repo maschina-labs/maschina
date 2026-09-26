@@ -13,3 +13,4 @@ export * as schema from "./schema/index.ts";
 export * from "./sign-in.ts";
 export * from "./signer-record.ts";
 export * from "./watching-machines.ts";
+export * from "./withdrawals.ts";
