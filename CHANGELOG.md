@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.0.22](https://github.com/maschina-labs/maschina/compare/v0.0.21...v0.0.22) (2026-09-26)
+
+
+### Added
+
+* **contracts:** record a withdrawal, and read a blockhash for one ([#642](https://github.com/maschina-labs/maschina/issues/642)) ([cc3a99e](https://github.com/maschina-labs/maschina/commit/cc3a99e7676ac7c78ab88b0f501a596f639b257f))
+* **db:** tell a machine which level woke its run ([#635](https://github.com/maschina-labs/maschina/issues/635)) ([64be70e](https://github.com/maschina-labs/maschina/commit/64be70ee6c4dfddd0366700174778a3774c3cf9f))
+* **orchestrator:** run a machine on paper ([#629](https://github.com/maschina-labs/maschina/issues/629)) ([e73d0ec](https://github.com/maschina-labs/maschina/commit/e73d0ec51e6a3acd9fe12c941ea63982bcfd372a))
+* **runtime:** build the range machine ([#638](https://github.com/maschina-labs/maschina/issues/638)) ([e8a1730](https://github.com/maschina-labs/maschina/commit/e8a17308141ef1df7965f635c555ed1398a9de2e))
+* **runtime:** let a machine wait on more than one price level ([#632](https://github.com/maschina-labs/maschina/issues/632)) ([29ab81b](https://github.com/maschina-labs/maschina/commit/29ab81bb103eac034676713679ae1ffd6c1b0dca))
+* **solana:** check a withdrawal is one transfer to the owner ([#633](https://github.com/maschina-labs/maschina/issues/633)) ([64f53b2](https://github.com/maschina-labs/maschina/commit/64f53b2f6e9efcc84906026108259ab4bdee4771))
+
+
+### Fixed
+
+* **gateway:** send only what the contract names when a machine is made ([#627](https://github.com/maschina-labs/maschina/issues/627)) ([a828a50](https://github.com/maschina-labs/maschina/commit/a828a507c1012ad0b9859449f9df3e783a7d6d72))
+* **runtime:** let a paper machine hold what it bought ([#640](https://github.com/maschina-labs/maschina/issues/640)) ([7d81b12](https://github.com/maschina-labs/maschina/commit/7d81b1283e8716e40d5683c2a3cf7d6c88670c0f))
+
 ## [0.0.21](https://github.com/maschina-labs/maschina/compare/v0.0.20...v0.0.21) (2026-09-25)
 
 
