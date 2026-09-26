@@ -45,6 +45,14 @@ type Item = {
 	label: string;
 	icon: Icon;
 	to?: string;
+	/**
+	 * Pages this item is the home of, beyond its own address.
+	 *
+	 * Deliberately not "anything underneath my path". Wallet and Withdrawal are siblings in this list
+	 * even though one address sits inside the other, and a parent lighting up for a page its sibling owns
+	 * makes the sidebar say you are in two places at once.
+	 */
+	owns?: string;
 	/** When present, pressing this opens them underneath rather than going anywhere. */
 	under?: { label: string; to?: string }[];
 };
@@ -52,7 +60,9 @@ type Item = {
 function NavItem({ item, depth = 0 }: { item: Item; depth?: number }) {
 	const [open, setOpen] = useState(false);
 	const path = useRouterState({ select: (state) => state.location.pathname });
-	const here = item.to !== undefined && (path === item.to || path.startsWith(`${item.to}/`));
+	const here =
+		(item.to !== undefined && path === item.to) ||
+		(item.owns !== undefined && path.startsWith(item.owns));
 	const Glyph = item.icon;
 
 	const shared =
@@ -234,7 +244,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 
 					<Group name="Machines">
-						<NavItem item={{ label: "All machines", icon: Pulse, to: "/" }} />
+						<NavItem item={{ label: "All machines", icon: Pulse, to: "/", owns: "/machines/" }} />
 						<NavItem
 							item={{
 								label: "Teams",

@@ -8,6 +8,7 @@
 
 import { type QueryClient, queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import type { Api } from "./api.ts";
+import { ApiError } from "./machines.ts";
 import { connect, signMessage } from "./wallet.ts";
 
 export type SignedInOwner = { ownerId: string; walletAddress: string };
@@ -18,7 +19,10 @@ async function read<T>(response: Response): Promise<T> {
 	const body = (await response.json().catch(() => undefined)) as
 		| { error?: { message?: string } }
 		| undefined;
-	throw new Error(body?.error?.message ?? `The API answered ${response.status}.`);
+	throw new ApiError(
+		body?.error?.message ?? `The API answered ${response.status}.`,
+		response.status,
+	);
 }
 
 /** Who is signed in, according to the API rather than to anything this app remembers. */

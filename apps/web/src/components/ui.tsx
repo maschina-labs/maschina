@@ -346,13 +346,15 @@ export function PageHead({
 	children?: ReactNode;
 }) {
 	return (
-		<header className="flex flex-wrap items-start justify-between gap-4 border-line border-b px-7 py-5">
-			<div className="min-w-0">
-				<h1 className="truncate font-medium text-[17px] text-text tracking-[-0.01em]">{title}</h1>
-				{note ? <p className="mt-1 text-[12px] text-text-muted">{note}</p> : null}
-				{children}
+		<header className="border-line border-b px-7 py-5">
+			<div className="mx-auto flex w-full max-w-[1180px] flex-wrap items-start justify-between gap-4">
+				<div className="min-w-0">
+					<h1 className="truncate font-medium text-[17px] text-text tracking-[-0.01em]">{title}</h1>
+					{note ? <p className="mt-1 text-[12px] text-text-muted">{note}</p> : null}
+					{children}
+				</div>
+				{actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
 			</div>
-			{actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
 		</header>
 	);
 }

@@ -57,12 +57,31 @@ export type RecordEntry = {
 	payload: Record<string, unknown>;
 };
 
+/**
+ * An error carrying the status that caused it.
+ *
+ * The status is what tells a screen whether to say "sign in", "not yours" or "the API is down", and a
+ * message alone cannot: three different situations can produce the same sentence.
+ */
+export class ApiError extends Error {
+	readonly status: number;
+
+	constructor(message: string, status: number) {
+		super(message);
+		this.name = "ApiError";
+		this.status = status;
+	}
+}
+
 async function read<T>(response: Response): Promise<T> {
 	if (response.ok) return (await response.json()) as T;
 	const body = (await response.json().catch(() => undefined)) as
 		| { error?: { message?: string } }
 		| undefined;
-	throw new Error(body?.error?.message ?? `The API answered ${response.status}.`);
+	throw new ApiError(
+		body?.error?.message ?? `The API answered ${response.status}.`,
+		response.status,
+	);
 }
 
 const machinesQuery = (api: Api) =>
@@ -80,7 +99,13 @@ const machineQuery = (api: Api, machineId: string) =>
 			read<MachineDetail>(await api.v1.machines[":machineId"].$get({ param: { machineId } })),
 	});
 
-const recordQuery = (api: Api, machineId: string) =>
+/**
+ * One machine's record, as a query others can compose.
+ *
+ * Exported because the activity feed reads several at once and merges them, which it can only do if it
+ * can hold the queries rather than the hooks.
+ */
+export const recordQueryFor = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId, "record"],
 		queryFn: async () =>
@@ -96,7 +121,7 @@ const recordQuery = (api: Api, machineId: string) =>
 
 export const useMachines = (api: Api) => useQuery(machinesQuery(api));
 export const useMachine = (api: Api, machineId: string) => useQuery(machineQuery(api, machineId));
-export const useRecord = (api: Api, machineId: string) => useQuery(recordQuery(api, machineId));
+export const useRecord = (api: Api, machineId: string) => useQuery(recordQueryFor(api, machineId));
 
 /** Fund, start, pause, resume or stop. Funding carries the new total the machine may spend. */
 export function useMachineAction(api: Api, queryClient: QueryClient, machineId: string) {

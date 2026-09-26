@@ -31,6 +31,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { ForError } from "../components/for-error.tsx";
 import { Shell } from "../components/shell.tsx";
 import {
 	Button,
@@ -145,7 +146,7 @@ function Machine() {
 		return (
 			<Shell>
 				<PageHead title="Loading" />
-				<div className="px-7 py-6">
+				<div className="mx-auto w-full max-w-[1180px] px-7 py-6">
 					<Loading rows={5} />
 				</div>
 			</Shell>
@@ -156,9 +157,9 @@ function Machine() {
 		return (
 			<Shell>
 				<PageHead title="Machine" />
-				<Failed
+				<ForError
+					error={machine.error}
 					title="This machine could not be read"
-					detail={machine.error.message}
 					retry={() => machine.refetch()}
 				/>
 			</Shell>
@@ -209,7 +210,7 @@ function Machine() {
 				) : null}
 			</PageHead>
 
-			<div className="px-7 py-6">
+			<div className="mx-auto w-full max-w-[1180px] px-7 py-6">
 				{editing ? (
 					<div className="mb-5 flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2.5">
 						<Coin size={14} className="shrink-0 text-text-faint" />
@@ -279,9 +280,8 @@ function Machine() {
 						/>
 						<Metric label="Holding" value={amount(it.result.position, 9)} unit="SOL" tone="muted" />
 						<Metric
-							label="Round trips"
+							label={`Round trips · ${it.result.wins} up, ${it.result.losses} down`}
 							value={`${it.result.roundTrips}`}
-							unit={`${it.result.wins}W ${it.result.losses}L`}
 							tone="muted"
 						/>
 						<Metric
@@ -331,11 +331,17 @@ function Machine() {
 								{it.limits.maxPerDay ? amount(it.limits.maxPerDay) : "not set"}
 							</Row>
 							<Row label="Approved tokens">{it.limits.approvedMints.length}</Row>
-							{it.limits.approvedMints.map((mint) => (
-								<Row key={mint} label="">
-									<span className="text-text-faint">{`${mint.slice(0, 6)}…${mint.slice(-4)}`}</span>
-								</Row>
-							))}
+							<div className="flex flex-wrap gap-1.5 px-4 py-2.5">
+								{it.limits.approvedMints.map((mint) => (
+									<span
+										key={mint}
+										title={mint}
+										className="rounded border border-line bg-inset px-1.5 py-0.5 font-mono text-[10.5px] text-text-faint"
+									>
+										{`${mint.slice(0, 4)}…${mint.slice(-4)}`}
+									</span>
+								))}
+							</div>
 						</Panel>
 
 						<Panel

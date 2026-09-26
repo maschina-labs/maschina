@@ -8,8 +8,9 @@
 
 import { Plus, Pulse, Wallet } from "@phosphor-icons/react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { ForError } from "../components/for-error.tsx";
 import { Shell } from "../components/shell.tsx";
-import { Button, Empty, Failed, Loading, PageHead, Pill } from "../components/ui.tsx";
+import { Button, Empty, Loading, PageHead, Pill } from "../components/ui.tsx";
 import { amount, type MachineSummary, useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
 
@@ -51,22 +52,16 @@ function MachineRow({ machine }: { machine: MachineSummary }) {
 				</span>
 			</span>
 
-			<span className="hidden w-[104px] shrink-0 text-right sm:block">
-				<span className="block font-mono text-[13px] text-text">
-					{amount(machine.budget.available)}
-				</span>
-				<span className="block text-[10px] text-text-faint uppercase tracking-[0.08em]">left</span>
+			<span className="hidden w-[104px] shrink-0 text-right font-mono text-[13px] text-text sm:block">
+				{amount(machine.budget.available)}
 			</span>
 
-			<span className="w-[104px] shrink-0 text-right">
-				<span
-					className={`block font-mono text-[13px] ${
-						lost ? "text-danger-text" : made ? "text-accent-text" : "text-text-faint"
-					}`}
-				>
-					{amount(machine.result.realised)}
-				</span>
-				<span className="block text-[10px] text-text-faint uppercase tracking-[0.08em]">made</span>
+			<span
+				className={`w-[104px] shrink-0 text-right font-mono text-[13px] ${
+					lost ? "text-danger-text" : made ? "text-accent-text" : "text-text-faint"
+				}`}
+			>
+				{amount(machine.result.realised)}
 			</span>
 		</Link>
 	);
@@ -100,9 +95,9 @@ function Machines() {
 			) : machines.isPending ? (
 				<Loading rows={4} />
 			) : machines.error ? (
-				<Failed
+				<ForError
+					error={machines.error}
 					title="Your machines could not be read"
-					detail={machines.error.message}
 					retry={() => machines.refetch()}
 				/>
 			) : machines.data.length === 0 ? (
@@ -119,7 +114,13 @@ function Machines() {
 					}
 				/>
 			) : (
-				<div>
+				<div className="mx-auto w-full max-w-[1180px]">
+					{/* Labelled once, at the top, rather than under every number. */}
+					<div className="flex items-center gap-4 border-line/50 border-b px-7 py-2 text-[10px] text-text-faint uppercase tracking-[0.08em]">
+						<span className="min-w-0 flex-1">Machine</span>
+						<span className="hidden w-[104px] shrink-0 text-right sm:block">Left to spend</span>
+						<span className="w-[104px] shrink-0 text-right">Made</span>
+					</div>
 					{machines.data.map((machine) => (
 						<MachineRow key={machine.machineId} machine={machine} />
 					))}

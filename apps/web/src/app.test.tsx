@@ -29,6 +29,6 @@ describe("the web app", () => {
 
 	it("shows a not-found page for unknown routes", async () => {
 		renderAt("/nowhere");
-		expect(await screen.findByText("There's nothing here.")).toBeInTheDocument();
+		expect(await screen.findByText("There is nothing at this address")).toBeInTheDocument();
 	});
 });
