@@ -80,6 +80,7 @@ describe("reserving against a record", () => {
 	it("refuses a trade the budget cannot cover, and says what was available", async () => {
 		const { db } = fakeDatabase(
 			[{ id: machineId }],
+			[{ kind: "price_trigger", settings: {} }],
 			[
 				{
 					id: newId<"event">(),
@@ -100,6 +101,7 @@ describe("reserving against a record", () => {
 	it("reports what was held and what is left when it fits", async () => {
 		const { db } = fakeDatabase(
 			[{ id: machineId }],
+			[{ kind: "price_trigger", settings: {} }],
 			[
 				{
 					id: newId<"event">(),
@@ -120,6 +122,7 @@ describe("reserving against a record", () => {
 	it("passes a refused write straight back, rather than reporting a reservation", async () => {
 		const { db } = fakeDatabase(
 			[{ id: machineId }],
+			[{ kind: "price_trigger", settings: {} }],
 			[
 				{
 					id: newId<"event">(),
@@ -239,31 +242,34 @@ describe("reading a budget", () => {
 	});
 
 	it("counts what the record says", async () => {
-		const { db } = fakeDatabase([
-			{
-				id: newId<"event">(),
-				machine_id: machineId,
-				type: "machine.limits_changed",
-				payload: { limit: "budgetGranted", from: null, to: "500" },
-				occurred_at: "2026-09-18T00:00:00.000Z",
-			},
-			{
-				id: newId<"event">(),
-				machine_id: machineId,
-				type: "trade.intended",
-				payload: {
-					runId,
-					tradeId,
-					inputMint: SOL,
-					outputMint: USDC,
-					inputAmount: "100",
-					quotedOutputAmount: "1",
-					slippageBps: 50,
-					feeAllowance: "10",
+		const { db } = fakeDatabase(
+			[{ kind: "price_trigger", settings: {} }],
+			[
+				{
+					id: newId<"event">(),
+					machine_id: machineId,
+					type: "machine.limits_changed",
+					payload: { limit: "budgetGranted", from: null, to: "500" },
+					occurred_at: "2026-09-18T00:00:00.000Z",
 				},
-				occurred_at: "2026-09-18T00:00:01.000Z",
-			},
-		]);
+				{
+					id: newId<"event">(),
+					machine_id: machineId,
+					type: "trade.intended",
+					payload: {
+						runId,
+						tradeId,
+						inputMint: SOL,
+						outputMint: USDC,
+						inputAmount: "100",
+						quotedOutputAmount: "1",
+						slippageBps: 50,
+						feeAllowance: "10",
+					},
+					occurred_at: "2026-09-18T00:00:01.000Z",
+				},
+			],
+		);
 
 		const budget = await budgetFor(db, machineId);
 

@@ -9,6 +9,8 @@
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
 import {
 	allowedActions,
+	budgetMintOf,
+	KNOWN_KINDS,
 	type MachineAction,
 	type MachineState,
 	machineBudget,
@@ -57,7 +59,10 @@ const asDate = (value: string | Date) => (value instanceof Date ? value : new Da
 async function summarise(db: Executor, row: Row): Promise<OwnedMachine> {
 	const events = await readMachineEvents(db, row.id);
 	const status = machineState(events);
-	const budget = machineBudget(events);
+	// Money that came back in the machine's own currency returns to its budget, so the kind is asked
+	// which currency that is. A kind that never sells anything back says nothing and nothing changes.
+	const budgetMint = budgetMintOf(KNOWN_KINDS, row.kind, row.settings);
+	const budget = machineBudget(events, budgetMint === undefined ? {} : { budgetMint });
 	return {
 		machineId: row.id,
 		name: row.name,

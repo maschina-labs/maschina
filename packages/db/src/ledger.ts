@@ -16,7 +16,7 @@
  */
 
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
-import { type MachineBudget, machineBudget } from "@maschina/runtime";
+import { budgetMintOf, KNOWN_KINDS, type MachineBudget, machineBudget } from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Database, Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
@@ -210,7 +210,16 @@ async function lockMachine(db: Executor, machineId: string): Promise<boolean> {
 }
 
 async function budgetOf(db: Executor, machineId: string): Promise<MachineBudget> {
-	return machineBudget(await readMachineEvents(db, machineId));
+	const rows = await db.execute<{ kind: string; settings: unknown }>(sql`
+		select machine_definitions.kind, machine_definitions.settings
+		from machines
+		join machine_definitions on machine_definitions.id = machines.definition_id
+		where machines.id = ${machineId}::uuid`);
+	const row = rows[0];
+	// Money that came back in the machine's own currency returns to what it may spend.
+	const budgetMint = row ? budgetMintOf(KNOWN_KINDS, row.kind, row.settings) : undefined;
+	const events = await readMachineEvents(db, machineId);
+	return machineBudget(events, budgetMint === undefined ? {} : { budgetMint });
 }
 
 export type TradeSubmission = {

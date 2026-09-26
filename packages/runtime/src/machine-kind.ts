@@ -69,6 +69,14 @@ export type MachineKind<Settings> = {
 	readSettings(settings: unknown): { ok: true; value: Settings } | { ok: false; problem: string };
 	/** Decides what to do. Pure: the same settings and view always give the same decision. */
 	decide(settings: Settings, view: MachineView): Decision;
+	/**
+	 * The token this machine's budget is counted in, which is whatever it spends.
+	 *
+	 * The budget is a limit on how much of an owner's money may be deployed at once, so money coming
+	 * back in this token returns to the budget. A kind that never sells anything back can leave this
+	 * out, and its budget will only ever fall.
+	 */
+	budgetMint?(settings: Settings): string;
 };
 
 /** The kinds a running Maschina knows about, by name. */
@@ -83,6 +91,23 @@ export function registryOf(kinds: readonly MachineKind<never>[]): MachineKindReg
 		byName.set(kind.kind, kind as MachineKind<unknown>);
 	}
 	return byName;
+}
+
+/**
+ * The token a machine's budget is counted in, or nothing when its kind does not say.
+ *
+ * Asked of the kind rather than guessed, because only a kind knows which side of its own trade is the
+ * money and which is the thing being bought.
+ */
+export function budgetMintOf(
+	kinds: MachineKindRegistry,
+	kind: string,
+	settings: unknown,
+): string | undefined {
+	const known = kinds.get(kind);
+	if (!known?.budgetMint) return undefined;
+	const read = known.readSettings(settings);
+	return read.ok ? known.budgetMint(read.value) : undefined;
 }
 
 /** Reads settings and decides in one step, so callers never hold half-checked settings. */
