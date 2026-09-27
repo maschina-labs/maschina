@@ -11,6 +11,7 @@ export default {
 				"gateway",
 				"orchestrator",
 				"signer",
+				"provisioner",
 				"daemon",
 				"bots",
 				"core",

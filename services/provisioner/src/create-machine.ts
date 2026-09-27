@@ -62,8 +62,20 @@ export type CreateMachinePorts = {
 
 export type CreatedMachine = WrittenMachine & { providerWalletId: string };
 
-/** The most SOL one transfer may move: the machine's whole budget, never more. */
-const transferLimit = (budget: bigint) => budget;
+/**
+ * The most SOL one transfer may move.
+ *
+ * It used to be the machine's budget, which is a different quantity in different units: a budget is base
+ * units of whatever the machine spends, usually USDC at six decimals, and this is lamports at nine. A
+ * machine funded with fifty dollars was given a cap of 0.05 SOL, which nobody chose and which was far
+ * too small to take its funds back in one go. Turnkey refused the first real withdrawal because of it.
+ *
+ * It is a constant now because it cannot be derived from anything here. Note what it is and is not for:
+ * the only address these funds can ever reach is the owner's, enforced by the same policy, so a tight
+ * cap protects nobody and strands money. This bounds a runaway bug, and the destination restriction is
+ * what stops theft.
+ */
+export const MAX_LAMPORTS_PER_TRANSFER = 1_000_000_000_000n;
 
 export async function createMachine(
 	ports: CreateMachinePorts,
@@ -79,7 +91,7 @@ export async function createMachine(
 		recipients: [],
 		approvedPrograms: Object.keys(SWAP_PROGRAMS).sort(),
 		approvedMints: [...request.limits.approvedMints].sort(),
-		maxLamportsPerTransfer: transferLimit(request.limits.budgetGranted),
+		maxLamportsPerTransfer: MAX_LAMPORTS_PER_TRANSFER,
 	};
 
 	const created = await ports.provider.createWallet({ label: request.name, policy: wanted });
