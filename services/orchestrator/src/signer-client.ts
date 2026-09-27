@@ -8,6 +8,8 @@
 import {
 	type SignRequest,
 	SignResponse,
+	type SweepRequest,
+	SweepResponse,
 	type WithdrawRequest,
 	WithdrawResponse,
 } from "@maschina/contracts";
@@ -69,6 +71,36 @@ export function signerClient(options: { url: string; token: string; fetch?: type
 			}
 			if (response.status === 400) {
 				throw new MaschinaError("invalid_input", "the signer could not read the withdrawal");
+			}
+			throw new MaschinaError("internal", `the signer answered ${response.status}`);
+		},
+
+		/**
+		 * Asks the signer whether a machine has profit to bank, and to bank it if so. What is due and where
+		 * it goes are the signer's to work out; the request names the machine and nothing else.
+		 */
+		async sweep(request: SweepRequest): Promise<SweepResponse> {
+			let response: Response;
+			try {
+				response = await fetchFn(new URL("/internal/v1/sweep", options.url), {
+					method: "POST",
+					headers: {
+						authorization: `Bearer ${options.token}`,
+						"content-type": "application/json",
+					},
+					body: JSON.stringify(request),
+					signal: AbortSignal.timeout(TIMEOUT_MS),
+				});
+			} catch (cause) {
+				throw new MaschinaError("unavailable", "the signer could not be reached", { cause });
+			}
+
+			if (response.ok) return SweepResponse.parse(await response.json());
+			if (response.status === 503) {
+				throw new MaschinaError("unavailable", "the signer cannot sweep right now");
+			}
+			if (response.status === 400) {
+				throw new MaschinaError("invalid_input", "the signer could not read the sweep");
 			}
 			throw new MaschinaError("internal", `the signer answered ${response.status}`);
 		},
