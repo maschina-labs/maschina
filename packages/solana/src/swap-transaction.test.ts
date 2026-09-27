@@ -2,7 +2,12 @@ import { MaschinaError } from "@maschina/core";
 import { describe, expect, it } from "vitest";
 import { parseAddress } from "./address.ts";
 import type { SwapQuote } from "./router.ts";
-import { checkUnsignedSwap, parseBuiltSwap, SWAP_PROGRAMS } from "./swap-transaction.ts";
+import {
+	checkUnsignedSwap,
+	parseBuiltSwap,
+	SWAP_PROGRAMS,
+	TRANSFER_PROGRAMS,
+} from "./swap-transaction.ts";
 import { unsignedTransactionBase64, unsignedTransactionFor } from "./testing.ts";
 
 const WALLET = parseAddress("3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF");
@@ -166,5 +171,21 @@ describe("reading what a router built", () => {
 
 		expect(swap.lastValidBlockHeight).toBe(426_070_577n);
 		expect(swap.priorityFeeLamports).toBe(6417n);
+	});
+});
+
+describe("the programs a vault may call", () => {
+	it("include nothing that can trade", () => {
+		// This list is what makes banked profit banked. A router on it would make the vault a second
+		// trading account with a reassuring name.
+		expect(TRANSFER_PROGRAMS[JUPITER]).toBeUndefined();
+		expect(Object.values(TRANSFER_PROGRAMS)).not.toContain("raydium router");
+	});
+
+	it("are all programs a swap may call too, so a vault can do strictly less than a machine", () => {
+		for (const program of Object.keys(TRANSFER_PROGRAMS)) {
+			expect(SWAP_PROGRAMS[program], program).toBeDefined();
+		}
+		expect(Object.keys(TRANSFER_PROGRAMS).length).toBeLessThan(Object.keys(SWAP_PROGRAMS).length);
 	});
 });

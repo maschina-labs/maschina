@@ -65,23 +65,50 @@ export function toMaschinaError(error: ProviderError): MaschinaError {
 	});
 }
 
+/**
+ * Which of a machine wallet's accounts an operation is for.
+ *
+ * A machine wallet holds two accounts under one key. The trading account does the machine's work. The
+ * vault sits beside it, holds what the machine has earned, and has a policy that lets it pay its owner
+ * and nothing else. Every operation defaults to the trading account, so reaching the vault always has to
+ * be asked for by name.
+ */
+export type WalletAccount = "trading" | "vault";
+
 type ProviderWallet = {
 	/** The provider's own id for the wallet. */
 	readonly walletId: string;
+	/** The trading account's address. */
 	readonly address: SolanaAddress;
+	/** The vault's address, when the wallet was made with one. */
+	readonly vaultAddress?: SolanaAddress;
 };
 
 type ProviderResult<T> = Promise<Result<T, ProviderError>>;
 
 export interface WalletProvider {
 	readonly name: string;
-	/** Creates a wallet with its policy attached. The policy is read back before this succeeds. */
-	createWallet(input: { label: string; policy: WalletPolicy }): ProviderResult<ProviderWallet>;
-	/** The policy the provider is enforcing now, as stored by the provider. */
-	readPolicy(walletId: string): ProviderResult<WalletPolicy>;
-	/** Signs an unsigned transaction, or refuses it under the wallet's policy. Never sends it. */
-	sign(walletId: string, unsignedTransaction: Uint8Array): ProviderResult<Uint8Array>;
-	/** Replaces the approved recipients (besides the owner) in place, and returns the stored policy. */
+	/**
+	 * Creates a wallet with its policy attached, and a vault beside it when a vault policy is given. Every
+	 * policy is read back before this succeeds.
+	 */
+	createWallet(input: {
+		label: string;
+		policy: WalletPolicy;
+		vault?: WalletPolicy;
+	}): ProviderResult<ProviderWallet>;
+	/** The policy the provider is enforcing now on one account, as stored by the provider. */
+	readPolicy(walletId: string, account?: WalletAccount): ProviderResult<WalletPolicy>;
+	/** Signs as one account, or refuses under that account's policy. Never sends. */
+	sign(
+		walletId: string,
+		unsignedTransaction: Uint8Array,
+		account?: WalletAccount,
+	): ProviderResult<Uint8Array>;
+	/**
+	 * Replaces the trading account's approved recipients (besides the owner) in place, and returns the
+	 * stored policy. A vault has no recipients to change: it pays its owner or nobody.
+	 */
 	setRecipients(
 		walletId: string,
 		recipients: readonly SolanaAddress[],

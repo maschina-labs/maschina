@@ -47,6 +47,7 @@ Working today, each proved against real services rather than mocks:
 | How far above its float a machine is, at every moment, including while it holds the other side | `packages/runtime/src/machine-float.ts` |
 | Refusing to sweep profit for forty cents, or against a position whose value is still an opinion | `packages/rules/src/float.ts` |
 | A wallet policy that pins where a token may go, not only which token may move | `packages/wallet/src/turnkey-policy.ts` |
+| A vault beside every machine, whose key cannot sign a trade, checked against the real Turnkey | `services/provisioner/src/create-machine.ts`, `services/provisioner/scripts/check-vault.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
@@ -64,8 +65,8 @@ as the product being finished:
   paper. Nothing has yet spent a real dollar.
 - **Withdrawal is not usable by a person.** The signer path exists and has been run against real
   Turnkey and real Solana, and there is no button and no public route in front of it yet.
-- **The vault.** A machine's float and its surplus are worked out, and the account that profit is
-  swept into does not exist yet, so nothing is banked and nothing is out of reach.
+- **The sweep.** Every machine now has a vault beside it that cannot trade, and a float whose surplus
+  is worked out. Nothing moves profit into the vault yet.
 - **A token transfer out of a trading wallet is checked by one layer, not two.** The provider's policy
   pins where SOL may go and checks only which token may move, because a swap routes tokens through pool
   accounts that cannot be named in advance. What stops a token leaving to a stranger today is Maschina's
@@ -88,8 +89,10 @@ Three independent things have to agree before money moves, and any one of them c
    on that machine. Twenty trades racing for a budget that fits ten: exactly ten get through. That test
    runs against real Postgres, in `packages/integration-tests`.
 3. **The wallet provider** enforces the wallet's own policy and knows nothing about Maschina. It refuses
-   a payment to an address nobody approved, and it denies key export to us permanently. Proved against
-   the real provider with `pnpm --filter @maschina/signer check:turnkey`.
+   SOL sent anywhere but the owner or the machine's own wrapped SOL account, and it denies key export to
+   us permanently. A machine's vault gets a narrower policy still: no router, and tokens only into the
+   owner's own accounts. Proved against the real provider with
+   `pnpm --filter @maschina/signer check:turnkey` and `pnpm --filter @maschina/provisioner check:vault`.
 
 A trade's signature is written to the record before the transaction is sent, so a crash leaves a
 signature the chain can be asked about rather than a question nobody can answer. Nothing is ever

@@ -14,6 +14,16 @@ describeWalletProvider("the in-memory provider", {
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
 		tokenDestinations: "any",
+		wrapsSol: false,
+		maxLamportsPerTransfer: 50_000_000n,
+	},
+	vaultPolicy: {
+		owner: OWNER,
+		recipients: [],
+		approvedPrograms: ["11111111111111111111111111111111"],
+		approvedMints: ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
+		tokenDestinations: ["2arVPHhzahANuftuDyHXP414ye2ARUgJvcbP9NHAsfnj"],
+		wrapsSol: false,
 		maxLamportsPerTransfer: 50_000_000n,
 	},
 	payment: (from, to) => memoryPayment({ from, to, lamports: 1_000_000n }),
@@ -28,6 +38,7 @@ describe("the in-memory provider's own rules", () => {
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
 		tokenDestinations: "any",
+		wrapsSol: false,
 		maxLamportsPerTransfer: 10n,
 	} as const;
 

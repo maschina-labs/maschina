@@ -11,7 +11,8 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
+		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs",
+		"check:vault": "tsx scripts/check-vault.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "catalog:",

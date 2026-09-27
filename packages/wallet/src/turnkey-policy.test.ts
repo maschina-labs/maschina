@@ -11,6 +11,8 @@ const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SIGNER = "0199a0a0-0000-4000-8000-000000000001";
 /** The owner's USDC account, which is where a vault pays and the only place it may. */
 const OWNER_USDC_ACCOUNT = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
+/** The wallet's own wrapped SOL account, which a sale moves SOL into before swapping it. */
+const WRAP = "4NsHcwfQNCGBD7Axumo1aqMjwPHVAoE5krd8QFWcb29x";
 
 const policy = (over: Partial<WalletPolicy> = {}): WalletPolicy => ({
 	owner: OWNER,
@@ -18,6 +20,7 @@ const policy = (over: Partial<WalletPolicy> = {}): WalletPolicy => ({
 	approvedPrograms: [SYSTEM, JUPITER],
 	approvedMints: [USDC],
 	tokenDestinations: "any",
+	wrapsSol: false,
 	maxLamportsPerTransfer: 1_000_000_000n,
 	...over,
 });
@@ -27,6 +30,7 @@ const build = (over: Partial<WalletPolicy> = {}) =>
 		label: "weekly-sol",
 		signerUserId: SIGNER,
 		walletAddress: WALLET,
+		wrapAccount: WRAP,
 		policy: policy(over),
 	});
 
@@ -107,10 +111,52 @@ describe("the policies a machine wallet gets", () => {
 		// Both are `to` in Turnkey's language. Reading one as the other would quietly widen who may be
 		// paid in SOL to include a token account nobody approved for that.
 		const specs = build({ tokenDestinations: [OWNER_USDC_ACCOUNT] });
-		const readBack = policyFromExpressions(specs);
+		const readBack = policyFromExpressions(specs, { wrapAccount: WRAP });
 
 		expect(readBack?.recipients).toEqual([]);
 		expect(readBack?.tokenDestinations).toEqual([OWNER_USDC_ACCOUNT]);
+	});
+
+	it("lets SOL into the wallet's own wrapped SOL account, when the wallet sells SOL", () => {
+		// Selling SOL means wrapping it first, and wrapping is a plain transfer into the wallet's own
+		// token account. Without this a machine can buy and never sell. Found against the real Turnkey.
+		const [signing] = build({ wrapsSol: true });
+
+		expect(signing?.condition).toContain(`t.to == '${WRAP}'`);
+	});
+
+	it("leaves the wrapped SOL account out when the wallet never sells SOL", () => {
+		const [signing] = build({ wrapsSol: false });
+
+		expect(signing?.condition).not.toContain(WRAP);
+	});
+
+	it("refuses to write a policy that wraps SOL without being told where", () => {
+		expect(() =>
+			turnkeyPolicies({
+				label: "weekly-sol",
+				signerUserId: SIGNER,
+				walletAddress: WALLET,
+				policy: policy({ wrapsSol: true }),
+			}),
+		).toThrow(/wrap/);
+	});
+
+	it("does not read the wrapped SOL account back as somebody who may be paid", () => {
+		const specs = build({ wrapsSol: true, recipients: [PAYEE] });
+		const readBack = policyFromExpressions(specs, { wrapAccount: WRAP });
+
+		expect(readBack?.recipients).toEqual([PAYEE]);
+		expect(readBack?.wrapsSol).toBe(true);
+	});
+
+	it("reads a wrapped SOL account nobody said to expect as a recipient, not as wrapping", () => {
+		// Read-back only trusts the account it derived itself. Anything else is exactly what it looks like.
+		const specs = build({ wrapsSol: true });
+		const readBack = policyFromExpressions(specs, { wrapAccount: OWNER_USDC_ACCOUNT });
+
+		expect(readBack?.wrapsSol).toBe(false);
+		expect(readBack?.recipients).toEqual([WRAP]);
 	});
 
 	it("names its policies after the machine, so they can be found again", () => {
@@ -179,7 +225,7 @@ describe("reading a policy back out of its expressions", () => {
 			policy: original,
 		});
 
-		expect(policyFromExpressions(specs)).toEqual(original);
+		expect(policyFromExpressions(specs, { wrapAccount: WRAP })).toEqual(original);
 	});
 
 	it("returns exactly what went in, destinations and all", () => {
@@ -191,7 +237,7 @@ describe("reading a policy back out of its expressions", () => {
 			policy: original,
 		});
 
-		expect(policyFromExpressions(specs)).toEqual(original);
+		expect(policyFromExpressions(specs, { wrapAccount: WRAP })).toEqual(original);
 	});
 
 	it("reads a policy written before token destinations existed as open", () => {

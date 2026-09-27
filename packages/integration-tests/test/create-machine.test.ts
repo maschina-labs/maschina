@@ -106,6 +106,66 @@ describe("writeMachine", () => {
 		expect(refused.ok).toBe(false);
 	});
 
+	it("keeps the vault beside the wallet, in the table and in the record", async () => {
+		const vaultAddress = address();
+		const request = aMachine({
+			wallet: {
+				address: address(),
+				vaultAddress,
+				providerWalletId: "wallet-1",
+				provider: "turnkey",
+			},
+		});
+		const written = await writeMachine(handle.db, request);
+		if (!written.ok) throw written.error;
+
+		const rows = await handle.sql<{ vault_address: string | null }[]>`
+			select vault_address from machines where id = ${written.value.machineId}::uuid`;
+		expect(rows[0]?.vault_address).toBe(vaultAddress);
+
+		// The record says where profit goes, so the vault can be found from history alone.
+		const created = (await readMachineEvents(handle.db, written.value.machineId)).find(
+			(event) => event.type === "machine.created",
+		);
+		expect(created?.type === "machine.created" && created.payload.vaultAddress).toBe(vaultAddress);
+	});
+
+	it("writes a machine with no vault as having none", async () => {
+		const written = await writeMachine(handle.db, aMachine());
+		if (!written.ok) throw written.error;
+
+		const rows = await handle.sql<{ vault_address: string | null }[]>`
+			select vault_address from machines where id = ${written.value.machineId}::uuid`;
+		expect(rows[0]?.vault_address).toBeNull();
+	});
+
+	it("refuses a vault that is the machine's own wallet, because then nothing is out of reach", async () => {
+		const same = address();
+		const refused = await writeMachine(
+			handle.db,
+			aMachine({
+				wallet: { address: same, vaultAddress: same, providerWalletId: "w", provider: "turnkey" },
+			}),
+		);
+
+		expect(refused.ok).toBe(false);
+	});
+
+	it("refuses a vault another machine already banks into", async () => {
+		const vaultAddress = address();
+		const wallet = () => ({
+			address: address(),
+			vaultAddress,
+			providerWalletId: "wallet-1",
+			provider: "turnkey",
+		});
+		const first = await writeMachine(handle.db, aMachine({ wallet: wallet() }));
+		const second = await writeMachine(handle.db, aMachine({ wallet: wallet() }));
+
+		expect(first.ok).toBe(true);
+		expect(second.ok).toBe(false);
+	});
+
 	it("refuses an owner address that is not an address", async () => {
 		const refused = await writeMachine(handle.db, aMachine({ ownerWallet: "nope" }));
 		expect(refused.ok).toBe(false);

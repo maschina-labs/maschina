@@ -43,6 +43,22 @@ export const SWAP_PROGRAMS: Record<string, string> = {
 	routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS: "raydium router",
 };
 
+/**
+ * The only programs a vault may call: enough to pay its owner, and nothing that can trade.
+ *
+ * A vault is where a machine's profit goes to be out of reach, and "out of reach" is this list. No router
+ * is on it, so a vault's key cannot sign a swap whatever it is handed, and that is enforced by the wallet
+ * provider rather than by anything Maschina decides at the time. The associated token program is here
+ * because paying an owner may first need to create the owner's account for that token.
+ */
+export const TRANSFER_PROGRAMS: Record<string, string> = {
+	ComputeBudget111111111111111111111111111111: "compute budget",
+	"11111111111111111111111111111111": "system",
+	TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA: "token",
+	TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb: "token-2022",
+	ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL: "associated token account",
+};
+
 /** What a transaction turned out to contain, once it was taken apart. */
 export type TransactionFacts = {
 	feePayer: Address;

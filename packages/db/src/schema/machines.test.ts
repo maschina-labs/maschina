@@ -16,13 +16,19 @@ describe("the machines table", () => {
 			"paper",
 			"provider",
 			"provider_wallet_id",
+			"vault_address",
 			"wallet_address",
 		]);
 	});
 
-	it("gives each machine its own wallet, so two can never share one", () => {
+	it("gives each machine its own wallet and its own vault, so two can never share either", () => {
 		const unique = table.columns.filter((column) => column.isUnique).map((column) => column.name);
-		expect(unique).toEqual(["wallet_address"]);
+		expect(unique.sort()).toEqual(["vault_address", "wallet_address"]);
+	});
+
+	it("lets a machine made before vaults have none", () => {
+		const vault = table.columns.find((column) => column.name === "vault_address");
+		expect(vault?.notNull).toBe(false);
 	});
 
 	it("links an owner and a definition, and won't have a machine without either", () => {
@@ -46,10 +52,12 @@ describe("the machines table", () => {
 		]);
 	});
 
-	it("checks the wallet address, the provider and the name in the database", () => {
+	it("checks the addresses, the provider and the name, and that the vault is separate", () => {
 		expect(table.checks.map((check) => check.name).sort()).toEqual([
 			"machines_name_length",
 			"machines_provider_known",
+			"machines_vault_address_shape",
+			"machines_vault_is_separate",
 			"machines_wallet_address_shape",
 		]);
 	});

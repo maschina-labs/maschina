@@ -46,6 +46,7 @@ export function turnkeyApi(config: TurnkeyConfig): TurnkeyApi {
 				accounts: accounts.map((account) => ({
 					address: account.address,
 					addressFormat: account.addressFormat,
+					path: account.path,
 				})),
 			};
 		},

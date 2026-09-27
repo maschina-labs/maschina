@@ -124,6 +124,8 @@ const MACHINE_PAYLOADS = {
 		/** The content-addressed definition version the machine is pinned to. */
 		definitionVersionId: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
 		walletAddress: address,
+		/** Where the machine's profit is swept. Absent for a machine made before vaults existed. */
+		vaultAddress: address.optional(),
 	}),
 	"machine.started": object({}),
 	"machine.paused": object({
