@@ -8,15 +8,20 @@
  * passing both.
  */
 
-import type { WithdrawRequest } from "@maschina/contracts";
+import type { SweepRequest, WithdrawRequest } from "@maschina/contracts";
 import {
 	type BlockhashReader,
+	balanceOf,
 	type Confirmation,
 	checkFeeAgainstTransaction,
 	checkSwapInstructions,
 	checkUnsignedSwap,
 	confirmSignature,
 	parseAddress,
+	readBalances,
+	readMint,
+	rpcAccountReader,
+	rpcBalanceReader,
 	rpcBlockhashReader,
 	rpcConfirmationReader,
 	rpcSender,
@@ -29,6 +34,7 @@ import { toMaschinaError, type WalletProvider } from "@maschina/wallet";
 import { chainSigner } from "./chain-signer.ts";
 import type { TradeSigner } from "./sign-route.ts";
 import type { ChainAnswer } from "./submit-once.ts";
+import { type SweepPorts, sweepProfit } from "./sweep.ts";
 import { type HaltPorts, whileHalted } from "./while-halted.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
 import { type RecordKeeper, withRules } from "./with-rules.ts";
@@ -190,4 +196,62 @@ export function withdrawer(parts: {
 	};
 
 	return { withdraw: (request: WithdrawRequest) => withdrawFunds(ports, request) };
+}
+
+/** What a sweep reads from and writes to the record. The database's version is in `main.ts`. */
+export type SweepRecord = Pick<
+	SweepPorts,
+	"machineFor" | "floatOf" | "record" | "submissionFor" | "requestedFor"
+>;
+
+/**
+ * The whole sweep, from its real parts.
+ *
+ * What the trading account holds is read from the chain here, and nowhere else, because it is the one
+ * number the record cannot know. The mint's decimals come from the chain too, because a checked transfer
+ * refuses the wrong number and a list is not the chain.
+ */
+export function sweeper(parts: {
+	record: SweepRecord;
+	provider: Pick<WalletProvider, "sign">;
+	rpc: SolanaRpc;
+}) {
+	const { record, provider, rpc } = parts;
+	const sender = rpcSender(rpc);
+	const confirmations = rpcConfirmationReader(rpc);
+	const transactions = rpcTransactionReader(rpc);
+	const blockhashes: BlockhashReader = rpcBlockhashReader(rpc);
+	const balances = rpcBalanceReader(rpc);
+	const accounts = rpcAccountReader(rpc);
+
+	const ports: SweepPorts = {
+		...record,
+		holdingOf: async (wallet, mint) => balanceOf(await readBalances(balances, wallet), mint),
+		decimalsOf: async (mint) => (await readMint(accounts, mint)).decimals,
+		latestBlockhash: () => blockhashes.latest(),
+		// The trading account signs: it is where the profit is, and the vault only ever receives.
+		sign: async (walletId, transaction) => {
+			const signed = await provider.sign(walletId, transaction);
+			if (signed.ok) return signed.value;
+			throw toMaschinaError(signed.error);
+		},
+		signatureOf,
+		send: async (signed) => {
+			await sender.send(signed);
+		},
+		confirm: async (submission) =>
+			answerFrom(
+				await confirmSignature(confirmations, {
+					signature: submission.signature,
+					lastValidBlockHeight: submission.lastValidBlockHeight,
+				}),
+			),
+		costOf: async (signature) => {
+			const landed = await transactions.transactionOf(signature);
+			if (!landed) throw new Error(`the chain has no transaction ${signature} to read a cost from`);
+			return landed.fee;
+		},
+	};
+
+	return { sweep: (request: SweepRequest) => sweepProfit(ports, request) };
 }

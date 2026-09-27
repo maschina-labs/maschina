@@ -3,7 +3,13 @@ import { MaschinaError, newId } from "@maschina/core";
 import { createLogger } from "@maschina/telemetry";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "./app.ts";
-import { readProposal, readWithdrawal, type TradeSigner, type Withdrawer } from "./sign-route.ts";
+import {
+	readProposal,
+	readWithdrawal,
+	type Sweeper,
+	type TradeSigner,
+	type Withdrawer,
+} from "./sign-route.ts";
 
 const token = "s".repeat(40);
 const WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
@@ -50,8 +56,13 @@ function fakeSigner(answer?: (request: SignRequest) => SignResponse) {
 	return { signer, asked };
 }
 
-const appWith = (signer: TradeSigner, withdrawer?: Withdrawer) =>
+const appWith = (signer: TradeSigner, withdrawer?: Withdrawer, sweeper?: Sweeper) =>
 	buildApp({
+		sweeper: sweeper ?? {
+			sweep: async () => {
+				throw new Error("the sweeper must not be asked");
+			},
+		},
 		version: "1.0.0",
 		orchestratorToken: token,
 		logger: createLogger({ service: "t", level: "silent" }),
@@ -291,6 +302,64 @@ describe("the withdraw route", () => {
 		const res = await appWith(never).request("/internal/v1/withdraw", {
 			method: "POST",
 			body: JSON.stringify(withdrawal),
+		});
+		expect(res.status).toBe(401);
+	});
+});
+
+describe("the sweep route", () => {
+	const sweep = { sweepId: newId<"sweep">(), machineId: newId<"machine">() };
+	const never: TradeSigner = {
+		sign: async () => {
+			throw new Error("the signer must not be asked");
+		},
+	};
+	const ask = (target: ReturnType<typeof appWith>, body: unknown) =>
+		target.request("/internal/v1/sweep", {
+			method: "POST",
+			headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+			body: JSON.stringify(body),
+		});
+
+	it("passes the sweep on and gives the answer back unchanged", async () => {
+		const asked: unknown[] = [];
+		const answer = {
+			status: "not_due" as const,
+			sweepId: sweep.sweepId,
+			because: "below its float",
+		};
+
+		const res = await ask(
+			appWith(never, undefined, {
+				sweep: async (request) => {
+					asked.push(request);
+					return answer;
+				},
+			}),
+			sweep,
+		);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual(answer);
+		expect(asked).toEqual([sweep]);
+	});
+
+	it.each([
+		["an amount", { amount: "1000000" }],
+		["a destination", { to: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E" }],
+	])(
+		"refuses a sweep that names %s, because neither is the caller's to choose",
+		async (_what, extra) => {
+			const res = await ask(appWith(never), { ...sweep, ...extra });
+			expect(res.status).toBe(400);
+		},
+	);
+
+	it("will not answer anybody but the orchestrator", async () => {
+		const res = await appWith(never).request("/internal/v1/sweep", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(sweep),
 		});
 		expect(res.status).toBe(401);
 	});
