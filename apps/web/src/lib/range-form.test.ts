@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandOf, rangeReady, rangeRequest, sixDecimals } from "./range-form.ts";
+import { bandOf, ROUND_TRIP_COST, rangeReady, rangeRequest, sixDecimals } from "./range-form.ts";
 
 const form = {
 	name: "SOL range",
@@ -11,6 +11,12 @@ const form = {
 };
 
 describe("the band", () => {
+	it("uses the same floor the server refuses below: sixty basis points", () => {
+		// packages/rules DEFAULT_ROUND_TRIP_COST_BPS. If one moves without the other, the form tells an
+		// owner a band is fine and the server refuses it, or the reverse.
+		expect(ROUND_TRIP_COST).toBe(60 / 10_000);
+	});
+
 	it("is the width between the edges as a share of the buy price", () => {
 		const band = bandOf("120.25", "122.25");
 		expect(band.width).toBeCloseTo(0.01663, 4);
