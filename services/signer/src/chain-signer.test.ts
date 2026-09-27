@@ -35,7 +35,9 @@ function ports(
 	const log: string[] = [];
 	let recorded: Submission | undefined;
 	const base: ChainPorts = {
-		checkShape: () => log.push("check"),
+		checkShape: () => {
+			log.push("check");
+		},
 		walletIdFor: async () => "wallet-1",
 		provider: {
 			sign: async () => {
@@ -156,6 +158,21 @@ describe("the signer that touches the chain", () => {
 		const answer = await chainSigner(p).sign(request);
 
 		expect(answer).toMatchObject({ status: "refused", by: "maschina", rule: "transaction_shape" });
+		expect(log).toEqual(["refused maschina transaction_shape"]);
+	});
+
+	it("waits for a check that takes time, and refuses on what it finds", async () => {
+		// Working out a wallet's own accounts is asynchronous. A check that was not waited for would let
+		// the transaction through while its refusal was still on the way.
+		const { ports: p, log } = ports({
+			checkShape: async () => {
+				await new Promise((resolve) => setTimeout(resolve, 5));
+				throw new Error("the transaction moves or hands over tokens outside the swap itself");
+			},
+		});
+		const answer = await chainSigner(p).sign(request);
+
+		expect(answer).toMatchObject({ status: "refused", rule: "transaction_shape" });
 		expect(log).toEqual(["refused maschina transaction_shape"]);
 	});
 

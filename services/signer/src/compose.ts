@@ -13,6 +13,7 @@ import {
 	type BlockhashReader,
 	type Confirmation,
 	checkFeeAgainstTransaction,
+	checkSwapInstructions,
 	checkUnsignedSwap,
 	confirmSignature,
 	parseAddress,
@@ -67,14 +68,18 @@ export function answerFrom(confirmation: Confirmation): ChainAnswer {
 /**
  * Everything a transaction has to be before it is signed.
  *
- * Two things, and neither believes anything it was told. It is a plain swap, signed and paid for by the
- * machine's own wallet, and the fee it will actually pay for priority is inside the allowance. The
+ * Three things, and none believes anything it was told. It is a plain swap, signed and paid for by the
+ * machine's own wallet. Its plumbing moves nothing out: no bare token transfer, no delegation, no SOL
+ * anywhere but the wallet's own wrapped account, which is the one check the provider cannot make for a
+ * wallet that trades (#667). And the fee it will actually pay for priority is inside the allowance. The
  * router's own answer was already held to the cap when the swap was built, but that check believes the
  * router's description of what it did. This one reads the bytes.
  */
 export function shapeCheckFor(feeAllowance: bigint) {
-	return (transaction: Uint8Array, wallet: string): void => {
-		checkUnsignedSwap(transaction, parseAddress(wallet));
+	return async (transaction: Uint8Array, wallet: string): Promise<void> => {
+		const machine = parseAddress(wallet);
+		checkUnsignedSwap(transaction, machine);
+		await checkSwapInstructions(transaction, machine);
 		checkFeeAgainstTransaction(transaction, feeAllowance);
 	};
 }

@@ -68,6 +68,55 @@ export function unsignedTransactionFor(wallet: Address | string, options: FakeTr
 	return new Uint8Array(getTransactionEncoder().encode(compileTransaction(message as Compilable)));
 }
 
+/** One instruction, spelled out: which program, which accounts, what data. */
+export type TestInstruction = {
+	program: string;
+	accounts?: { address: string; writable?: boolean; signer?: boolean }[];
+	data?: Uint8Array;
+};
+
+/**
+ * An unsigned transaction made of exactly the instructions given, paid for by `wallet`.
+ *
+ * For the tests that matter most: the ones asking whether a transaction that looks like a swap could
+ * move money somewhere a swap never would. The instruction data is laid out by hand from each program's
+ * specification, so the check is tested against bytes it did not produce.
+ */
+export function transactionWith(wallet: Address | string, instructions: TestInstruction[]) {
+	type Draft = Parameters<typeof appendTransactionMessageInstruction>[1];
+	type Compilable = Parameters<typeof compileTransaction>[0];
+
+	let message = pipe(
+		createTransactionMessage({ version: 0 }),
+		(draft) => setTransactionMessageFeePayer(wallet as KitAddress, draft),
+		(draft) =>
+			setTransactionMessageLifetimeUsingBlockhash(
+				{
+					blockhash: "11111111111111111111111111111111" as Blockhash,
+					lastValidBlockHeight: 426_070_577n,
+				},
+				draft,
+			),
+	) as Draft;
+
+	for (const instruction of instructions) {
+		message = appendTransactionMessageInstruction(
+			{
+				programAddress: instruction.program as KitAddress,
+				accounts: (instruction.accounts ?? []).map((account) => ({
+					address: account.address as KitAddress,
+					// Roles, as the library numbers them: bit 0 writable, bit 1 signer.
+					role: ((account.writable ? 1 : 0) | (account.signer ? 2 : 0)) as 0 | 1 | 2 | 3,
+				})),
+				...(instruction.data ? { data: instruction.data } : {}),
+			},
+			message,
+		) as Draft;
+	}
+
+	return new Uint8Array(getTransactionEncoder().encode(compileTransaction(message as Compilable)));
+}
+
 /** The same transaction, base64 encoded, which is how a router would hand it over. */
 export const unsignedTransactionBase64 = (
 	wallet: Address | string,
