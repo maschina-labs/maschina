@@ -133,6 +133,7 @@ describeWalletProvider("turnkey", {
 		recipients: [RECIPIENT],
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
+		tokenDestinations: "any",
 		maxLamportsPerTransfer: 50_000_000n,
 	},
 	payment: (from, to) => memoryPayment({ from, to, lamports: 1_000_000n }),
@@ -145,8 +146,9 @@ const policy = {
 	recipients: [RECIPIENT],
 	approvedPrograms: ["11111111111111111111111111111111"],
 	approvedMints: [],
+	tokenDestinations: "any",
 	maxLamportsPerTransfer: 50_000_000n,
-};
+} as const;
 
 describe("what turnkey is asked for", () => {
 	it("writes both policies when a wallet is created", async () => {

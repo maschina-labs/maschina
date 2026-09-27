@@ -4,12 +4,14 @@ import { isSolanaAddress, validatePolicy, type WalletPolicy } from "./policy.ts"
 const OWNER = "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR";
 const RECIPIENT = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 const SYSTEM = "11111111111111111111111111111111";
+const SECOND_ACCOUNT = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
 
 const policy = (overrides: Partial<WalletPolicy> = {}): WalletPolicy => ({
 	owner: OWNER,
 	recipients: [RECIPIENT],
 	approvedPrograms: [SYSTEM],
 	approvedMints: [],
+	tokenDestinations: "any",
 	maxLamportsPerTransfer: 50_000_000n,
 	...overrides,
 });
@@ -48,6 +50,7 @@ describe("validatePolicy", () => {
 			["recipients", { recipients: ["nope"] }],
 			["approvedPrograms", { approvedPrograms: ["nope"] }],
 			["approvedMints", { approvedMints: ["nope"] }],
+			["tokenDestinations", { tokenDestinations: ["nope"] }],
 		] as const) {
 			const result = validatePolicy(policy(bad));
 			expect(result.ok, field).toBe(false);
@@ -56,6 +59,29 @@ describe("validatePolicy", () => {
 				expect(result.error.message).toContain(field);
 			}
 		}
+	});
+
+	it("sorts and deduplicates the token accounts a transfer may pay into", () => {
+		const result = validatePolicy(
+			policy({ tokenDestinations: [RECIPIENT, SECOND_ACCOUNT, RECIPIENT] }),
+		);
+
+		expect(result.ok && result.value.tokenDestinations).toEqual([RECIPIENT, SECOND_ACCOUNT].sort());
+	});
+
+	it("refuses an empty list of token destinations, because that already has a spelling", () => {
+		// "Nowhere" is said by approving no mints. Two ways to say the same thing is how one of them ends
+		// up meaning the other.
+		const result = validatePolicy(policy({ tokenDestinations: [] }));
+
+		expect(result.ok).toBe(false);
+		if (!result.ok) expect(result.error.message).toContain("tokenDestinations");
+	});
+
+	it("keeps an open destination open, which is what a trading wallet needs", () => {
+		const result = validatePolicy(policy({ tokenDestinations: "any" }));
+
+		expect(result.ok && result.value.tokenDestinations).toBe("any");
 	});
 
 	it("refuses a size limit that isn't a positive whole number of lamports", () => {

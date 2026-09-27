@@ -13,6 +13,7 @@ describeWalletProvider("the in-memory provider", {
 		recipients: [RECIPIENT],
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
+		tokenDestinations: "any",
 		maxLamportsPerTransfer: 50_000_000n,
 	},
 	payment: (from, to) => memoryPayment({ from, to, lamports: 1_000_000n }),
@@ -26,8 +27,9 @@ describe("the in-memory provider's own rules", () => {
 		recipients: [],
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
+		tokenDestinations: "any",
 		maxLamportsPerTransfer: 10n,
-	};
+	} as const;
 
 	it("refuses a payment over the size limit and allows one at it", async () => {
 		const provider = createMemoryWalletProvider();

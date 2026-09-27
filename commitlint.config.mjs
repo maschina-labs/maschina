@@ -19,6 +19,7 @@ export default {
 				"rules",
 				"db",
 				"solana",
+				"wallet",
 				"contracts",
 				"env",
 				"telemetry",

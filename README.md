@@ -46,6 +46,7 @@ Working today, each proved against real services rather than mocks:
 | Whether a machine has actually made money, net of what it paid | `packages/runtime/src/machine-pnl.ts` |
 | How far above its float a machine is, at every moment, including while it holds the other side | `packages/runtime/src/machine-float.ts` |
 | Refusing to sweep profit for forty cents, or against a position whose value is still an opinion | `packages/rules/src/float.ts` |
+| A wallet policy that pins where a token may go, not only which token may move | `packages/wallet/src/turnkey-policy.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
@@ -65,6 +66,11 @@ as the product being finished:
   Turnkey and real Solana, and there is no button and no public route in front of it yet.
 - **The vault.** A machine's float and its surplus are worked out, and the account that profit is
   swept into does not exist yet, so nothing is banked and nothing is out of reach.
+- **A token transfer out of a trading wallet is checked by one layer, not two.** The provider's policy
+  pins where SOL may go and checks only which token may move, because a swap routes tokens through pool
+  accounts that cannot be named in advance. What stops a token leaving to a stranger today is Maschina's
+  own check on the transaction, and closing that properly is issue #667. A vault names its one
+  destination, which is why the policy can now pin one at all.
 - **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
 - **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
   half guards against a node Maschina does not run, which cannot happen yet.
