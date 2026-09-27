@@ -57,6 +57,7 @@ Working today, each proved against real services rather than mocks:
 | Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
+| Making a range machine from the web app, told as it is typed whether its band pays for itself, and taking everything out with one confirmed click | `apps/web/src/routes/new.tsx`, `apps/web/src/lib/range-form.ts` |
 | Owner withdrawals asked for by the gateway alone, never by a node, and only once the machine is paused or stopped | `services/orchestrator/src/withdraw-route.ts` |
 | A signer that is not ready until it can reach the record and the chain, and refuses to start on a quoted URL | `services/signer/src/app.ts`, `packages/env/src/index.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
@@ -71,9 +72,6 @@ as the product being finished:
 - **No machine has made a real trade on mainnet.** Everything below has been proved against real
   Turnkey, a real database and live Jupiter prices, and a machine has completed whole round trips on
   paper. Nothing has yet spent a real dollar.
-- **Withdrawal has no button yet.** `POST /v1/machines/{id}/withdraw` takes everything out of a paused or
-  stopped machine for the signed in owner, and the web app does not call it yet. It answers that
-  withdrawals are not switched on until the server has the gateway's token for the orchestrator.
 - **Where a route sends its output is taken on trust.** A swap's tokens move inside the router's own
   instruction, and neither the provider nor Maschina yet reads where that instruction delivers the
   result. Everything around it is checked: a bare token transfer, a delegation, a close into somebody
@@ -82,7 +80,7 @@ as the product being finished:
 - **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
 - **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
   half guards against a node Maschina does not run, which cannot happen yet.
-- **The web app** is the machines list, one machine, and the states around them. Most of the navigation
+- **The web app** is the machines list, one machine with its withdraw button, making a machine (a range or a price trigger), and the states around them. Most of the navigation
   leads to screens that say what will be there and why they are empty.
 
 ## How the limits actually hold
