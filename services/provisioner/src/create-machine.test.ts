@@ -1,7 +1,11 @@
 import { newId } from "@maschina/core";
-import { createMemoryWalletProvider } from "@maschina/wallet";
+import { createMemoryWalletProvider, type WalletPolicy } from "@maschina/wallet";
 import { describe, expect, it } from "vitest";
-import { type CreateMachinePorts, createMachine } from "./create-machine.ts";
+import {
+	type CreateMachinePorts,
+	createMachine,
+	MAX_LAMPORTS_PER_TRANSFER,
+} from "./create-machine.ts";
 
 const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -99,7 +103,9 @@ describe("creating a machine", () => {
 
 	it.each([
 		["the approved tokens", { approvedMints: ["11111111111111111111111111111111"] }],
-		["the transfer limit", { maxLamportsPerTransfer: 999_999_999_999n }],
+		// Relative to the cap rather than a number beside it, so raising the cap cannot quietly turn
+		// this into a policy that is no longer being checked.
+		["the transfer limit", { maxLamportsPerTransfer: MAX_LAMPORTS_PER_TRANSFER + 1n }],
 		["the recipients", { recipients: ["3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF"] }],
 	])("writes no machine when %s came back wrong", async (_what, wrong) => {
 		const provider = createMemoryWalletProvider();
@@ -142,5 +148,56 @@ describe("creating a machine", () => {
 			kind: "price_trigger",
 			limits: { budgetGranted: 20_000_000n, maxPerTrade: 5_000_000n },
 		});
+	});
+});
+
+describe("the most SOL one transfer may move", () => {
+	/** Catches the policy the wallet was actually created with. */
+	function policyFor(budgetGranted: bigint) {
+		const seen: WalletPolicy[] = [];
+		const provider = {
+			...createMemoryWalletProvider(),
+			createWallet: async (ask: { label: string; policy: WalletPolicy }) => {
+				seen.push(ask.policy);
+				return createMemoryWalletProvider().createWallet(ask);
+			},
+		} as CreateMachinePorts["provider"];
+
+		return { seen, made: ports({ provider }), budgetGranted };
+	}
+
+	it("is a number in lamports, not a budget in another currency", async () => {
+		const { seen, made } = policyFor(50_000_000n);
+
+		// Fifty USDC, at six decimals. Read as lamports that is 0.05 SOL, which is not a limit anybody
+		// chose and is far too small to take a machine's funds back in one go.
+		await createMachine(made.ports, {
+			...request,
+			limits: { ...request.limits, budgetGranted: 50_000_000n },
+		});
+
+		expect(seen[0]?.maxLamportsPerTransfer).not.toBe(50_000_000n);
+		expect(seen[0]?.maxLamportsPerTransfer).toBe(MAX_LAMPORTS_PER_TRANSFER);
+	});
+
+	it("does not move when the budget does, because they measure different things", async () => {
+		const small = policyFor(1n);
+		await createMachine(small.made.ports, {
+			...request,
+			limits: { ...request.limits, budgetGranted: 1n },
+		});
+		const large = policyFor(9_000_000_000n);
+		await createMachine(large.made.ports, {
+			...request,
+			limits: { ...request.limits, budgetGranted: 9_000_000_000n },
+		});
+
+		expect(small.seen[0]?.maxLamportsPerTransfer).toBe(large.seen[0]?.maxLamportsPerTransfer);
+	});
+
+	it("is large enough that a machine's funds are never trapped by it", () => {
+		// The only address these funds can reach is the owner's, so a tight cap protects nobody and
+		// strands money. It bounds a runaway bug; it is not what stops theft.
+		expect(MAX_LAMPORTS_PER_TRANSFER).toBeGreaterThanOrEqual(100_000_000_000n);
 	});
 });
