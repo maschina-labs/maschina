@@ -6,7 +6,7 @@ const form = {
 	kind: "range",
 	buyAt: "120.25",
 	sellAt: "122.25",
-	perBuy: "20",
+	perBuy: "19.5",
 	float: "20",
 };
 
@@ -48,9 +48,9 @@ describe("what the form sends", () => {
 		expect(request.settings).toMatchObject({
 			buyLevel: "120250000",
 			sellLevel: "122250000",
-			amountPerBuy: "20000000",
+			amountPerBuy: "19500000",
 		});
-		expect(request.limits).toMatchObject({ budgetGranted: "20000000", maxPerTrade: "20000000" });
+		expect(request.limits).toMatchObject({ budgetGranted: "20000000", maxPerTrade: "19500000" });
 	});
 });
 
@@ -62,9 +62,22 @@ describe("when it can be sent", () => {
 	it.each([
 		["a band that loses money", { buyAt: "120", sellAt: "120.5" }],
 		["a buy bigger than the float", { perBuy: "30" }],
+		// The signer holds back its fee allowance on top of what a buy spends, so a buy of the whole
+		// float never fits the budget and is refused every time the price reaches the bottom edge.
+		["a buy of the whole float, which leaves nothing for the fee", { perBuy: "20", float: "20" }],
+		["a buy that leaves less than the fee", { perBuy: "19.9", float: "20" }],
 		["no name", { name: " " }],
 		["a float of nothing", { float: "0", perBuy: "0" }],
 	])("is not ready with %s", (_what, change) => {
 		expect(rangeReady({ ...form, ...change })).toBe(false);
+	});
+});
+
+describe("how much of the float a buy may spend", () => {
+	it("leaves room for the fee the signer holds back", async () => {
+		const { mostPerBuy } = await import("./range-form.ts");
+		expect(mostPerBuy("20")).toBe("19.75");
+		expect(mostPerBuy("15")).toBe("14.75");
+		expect(mostPerBuy("")).toBe("");
 	});
 });
