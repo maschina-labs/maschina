@@ -200,3 +200,54 @@ describe("the budget", () => {
 		expect(decision).toMatchObject({ rule: "daily_cap" });
 	});
 });
+
+describe("a sale spends none of the budget", () => {
+	// The caps and the budget are counted in the currency the machine spends. A sale spends the thing it
+	// bought and brings that currency back, so holding its input to them compares lamports with dollars:
+	// 0.08 SOL is 80,000,000 lamports against a ten dollar cap of 10,000,000, and every sale is refused.
+	const sale = (over: Partial<TradeCheck> = {}) =>
+		check({
+			budgetMint: USDC,
+			limits: {
+				maxPerTrade: amount(10_000_000n),
+				maxPerDay: amount(20_000_000n),
+				approvedMints: [SOL, USDC],
+			},
+			availableBudget: amount(0n),
+			spentToday: amount(20_000_000n),
+			trade: { inputMint: SOL, outputMint: USDC, inputAmount: amount(80_000_000n) },
+			...over,
+		});
+
+	it("passes the per-trade cap, the daily cap and an empty budget", () => {
+		expect(checkTrade(sale())).toEqual({ allowed: true });
+	});
+
+	it("still needs both tokens approved", () => {
+		const decision = checkTrade(
+			sale({ limits: { maxPerTrade: amount(10_000_000n), approvedMints: [USDC] } }),
+		);
+		expect(decision).toMatchObject({ allowed: false, rule: "token_approved" });
+	});
+
+	it("still needs the machine running", () => {
+		expect(checkTrade(sale({ state: "paused" }))).toMatchObject({
+			allowed: false,
+			rule: "machine_running",
+		});
+	});
+
+	it("does not excuse a buy, which spends the budget and is held to every cap", () => {
+		const buy = sale({
+			trade: { inputMint: USDC, outputMint: SOL, inputAmount: amount(15_000_000n) },
+			availableBudget: amount(50_000_000n),
+			spentToday: amount(0n),
+		});
+		expect(checkTrade(buy)).toMatchObject({ allowed: false, rule: "per_trade_cap" });
+	});
+
+	it("holds every trade to the caps when the machine's budget names no currency", () => {
+		const unknown = sale({ budgetMint: undefined });
+		expect(checkTrade(unknown)).toMatchObject({ allowed: false, rule: "per_trade_cap" });
+	});
+});
