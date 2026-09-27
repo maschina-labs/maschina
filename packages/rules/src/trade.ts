@@ -54,6 +54,13 @@ export type TradeLimits = {
 export type TradeCheck = {
 	/** The machine's state, read from the record a moment ago, not from anything in flight. */
 	state: string;
+	/**
+	 * The currency the budget, the caps and the day's spending are counted in. A trade that spends
+	 * anything else is a sale: it spends what the machine bought and brings this currency back, so it
+	 * counts as spending none of it. Left out, every trade is held to the caps, which is the safe way
+	 * round for a machine whose kind does not say.
+	 */
+	budgetMint?: string | undefined;
 	limits: TradeLimits;
 	/** Granted minus reserved minus settled: what is left to spend. */
 	availableBudget: BaseUnits;
@@ -117,6 +124,13 @@ export function checkTrade(check: TradeCheck): TradeDecision {
 		if (!limits.approvedMints.includes(mint)) {
 			return refuse("token_approved", `${mint} is not an approved token`, "other");
 		}
+	}
+
+	// A sale spends none of the budget, so the caps and the budget below have nothing to say about it.
+	// Holding its input to them would compare lamports with dollars and refuse every sale. What a sale
+	// can move is bounded already, by the buy that made the position.
+	if (check.budgetMint !== undefined && trade.inputMint !== check.budgetMint) {
+		return { allowed: true };
 	}
 
 	// 4. Is this one trade within what the owner allowed for one trade?

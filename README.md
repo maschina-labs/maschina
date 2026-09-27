@@ -27,6 +27,7 @@ Working today, each proved against real services rather than mocks:
 | Signing through Turnkey, under a policy Turnkey enforces | `services/signer/src/provider` |
 | Maschina's own rules, checked before every signature | `packages/rules/src/trade.ts` |
 | Budgets held and settled inside one database transaction | `packages/db/src/ledger.ts` |
+| A sale held to none of the budget or the caps, because it spends none of the budget: the same rule when a trade is held as when the record is read | `packages/rules/src/trade.ts`, `packages/db/src/ledger.ts` |
 | A trade sent at most once, ever | `services/signer/src/submit-once.ts` |
 | The signer end to end: rules, then the budget, then sign, send and settle at the real cost | `services/signer/src/compose.ts` |
 | What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |

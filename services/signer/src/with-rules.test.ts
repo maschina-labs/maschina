@@ -243,3 +243,38 @@ describe("limits the owner never set", () => {
 		expect((await signer.sign(proposal())).status).toBe("signed");
 	});
 });
+
+describe("a sale", () => {
+	// A range machine selling the SOL it bought: 0.08 SOL is 80,000,000 lamports, against caps and a
+	// budget counted in USDC. Judged in lamports it is refused, and the machine can never sell.
+	const tightFacts = (over: Partial<MachineFacts> = {}) =>
+		facts({
+			budgetMint: USDC,
+			limits: { maxPerTrade: 10_000_000n, maxPerDay: 20_000_000n, approvedMints: [SOL, USDC] },
+			availableBudget: 0n,
+			...over,
+		});
+	const sale = proposal({
+		trade: {
+			inputMint: SOL,
+			outputMint: USDC,
+			inputAmount: "80000000",
+			quotedOutputAmount: "9800000",
+			minimumOutputAmount: "9750000",
+			slippageBps: 50,
+			router: "jupiter",
+		},
+	});
+
+	it("reaches the signer when the record says what the budget is counted in", async () => {
+		const { signer, inner } = rulesOver(tightFacts());
+		expect(await signer.sign(sale)).toMatchObject({ status: "signed" });
+		expect(inner.signed).toBe(1);
+	});
+
+	it("is held to the caps when the record cannot say, which is the safe way round", async () => {
+		const { signer, inner } = rulesOver(tightFacts({ budgetMint: undefined }));
+		expect(await signer.sign(sale)).toMatchObject({ status: "refused" });
+		expect(inner.signed).toBe(0);
+	});
+});
