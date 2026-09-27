@@ -1,3 +1,4 @@
+export * from "./check-settings.ts";
 export * from "./classify.ts";
 export * from "./effect.ts";
 export * from "./failure.ts";

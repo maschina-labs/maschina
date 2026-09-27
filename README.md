@@ -52,6 +52,7 @@ Working today, each proved against real services rather than mocks:
 | Refusing a transaction that looks like a swap and moves money out around it, checked against real Jupiter routes | `packages/solana/src/swap-instructions.ts` |
 | Banking profit above the float into the vault: decided from the chain and the record, checked byte by byte, sent once | `services/signer/src/sweep.ts`, `packages/solana/src/sweep.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
+| Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
