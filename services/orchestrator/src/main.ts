@@ -9,12 +9,14 @@ import {
 	renewLease,
 	reportRun,
 	runContext,
+	sweepCandidates,
 } from "@maschina/db";
 import { KNOWN_KINDS } from "@maschina/runtime";
 import { startServer } from "@maschina/service";
 import { jupiterPrices, parseAddress } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
+import { bankProfit } from "./bank-profit.ts";
 import { loadConfig } from "./config.ts";
 import { paperSigner } from "./paper-signer.ts";
 import { watchPrices } from "./price-watcher.ts";
@@ -102,6 +104,18 @@ const watcher = watchPrices(
 	watching.signal,
 );
 
+// Profit above a machine's float is banked in its vault. The orchestrator only knows who is worth asking
+// about; the signer reads the chain and decides whether anything is due.
+const banking = new AbortController();
+const banker = bankProfit(
+	{
+		candidates: () => sweepCandidates(database.db),
+		sweep: (request) => signer.sweep(request),
+		logger,
+	},
+	banking.signal,
+);
+
 startServer({
 	app,
 	port: config.ORCHESTRATOR_PORT,
@@ -112,6 +126,13 @@ startServer({
 			run: async () => {
 				watching.abort();
 				await watcher;
+			},
+		},
+		{
+			name: "profit banking",
+			run: async () => {
+				banking.abort();
+				await banker;
 			},
 		},
 		{ name: "database", run: database.close },

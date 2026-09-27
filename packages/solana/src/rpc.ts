@@ -30,6 +30,23 @@ export function rpcAccountReader(rpc: SolanaRpc): AccountReader {
 /** An RPC client for a URL. Kept here so nothing outside this package constructs one. */
 export const solanaRpc = (url: string): SolanaRpc => createSolanaRpc(url);
 
+/**
+ * A readiness check: can this node actually be asked anything.
+ *
+ * Constructing a client never touches the network, so a bad URL or a refused key is invisible until the
+ * first real call, which for a signer is the first real trade. Asking for the slot is the cheapest
+ * question a node can answer, and a node that will not answer it will not answer anything else either.
+ */
+export function rpcReachable(rpc: Pick<SolanaRpc, "getSlot">): () => Promise<boolean> {
+	return async () => {
+		try {
+			return (await rpc.getSlot().send()) > 0n;
+		} catch {
+			return false;
+		}
+	};
+}
+
 /** The two token programs a wallet can hold accounts in. Both are asked, or balances go missing. */
 const TOKEN_PROGRAM_IDS = [
 	"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",

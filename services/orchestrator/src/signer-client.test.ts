@@ -150,6 +150,55 @@ describe("asking the signer for a machine's funds back", () => {
 	});
 });
 
+describe("asking the signer to bank a machine's profit", () => {
+	const sweep = { sweepId: newId<"sweep">(), machineId: newId<"machine">() };
+
+	it("asks the sweep route with the token, and reads the answer", async () => {
+		const answer = { status: "not_due", sweepId: sweep.sweepId, because: "below its float" };
+		const fetchFn = vi.fn(async () => json(answer));
+		const client = signerClient({ url: "http://signer:4200", token: "tok", fetch: fetchFn });
+
+		expect(await client.sweep(sweep)).toEqual(answer);
+		const [url, init] = fetchFn.mock.calls[0] as unknown as [URL, RequestInit];
+		expect(String(url)).toBe("http://signer:4200/internal/v1/sweep");
+		expect(new Headers(init.headers).get("authorization")).toBe("Bearer tok");
+		expect(JSON.parse(String(init.body))).toEqual(sweep);
+	});
+
+	it("refuses an answer that does not match the contract", async () => {
+		const client = signerClient({
+			url: "http://signer:4200",
+			token: "tok",
+			fetch: async () => json({ status: "probably" }),
+		});
+		await expect(client.sweep(sweep)).rejects.toThrow();
+	});
+
+	it("says the signer is unreachable rather than inventing an outcome", async () => {
+		const client = signerClient({
+			url: "http://signer:4200",
+			token: "tok",
+			fetch: async () => {
+				throw new Error("ECONNREFUSED");
+			},
+		});
+		await expect(client.sweep(sweep)).rejects.toMatchObject({ code: "unavailable" });
+	});
+
+	it.each([
+		[503, "unavailable"],
+		[400, "invalid_input"],
+		[500, "internal"],
+	])("reads a %i as %s", async (status, code) => {
+		const client = signerClient({
+			url: "http://signer:4200",
+			token: "tok",
+			fetch: async () => new Response("{}", { status }),
+		});
+		await expect(client.sweep(sweep)).rejects.toMatchObject({ code });
+	});
+});
+
 describe("asking the signer for everything back", () => {
 	const everything = { withdrawalId: newId<"withdrawal">(), machineId: newId<"machine">() };
 

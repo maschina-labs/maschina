@@ -46,7 +46,21 @@ export const env = {
 	logLevel: () =>
 		z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
 	port: (fallback: number) => z.coerce.number().int().min(1).max(65_535).default(fallback),
-	url: () => z.url(),
+	/**
+	 * A URL, with nothing wrapped around it.
+	 *
+	 * Quotes are refused because they are invisible in the one place they matter. A shell strips them,
+	 * so a URL written as `?api-key='...'` works from a terminal, and a container's env file keeps them,
+	 * so the same URL is refused by the server on every call. That happened to the production RPC and
+	 * nothing noticed, because the failure was a 401 at runtime rather than a refusal at startup.
+	 */
+	url: () =>
+		z
+			.url()
+			.refine(
+				(value) => !/['"]/.test(value),
+				"contains a quote, which a shell would strip and a container keeps: remove the quotes",
+			),
 	postgresUrl: () =>
 		z.url().refine((value) => /^postgres(ql)?:\/\//.test(value), "must be a postgres:// URL"),
 	/** A shared secret. Long enough that guessing is not a strategy. */
