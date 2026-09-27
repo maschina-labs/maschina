@@ -11,6 +11,8 @@ const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const WITHDRAWAL = "0199a0a0-0000-7000-8000-000000000006";
 const OWNER_WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+const SWEEP = "0199a0a0-0000-7000-8000-000000000007";
+const VAULT = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
 
 /** One valid payload for every event type, so nothing can be added without an example. */
 const payloads: Record<EventType, unknown> = {
@@ -84,10 +86,33 @@ const payloads: Record<EventType, unknown> = {
 		slot: "426070577",
 	},
 	"withdrawal.failed": { withdrawalId: WITHDRAWAL, reason: "the transaction expired" },
+	"sweep.requested": {
+		sweepId: SWEEP,
+		to: VAULT,
+		mint: USDC,
+		amount: "5000000",
+		value: "55000000",
+		floatTarget: "50000000",
+	},
+	"sweep.submitted": {
+		sweepId: SWEEP,
+		signature: "5".repeat(88),
+		lastValidBlockHeight: "426070577",
+	},
+	"sweep.completed": {
+		sweepId: SWEEP,
+		to: VAULT,
+		mint: USDC,
+		amount: "5000000",
+		signature: "5".repeat(88),
+		feeLamports: "5000",
+		slot: "426070577",
+	},
+	"sweep.failed": { sweepId: SWEEP, reason: "the transaction expired" },
 };
 
 describe("EVENT_TYPES", () => {
-	it("covers runs, trades, machines, withdrawals and authority", () => {
+	it("covers runs, trades, machines, withdrawals, sweeps and authority", () => {
 		expect([...EVENT_TYPES].sort()).toEqual([
 			"authority.denied",
 			"authority.used",
@@ -101,6 +126,10 @@ describe("EVENT_TYPES", () => {
 			"run.queued",
 			"run.skipped",
 			"run.started",
+			"sweep.completed",
+			"sweep.failed",
+			"sweep.requested",
+			"sweep.submitted",
 			"trade.completed",
 			"trade.failed",
 			"trade.intended",
@@ -204,9 +233,17 @@ describe("the event schemas", () => {
 			"withdrawal.completed",
 			"withdrawal.failed",
 		]);
-		const grouped = (["run", "trade", "machine", "withdrawal", "authority"] as const).flatMap((g) =>
-			eventTypesOf(g),
-		);
+		// A sweep is neither: it moves the machine's own profit into the vault beside it, with no owner
+		// asking and nothing leaving their control.
+		expect(eventTypesOf("sweep")).toEqual([
+			"sweep.requested",
+			"sweep.submitted",
+			"sweep.completed",
+			"sweep.failed",
+		]);
+		const grouped = (
+			["run", "trade", "machine", "withdrawal", "sweep", "authority"] as const
+		).flatMap((g) => eventTypesOf(g));
 		expect([...grouped].sort()).toEqual([...EVENT_TYPES].sort());
 	});
 });

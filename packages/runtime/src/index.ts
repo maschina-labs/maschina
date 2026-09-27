@@ -7,6 +7,7 @@ export * from "./kinds/range.ts";
 export * from "./kinds/recurring-buy.ts";
 export * from "./lifecycle.ts";
 export * from "./machine-budget.ts";
+export * from "./machine-float.ts";
 export * from "./machine-kind.ts";
 export * from "./machine-limits.ts";
 export * from "./machine-pnl.ts";
