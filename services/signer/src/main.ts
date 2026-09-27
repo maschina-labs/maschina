@@ -6,7 +6,7 @@ import {
 	withdrawalSubmission,
 } from "@maschina/db";
 import { startServer } from "@maschina/service";
-import { parseAddress, solanaRpc } from "@maschina/solana";
+import { parseAddress, rpcReachable, solanaRpc } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { signerUserIdFor, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { buildApp, SERVICE } from "./app.ts";
@@ -43,8 +43,15 @@ const provider = turnkeyProvider({
 	signerUserId: await signerUserIdFor(signingKey),
 });
 
+/** One client for everything here, so the readiness check asks the same node that trades use. */
+const rpc = solanaRpc(config.SOLANA_RPC_URL);
+
 startServer({
 	app: buildApp({
+		checks: [
+			{ name: "database", check: database.ping },
+			{ name: "solana", check: rpcReachable(rpc) },
+		],
 		version: config.SERVICE_VERSION,
 		orchestratorToken: config.SIGNER_ORCHESTRATOR_TOKEN,
 		logger,
@@ -52,7 +59,7 @@ startServer({
 		signer: tradeSigner({
 			record: signerRecord(database.db, { feeAllowance: config.SIGNER_FEE_ALLOWANCE_LAMPORTS }),
 			provider,
-			rpc: solanaRpc(config.SOLANA_RPC_URL),
+			rpc,
 			feeAllowance: config.SIGNER_FEE_ALLOWANCE_LAMPORTS,
 		}),
 		withdrawer: withdrawer({
@@ -78,7 +85,7 @@ startServer({
 					withdrawalSubmission(database.db, machineId, withdrawalId),
 			},
 			provider,
-			rpc: solanaRpc(config.SOLANA_RPC_URL),
+			rpc,
 		}),
 	}),
 	port: config.SIGNER_PORT,
