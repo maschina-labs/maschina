@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.25](https://github.com/maschina-labs/maschina/compare/v0.0.24...v0.0.25) (2026-09-27)
+
+
+### Added
+
+* **web:** make a range machine, and take everything out ([#691](https://github.com/maschina-labs/maschina/issues/691)) ([b47b4a2](https://github.com/maschina-labs/maschina/commit/b47b4a2ccb3d4314b92ef8b66c6524a41094f486))
+
 ## [0.0.24](https://github.com/maschina-labs/maschina/compare/v0.0.23...v0.0.24) (2026-09-27)
 
 
