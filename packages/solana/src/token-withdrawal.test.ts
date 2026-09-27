@@ -172,3 +172,149 @@ describe("checking what was built", () => {
 		await expect(checkUnsignedTokenWithdrawal(bytes, expected)).rejects.toThrow(/close/);
 	});
 });
+
+describe("every other way a token withdrawal can be wrong", () => {
+	const checked = (amount: bigint, decimals = 6) => {
+		const data = new Uint8Array(10);
+		data[0] = 12;
+		new DataView(data.buffer).setBigUint64(1, amount, true);
+		data[9] = decimals;
+		return data;
+	};
+	const account = () => usdcOf(VAULT);
+	const expected = async (amount = 1_500_000n) =>
+		withdrawal({
+			tokens: [
+				{ account: await account(), mint: USDC, amount, decimals: 6, program: TOKEN_PROGRAM },
+			],
+		});
+	const transfer = async (to?: string) => ({
+		program: TOKEN_PROGRAM,
+		accounts: [
+			{ address: await account(), writable: true },
+			{ address: USDC },
+			{ address: to ?? (await usdcOf(OWNER)), writable: true },
+			{ address: VAULT, signer: true },
+		],
+		data: checked(1_500_000n),
+	});
+	const close = async () => ({
+		program: TOKEN_PROGRAM,
+		accounts: [
+			{ address: await account(), writable: true },
+			{ address: OWNER, writable: true },
+			{ address: VAULT, signer: true },
+		],
+		data: new Uint8Array([9]),
+	});
+
+	it("refuses bytes that are not a transaction", async () => {
+		await expect(
+			checkUnsignedTokenWithdrawal(new Uint8Array([1, 2, 3]), await expected()),
+		).rejects.toThrow(/could not be read/);
+	});
+
+	it("refuses a withdrawal that leaves an account open", async () => {
+		const bytes = transactionWith(TRADING, [await transfer()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(/open/);
+	});
+
+	it("refuses a withdrawal that closes an account it never emptied", async () => {
+		const bytes = transactionWith(TRADING, [await close()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/balance behind/,
+		);
+	});
+
+	it("refuses the same account moved twice", async () => {
+		const bytes = transactionWith(TRADING, [await transfer(), await transfer(), await close()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(/twice/);
+	});
+
+	it("refuses tokens moved with anything but a checked transfer", async () => {
+		const plain = new Uint8Array(9);
+		plain[0] = 3;
+		const bytes = transactionWith(TRADING, [{ ...(await transfer()), data: plain }, await close()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/checked transfer/,
+		);
+	});
+
+	it("refuses tokens paid into somebody else's account", async () => {
+		const bytes = transactionWith(TRADING, [await transfer(await usdcOf(STRANGER)), await close()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/owner's own account/,
+		);
+	});
+
+	it("refuses an account of the right address under the wrong token program", async () => {
+		const bytes = transactionWith(TRADING, [
+			{ ...(await close()), program: "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" },
+		]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected(0n))).rejects.toThrow(
+			/wrong token program/,
+		);
+	});
+
+	it("refuses an account made for somebody other than the owner", async () => {
+		const bytes = transactionWith(TRADING, [
+			{
+				program: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+				accounts: [
+					{ address: TRADING, signer: true, writable: true },
+					{ address: await usdcOf(STRANGER), writable: true },
+					{ address: STRANGER },
+					{ address: USDC },
+				],
+				data: new Uint8Array([1]),
+			},
+		]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/other than the owner/,
+		);
+	});
+
+	it("refuses any associated token instruction but making an account", async () => {
+		const bytes = transactionWith(TRADING, [
+			{
+				program: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+				accounts: [{ address: TRADING, signer: true, writable: true }],
+				data: new Uint8Array([2]),
+			},
+		]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/only makes/,
+		);
+	});
+
+	it("refuses a withdrawal somebody else pays for", async () => {
+		const bytes = transactionWith(VAULT, [await transfer(), await close()]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/somebody else to sign|not paying/,
+		);
+	});
+
+	it("refuses a withdrawal that asks a third account to sign", async () => {
+		const bytes = transactionWith(TRADING, [
+			await transfer(),
+			{
+				...(await close()),
+				accounts: [...(await close()).accounts, { address: STRANGER, signer: true }],
+			},
+		]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).rejects.toThrow(
+			/somebody else to sign/,
+		);
+	});
+
+	it("allows a compute budget instruction, which moves nothing", async () => {
+		const limit = new Uint8Array(5);
+		limit[0] = 2;
+		const bytes = transactionWith(TRADING, [
+			{ program: "ComputeBudget111111111111111111111111111111", data: limit },
+			await transfer(),
+			await close(),
+		]);
+		await expect(checkUnsignedTokenWithdrawal(bytes, await expected())).resolves.toBeDefined();
+	});
+});
