@@ -139,6 +139,35 @@ export function useMachineAction(api: Api, queryClient: QueryClient, machineId: 
 	});
 }
 
+/** What came home from taking everything out, as the API answers it. */
+export type WithdrawnEverything =
+	| {
+			status: "sent";
+			withdrawalId: string;
+			to: string;
+			signatures: string[];
+			tokens: { mint: string; amount: string; from: "trading" | "vault" }[];
+			lamports: string;
+			leftBehind: { mint: string; amount: string; from: "trading" | "vault"; because: string }[];
+	  }
+	| { status: "refused"; withdrawalId: string; rule: string; reason: string };
+
+/**
+ * Every token and all the SOL, from the machine's trading account and its vault, back to the wallet that
+ * signed in. The request names the machine and nothing else.
+ */
+export function useWithdrawEverything(api: Api, queryClient: QueryClient, machineId: string) {
+	return useMutation({
+		mutationFn: async () =>
+			read<WithdrawnEverything>(
+				await api.v1.machines[":machineId"].withdraw.$post({ param: { machineId }, json: {} }),
+			),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["machines"] });
+		},
+	});
+}
+
 export type NewMachine = {
 	name: string;
 	kind: string;

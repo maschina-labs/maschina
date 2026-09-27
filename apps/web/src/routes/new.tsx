@@ -1,9 +1,10 @@
-import { priceTrigger } from "@maschina/runtime";
+import { priceTrigger, range } from "@maschina/runtime";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Shell } from "../components/shell.tsx";
 import { useCreateMachine } from "../lib/machines.ts";
+import { bandOf, rangeReady, rangeRequest } from "../lib/range-form.ts";
 
 export const Route = createFileRoute("/new")({
 	component: NewMachine,
@@ -17,36 +18,120 @@ const usdc = (value: string) => BigInt(Math.round(Number(value) * 1_000_000)).to
 /** A price level is micro dollars, so the same six. */
 const dollars = (value: string) => BigInt(Math.round(Number(value) * 1_000_000)).toString();
 
+type Kind = "range" | "trigger";
+
 function NewMachine() {
 	const { api } = useRouter().options.context;
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const create = useCreateMachine(api, queryClient);
 
-	const [name, setName] = useState("SOL dip buyer");
+	const [kind, setKind] = useState<Kind>("range");
+
+	const [name, setName] = useState("SOL range");
 	const [level, setLevel] = useState("108");
 	const [perTrade, setPerTrade] = useState("5");
 	const [budget, setBudget] = useState("25");
 	const [perDay, setPerDay] = useState("15");
 
-	const ready = [name, level, perTrade, budget, perDay].every(Boolean);
+	const [buyAt, setBuyAt] = useState("");
+	const [sellAt, setSellAt] = useState("");
+	const [perBuy, setPerBuy] = useState("10");
+	const [float, setFloat] = useState("10");
+
+	const { width: band, covers: bandCovers, keeps } = bandOf(buyAt, sellAt);
+
+	const ready =
+		kind === "range"
+			? rangeReady({ name, buyAt, sellAt, perBuy, float })
+			: [name, level, perTrade, budget, perDay].every(Boolean);
+
+	const request =
+		kind === "range"
+			? rangeRequest({ name, kind: range.kind, buyAt, sellAt, perBuy, float })
+			: {
+					name,
+					kind: priceTrigger.kind,
+					settings: {
+						spendMint: USDC,
+						buyMint: SOL,
+						level: dollars(level),
+						direction: "falls_to",
+						amountPerTrade: usdc(perTrade),
+						slippageBps: 50,
+						hysteresisBps: 50,
+						minGapMs: 3_600_000,
+					},
+					limits: {
+						budgetGranted: usdc(budget),
+						maxPerTrade: usdc(perTrade),
+						maxPerDay: usdc(perDay),
+						approvedMints: [USDC, SOL],
+					},
+				};
 
 	return (
 		<Shell>
 			<div className="mx-auto w-full max-w-[560px] px-8 py-8">
 				<h1 className="font-medium text-[20px] tracking-tight">New machine</h1>
-				<p className="mt-1.5 text-[13px] text-muted-foreground">
-					It buys SOL with USDC when the price falls to your level. It gets its own wallet, and its
-					funds can only ever return to you.
+				<div className="mt-4 inline-flex rounded-lg border border-border/60 p-0.5 text-[12px]">
+					{(
+						[
+							["range", "Range"],
+							["trigger", "Price trigger"],
+						] as const
+					).map(([value, label]) => (
+						<button
+							key={value}
+							type="button"
+							onClick={() => setKind(value)}
+							className={`rounded-md px-3 py-1 ${kind === value ? "bg-muted text-foreground" : "text-muted-foreground"}`}
+						>
+							{label}
+						</button>
+					))}
+				</div>
+
+				<p className="mt-3 text-[13px] text-muted-foreground">
+					{kind === "range"
+						? "It buys SOL with USDC at the bottom of your band and sells it at the top, one position at a time. Profit above its float is banked in a vault it cannot trade from."
+						: "It buys SOL with USDC when the price falls to your level."}{" "}
+					It gets its own wallet, and its funds can only ever return to you.
 				</p>
 
-				<div className="mt-6 space-y-4">
-					<Field label="Name" value={name} onChange={setName} />
-					<Field label="Buy when SOL falls to (USD)" value={level} onChange={setLevel} />
-					<Field label="Spend each time (USDC)" value={perTrade} onChange={setPerTrade} />
-					<Field label="Most it may spend in a day (USDC)" value={perDay} onChange={setPerDay} />
-					<Field label="Total budget (USDC)" value={budget} onChange={setBudget} />
-				</div>
+				{kind === "range" ? (
+					<div className="mt-6 space-y-4">
+						<Field label="Name" value={name} onChange={setName} />
+						<div className="grid grid-cols-2 gap-3">
+							<Field label="Buy SOL at (USD)" value={buyAt} onChange={setBuyAt} />
+							<Field label="Sell SOL at (USD)" value={sellAt} onChange={setSellAt} />
+						</div>
+						{band > 0 ? (
+							<p
+								className={`text-[12px] ${bandCovers ? "text-muted-foreground" : "text-destructive"}`}
+							>
+								A {(band * 100).toFixed(2)}% band.{" "}
+								{bandCovers
+									? "Each round trip keeps about " + (keeps * 100).toFixed(2) + "% after costs."
+									: "A round trip costs about 0.6%, so this band would lose money every time it works."}
+							</p>
+						) : null}
+						<Field label="Spend each buy (USDC)" value={perBuy} onChange={setPerBuy} />
+						<Field label="Float (USDC)" value={float} onChange={setFloat} />
+						<p className="text-[12px] text-muted-foreground/60 leading-relaxed">
+							The float is what it trades with. Anything it makes above that is swept into the
+							vault, and never traded again.
+						</p>
+					</div>
+				) : (
+					<div className="mt-6 space-y-4">
+						<Field label="Name" value={name} onChange={setName} />
+						<Field label="Buy when SOL falls to (USD)" value={level} onChange={setLevel} />
+						<Field label="Spend each time (USDC)" value={perTrade} onChange={setPerTrade} />
+						<Field label="Most it may spend in a day (USDC)" value={perDay} onChange={setPerDay} />
+						<Field label="Total budget (USDC)" value={budget} onChange={setBudget} />
+					</div>
+				)}
 
 				{create.error ? (
 					<p className="mt-4 text-[13px] text-destructive">{create.error.message}</p>
@@ -56,32 +141,10 @@ function NewMachine() {
 					type="button"
 					disabled={!ready || create.isPending}
 					onClick={() =>
-						create.mutate(
-							{
-								name,
-								kind: priceTrigger.kind,
-								settings: {
-									spendMint: USDC,
-									buyMint: SOL,
-									level: dollars(level),
-									direction: "falls_to",
-									amountPerTrade: usdc(perTrade),
-									slippageBps: 50,
-									hysteresisBps: 50,
-									minGapMs: 3_600_000,
-								},
-								limits: {
-									budgetGranted: usdc(budget),
-									maxPerTrade: usdc(perTrade),
-									maxPerDay: usdc(perDay),
-									approvedMints: [USDC, SOL],
-								},
-							},
-							{
-								onSuccess: (made) =>
-									navigate({ to: "/machines/$machineId", params: { machineId: made.machineId } }),
-							},
-						)
+						create.mutate(request, {
+							onSuccess: (made) =>
+								navigate({ to: "/machines/$machineId", params: { machineId: made.machineId } }),
+						})
 					}
 					className="mt-6 w-full rounded-lg bg-primary py-2 font-medium text-[13px] text-primary-foreground disabled:opacity-40"
 				>
