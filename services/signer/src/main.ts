@@ -14,7 +14,7 @@ import { parseAddress, solanaRpc } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { signerUserIdFor, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { buildApp, SERVICE } from "./app.ts";
-import { sweeper, tradeSigner, withdrawer } from "./compose.ts";
+import { everythingWithdrawer, sweeper, tradeSigner, withdrawer } from "./compose.ts";
 import { loadConfig } from "./config.ts";
 
 const config = loadConfig();
@@ -47,6 +47,47 @@ const provider = turnkeyProvider({
 	signerUserId: await signerUserIdFor(signingKey),
 });
 
+/** What a withdrawal reads from and writes to the record, shared by both kinds of withdrawal. */
+const withdrawalRecord = {
+	machineFor: async (machineId: string) => {
+		const machine = await machineForWithdrawal(database.db, machineId);
+		if (!machine) return undefined;
+		// Parsed here, at the boundary: an address out of the database is still only text until
+		// something checks it, and this is the last place before one is paid.
+		return {
+			wallet: parseAddress(machine.wallet),
+			...(machine.vault === undefined ? {} : { vault: parseAddress(machine.vault) }),
+			ownerWallet: parseAddress(machine.ownerWallet),
+			providerWalletId: machine.providerWalletId,
+		};
+	},
+	record: async (event: Parameters<typeof appendOwnerEvent>[1]) => {
+		// A withdrawal is an owner's action, not a node's, so it is not fenced by a lease. At epoch zero
+		// the fence would refuse it on any machine that had ever run.
+		const written = await appendOwnerEvent(database.db, event);
+		if (!written.ok) throw written.error;
+	},
+	submissionFor: (machineId: string, withdrawalId: string) =>
+		withdrawalSubmission(database.db, machineId, withdrawalId),
+};
+
+const solWithdrawer = withdrawer({
+	record: withdrawalRecord,
+	provider,
+	rpc: solanaRpc(config.SOLANA_RPC_URL),
+});
+
+/** SOL alone, and everything. The second ends with the first, which has already moved money on chain. */
+const withdrawers = {
+	withdraw: solWithdrawer.withdraw,
+	withdrawEverything: everythingWithdrawer({
+		record: withdrawalRecord,
+		provider,
+		rpc: solanaRpc(config.SOLANA_RPC_URL),
+		withdrawSol: solWithdrawer.withdraw,
+	}).withdrawEverything,
+};
+
 startServer({
 	app: buildApp({
 		version: config.SERVICE_VERSION,
@@ -59,31 +100,7 @@ startServer({
 			rpc: solanaRpc(config.SOLANA_RPC_URL),
 			feeAllowance: config.SIGNER_FEE_ALLOWANCE_LAMPORTS,
 		}),
-		withdrawer: withdrawer({
-			record: {
-				machineFor: async (machineId) => {
-					const machine = await machineForWithdrawal(database.db, machineId);
-					if (!machine) return undefined;
-					// Parsed here, at the boundary: an address out of the database is still only text until
-					// something checks it, and this is the last place before one is paid.
-					return {
-						wallet: parseAddress(machine.wallet),
-						ownerWallet: parseAddress(machine.ownerWallet),
-						providerWalletId: machine.providerWalletId,
-					};
-				},
-				record: async (event) => {
-					// A withdrawal is an owner's action, not a node's, so it is not fenced by a lease. At
-					// epoch zero the fence would refuse it on any machine that had ever run.
-					const written = await appendOwnerEvent(database.db, event);
-					if (!written.ok) throw written.error;
-				},
-				submissionFor: (machineId, withdrawalId) =>
-					withdrawalSubmission(database.db, machineId, withdrawalId),
-			},
-			provider,
-			rpc: solanaRpc(config.SOLANA_RPC_URL),
-		}),
+		withdrawer: withdrawers,
 		sweeper: sweeper({
 			record: {
 				machineFor: async (machineId) => {

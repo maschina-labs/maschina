@@ -71,6 +71,9 @@ const appWith = (signer: TradeSigner, withdrawer?: Withdrawer, sweeper?: Sweeper
 			withdraw: async () => {
 				throw new Error("the withdrawer must not be asked");
 			},
+			withdrawEverything: async () => {
+				throw new Error("the withdrawer must not be asked");
+			},
 		},
 	});
 
@@ -265,6 +268,9 @@ describe("the withdraw route", () => {
 					asked.push(request);
 					return answer;
 				},
+				withdrawEverything: async () => {
+					throw new Error("not this one");
+				},
 			}),
 			withdrawal,
 		);
@@ -362,5 +368,70 @@ describe("the sweep route", () => {
 			body: JSON.stringify(sweep),
 		});
 		expect(res.status).toBe(401);
+	});
+});
+
+describe("the withdraw everything route", () => {
+	const everything = { withdrawalId: newId<"withdrawal">(), machineId: newId<"machine">() };
+	const never: TradeSigner = {
+		sign: async () => {
+			throw new Error("the signer must not be asked");
+		},
+	};
+	const ask = (target: ReturnType<typeof appWith>, body: unknown, auth = true) =>
+		target.request("/internal/v1/withdraw-everything", {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				...(auth ? { authorization: `Bearer ${token}` } : {}),
+			},
+			body: JSON.stringify(body),
+		});
+
+	it("passes the request on and gives the answer back unchanged", async () => {
+		const answer = {
+			status: "sent" as const,
+			withdrawalId: everything.withdrawalId,
+			to: "G3q54fR9GtMX2EvEtwitP2tnmPRSvuXdVhpEE5nwuzKu",
+			signatures: ["5".repeat(88)],
+			tokens: [
+				{
+					mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+					amount: "10000000",
+					from: "trading" as const,
+				},
+			],
+			lamports: "19995000",
+			leftBehind: [],
+		};
+		const asked: unknown[] = [];
+		const res = await ask(
+			appWith(never, {
+				withdraw: async () => {
+					throw new Error("not this one");
+				},
+				withdrawEverything: async (request) => {
+					asked.push(request);
+					return answer;
+				},
+			}),
+			everything,
+		);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual(answer);
+		expect(asked).toEqual([everything]);
+	});
+
+	it("refuses a request that names a destination, because it does not get to choose one", async () => {
+		const res = await ask(appWith(never), {
+			...everything,
+			to: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
+		});
+		expect(res.status).toBe(400);
+	});
+
+	it("will not answer anybody but the orchestrator", async () => {
+		expect((await ask(appWith(never), everything, false)).status).toBe(401);
 	});
 });

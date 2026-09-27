@@ -8,7 +8,8 @@
  * passing both.
  */
 
-import type { SweepRequest, WithdrawRequest } from "@maschina/contracts";
+import type { SweepRequest, WithdrawEverythingRequest, WithdrawRequest } from "@maschina/contracts";
+import { newId } from "@maschina/core";
 import {
 	type BlockhashReader,
 	balanceOf,
@@ -28,6 +29,8 @@ import {
 	rpcTransactionReader,
 	type SolanaRpc,
 	signatureOf,
+	TOKEN_2022_PROGRAM,
+	TOKEN_PROGRAM,
 	tradeCostOf,
 } from "@maschina/solana";
 import { toMaschinaError, type WalletProvider } from "@maschina/wallet";
@@ -39,6 +42,7 @@ import { type HaltPorts, whileHalted } from "./while-halted.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
 import { type RecordKeeper, withRules } from "./with-rules.ts";
 import { type WithdrawPorts, withdrawFunds } from "./withdraw.ts";
+import { type WithdrawEverythingPorts, withdrawEverything } from "./withdraw-everything.ts";
 
 /**
  * Wraps the inner signer, outermost first: the halt, then the rules, then the budget.
@@ -254,4 +258,73 @@ export function sweeper(parts: {
 	};
 
 	return { sweep: (request: SweepRequest) => sweepProfit(ports, request) };
+}
+
+/** What taking everything out reads from and writes to the record. */
+export type EverythingRecord = Pick<
+	WithdrawEverythingPorts,
+	"machineFor" | "record" | "submissionFor"
+>;
+
+/**
+ * Taking everything out of a machine, from its real parts.
+ *
+ * Balances come from the chain here, empty token accounts included, because closing an empty account
+ * returns its rent and that is the owner's money too. The SOL goes last, through the plain withdrawal
+ * that has already moved money on chain.
+ */
+export function everythingWithdrawer(parts: {
+	record: EverythingRecord;
+	provider: Pick<WalletProvider, "sign">;
+	rpc: SolanaRpc;
+	withdrawSol: (request: WithdrawRequest) => ReturnType<WithdrawEverythingPorts["withdrawSol"]>;
+}) {
+	const { record, provider, rpc, withdrawSol } = parts;
+	const sender = rpcSender(rpc);
+	const confirmations = rpcConfirmationReader(rpc);
+	const transactions = rpcTransactionReader(rpc);
+	const blockhashes: BlockhashReader = rpcBlockhashReader(rpc);
+	const balances = rpcBalanceReader(rpc);
+
+	const ports: WithdrawEverythingPorts = {
+		...record,
+		tokensOf: async (account) =>
+			(await readBalances(balances, account)).tokens.map((token) => ({
+				account: token.account,
+				mint: token.mint,
+				amount: token.amount,
+				decimals: token.decimals,
+				program: token.program === "token" ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM,
+				frozen: token.frozen,
+			})),
+		lamportsOf: async (account) => (await readBalances(balances, account)).lamports,
+		latestBlockhash: () => blockhashes.latest(),
+		sign: async (walletId, transaction, account) => {
+			const signed = await provider.sign(walletId, transaction, account);
+			if (signed.ok) return signed.value;
+			throw toMaschinaError(signed.error);
+		},
+		signatureOf,
+		send: async (signed) => {
+			await sender.send(signed);
+		},
+		confirm: async (submission) =>
+			answerFrom(
+				await confirmSignature(confirmations, {
+					signature: submission.signature,
+					lastValidBlockHeight: submission.lastValidBlockHeight,
+				}),
+			),
+		costOf: async (signature) => {
+			const landed = await transactions.transactionOf(signature);
+			if (!landed) throw new Error(`the chain has no transaction ${signature} to read a cost from`);
+			return landed.fee;
+		},
+		newId: () => newId<"withdrawal">(),
+		withdrawSol,
+	};
+
+	return {
+		withdrawEverything: (request: WithdrawEverythingRequest) => withdrawEverything(ports, request),
+	};
 }

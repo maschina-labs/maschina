@@ -151,6 +151,43 @@ describe("EVENT_TYPES", () => {
 	});
 });
 
+describe("a withdrawal of tokens", () => {
+	const tokens = [{ mint: USDC, amount: "10150000", from: "vault" }];
+
+	it("names every token that went home, and which account it came out of", () => {
+		const requested = parseEvent({
+			machineId: MACHINE,
+			type: "withdrawal.requested",
+			payload: { withdrawalId: WITHDRAWAL, to: OWNER_WALLET, lamports: "0", tokens },
+		});
+		expect(requested.ok).toBe(true);
+	});
+
+	it("refuses an account that is neither the trading account nor the vault", () => {
+		const odd = parseEvent({
+			machineId: MACHINE,
+			type: "withdrawal.requested",
+			payload: {
+				withdrawalId: WITHDRAWAL,
+				to: OWNER_WALLET,
+				lamports: "0",
+				tokens: [{ ...tokens[0], from: "somewhere" }],
+			},
+		});
+		expect(odd.ok).toBe(false);
+	});
+
+	it("still reads a withdrawal of SOL alone, written before tokens could be withdrawn", () => {
+		expect(
+			parseEvent({
+				machineId: MACHINE,
+				type: "withdrawal.requested",
+				payload: payloads["withdrawal.requested"],
+			}).ok,
+		).toBe(true);
+	});
+});
+
 describe("parseEvent", () => {
 	it("accepts a valid event of every type", () => {
 		for (const type of EVENT_TYPES) {

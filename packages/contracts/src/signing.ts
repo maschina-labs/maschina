@@ -131,6 +131,59 @@ export const WithdrawResponse = z
 export type WithdrawResponse = z.infer<typeof WithdrawResponse>;
 
 /**
+ * Asking for everything a machine holds to come home.
+ *
+ * Names the machine and nothing else. What is in it is read from the chain, and where it goes is the
+ * owner recorded against it: every token and all the SOL, out of the trading account and the vault.
+ */
+export const WithdrawEverythingRequest = z
+	.strictObject({
+		/** Identifies this request. Every transaction it makes is recorded under an id of its own. */
+		withdrawalId: id,
+		machineId: id,
+	})
+	.meta({ id: "WithdrawEverythingRequest" });
+export type WithdrawEverythingRequest = z.infer<typeof WithdrawEverythingRequest>;
+
+const account = z.enum(["trading", "vault"]);
+
+export const WithdrawEverythingResponse = z
+	.discriminatedUnion("status", [
+		z.strictObject({
+			status: z.literal("sent"),
+			withdrawalId: id,
+			/** The owner's wallet, echoed back so it can be checked against their own. */
+			to: address,
+			/** Every transaction that landed, in the order they were sent. */
+			signatures: z.array(signature).max(10),
+			tokens: z.array(z.strictObject({ mint: address, amount: whole, from: account })).max(40),
+			lamports: whole,
+			/**
+			 * What could not be moved, and why. Said out loud rather than left behind quietly: an owner
+			 * told "everything" who later finds something is owed the reason now.
+			 */
+			leftBehind: z
+				.array(
+					z.strictObject({
+						mint: address,
+						amount: whole,
+						from: account,
+						because: z.string().min(1).max(200),
+					}),
+				)
+				.max(40),
+		}),
+		z.strictObject({
+			status: z.literal("refused"),
+			withdrawalId: id,
+			rule: z.string().min(1).max(100),
+			reason: z.string().min(1).max(500),
+		}),
+	])
+	.meta({ id: "WithdrawEverythingResponse" });
+export type WithdrawEverythingResponse = z.infer<typeof WithdrawEverythingResponse>;
+
+/**
  * Asking the signer to bank a machine's profit.
  *
  * The request names the machine and nothing else. What to sweep is decided by the signer from the

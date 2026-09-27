@@ -43,6 +43,7 @@ Working today, each proved against real services rather than mocks:
 | Holding a trade to the fee its own bytes will pay, not the fee a router claims | `packages/solana/src/compute-budget.ts` |
 | Stopping everything at once, at the signer, so it works without the cooperation of whatever went wrong | `services/signer/src/while-halted.ts` |
 | Returning a machine's funds to its owner, with the destination looked up rather than accepted | `services/signer/src/withdraw.ts` |
+| Taking everything out: every token and all the SOL, from the trading account and the vault, each account closed so its rent comes home, checked byte by byte | `services/signer/src/withdraw-everything.ts`, `packages/solana/src/token-withdrawal.ts` |
 | Whether a machine has actually made money, net of what it paid | `packages/runtime/src/machine-pnl.ts` |
 | How far above its float a machine is, at every moment, including while it holds the other side | `packages/runtime/src/machine-float.ts` |
 | Refusing to sweep profit for forty cents, or against a position whose value is still an opinion | `packages/rules/src/float.ts` |
@@ -66,8 +67,9 @@ as the product being finished:
 - **No machine has made a real trade on mainnet.** Everything below has been proved against real
   Turnkey, a real database and live Jupiter prices, and a machine has completed whole round trips on
   paper. Nothing has yet spent a real dollar.
-- **Withdrawal is not usable by a person.** The signer path exists and has been run against real
-  Turnkey and real Solana, and there is no button and no public route in front of it yet.
+- **Withdrawal is not usable by a person.** The signer can return SOL alone, proven on chain, and can
+  take everything out, proven by simulation on mainnet. There is no button and no public route in front
+  of either yet.
 - **Sweeping on its own.** The signer can bank a machine's profit into its vault when asked, and nothing
   asks it on a schedule yet.
 - **Where a route sends its output is taken on trust.** A swap's tokens move inside the router's own
