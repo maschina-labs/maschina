@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { bandOf, ROUND_TRIP_COST, rangeReady, rangeRequest, sixDecimals } from "./range-form.ts";
+import {
+	bandOf,
+	FEE_HEADROOM,
+	ROUND_TRIP_COST,
+	rangeReady,
+	rangeRequest,
+	sixDecimals,
+} from "./range-form.ts";
 
 const form = {
 	name: "SOL range",
@@ -74,6 +81,12 @@ describe("when it can be sent", () => {
 });
 
 describe("how much of the float a buy may spend", () => {
+	it("keeps back more than the signer's fee allowance, as the budget counts it", () => {
+		// services/signer SIGNER_FEE_ALLOWANCE_LAMPORTS defaults to 205,000, which the budget adds to a buy
+		// as if it were base units of USDC: $0.205. Less headroom than that and the buy never fits.
+		expect(FEE_HEADROOM).toBeGreaterThan(205_000 / 1_000_000);
+	});
+
 	it("leaves room for the fee the signer holds back", async () => {
 		const { mostPerBuy } = await import("./range-form.ts");
 		expect(mostPerBuy("20")).toBe("19.75");
