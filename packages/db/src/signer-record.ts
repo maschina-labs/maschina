@@ -16,6 +16,7 @@ import type { Database } from "./client.ts";
 import { haltInForce } from "./halts.ts";
 import {
 	budgetFor,
+	budgetMintFor,
 	recordSubmission,
 	releaseTrade,
 	reserveForTrade,
@@ -27,6 +28,8 @@ import { appendEvent } from "./record.ts";
 
 export type SignerFacts = {
 	state: string;
+	/** The currency the budget and caps are counted in. A sale spends none of it. */
+	budgetMint?: string;
 	limits: {
 		maxPerTrade?: bigint | undefined;
 		maxPerDay?: bigint | undefined;
@@ -91,8 +94,10 @@ export function signerRecord(
 			const events = await readMachineEvents(db, request.machineId);
 			const limits = machineLimits(events);
 			const budget = await budgetFor(db, request.machineId);
+			const budgetMint = await budgetMintFor(db, request.machineId);
 			return {
 				state: machineState(events).state,
+				...(budgetMint === undefined ? {} : { budgetMint }),
 				limits: {
 					maxPerTrade: limits.maxPerTrade,
 					maxPerDay: limits.maxPerDay,

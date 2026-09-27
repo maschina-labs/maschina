@@ -403,3 +403,58 @@ describe("sending a trade at most once", () => {
 		expect(await submissionFor(handle.db, machineId, second.tradeId)).toBeUndefined();
 	});
 });
+
+describe("a sale", () => {
+	/** A range machine, whose budget is counted in USDC and which sells the SOL it bought. */
+	async function aRangeMachineWith(granted: bigint) {
+		const sql = handle.sql;
+		const [owner] = await sql<{ id: string }[]>`
+			insert into owners (id, wallet_address) values (${newId<"owner">()}::uuid, ${address()})
+			returning id`;
+		const saved = await saveDefinition(handle.db, {
+			kind: "range",
+			settings: {
+				quoteMint: USDC,
+				baseMint: SOL,
+				buyLevel: "118000000",
+				sellLevel: "122000000",
+				amountPerBuy: "10000000",
+			},
+			rules: {},
+		});
+		if (!owner || !saved.ok) throw new Error("could not set up the test");
+		const machineId = newId<"machine">();
+		await sql`
+			insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+			values (${machineId}::uuid, ${owner.id}::uuid, ${address()}, ${"wallet-1"}, ${"turnkey"},
+				${saved.value.id}, ${"SOL range"})`;
+		const granting = await appendEvent(handle.db, {
+			machineId,
+			type: "machine.limits_changed",
+			leaseEpoch: 1n,
+			payload: { limit: "budgetGranted", from: null, to: granted.toString() },
+		});
+		if (!granting.ok) throw new Error("could not grant a budget");
+		return machineId;
+	}
+
+	it("holds none of the budget, because it spends none of it", async () => {
+		// 0.08 SOL is 80,000,000 lamports. Against a ten dollar budget of 10,000,000 it was refused, and
+		// a range machine could buy its low edge and never sell its high one.
+		const machineId = await aRangeMachineWith(10_000_000n);
+
+		const held = await reserveForTrade(handle.db, aTrade(machineId, 80_000_000n, 5_000n));
+
+		expect(held.ok).toBe(true);
+		expect(held.ok && held.value.reserved).toBe(0n);
+		expect((await budgetFor(handle.db, machineId)).available).toBe(10_000_000n);
+	});
+
+	it("does not excuse a buy, which spends the budget and is held to it", async () => {
+		const machineId = await aRangeMachineWith(10_000_000n);
+		const buy = { ...aTrade(machineId, 11_000_000n), inputMint: USDC, outputMint: SOL };
+
+		const held = await reserveForTrade(handle.db, buy);
+		expect(!held.ok && held.error.code).toBe("limit_exceeded");
+	});
+});

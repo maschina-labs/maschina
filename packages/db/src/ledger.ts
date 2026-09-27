@@ -64,8 +64,6 @@ export async function reserveForTrade(
 		return err(new MaschinaError("invalid_amount", "a fee allowance is never negative"));
 	}
 
-	const wanted = trade.inputAmount + trade.feeAllowance;
-
 	return db.transaction(async (tx) => {
 		const held = await lockMachine(tx, trade.machineId);
 		if (!held) {
@@ -76,7 +74,13 @@ export async function reserveForTrade(
 			);
 		}
 
-		const budget = await budgetOf(tx, trade.machineId);
+		const { budget, budgetMint } = await budgetWithMint(tx, trade.machineId);
+		// The same rule the record is read with: a trade that spends something other than the budget's own
+		// currency is a sale, and holds none of it. Holding a sale's lamports against a budget in dollars
+		// refused every sale, while the budget rebuilt from the record said nothing was held. Two answers
+		// to one question is how money goes missing, so there is now one.
+		const spendsBudget = budgetMint === undefined || trade.inputMint === budgetMint;
+		const wanted = spendsBudget ? trade.inputAmount + trade.feeAllowance : 0n;
 		if (wanted > budget.available) {
 			return err(
 				new MaschinaError("limit_exceeded", "the budget cannot cover this trade", {
@@ -210,6 +214,14 @@ async function lockMachine(db: Executor, machineId: string): Promise<boolean> {
 }
 
 async function budgetOf(db: Executor, machineId: string): Promise<MachineBudget> {
+	return (await budgetWithMint(db, machineId)).budget;
+}
+
+/** The budget, and the currency it is counted in, read together so they belong to the same moment. */
+async function budgetWithMint(
+	db: Executor,
+	machineId: string,
+): Promise<{ budget: MachineBudget; budgetMint: string | undefined }> {
 	const rows = await db.execute<{ kind: string; settings: unknown }>(sql`
 		select machine_definitions.kind, machine_definitions.settings
 		from machines
@@ -219,7 +231,15 @@ async function budgetOf(db: Executor, machineId: string): Promise<MachineBudget>
 	// Money that came back in the machine's own currency returns to what it may spend.
 	const budgetMint = row ? budgetMintOf(KNOWN_KINDS, row.kind, row.settings) : undefined;
 	const events = await readMachineEvents(db, machineId);
-	return machineBudget(events, budgetMint === undefined ? {} : { budgetMint });
+	return {
+		budget: machineBudget(events, budgetMint === undefined ? {} : { budgetMint }),
+		budgetMint,
+	};
+}
+
+/** The currency a machine's budget is counted in, or nothing when its kind does not say. */
+export async function budgetMintFor(db: Executor, machineId: string): Promise<string | undefined> {
+	return (await budgetWithMint(db, machineId)).budgetMint;
 }
 
 export type TradeSubmission = {

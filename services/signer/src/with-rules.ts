@@ -23,6 +23,8 @@ import type { TradeSigner } from "./sign-route.ts";
 /** Everything the rules need about a machine, read fresh from the record. */
 export type MachineFacts = {
 	state: string;
+	/** The currency the budget and caps are counted in. A trade that spends anything else is a sale. */
+	budgetMint?: string | undefined;
 	/** The limits as the record holds them: plain numbers, no units attached yet. */
 	limits: {
 		maxPerTrade?: bigint | undefined;
@@ -81,6 +83,7 @@ export function withRules(
 
 			const decision = checkTrade({
 				state: facts.state,
+				budgetMint: facts.budgetMint,
 				limits: {
 					approvedMints: facts.limits.approvedMints,
 					...(facts.limits.maxPerTrade === undefined
