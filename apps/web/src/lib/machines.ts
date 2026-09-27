@@ -19,7 +19,7 @@ type Budget = {
 };
 
 /** What a machine has actually made. Signed, because a machine can be down. */
-export type MachineResult = {
+type MachineResult = {
 	realised: string;
 	position: string;
 	basis: string;
