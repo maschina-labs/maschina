@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useState } from "react";
 import { Shell } from "../components/shell.tsx";
 import { useCreateMachine } from "../lib/machines.ts";
-import { bandOf, rangeReady, rangeRequest } from "../lib/range-form.ts";
+import { bandOf, mostPerBuy, rangeReady, rangeRequest } from "../lib/range-form.ts";
 
 export const Route = createFileRoute("/new")({
 	component: NewMachine,
@@ -36,7 +36,7 @@ function NewMachine() {
 
 	const [buyAt, setBuyAt] = useState("");
 	const [sellAt, setSellAt] = useState("");
-	const [perBuy, setPerBuy] = useState("10");
+	const [perBuy, setPerBuy] = useState("9.75");
 	const [float, setFloat] = useState("10");
 
 	const { width: band, covers: bandCovers, keeps } = bandOf(buyAt, sellAt);
@@ -117,6 +117,12 @@ function NewMachine() {
 							</p>
 						) : null}
 						<Field label="Spend each buy (USDC)" value={perBuy} onChange={setPerBuy} />
+						{Number(float) > 0 && Number(perBuy) > Number(mostPerBuy(float)) ? (
+							<p className="text-[12px] text-destructive">
+								At most {mostPerBuy(float)} of a {float} float: each buy keeps a little back for the
+								fee to send it.
+							</p>
+						) : null}
 						<Field label="Float (USDC)" value={float} onChange={setFloat} />
 						<p className="text-[12px] text-muted-foreground/60 leading-relaxed">
 							The float is what it trades with. Anything it makes above that is swept into the

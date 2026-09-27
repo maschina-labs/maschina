@@ -25,6 +25,23 @@ export function bandOf(buyAt: string, sellAt: string): Band {
 	return { width, covers: width >= ROUND_TRIP_COST, keeps: width - ROUND_TRIP_COST };
 }
 
+/**
+ * What the signer holds back on top of a buy, for the fee sending it may cost, in dollars.
+ *
+ * The signer reserves its fee allowance (205,000 lamports by default) against the budget along with the
+ * amount, so a buy of the whole float never fits and is refused every time the price reaches the bottom
+ * edge. A quarter covers it with room to spare. Counting a fee in lamports against a budget in dollars is
+ * its own debt; until it is paid, the form keeps a buy from spending the last of the float.
+ */
+export const FEE_HEADROOM = 0.25;
+
+/** The most one buy may spend from a float, leaving the fee's headroom. Empty until a float is typed. */
+export function mostPerBuy(float: string): string {
+	const value = Number(float);
+	if (!(value > 0)) return "";
+	return Math.max(value - FEE_HEADROOM, 0).toFixed(2);
+}
+
 /** Dollars or USDC as typed, to six decimal base units, as every amount crosses the wire. */
 export const sixDecimals = (value: string): string =>
 	BigInt(Math.round(Number(value) * 1_000_000)).toString();
@@ -76,6 +93,10 @@ export function rangeReady(form: {
 	const perBuy = Number(form.perBuy);
 	const float = Number(form.float);
 	return (
-		filled && bandOf(form.buyAt, form.sellAt).covers && perBuy > 0 && float > 0 && perBuy <= float
+		filled &&
+		bandOf(form.buyAt, form.sellAt).covers &&
+		perBuy > 0 &&
+		float > 0 &&
+		perBuy <= float - FEE_HEADROOM
 	);
 }
