@@ -19,7 +19,7 @@ type TradeCost = { inputAmount: bigint; outputAmount: bigint; feeLamports: bigin
 
 export type ChainPorts = {
 	/** Throws when the transaction is not a plain swap signed and paid for by the machine's wallet. */
-	checkShape(transaction: Uint8Array, wallet: string): void;
+	checkShape(transaction: Uint8Array, wallet: string): Promise<void> | void;
 	/** The machine's wallet at the provider, from the record. */
 	walletIdFor(request: SignRequest): Promise<string | undefined>;
 	provider: Pick<WalletProvider, "sign">;
@@ -72,7 +72,7 @@ export function chainSigner(ports: ChainPorts): TradeSigner {
 			const transaction = new Uint8Array(Buffer.from(request.transaction, "base64"));
 
 			try {
-				ports.checkShape(transaction, request.wallet);
+				await ports.checkShape(transaction, request.wallet);
 			} catch (error) {
 				const reason = error instanceof Error ? error.message : String(error);
 				await ports.outcomes.recordRefusal(request, {

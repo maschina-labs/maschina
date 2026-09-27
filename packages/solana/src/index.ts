@@ -12,6 +12,7 @@ export * from "./priority-fee.ts";
 export * from "./raydium.ts";
 export * from "./router.ts";
 export * from "./rpc.ts";
+export * from "./swap-instructions.ts";
 export * from "./swap-transaction.ts";
 export * from "./testing.ts";
 export * from "./token-account.ts";

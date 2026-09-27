@@ -1,5 +1,10 @@
 import { newId } from "@maschina/core";
-import { computeBudgetTransaction, parseAddress, type SolanaRpc } from "@maschina/solana";
+import {
+	computeBudgetTransaction,
+	parseAddress,
+	type SolanaRpc,
+	transactionWith,
+} from "@maschina/solana";
 import { describe, expect, it, vi } from "vitest";
 import { shapeCheckFor, withdrawer } from "./compose.ts";
 
@@ -126,7 +131,7 @@ describe("the withdrawer, wired to its real parts", () => {
 describe("what the signer insists a transaction is", () => {
 	const check = shapeCheckFor(1_000n);
 
-	it("refuses a transaction that pays more for priority than the allowance", () => {
+	it("refuses a transaction that pays more for priority than the allowance", async () => {
 		const greedy = computeBudgetTransaction(MACHINE_WALLET, {
 			microLamportsPerUnit: 5_000_000n,
 			computeUnitLimit: 200_000,
@@ -134,21 +139,42 @@ describe("what the signer insists a transaction is", () => {
 
 		// A million lamports of priority against an allowance of a thousand. The router said whatever it
 		// said; this reads what the chain will charge.
-		expect(() => check(greedy, MACHINE_WALLET)).toThrow(/for priority/);
+		await expect(check(greedy, MACHINE_WALLET)).rejects.toThrow(/for priority/);
 	});
 
-	it("accepts a transaction inside the allowance", () => {
+	it("accepts a transaction inside the allowance", async () => {
 		const modest = computeBudgetTransaction(MACHINE_WALLET, {
 			microLamportsPerUnit: 4_000n,
 			computeUnitLimit: 200_000,
 		});
 
-		expect(() => check(modest, MACHINE_WALLET)).not.toThrow();
+		await expect(check(modest, MACHINE_WALLET)).resolves.toBeUndefined();
 	});
 
-	it("still refuses a transaction that asks somebody else to sign, fee or no fee", () => {
+	it("still refuses a transaction that asks somebody else to sign, fee or no fee", async () => {
 		const cheap = computeBudgetTransaction(MACHINE_WALLET, {});
 
-		expect(() => check(cheap, OWNER_WALLET)).toThrow(/different wallet to sign/);
+		await expect(check(cheap, OWNER_WALLET)).rejects.toThrow(/different wallet to sign/);
+	});
+
+	it("refuses a bare token transfer out of the machine, which the provider cannot tell from a swap", async () => {
+		// The token program is on the swap list and the provider checks only the mint for a trading
+		// wallet, so this is the one check between a compromised node and the machine's tokens (#667).
+		const data = new Uint8Array(9);
+		data[0] = 3;
+		new DataView(data.buffer).setBigUint64(1, 50_000_000n, true);
+		const drain = transactionWith(MACHINE_WALLET, [
+			{
+				program: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+				accounts: [
+					{ address: "2arVPHhzahANuftuDyHXP414ye2ARUgJvcbP9NHAsfnj", writable: true },
+					{ address: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9", writable: true },
+					{ address: MACHINE_WALLET, signer: true, writable: true },
+				],
+				data,
+			},
+		]);
+
+		await expect(check(drain, MACHINE_WALLET)).rejects.toThrow(/tokens outside the swap/);
 	});
 });
