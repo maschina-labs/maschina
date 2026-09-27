@@ -121,3 +121,82 @@ describe("checking a sweep's bytes", () => {
 		).rejects.toThrow(/exactly one/);
 	});
 });
+
+describe("every other way a sweep's bytes can be wrong", () => {
+	const checkedData = (amount: bigint) => {
+		const data = new Uint8Array(10);
+		data[0] = 12;
+		new DataView(data.buffer).setBigUint64(1, amount, true);
+		data[9] = 6;
+		return data;
+	};
+	const transferFrom = async (source: string, authority: string, mint: string = USDC) =>
+		transactionWith(WALLET, [
+			{
+				program: TOKEN,
+				accounts: [
+					{ address: source, writable: true },
+					{ address: mint },
+					{ address: await tokenAccountFor({ owner: VAULT, mint: USDC }), writable: true },
+					{ address: authority, signer: authority === WALLET, writable: authority === WALLET },
+				],
+				data: checkedData(1_500_000n),
+			},
+		]);
+
+	it("refuses tokens taken from an account that is not the machine's", async () => {
+		const bytes = await transferFrom(
+			await tokenAccountFor({ owner: STRANGER, mint: USDC }),
+			WALLET,
+		);
+		await expect(checkUnsignedSweep(bytes, expected)).rejects.toThrow(/not the machine's/);
+	});
+
+	it("refuses a transfer that names a different token than the one decided", async () => {
+		const bytes = await transferFrom(
+			await tokenAccountFor({ owner: WALLET, mint: USDC }),
+			WALLET,
+			"So11111111111111111111111111111111111111112",
+		);
+		await expect(checkUnsignedSweep(bytes, expected)).rejects.toThrow(/other than the one decided/);
+	});
+
+	it("refuses a token program that is not a token program", async () => {
+		const bytes = await buildSweep(request());
+		await expect(
+			checkUnsignedSweep(bytes, { ...expected, tokenProgram: "11111111111111111111111111111111" }),
+		).rejects.toThrow();
+	});
+
+	it("refuses an account made for anybody but the vault", async () => {
+		const bytes = transactionWith(WALLET, [
+			{
+				program: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+				accounts: [
+					{ address: WALLET, signer: true, writable: true },
+					{ address: await tokenAccountFor({ owner: STRANGER, mint: USDC }), writable: true },
+					{ address: STRANGER },
+					{ address: USDC },
+				],
+				data: new Uint8Array([1]),
+			},
+		]);
+		await expect(checkUnsignedSweep(bytes, expected)).rejects.toThrow(/not the vault's/);
+	});
+
+	it("refuses any associated token instruction but making the vault's account", async () => {
+		const bytes = transactionWith(WALLET, [
+			{
+				program: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+				accounts: [{ address: WALLET, signer: true, writable: true }],
+				data: new Uint8Array([2]),
+			},
+		]);
+		await expect(checkUnsignedSweep(bytes, expected)).rejects.toThrow(/only ever makes/);
+	});
+
+	it("refuses bytes with no transfer in them at all", async () => {
+		const bytes = transactionWith(WALLET, []);
+		await expect(checkUnsignedSweep(bytes, expected)).rejects.toThrow(/exactly one/);
+	});
+});

@@ -27,6 +27,21 @@ describe("who a machine's funds belong to", () => {
 		});
 	});
 
+	it("includes the vault, so taking everything out takes what was banked too", async () => {
+		const { database } = fakeDatabase([
+			{
+				wallet_address: "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk",
+				vault_address: "CzjvJfCTedyrVaebP9Vbn1BjJMKPqtdDjSfbWUDiFnLt",
+				owner_wallet: "G3q54fR9GtMX2EvEtwitP2tnmPRSvuXdVhpEE5nwuzKu",
+				provider_wallet_id: "wallet-9f2c",
+			},
+		]);
+
+		expect(await machineForWithdrawal(database, machineId)).toMatchObject({
+			vault: "CzjvJfCTedyrVaebP9Vbn1BjJMKPqtdDjSfbWUDiFnLt",
+		});
+	});
+
 	it("is nothing for a machine that does not exist", async () => {
 		const { database } = fakeDatabase([]);
 

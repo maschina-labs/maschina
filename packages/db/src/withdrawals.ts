@@ -13,6 +13,8 @@ import { readMachineEvents } from "./read-events.ts";
 
 export type WithdrawingMachine = {
 	wallet: string;
+	/** The vault beside it, when it has one. Absent for a machine made before vaults. */
+	vault?: string;
 	ownerWallet: string;
 	providerWalletId: string;
 };
@@ -24,10 +26,11 @@ export async function machineForWithdrawal(
 ): Promise<WithdrawingMachine | undefined> {
 	const rows = await db.execute<{
 		wallet_address: string;
+		vault_address?: string | null;
 		owner_wallet: string;
 		provider_wallet_id: string;
 	}>(sql`
-		select machines.wallet_address, machines.provider_wallet_id,
+		select machines.wallet_address, machines.vault_address, machines.provider_wallet_id,
 			owners.wallet_address as owner_wallet
 		from machines
 		join owners on owners.id = machines.owner_id
@@ -37,6 +40,7 @@ export async function machineForWithdrawal(
 	if (!row) return undefined;
 	return {
 		wallet: row.wallet_address,
+		...(row.vault_address ? { vault: row.vault_address } : {}),
 		ownerWallet: row.owner_wallet,
 		providerWalletId: row.provider_wallet_id,
 	};

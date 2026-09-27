@@ -18,6 +18,7 @@ export * from "./sweep.ts";
 export * from "./testing.ts";
 export * from "./token-account.ts";
 export * from "./token-list.ts";
+export * from "./token-withdrawal.ts";
 export * from "./tokens.ts";
 export * from "./trade-cost.ts";
 export * from "./transfer.ts";

@@ -19,6 +19,9 @@ const app = (checks: { name: string; check: () => Promise<boolean> }[] = []) =>
 			withdraw: async () => {
 				throw new MaschinaError("unavailable", "not used here");
 			},
+			withdrawEverything: async () => {
+				throw new MaschinaError("unavailable", "not used here");
+			},
 		},
 		sweeper: {
 			sweep: async () => {

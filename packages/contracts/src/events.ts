@@ -171,12 +171,25 @@ const AUTHORITY_PAYLOADS = {
  * taking their money back, and the two must never be counted together: a withdrawal is not spending, it
  * does not touch the budget, and it is the one movement whose destination an owner chose.
  */
+/**
+ * Tokens that went home in a withdrawal, and which of the machine's accounts each came out of.
+ *
+ * Absent from a withdrawal of SOL alone, which is every withdrawal written before tokens could be
+ * withdrawn. The account is named rather than addressed because what matters later is whether the money
+ * left the trading account or the vault, and the record already knows both addresses.
+ */
+const withdrawnTokens = z
+	.array(object({ mint: address, amount, from: z.enum(["trading", "vault"]) }))
+	.min(1)
+	.max(20);
+
 const WITHDRAWAL_PAYLOADS = {
 	"withdrawal.requested": object({
 		withdrawalId: id,
 		/** The owner's wallet. The only place a machine's funds may ever go. */
 		to: address,
 		lamports: amount,
+		tokens: withdrawnTokens.optional(),
 	}),
 	/**
 	 * The signature, written down before the transaction is sent.
@@ -198,6 +211,7 @@ const WITHDRAWAL_PAYLOADS = {
 		/** What it cost to send, which the owner paid out of the machine's wallet. */
 		feeLamports: amount,
 		slot: amount,
+		tokens: withdrawnTokens.optional(),
 	}),
 	"withdrawal.failed": object({
 		withdrawalId: id,

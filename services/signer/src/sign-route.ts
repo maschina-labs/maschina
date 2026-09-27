@@ -21,6 +21,8 @@ import {
 	SignResponse,
 	SweepRequest,
 	SweepResponse,
+	WithdrawEverythingRequest,
+	WithdrawEverythingResponse,
 	WithdrawRequest,
 	WithdrawResponse,
 } from "@maschina/contracts";
@@ -50,6 +52,8 @@ export function readProposal(body: unknown): SignRequest {
 /** What returns a machine's funds. Judged entirely inside, the same as a trade. */
 export type Withdrawer = {
 	withdraw(request: WithdrawRequest): Promise<WithdrawResponse>;
+	/** Every token and all the SOL, from the trading account and the vault, to the owner. */
+	withdrawEverything(request: WithdrawEverythingRequest): Promise<WithdrawEverythingResponse>;
 };
 
 /** Reads the body as a withdrawal, or says exactly what was wrong with it. */
@@ -106,6 +110,20 @@ export function signRoutes(signer: TradeSigner, withdrawer: Withdrawer, sweeper:
 
 			const answer = await withdrawer.withdraw(readWithdrawal(body));
 			return c.json(WithdrawResponse.parse(answer), 200);
+		})
+		.post("/withdraw-everything", async (c) => {
+			const body = await c.req.json().catch(() => {
+				throw new MaschinaError("invalid_input", "the withdrawal is not JSON");
+			});
+			const parsed = WithdrawEverythingRequest.safeParse(body);
+			if (!parsed.success) {
+				// Names the machine and nothing else: an amount or a destination is not the caller's to give.
+				throw new MaschinaError("invalid_input", "the withdrawal names more than the machine", {
+					details: { problems: parsed.error.issues.map((issue) => issue.message) },
+				});
+			}
+			const answer = await withdrawer.withdrawEverything(parsed.data);
+			return c.json(WithdrawEverythingResponse.parse(answer), 200);
 		})
 		.post("/sweep", async (c) => {
 			const body = await c.req.json().catch(() => {

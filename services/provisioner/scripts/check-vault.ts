@@ -15,7 +15,14 @@
  */
 
 import { baseUnitsOf, newId, ok } from "@maschina/core";
-import { buildTransfer, jupiterRouter, parseAddress } from "@maschina/solana";
+import {
+	buildTokenWithdrawal,
+	buildTransfer,
+	jupiterRouter,
+	parseAddress,
+	TOKEN_PROGRAM,
+	tokenAccountFor,
+} from "@maschina/solana";
 import { signerUserIdFor, TURNKEY_API, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { createMachine } from "../src/create-machine.ts";
 
@@ -149,6 +156,52 @@ async function main(): Promise<void> {
 		"refused",
 		await swap(vault, SOL, USDC, 10_000_000n),
 		"vault",
+	);
+
+	// Emptying the vault: the trading account pays and signs first, then the vault signs for its own tokens.
+	// The question is whether Turnkey adds a second signature to a transaction that already has one, and
+	// still holds the vault to paying only the owner.
+	const vaultTokens = async (to: typeof trading) =>
+		buildTokenWithdrawal({
+			payer: trading,
+			from: vault,
+			owner: to,
+			tokens: [
+				{
+					account: parseAddress(await tokenAccountFor({ owner: vault, mint: USDC })),
+					mint: USDC,
+					amount: 1_000_000n,
+					decimals: 6,
+					program: TOKEN_PROGRAM,
+				},
+			],
+			blockhash: BLOCKHASH,
+			lastValidBlockHeight: 1n,
+		});
+	const coSign = async (name: string, expected: Outcome["expected"], bytes: Uint8Array) => {
+		const paid = await provider.sign(walletId, bytes, "trading");
+		if (!paid.ok) {
+			outcomes.push({
+				name,
+				expected,
+				got: `trading refused: ${paid.error.message.slice(0, 120)}`,
+			});
+			console.log(
+				`FAIL  ${name}\n      the trading account would not pay: ${paid.error.message.slice(0, 120)}`,
+			);
+			return;
+		}
+		await attempt(name, expected, paid.value, "vault");
+	};
+	await coSign(
+		"the vault sends its tokens to its owner, the trading account paying",
+		"signed",
+		await vaultTokens(owner),
+	);
+	await coSign(
+		"the vault sends its tokens to a stranger, the trading account paying",
+		"refused",
+		await vaultTokens(A_STRANGER),
 	);
 
 	console.log("\nthe trading account");
