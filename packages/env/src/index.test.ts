@@ -76,6 +76,30 @@ describe("loadEnv", () => {
 		expect(() => loadEnv({ P: env.port(1) }, { P: "1.5" })).toThrow(MaschinaError);
 	});
 
+	it("refuses a URL with quotes in it, which a shell strips and a container keeps", () => {
+		// Found in production: an RPC key written as api-key='...' worked from a shell and was refused
+		// with a 401 on every call from inside the containers, silently, because nothing checked.
+		const quoted = "https://rpc.example.com/?api-key='abcdef-secret-value'";
+		expect(() => loadEnv({ U: env.url() }, { U: quoted })).toThrow(/quote/);
+		expect(() => loadEnv({ U: env.url() }, { U: 'https://rpc.example.com/?k="x"' })).toThrow(
+			/quote/,
+		);
+	});
+
+	it("does not repeat a quoted URL's secret in the refusal", () => {
+		const quoted = "https://rpc.example.com/?api-key='abcdef-secret-value'";
+		let refusal: unknown;
+		try {
+			loadEnv({ U: env.url() }, { U: quoted });
+		} catch (error) {
+			refusal = error;
+		}
+
+		expect(refusal).toBeInstanceOf(MaschinaError);
+		expect((refusal as Error).message).toMatch(/quote/);
+		expect((refusal as Error).message).not.toContain("abcdef-secret-value");
+	});
+
 	it("reads process.env by default", () => {
 		process.env["MASCHINA_ENV_TEST"] = "yes";
 		expect(loadEnv({ MASCHINA_ENV_TEST: z.string() }).MASCHINA_ENV_TEST).toBe("yes");

@@ -51,10 +51,12 @@ Working today, each proved against real services rather than mocks:
 | A vault beside every machine, whose key cannot sign a trade, checked against the real Turnkey | `services/provisioner/src/create-machine.ts`, `services/provisioner/scripts/check-vault.ts` |
 | Refusing a transaction that looks like a swap and moves money out around it, checked against real Jupiter routes | `packages/solana/src/swap-instructions.ts` |
 | Banking profit above the float into the vault: decided from the chain and the record, checked byte by byte, sent once | `services/signer/src/sweep.ts`, `packages/solana/src/sweep.ts` |
+| Asking every five minutes which machines have profit to bank, and finishing an open sweep before deciding a new one | `services/orchestrator/src/bank-profit.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
+| A signer that is not ready until it can reach the record and the chain, and refuses to start on a quoted URL | `services/signer/src/app.ts`, `packages/env/src/index.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 The API is live at `https://api.maschina.dev`: `/v1/status` says it is up and `/openapi.json` describes
@@ -70,8 +72,6 @@ as the product being finished:
 - **Withdrawal is not usable by a person.** The signer can return SOL alone, proven on chain, and can
   take everything out, proven by simulation on mainnet. There is no button and no public route in front
   of either yet.
-- **Sweeping on its own.** The signer can bank a machine's profit into its vault when asked, and nothing
-  asks it on a schedule yet.
 - **Where a route sends its output is taken on trust.** A swap's tokens move inside the router's own
   instruction, and neither the provider nor Maschina yet reads where that instruction delivers the
   result. Everything around it is checked: a bare token transfer, a delegation, a close into somebody
