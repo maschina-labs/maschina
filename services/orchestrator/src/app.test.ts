@@ -35,6 +35,9 @@ function app(databaseUp = true) {
 			withdraw: async () => {
 				throw new Error("not used here");
 			},
+			withdrawEverything: async () => {
+				throw new Error("not used here");
+			},
 		},
 		renewals: { renew: async () => ok(new Date()) },
 	});

@@ -149,3 +149,50 @@ describe("asking the signer for a machine's funds back", () => {
 		await expect(client.withdraw(withdrawal)).rejects.toMatchObject({ code: "internal" });
 	});
 });
+
+describe("asking the signer for everything back", () => {
+	const everything = { withdrawalId: newId<"withdrawal">(), machineId: newId<"machine">() };
+
+	it("asks the withdraw everything route with the token, and reads the answer", async () => {
+		const answer = {
+			status: "refused",
+			withdrawalId: everything.withdrawalId,
+			rule: "unknown_machine",
+			reason: "no machine by that id has an owner",
+		};
+		const fetchFn = vi.fn(async () => json(answer));
+		const client = signerClient({ url: "http://signer:4200", token: "tok", fetch: fetchFn });
+
+		expect(await client.withdrawEverything(everything)).toEqual(answer);
+		const [url, init] = fetchFn.mock.calls[0] as unknown as [URL, RequestInit];
+		expect(String(url)).toBe("http://signer:4200/internal/v1/withdraw-everything");
+		expect(new Headers(init.headers).get("authorization")).toBe("Bearer tok");
+		expect(JSON.parse(String(init.body))).toEqual(everything);
+	});
+
+	it.each([
+		[503, "unavailable"],
+		[400, "invalid_input"],
+		[500, "internal"],
+	])("reads a %i as %s", async (status, code) => {
+		const client = signerClient({
+			url: "http://signer:4200",
+			token: "tok",
+			fetch: async () => new Response("{}", { status }),
+		});
+		await expect(client.withdrawEverything(everything)).rejects.toMatchObject({ code });
+	});
+
+	it("says the signer is unreachable rather than inventing an outcome", async () => {
+		const client = signerClient({
+			url: "http://signer:4200",
+			token: "tok",
+			fetch: async () => {
+				throw new Error("ECONNREFUSED");
+			},
+		});
+		await expect(client.withdrawEverything(everything)).rejects.toMatchObject({
+			code: "unavailable",
+		});
+	});
+});

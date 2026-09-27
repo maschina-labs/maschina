@@ -4,7 +4,7 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
-import { type Clock, systemClock } from "@maschina/core";
+import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
 	createDatabase,
@@ -12,6 +12,7 @@ import {
 	machinesOf,
 	readMachineEvents,
 } from "@maschina/db";
+import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
 import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
@@ -27,6 +28,8 @@ export type GatewayConfig = {
 	DATABASE_URL: string;
 	PROVISIONER_URL: string;
 	PROVISIONER_GATEWAY_TOKEN: string;
+	ORCHESTRATOR_URL?: string | undefined;
+	ORCHESTRATOR_GATEWAY_TOKEN?: string | undefined;
 	GATEWAY_DOMAIN: string;
 	GATEWAY_APP_URL: string;
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
@@ -38,6 +41,14 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		url: config.PROVISIONER_URL,
 		token: config.PROVISIONER_GATEWAY_TOKEN,
 	});
+
+	const orchestrator =
+		config.ORCHESTRATOR_URL !== undefined && config.ORCHESTRATOR_GATEWAY_TOKEN !== undefined
+			? orchestratorClient({
+					url: config.ORCHESTRATOR_URL,
+					token: config.ORCHESTRATOR_GATEWAY_TOKEN,
+				})
+			: undefined;
 
 	const sessions = walletSessions(database.db, clock, {
 		domain: config.GATEWAY_DOMAIN,
@@ -61,6 +72,12 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 			return done.value;
 		},
 		create: async (request) => provisioner.create(request),
+		withdrawEverything: async ({ machineId }) => {
+			if (!orchestrator) {
+				throw new MaschinaError("unavailable", "withdrawals are not switched on here yet");
+			}
+			return orchestrator.withdrawEverything({ withdrawalId: newId<"withdrawal">(), machineId });
+		},
 	};
 
 	const auth: AuthPorts = {

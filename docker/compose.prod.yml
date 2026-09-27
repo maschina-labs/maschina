@@ -75,6 +75,7 @@ services:
     env_file: /opt/maschina/.env
     environment:
       PROVISIONER_URL: http://provisioner:4400
+      ORCHESTRATOR_URL: http://orchestrator:4100
     depends_on:
       postgres:
         condition: service_healthy

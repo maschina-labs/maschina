@@ -9,6 +9,8 @@ export function loadConfig(source?: EnvSource) {
 			DATABASE_URL: env.postgresUrl(),
 			/** Daemons present this to prove they are ours. */
 			ORCHESTRATOR_DAEMON_TOKEN: env.secret(),
+			/** The gateway presents this when it asks for an owner. Unset, owners cannot withdraw. */
+			ORCHESTRATOR_GATEWAY_TOKEN: env.optional(env.secret()),
 			/** The signer. Only the orchestrator may ask it anything. */
 			SIGNER_URL: env.url(),
 			SIGNER_ORCHESTRATOR_TOKEN: env.secret(),

@@ -42,6 +42,7 @@ const database = createDatabase({ url: config.DATABASE_URL, applicationName: SER
 const app = buildApp({
 	version: config.SERVICE_VERSION,
 	daemonToken: config.ORCHESTRATOR_DAEMON_TOKEN,
+	gatewayToken: config.ORCHESTRATOR_GATEWAY_TOKEN,
 	logger,
 	reporter,
 	checks: [{ name: "database", check: database.ping }],

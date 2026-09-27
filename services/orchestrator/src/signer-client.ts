@@ -8,6 +8,8 @@
 import {
 	type SignRequest,
 	SignResponse,
+	type WithdrawEverythingRequest,
+	WithdrawEverythingResponse,
 	type WithdrawRequest,
 	WithdrawResponse,
 } from "@maschina/contracts";
@@ -64,6 +66,36 @@ export function signerClient(options: { url: string; token: string; fetch?: type
 			}
 
 			if (response.ok) return WithdrawResponse.parse(await response.json());
+			if (response.status === 503) {
+				throw new MaschinaError("unavailable", "the signer cannot send right now");
+			}
+			if (response.status === 400) {
+				throw new MaschinaError("invalid_input", "the signer could not read the withdrawal");
+			}
+			throw new MaschinaError("internal", `the signer answered ${response.status}`);
+		},
+
+		/** Asks the signer for everything a machine holds to go home. What and where are its to work out. */
+		async withdrawEverything(
+			request: WithdrawEverythingRequest,
+		): Promise<WithdrawEverythingResponse> {
+			let response: Response;
+			try {
+				response = await fetchFn(new URL("/internal/v1/withdraw-everything", options.url), {
+					method: "POST",
+					headers: {
+						authorization: `Bearer ${options.token}`,
+						"content-type": "application/json",
+					},
+					body: JSON.stringify(request),
+					// Up to three transactions, each waiting for the chain, so three times a trade's wait.
+					signal: AbortSignal.timeout(TIMEOUT_MS * 3),
+				});
+			} catch (cause) {
+				throw new MaschinaError("unavailable", "the signer could not be reached", { cause });
+			}
+
+			if (response.ok) return WithdrawEverythingResponse.parse(await response.json());
 			if (response.status === 503) {
 				throw new MaschinaError("unavailable", "the signer cannot send right now");
 			}

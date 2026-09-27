@@ -34,6 +34,9 @@ function app(renewals: LeaseRenewals) {
 			withdraw: async () => {
 				throw new Error("not used here");
 			},
+			withdrawEverything: async () => {
+				throw new Error("not used here");
+			},
 		},
 		renewals,
 	});

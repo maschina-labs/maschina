@@ -12,6 +12,13 @@ export function loadConfig(source?: EnvSource) {
 			PROVISIONER_URL: env.url(),
 			PROVISIONER_GATEWAY_TOKEN: env.secret(),
 			/**
+			 * Where an owner's withdrawal is asked for, and the token that proves it is the gateway asking.
+			 * Either one missing and withdrawals answer that they are not switched on, rather than the
+			 * gateway refusing to start.
+			 */
+			ORCHESTRATOR_URL: env.optional(env.url()),
+			ORCHESTRATOR_GATEWAY_TOKEN: env.optional(env.secret()),
+			/**
 			 * The domain a sign in message names, and the only domain its signature is good for. Wallets
 			 * check it against the page's own origin, which includes the port in development, so this is
 			 * a host rather than a hostname.

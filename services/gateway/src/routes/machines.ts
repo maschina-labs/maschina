@@ -19,6 +19,7 @@ import {
 	MachineDetail,
 	MachineList,
 	MachineRecord,
+	WithdrawEverythingResponse,
 } from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
@@ -39,6 +40,11 @@ export type MachinePorts = {
 		budgetGranted?: bigint;
 	}): Promise<{ state: string }>;
 	create(request: CreateMachineRequest & { ownerWallet: string }): Promise<CreateMachineResponse>;
+	/** Everything the machine holds, back to its owner. The machine is known to be theirs by now. */
+	withdrawEverything(request: {
+		ownerId: string;
+		machineId: string;
+	}): Promise<WithdrawEverythingResponse>;
 };
 
 const machineId = z.string().openapi({ description: "The machine's id" });
@@ -114,6 +120,37 @@ const act = createRoute({
 	},
 });
 
+const withdraw = createRoute({
+	method: "post",
+	path: "/machines/{machineId}/withdraw",
+	tags: ["Machines"],
+	summary: "Take everything out of a machine",
+	description:
+		"Every token and all the SOL, from the machine's trading account and its vault, back to the wallet that signed in. The machine has to be paused or stopped first. Nothing about where the money goes can be asked for: it goes to the owner.",
+	request: {
+		params: z.object({ machineId }),
+		body: {
+			required: false,
+			content: { "application/json": { schema: z.strictObject({}) } },
+		},
+	},
+	responses: {
+		200: {
+			description: "What went home, and anything that could not",
+			content: { "application/json": { schema: WithdrawEverythingResponse } },
+		},
+		409: {
+			description: "The machine is still running",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		503: {
+			description: "Withdrawals are not switched on here",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		...problem,
+	},
+});
+
 const create = createRoute({
 	method: "post",
 	path: "/machines",
@@ -183,6 +220,14 @@ export function machineRoutes(ports: MachinePorts) {
 				...(body.budgetGranted === undefined ? {} : { budgetGranted: BigInt(body.budgetGranted) }),
 			});
 			return c.json(MachineActionResponse.parse(done), 200);
+		})
+		.openapi(withdraw, async (c) => {
+			const who = await owner(c);
+			const { machineId: id } = c.req.valid("param");
+			// Somebody else's machine is not found, the same as one that does not exist.
+			mustExist(await ports.read(who.ownerId, id));
+			const done = await ports.withdrawEverything({ ownerId: who.ownerId, machineId: id });
+			return c.json(WithdrawEverythingResponse.parse(done), 200);
 		})
 		.openapi(create, async (c) => {
 			const who = await owner(c);
