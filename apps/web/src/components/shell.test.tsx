@@ -11,12 +11,12 @@ import { Shell } from "./shell.tsx";
  * The shell needs a router in context, because the account control reads the api from it. Rendering it
  * inside the real router is closer to the app than a mock, and costs nothing here.
  */
-function renderShell(fetchFn: typeof fetch) {
+function renderShell(fetchFn: typeof fetch, at = "/") {
 	const queryClient = createQueryClient();
 	const router = createAppRouter({
 		api: createApi("http://localhost:4000", fetchFn),
 		queryClient,
-		history: createMemoryHistory({ initialEntries: ["/"] }),
+		history: createMemoryHistory({ initialEntries: [at] }),
 	});
 	return render(
 		<QueryClientProvider client={queryClient}>
@@ -56,13 +56,13 @@ describe("the shell", () => {
 		renderShell(signedOut as unknown as typeof fetch);
 
 		const machines = await screen.findByRole("button", { name: "Machines" });
-		expect(screen.getByText("No machines yet")).toBeTruthy();
+		expect(screen.getByText("All machines")).toBeTruthy();
 
 		fireEvent.click(machines);
-		expect(screen.queryByText("No machines yet")).toBeNull();
+		expect(screen.queryByText("All machines")).toBeNull();
 
 		fireEvent.click(machines);
-		expect(screen.getByText("No machines yet")).toBeTruthy();
+		expect(screen.getByText("All machines")).toBeTruthy();
 	});
 
 	it("opens what is under a navigation item that has more beneath it", async () => {
@@ -70,7 +70,7 @@ describe("the shell", () => {
 
 		fireEvent.click(await screen.findByText("Runs"));
 
-		expect(screen.getByText("Queued")).toBeTruthy();
+		expect(screen.getByText("Queued runs")).toBeTruthy();
 		expect(screen.getByText("Finished")).toBeTruthy();
 	});
 
@@ -94,5 +94,19 @@ describe("the shell", () => {
 		renderShell(fetchFn as unknown as typeof fetch);
 
 		await waitFor(() => expect(screen.getByText("7xKp…BdRe")).toBeTruthy());
+	});
+});
+
+describe("where the sidebar says you are", () => {
+	it("lights up one place at a time, even when one address sits inside another", async () => {
+		renderShell(signedOut as unknown as typeof fetch, "/wallet/withdraw");
+
+		// Wallet and Withdrawal are siblings in the list although one path contains the other. A parent
+		// lighting up for its sibling's page would say you are in two places at once.
+		const withdrawal = await screen.findByRole("link", { name: "Withdrawal" });
+		const wallet = screen.getByRole("link", { name: "Wallet" });
+
+		expect(withdrawal.className).toContain("bg-accent-wash");
+		expect(wallet.className).not.toContain("bg-accent-wash");
 	});
 });

@@ -10,12 +10,32 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as NetworkRouteImport } from './routes/network'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
+import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
+import { Route as MarketplaceMineRouteImport } from './routes/marketplace.mine'
+import { Route as RunsFinishedRouteImport } from './routes/runs.finished'
+import { Route as RunsQueuedRouteImport } from './routes/runs.queued'
+import { Route as SettingsKeysRouteImport } from './routes/settings.keys'
+import { Route as WalletIndexRouteImport } from './routes/wallet.index'
+import { Route as WalletBalanceRouteImport } from './routes/wallet.balance'
+import { Route as WalletWithdrawRouteImport } from './routes/wallet.withdraw'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NetworkRoute = NetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewRoute = NewRouteImport.update({
@@ -28,35 +48,155 @@ const MachinesMachineIdRoute = MachinesMachineIdRouteImport.update({
   path: '/machines/$machineId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
+  id: '/marketplace/',
+  path: '/marketplace/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceMineRoute = MarketplaceMineRouteImport.update({
+  id: '/marketplace/mine',
+  path: '/marketplace/mine',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsFinishedRoute = RunsFinishedRouteImport.update({
+  id: '/runs/finished',
+  path: '/runs/finished',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsQueuedRoute = RunsQueuedRouteImport.update({
+  id: '/runs/queued',
+  path: '/runs/queued',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsKeysRoute = SettingsKeysRouteImport.update({
+  id: '/settings/keys',
+  path: '/settings/keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletIndexRoute = WalletIndexRouteImport.update({
+  id: '/wallet/',
+  path: '/wallet/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletBalanceRoute = WalletBalanceRouteImport.update({
+  id: '/wallet/balance',
+  path: '/wallet/balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletWithdrawRoute = WalletWithdrawRouteImport.update({
+  id: '/wallet/withdraw',
+  path: '/wallet/withdraw',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/marketplace/mine': typeof MarketplaceMineRoute
+  '/runs/finished': typeof RunsFinishedRoute
+  '/runs/queued': typeof RunsQueuedRoute
+  '/settings/keys': typeof SettingsKeysRoute
+  '/wallet/balance': typeof WalletBalanceRoute
+  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
+  '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/marketplace/mine': typeof MarketplaceMineRoute
+  '/runs/finished': typeof RunsFinishedRoute
+  '/runs/queued': typeof RunsQueuedRoute
+  '/settings/keys': typeof SettingsKeysRoute
+  '/wallet/balance': typeof WalletBalanceRoute
+  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/marketplace': typeof MarketplaceIndexRoute
+  '/wallet': typeof WalletIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/marketplace/mine': typeof MarketplaceMineRoute
+  '/runs/finished': typeof RunsFinishedRoute
+  '/runs/queued': typeof RunsQueuedRoute
+  '/settings/keys': typeof SettingsKeysRoute
+  '/wallet/balance': typeof WalletBalanceRoute
+  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
+  '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/new' | '/machines/$machineId'
+  fullPaths:
+    | '/'
+    | '/activity'
+    | '/network'
+    | '/new'
+    | '/machines/$machineId'
+    | '/marketplace/mine'
+    | '/runs/finished'
+    | '/runs/queued'
+    | '/settings/keys'
+    | '/wallet/balance'
+    | '/wallet/withdraw'
+    | '/marketplace/'
+    | '/wallet/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/new' | '/machines/$machineId'
-  id: '__root__' | '/' | '/new' | '/machines/$machineId'
+  to:
+    | '/'
+    | '/activity'
+    | '/network'
+    | '/new'
+    | '/machines/$machineId'
+    | '/marketplace/mine'
+    | '/runs/finished'
+    | '/runs/queued'
+    | '/settings/keys'
+    | '/wallet/balance'
+    | '/wallet/withdraw'
+    | '/marketplace'
+    | '/wallet'
+  id:
+    | '__root__'
+    | '/'
+    | '/activity'
+    | '/network'
+    | '/new'
+    | '/machines/$machineId'
+    | '/marketplace/mine'
+    | '/runs/finished'
+    | '/runs/queued'
+    | '/settings/keys'
+    | '/wallet/balance'
+    | '/wallet/withdraw'
+    | '/marketplace/'
+    | '/wallet/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
+  NetworkRoute: typeof NetworkRoute
   NewRoute: typeof NewRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
+  MarketplaceMineRoute: typeof MarketplaceMineRoute
+  RunsFinishedRoute: typeof RunsFinishedRoute
+  RunsQueuedRoute: typeof RunsQueuedRoute
+  SettingsKeysRoute: typeof SettingsKeysRoute
+  WalletBalanceRoute: typeof WalletBalanceRoute
+  WalletWithdrawRoute: typeof WalletWithdrawRoute
+  MarketplaceIndexRoute: typeof MarketplaceIndexRoute
+  WalletIndexRoute: typeof WalletIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +206,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network': {
+      id: '/network'
+      path: '/network'
+      fullPath: '/network'
+      preLoaderRoute: typeof NetworkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new': {
@@ -82,13 +236,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MachinesMachineIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace/': {
+      id: '/marketplace/'
+      path: '/marketplace'
+      fullPath: '/marketplace/'
+      preLoaderRoute: typeof MarketplaceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace/mine': {
+      id: '/marketplace/mine'
+      path: '/marketplace/mine'
+      fullPath: '/marketplace/mine'
+      preLoaderRoute: typeof MarketplaceMineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs/finished': {
+      id: '/runs/finished'
+      path: '/runs/finished'
+      fullPath: '/runs/finished'
+      preLoaderRoute: typeof RunsFinishedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs/queued': {
+      id: '/runs/queued'
+      path: '/runs/queued'
+      fullPath: '/runs/queued'
+      preLoaderRoute: typeof RunsQueuedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/keys': {
+      id: '/settings/keys'
+      path: '/settings/keys'
+      fullPath: '/settings/keys'
+      preLoaderRoute: typeof SettingsKeysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet/': {
+      id: '/wallet/'
+      path: '/wallet'
+      fullPath: '/wallet/'
+      preLoaderRoute: typeof WalletIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet/balance': {
+      id: '/wallet/balance'
+      path: '/wallet/balance'
+      fullPath: '/wallet/balance'
+      preLoaderRoute: typeof WalletBalanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet/withdraw': {
+      id: '/wallet/withdraw'
+      path: '/wallet/withdraw'
+      fullPath: '/wallet/withdraw'
+      preLoaderRoute: typeof WalletWithdrawRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
+  NetworkRoute: NetworkRoute,
   NewRoute: NewRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
+  MarketplaceMineRoute: MarketplaceMineRoute,
+  RunsFinishedRoute: RunsFinishedRoute,
+  RunsQueuedRoute: RunsQueuedRoute,
+  SettingsKeysRoute: SettingsKeysRoute,
+  WalletBalanceRoute: WalletBalanceRoute,
+  WalletWithdrawRoute: WalletWithdrawRoute,
+  MarketplaceIndexRoute: MarketplaceIndexRoute,
+  WalletIndexRoute: WalletIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

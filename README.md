@@ -35,16 +35,37 @@ Working today, each proved against real services rather than mocks:
 | A node running a machine: its balances, its decision, a quote checked against an independent price, a proposal | `services/daemon/src/machine-runner.ts` |
 | A node running machines on its own: claim, run, report, repeat, keeping its lease alive | `services/daemon/src/work-loop.ts` |
 | Watching prices for waiting machines, and queueing a run once per crossing | `services/orchestrator/src/price-watcher.ts` |
+| A machine waiting on more than one price at a time, each edge arming and firing on its own | `packages/runtime/src/machine-kind.ts` |
+| A machine on paper: quoted for real, checked for real, recorded, and never signed | `services/orchestrator/src/paper-signer.ts` |
+| What a machine on paper holds, worked out from its own record | `packages/runtime/src/paper-holdings.ts` |
+| The range machine: buys the low edge, sells the high edge, one position at a time | `packages/runtime/src/kinds/range.ts` |
+| Refusing a band too narrow to cover what trading it costs | `packages/rules/src/edge.ts` |
+| Holding a trade to the fee its own bytes will pay, not the fee a router claims | `packages/solana/src/compute-budget.ts` |
+| Stopping everything at once, at the signer, so it works without the cooperation of whatever went wrong | `services/signer/src/while-halted.ts` |
+| Returning a machine's funds to its owner, with the destination looked up rather than accepted | `services/signer/src/withdraw.ts` |
+| Whether a machine has actually made money, net of what it paid | `packages/runtime/src/machine-pnl.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
+| Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 The API is live at `https://api.maschina.dev`: `/v1/status` says it is up and `/openapi.json` describes
-every route. Owner routes need a signed-in wallet, which is being built, so today they answer "not
-signed in" to everybody.
+every route. Owner routes need a signed-in wallet, which is a signature over a sentence rather than a
+transaction.
 
-Not built yet: anything that queues runs on a schedule, wallet sign-in, and the web app beyond a
-landing page.
+**Not built yet**, and worth being plain about, because the safety layer being finished is not the same
+as the product being finished:
+
+- **No machine has made a real trade on mainnet.** Everything below has been proved against real
+  Turnkey, a real database and live Jupiter prices, and a machine has completed whole round trips on
+  paper. Nothing has yet spent a real dollar.
+- **Withdrawal is not usable by a person.** The signer path exists and has been run against real
+  Turnkey and real Solana, and there is no button and no public route in front of it yet.
+- **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
+- **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
+  half guards against a node Maschina does not run, which cannot happen yet.
+- **The web app** is the machines list, one machine, and the states around them. Most of the navigation
+  leads to screens that say what will be there and why they are empty.
 
 ## How the limits actually hold
 
@@ -63,6 +84,25 @@ Three independent things have to agree before money moves, and any one of them c
 A trade's signature is written to the record before the transaction is sent, so a crash leaves a
 signature the chain can be asked about rather than a question nobody can answer. Nothing is ever
 retried on an unknown outcome.
+
+Above all three, a halt. While one is in force the signer refuses everything, so stopping does not need
+the cooperation of whatever has gone wrong, and it fails closed: not being able to tell whether a halt
+is in force refuses too.
+
+## Paper mode, and what it does not prove
+
+A machine made with `paper: true` is quoted by the real router at the real price, checked against an
+independent price, and held to the same budget arithmetic as a machine with money. Then its trade is
+written into the record as `trade.intended` and `trade.simulated`, and nothing is signed.
+
+What that proves is the decision: whether a machine would have traded, at what price, and what it would
+have done to the budget. A range machine has completed whole round trips this way, and the loss it took
+to fees came out of the record as a number.
+
+What it deliberately does not prove is signing. A paper machine goes to a different route with a request
+that has **no transaction in it**, so the signer could not act on it if it were handed one. Paper mode
+exercises decisions, quotes, price checks, budget arithmetic and refusals. It does not exercise the
+signature path, and saying otherwise would invert the guarantee it is built on.
 
 ## Layout
 
@@ -104,6 +144,11 @@ pnpm install
 pnpm bootstrap  # creates .env, starts Postgres, runs migrations
 pnpm dev        # web app on :3000, gateway on :4000
 ```
+
+The interface is set in Söhne, and the font files are not in this repository: a licence covers serving
+a font for your own site, not handing the files to everybody who clones it. `pnpm fonts` fetches them
+for anybody who holds the licence. Without them everything builds and runs, and falls back to the
+system font stack.
 
 ```bash
 pnpm check:machine       # checks your machine is set up correctly

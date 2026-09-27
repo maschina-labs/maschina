@@ -5,85 +5,208 @@
 @custom-variant light (&:where(.light, .light *));
 
 /*
- * Design tokens. Components use these, never raw colours, so the whole interface can be restyled in
- * one place.
+ * Söhne, in three cuts, each with one job.
  *
- * Black, with every other surface a step of grey above it, so something can sit above the page.
+ * Söhne carries the interface: navigation, labels, prose. Söhne Mono carries every number, address,
+ * timestamp, identifier and payload, because data that shifts as it changes is data you cannot compare
+ * at a glance. Söhne Breit is the wordmark and nothing else.
  *
- * Colour still means something: green for done, red for refused or broken, amber for needs attention,
- * blue for information. Nothing is coloured to look nice, so when something is coloured it is worth
- * reading.
+ * The files are not in this repository. A font licence covers serving the font for your own site, not
+ * handing the files to everybody who clones it, so they are served from `/fonts` at runtime rather than
+ * bundled: a fresh clone builds and runs, and falls back to the system stack until somebody with the
+ * licence puts the files in `apps/web/public/fonts`. `pnpm fonts` does that.
+ */
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-400.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-500.woff2") format("woff2");
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-600.woff2") format("woff2");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-700.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne Mono";
+	src: url("/fonts/SohneMono-400.otf") format("opentype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne Mono";
+	src: url("/fonts/SohneMono-500.otf") format("opentype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Sohne Breit";
+	src: url("/fonts/SohneBreit-600.otf") format("opentype");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+/*
+ * The tokens. Components use these and never a raw colour, so the whole interface restyles in one place.
  *
- * Dark is the product. `.light` is there for print and documents.
+ * Near-black with a trace of blue in it, and every surface above it a measured step lighter in the same
+ * hue. Nothing is neutral grey: a faint common hue is what stops a dark interface looking like soot.
+ *
+ * Colour is rationed. Blue means the machine is doing something, or that you can act. Red means
+ * something failed or is about to be destroyed, and it is a cool red, held back on purpose. Everything
+ * else is greyscale, which is what makes the blue and the red worth reading.
+ *
+ * Dark is the product. `.light` exists for print and documents.
  */
 :root {
-	--background: #0b0b0b;
-	--foreground: oklch(0.96 0 0);
-	--muted: oklch(0.24 0 0);
-	--muted-foreground: oklch(0.66 0 0);
-	--card: oklch(0.2 0 0);
-	--card-foreground: oklch(0.96 0 0);
-	--popover: oklch(0.2 0 0);
-	--popover-foreground: oklch(0.96 0 0);
-	--border: oklch(0.28 0 0);
-	--input: oklch(0.31 0 0);
-	--ring: oklch(0.55 0 0);
-	--primary: oklch(0.96 0 0);
-	--primary-foreground: oklch(0.2 0 0);
-	--secondary: oklch(0.24 0 0);
-	--secondary-foreground: oklch(0.96 0 0);
-	--accent: oklch(0.26 0 0);
-	--accent-foreground: oklch(0.96 0 0);
+	/* Surfaces, from the page up. */
+	--background: oklch(0.12 0.008 254);
+	--surface: oklch(0.155 0.008 254);
+	--surface-raised: oklch(0.185 0.009 254);
+	--inset: oklch(0.098 0.008 254);
 
-	/* The only colours in the interface, and each one means something. */
-	--success: oklch(0.7 0.15 150);
-	--success-foreground: oklch(0.14 0 0);
-	--destructive: oklch(0.62 0.2 25);
-	--destructive-foreground: oklch(0.98 0 0);
-	--warning: oklch(0.78 0.14 80);
-	--warning-foreground: oklch(0.14 0 0);
-	--info: oklch(0.7 0.12 240);
-	--info-foreground: oklch(0.14 0 0);
+	/* Lines. Low chroma, low contrast: structure you feel rather than see. */
+	--line: oklch(0.26 0.01 254);
+	--line-strong: oklch(0.34 0.012 254);
 
-	--radius: 0.625rem;
+	/* Three steps of text, and no more. */
+	--text: oklch(0.97 0.002 254);
+	--text-muted: oklch(0.7 0.008 254);
+	--text-faint: oklch(0.55 0.01 254);
+
+	/* One blue, five jobs: action, hover, resting border, wash, and text on dark. */
+	--accent: oklch(0.62 0.13 252);
+	--accent-hover: oklch(0.68 0.135 252);
+	--accent-quiet: oklch(0.44 0.085 252);
+	--accent-wash: oklch(0.27 0.045 252);
+	--accent-text: oklch(0.81 0.1 252);
+
+	/* Cool red. Failure and destruction, nothing else. */
+	--danger: oklch(0.57 0.16 21);
+	--danger-hover: oklch(0.63 0.165 21);
+	--danger-wash: oklch(0.26 0.06 21);
+	--danger-text: oklch(0.75 0.13 22);
+
+	--radius: 0.375rem;
 	color-scheme: dark;
-	--sidebar: hsl(0 0% 98%);
-	--sidebar-foreground: hsl(240 5.3% 26.1%);
-	--sidebar-primary: hsl(240 5.9% 10%);
-	--sidebar-primary-foreground: hsl(0 0% 98%);
-	--sidebar-accent: hsl(240 4.8% 95.9%);
-	--sidebar-accent-foreground: hsl(240 5.9% 10%);
-	--sidebar-border: hsl(220 13% 91%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+	/*
+	 * The names the vendored components already use, pointed at the palette above. They keep working and
+	 * they cannot introduce a colour this interface does not have: success is the blue, because a machine
+	 * running is information rather than celebration, and there is no green here.
+	 */
+	--foreground: var(--text);
+	--muted: oklch(0.22 0.009 254);
+	--muted-foreground: var(--text-muted);
+	--card: var(--surface);
+	--card-foreground: var(--text);
+	--popover: var(--surface-raised);
+	--popover-foreground: var(--text);
+	--border: var(--line);
+	--input: var(--line-strong);
+	--ring: var(--accent);
+	--primary: var(--accent);
+	--primary-foreground: oklch(0.14 0.01 254);
+	--secondary: oklch(0.22 0.009 254);
+	--secondary-foreground: var(--text);
+	--accent-foreground: oklch(0.14 0.01 254);
+	--destructive: var(--danger);
+	--destructive-foreground: oklch(0.98 0 0);
+	--success: var(--accent);
+	--success-foreground: oklch(0.14 0.01 254);
+	--warning: oklch(0.72 0.09 92);
+	--warning-foreground: oklch(0.14 0.01 254);
+	--info: var(--accent);
+	--info-foreground: oklch(0.14 0.01 254);
+	--sidebar: var(--background);
+	--sidebar-foreground: var(--text-muted);
+	--sidebar-primary: var(--accent);
+	--sidebar-primary-foreground: oklch(0.14 0.01 254);
+	--sidebar-accent: oklch(0.22 0.009 254);
+	--sidebar-accent-foreground: var(--text);
+	--sidebar-border: var(--line);
+	--sidebar-ring: var(--accent);
 }
 
 .light {
-	--background: oklch(0.99 0 0);
-	--foreground: oklch(0.15 0 0);
-	--muted: oklch(0.96 0 0);
-	--muted-foreground: oklch(0.45 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.15 0 0);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.15 0 0);
-	--border: oklch(0.91 0 0);
-	--input: oklch(0.89 0 0);
-	--ring: oklch(0.55 0 0);
-	--primary: oklch(0.18 0 0);
-	--primary-foreground: oklch(0.98 0 0);
-	--secondary: oklch(0.95 0 0);
-	--secondary-foreground: oklch(0.2 0 0);
-	--accent: oklch(0.95 0 0);
-	--accent-foreground: oklch(0.2 0 0);
-	--success: oklch(0.55 0.15 150);
-	--destructive: oklch(0.55 0.22 27);
-	--warning: oklch(0.65 0.14 75);
-	--info: oklch(0.55 0.12 240);
+	--background: oklch(0.99 0.002 254);
+	--surface: oklch(1 0 0);
+	--surface-raised: oklch(1 0 0);
+	--inset: oklch(0.97 0.003 254);
+	--line: oklch(0.91 0.005 254);
+	--line-strong: oklch(0.86 0.006 254);
+	--text: oklch(0.17 0.01 254);
+	--text-muted: oklch(0.46 0.01 254);
+	--text-faint: oklch(0.6 0.01 254);
+	--accent: oklch(0.52 0.15 252);
+	--accent-hover: oklch(0.46 0.15 252);
+	--accent-quiet: oklch(0.8 0.06 252);
+	--accent-wash: oklch(0.96 0.02 252);
+	--accent-text: oklch(0.45 0.15 252);
+	--danger: oklch(0.52 0.19 23);
+	--danger-hover: oklch(0.46 0.19 23);
+	--danger-wash: oklch(0.96 0.03 23);
+	--danger-text: oklch(0.48 0.18 23);
+	--muted: oklch(0.96 0.003 254);
+	--secondary: oklch(0.96 0.003 254);
+	--primary-foreground: oklch(0.99 0 0);
+	--accent-foreground: oklch(0.99 0 0);
+	--success-foreground: oklch(0.99 0 0);
+	--info-foreground: oklch(0.99 0 0);
 	color-scheme: light;
 }
 
 @theme inline {
+	--font-sans: "Sohne", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Sohne Mono", ui-monospace, "SF Mono", monospace;
+	/* The wordmark, and nothing else in the interface. */
+	--font-display: "Sohne Breit", "Sohne", sans-serif;
+
 	--color-background: var(--background);
+	--color-surface: var(--surface);
+	--color-surface-raised: var(--surface-raised);
+	--color-inset: var(--inset);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-text: var(--text);
+	--color-text-muted: var(--text-muted);
+	--color-text-faint: var(--text-faint);
+	--color-accent: var(--accent);
+	--color-accent-hover: var(--accent-hover);
+	--color-accent-quiet: var(--accent-quiet);
+	--color-accent-wash: var(--accent-wash);
+	--color-accent-text: var(--accent-text);
+	--color-danger: var(--danger);
+	--color-danger-hover: var(--danger-hover);
+	--color-danger-wash: var(--danger-wash);
+	--color-danger-text: var(--danger-text);
+
 	--color-foreground: var(--foreground);
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
@@ -96,7 +219,6 @@
 	--color-primary-foreground: var(--primary-foreground);
 	--color-secondary: var(--secondary);
 	--color-secondary-foreground: var(--secondary-foreground);
-	--color-accent: var(--accent);
 	--color-accent-foreground: var(--accent-foreground);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
@@ -108,27 +230,50 @@
 	--color-info-foreground: var(--info-foreground);
 	--color-popover: var(--popover);
 	--color-popover-foreground: var(--popover-foreground);
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-	--color-sidebar-ring: var(--sidebar-ring);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-foreground: var(--sidebar-foreground);
 	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	--radius-sm: calc(var(--radius) - 2px);
+	--radius-md: var(--radius);
+	--radius-lg: calc(var(--radius) + 2px);
+	--radius-xl: calc(var(--radius) + 6px);
 }
 
 @layer base {
 	* {
-		@apply border-border outline-ring/50;
+		@apply border-border;
 	}
 
 	body {
-		@apply bg-background text-foreground antialiased;
+		@apply bg-background font-sans text-[13px] text-foreground antialiased;
+		font-feature-settings: "ss01";
+	}
+
+	/*
+	 * Numbers line up in columns. Without this, a balance changing from 8 to 1 moves everything beside
+	 * it, and two amounts under one another cannot be compared by eye.
+	 */
+	code,
+	kbd,
+	pre,
+	samp,
+	.font-mono,
+	[class*="font-mono"] {
+		font-variant-numeric: tabular-nums;
+	}
+
+	/*
+	 * One focus ring everywhere, and only for keyboards. A ring that follows the mouse is noise; a
+	 * ring that never appears is a door somebody cannot find.
+	 */
+	:focus-visible {
+		@apply outline-2 outline-offset-2 outline-accent;
 	}
 
 	/*
@@ -173,16 +318,19 @@
 }
 
 /*
- ---break---
+ * A machine that is running says so quietly and forever. Two seconds, no bounce, and it stops entirely
+ * for anybody who asked for less motion, above.
  */
+@keyframes maschina-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.35;
+	}
+}
 
-.dark {
-	--sidebar: hsl(240 5.9% 10%);
-	--sidebar-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-primary: hsl(224.3 76.3% 48%);
-	--sidebar-primary-foreground: hsl(0 0% 100%);
-	--sidebar-accent: hsl(240 3.7% 15.9%);
-	--sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-border: hsl(240 3.7% 15.9%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
+@utility animate-live {
+	animation: maschina-pulse 2s ease-in-out infinite;
 }

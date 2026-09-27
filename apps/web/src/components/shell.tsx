@@ -1,221 +1,310 @@
 /**
- * The frame every screen sits in: the sidebar, and where a page goes.
+ * The frame every screen sits in.
  *
- * The account control is the only live thing in here. Everything else navigates or will.
+ * A single column of navigation on the left and one outlet on the right. The sidebar is a list of places,
+ * ordered the way somebody thinks about the product rather than the way the code is arranged: the thing
+ * you make, the things it did, the things it did them with, the world around it, then you.
+ *
+ * Two rules hold it together. Nothing in here is coloured unless it is where you are, and the only thing
+ * pinned to the bottom is the wallet, because signing in or out is the one action that is always relevant
+ * and never part of a task.
  */
 
 import {
+	ArrowsLeftRight,
 	CaretDown,
 	CaretUpDown,
 	ClockCounterClockwise,
 	CurrencyDollar,
-	DotsThree,
 	GlobeHemisphereWest,
+	type Icon,
 	MagnifyingGlass,
 	Plus,
 	Pulse,
 	SidebarSimple,
+	SignOut,
 	Sliders,
 	Star,
 	Storefront,
 	UsersThree,
 	Vault,
+	Wallet,
 } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
-import { type ComponentType, useState } from "react";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { type ReactNode, useState } from "react";
 import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { LogoMark } from "./brand.tsx";
+import { IconButton } from "./ui.tsx";
 
 const short = (address: string) => `${address.slice(0, 4)}…${address.slice(-4)}`;
 
-function IconButton({
-	icon: Glyph,
-	label,
-	onClick,
-}: {
-	icon: ComponentType<{ size?: number; weight?: "regular" }>;
+/* ------------------------------------------------------------------ pieces */
+
+type Item = {
 	label: string;
-	onClick?: () => void;
-}) {
-	return (
-		<button
-			type="button"
-			aria-label={label}
-			onClick={onClick}
-			className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-		>
-			<Glyph size={18} weight="regular" />
-		</button>
-	);
-}
-
-function Group({
-	name,
-	action,
-	children,
-}: {
-	name: string;
-	action: string;
-	children?: React.ReactNode;
-}) {
-	const [open, setOpen] = useState(true);
-
-	return (
-		<div className="mb-4">
-			<div className="group flex h-7 items-center justify-between px-2">
-				<button
-					type="button"
-					onClick={() => setOpen(!open)}
-					className="flex items-center gap-1 text-[12px] text-muted-foreground/70 transition-colors hover:text-muted-foreground"
-				>
-					{name}
-					<CaretDown
-						size={11}
-						weight="bold"
-						className={`text-muted-foreground/50 opacity-0 transition-all group-hover:opacity-100 ${
-							open ? "" : "-rotate-90"
-						}`}
-					/>
-				</button>
-				<div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-					<button
-						type="button"
-						aria-label={`${name} options`}
-						className="text-muted-foreground/50 transition-colors hover:text-foreground"
-					>
-						<DotsThree size={16} weight="bold" />
-					</button>
-					<button
-						type="button"
-						aria-label={action}
-						className="text-muted-foreground/50 transition-colors hover:text-foreground"
-					>
-						<Plus size={13} weight="bold" />
-					</button>
-				</div>
-			</div>
-			{open ? <div className="mt-1 space-y-1">{children}</div> : null}
-		</div>
-	);
-}
-
-function NavItem({
-	label,
-	icon: Glyph,
-	items,
-}: {
-	label: string;
-	icon: ComponentType<{ size?: number; className?: string }>;
+	icon: Icon;
+	to?: string;
+	/**
+	 * Pages this item is the home of, beyond its own address.
+	 *
+	 * Deliberately not "anything underneath my path". Wallet and Withdrawal are siblings in this list
+	 * even though one address sits inside the other, and a parent lighting up for a page its sibling owns
+	 * makes the sidebar say you are in two places at once.
+	 */
+	owns?: string;
 	/** When present, pressing this opens them underneath rather than going anywhere. */
-	items?: string[];
-}) {
+	under?: { label: string; to?: string }[];
+};
+
+function NavItem({ item, depth = 0 }: { item: Item; depth?: number }) {
 	const [open, setOpen] = useState(false);
+	const path = useRouterState({ select: (state) => state.location.pathname });
+	const here =
+		(item.to !== undefined && path === item.to) ||
+		(item.owns !== undefined && path.startsWith(item.owns));
+	const Glyph = item.icon;
+
+	const shared =
+		"flex h-[26px] w-full items-center gap-2 rounded-md pr-2 text-left text-[12.5px] transition-colors duration-150";
+	const resting = here
+		? "bg-accent-wash/70 text-text"
+		: "text-text-muted hover:bg-muted hover:text-text";
+
+	const body = (
+		<>
+			<Glyph size={14} className="shrink-0 text-current opacity-70" />
+			<span className="truncate">{item.label}</span>
+			{item.under ? (
+				<CaretDown
+					size={9}
+					weight="bold"
+					className={`ml-auto shrink-0 text-text-faint transition-transform duration-150 ${
+						open ? "" : "-rotate-90"
+					}`}
+				/>
+			) : null}
+			{here && !item.under ? (
+				<span className="ml-auto size-1 shrink-0 rounded-full bg-accent" />
+			) : null}
+		</>
+	);
 
 	return (
 		<>
-			<button
-				type="button"
-				onClick={items ? () => setOpen(!open) : undefined}
-				className="flex h-8 w-full items-center gap-2.5 rounded-lg px-2 text-left text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-			>
-				<Glyph size={16} className="shrink-0 opacity-80" />
-				{label}
-				{items ? (
-					<CaretDown
-						size={10}
-						weight="bold"
-						className={`ml-auto text-muted-foreground/40 transition-transform ${
-							open ? "" : "-rotate-90"
-						}`}
-					/>
-				) : null}
-			</button>
-			{items && open
-				? items.map((item) => (
-						<button
-							key={item}
-							type="button"
-							className="flex h-8 w-full items-center rounded-lg py-0 pr-2 pl-[42px] text-left text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-						>
-							{item}
-						</button>
-					))
+			{item.under ? (
+				<button
+					type="button"
+					onClick={() => setOpen(!open)}
+					aria-expanded={open}
+					className={`${shared} ${resting}`}
+					style={{ paddingLeft: `${8 + depth * 14}px` }}
+				>
+					{body}
+				</button>
+			) : item.to ? (
+				<Link
+					to={item.to}
+					className={`${shared} ${resting}`}
+					style={{ paddingLeft: `${8 + depth * 14}px` }}
+				>
+					{body}
+				</Link>
+			) : (
+				<button
+					type="button"
+					className={`${shared} ${resting}`}
+					style={{ paddingLeft: `${8 + depth * 14}px` }}
+				>
+					{body}
+				</button>
+			)}
+
+			{item.under && open
+				? item.under.map((child) =>
+						child.to ? (
+							<Link
+								key={child.label}
+								to={child.to}
+								className="flex h-[26px] w-full items-center rounded-md pr-2 pl-[36px] text-left text-[12.5px] text-text-faint transition-colors duration-150 hover:bg-muted hover:text-text"
+							>
+								<span className="truncate">{child.label}</span>
+							</Link>
+						) : (
+							<button
+								key={child.label}
+								type="button"
+								className="flex h-[26px] w-full items-center rounded-md pr-2 pl-[36px] text-left text-[12.5px] text-text-faint transition-colors duration-150 hover:bg-muted hover:text-text"
+							>
+								<span className="truncate">{child.label}</span>
+							</button>
+						),
+					)
 				: null}
 		</>
 	);
 }
 
-export function Shell({ children }: { children: React.ReactNode }) {
+/** A named group of places, foldable, with its name kept quiet. */
+function Group({ name, children }: { name: string; children: ReactNode }) {
 	const [open, setOpen] = useState(true);
 
 	return (
-		<div className="flex min-h-dvh bg-background text-foreground">
+		<div className="mt-4">
+			<button
+				type="button"
+				onClick={() => setOpen(!open)}
+				aria-expanded={open}
+				className="group flex h-6 w-full items-center gap-1 px-2 text-[10px] text-text-faint uppercase tracking-[0.1em] transition-colors duration-150 hover:text-text-muted"
+			>
+				{name}
+				<CaretDown
+					size={8}
+					weight="bold"
+					className={`opacity-0 transition-all duration-150 group-hover:opacity-100 ${
+						open ? "" : "-rotate-90"
+					}`}
+				/>
+			</button>
+			{open ? <div className="mt-0.5 space-y-px">{children}</div> : null}
+		</div>
+	);
+}
+
+/* ------------------------------------------------------------------ shell */
+
+export function Shell({ children }: { children: ReactNode }) {
+	const [open, setOpen] = useState(true);
+
+	return (
+		<div className="flex min-h-dvh bg-background text-text">
 			{open ? null : (
-				<div className="sticky top-0 flex h-12 items-center p-2.5">
+				<div className="sticky top-0 flex h-11 items-center px-2.5">
 					<IconButton icon={SidebarSimple} label="Show sidebar" onClick={() => setOpen(true)} />
 				</div>
 			)}
+
 			<aside
-				className={`sticky top-0 h-dvh w-[232px] shrink-0 flex-col border-border/60 border-r ${
+				className={`sticky top-0 h-dvh w-[214px] shrink-0 flex-col border-line border-r ${
 					open ? "flex" : "hidden"
 				}`}
 			>
-				<div className="flex h-12 items-center justify-between px-2.5 pt-3">
-					<span className="pl-2">
-						<LogoMark className="size-[18px]" />
-					</span>
+				<div className="flex h-11 items-center justify-between px-2.5">
+					<Link
+						to="/"
+						className="flex items-center gap-1.5 rounded px-1 py-1"
+						aria-label="Maschina"
+					>
+						<LogoMark className="size-[15px] text-text" />
+						{/* The one place Söhne Breit appears. */}
+						<span className="font-display font-semibold text-[12px] text-text tracking-[0.02em]">
+							MASCHINA
+						</span>
+					</Link>
 					<IconButton icon={SidebarSimple} label="Hide sidebar" onClick={() => setOpen(false)} />
 				</div>
 
-				<div className="px-2.5 pt-3 pb-2">
+				<div className="px-2.5 pb-1">
 					<button
 						type="button"
-						className="flex h-8 w-full items-center gap-2.5 rounded-lg bg-muted/40 px-2 text-left text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						className="flex h-7 w-full items-center gap-2 rounded-md border border-line bg-inset px-2 text-left text-[12px] text-text-faint transition-colors duration-150 hover:border-line-strong hover:text-text-muted"
 					>
-						<MagnifyingGlass size={16} className="shrink-0 opacity-80" />
+						<MagnifyingGlass size={13} className="shrink-0" />
 						Search
-						<span className="ml-auto font-mono text-[10px] text-muted-foreground/50">⌘K</span>
+						<kbd className="ml-auto rounded border border-line px-1 font-mono text-[9px] text-text-faint">
+							⌘K
+						</kbd>
 					</button>
 				</div>
 
-				<nav className="flex-1 overflow-y-auto px-2.5 pb-2">
-					<div className="mb-4 space-y-1">
-						<NavItem label="New machine" icon={Plus} />
-						<NavItem label="Activity" icon={Pulse} />
-						<NavItem label="Runs" icon={ClockCounterClockwise} items={["Queued", "Finished"]} />
-						<NavItem label="Marketplace" icon={Storefront} items={["Browse", "My listings"]} />
+				<nav className="flex-1 overflow-y-auto px-2.5 pb-3">
+					<div className="mt-2 space-y-px">
+						<NavItem item={{ label: "New machine", icon: Plus, to: "/new" }} />
+						<NavItem item={{ label: "Activity", icon: Pulse, to: "/activity" }} />
+						<NavItem
+							item={{
+								label: "Runs",
+								icon: ClockCounterClockwise,
+								under: [
+									{ label: "Queued runs", to: "/runs/queued" },
+									{ label: "Finished", to: "/runs/finished" },
+								],
+							}}
+						/>
+						<NavItem
+							item={{
+								label: "Marketplace",
+								icon: Storefront,
+								under: [
+									{ label: "Browse marketplace", to: "/marketplace" },
+									{ label: "My listings", to: "/marketplace/mine" },
+								],
+							}}
+						/>
 					</div>
 
-					<Group name="Machines" action="New machine">
-						<p className="px-2 py-1 text-[12px] text-muted-foreground/40">No machines yet</p>
-						<NavItem label="Teams" icon={UsersThree} items={["All teams", "New team"]} />
+					<Group name="Machines">
+						<NavItem item={{ label: "All machines", icon: Pulse, to: "/", owns: "/machines/" }} />
+						<NavItem
+							item={{
+								label: "Teams",
+								icon: UsersThree,
+								under: [{ label: "All teams" }, { label: "New team" }],
+							}}
+						/>
 					</Group>
 
-					<Group name="Money" action="Add funds">
-						<NavItem label="Wallet" icon={CurrencyDollar} items={["Balance", "Withdrawals"]} />
-						<NavItem label="Stake" icon={Vault} />
+					<Group name="Money">
+						<NavItem item={{ label: "Wallet", icon: Wallet, to: "/wallet" }} />
+						<NavItem item={{ label: "Balance", icon: CurrencyDollar, to: "/wallet/balance" }} />
+						<NavItem
+							item={{ label: "Withdrawal", icon: ArrowsLeftRight, to: "/wallet/withdraw" }}
+						/>
+						<NavItem item={{ label: "Stake", icon: Vault }} />
 					</Group>
 
-					<Group name="Discover" action="Browse">
-						<NavItem label="Network" icon={GlobeHemisphereWest} items={["Nodes", "Run a node"]} />
-						<NavItem label="Creators" icon={Star} />
+					<Group name="Discover">
+						<NavItem
+							item={{
+								label: "Network",
+								icon: GlobeHemisphereWest,
+								under: [{ label: "Nodes", to: "/network" }, { label: "Run a node" }],
+							}}
+						/>
+						<NavItem item={{ label: "Creators", icon: Star }} />
 					</Group>
 
-					<Group name="Account" action="New key">
-						<NavItem label="Settings" icon={Sliders} items={["Alerts", "API keys", "Sessions"]} />
+					<Group name="Account">
+						<NavItem
+							item={{
+								label: "Settings",
+								icon: Sliders,
+								under: [
+									{ label: "Alerts" },
+									{ label: "API keys", to: "/settings/keys" },
+									{ label: "Sessions" },
+								],
+							}}
+						/>
 					</Group>
 				</nav>
 
-				<div className="mt-auto px-2.5 pt-1 pb-2">
+				<div className="mt-auto border-line border-t p-2.5">
 					<AccountButton />
 				</div>
 			</aside>
+
 			<main className="min-w-0 flex-1">{children}</main>
 		</div>
 	);
 }
 
+/**
+ * The wallet, pinned to the bottom.
+ *
+ * Signed out it is the only filled control in the sidebar, because until it is pressed nothing else in
+ * the product can do anything. Signed in it goes quiet and becomes an address.
+ */
 function AccountButton() {
 	const { api } = useRouter().options.context;
 	const queryClient = useQueryClient();
@@ -225,19 +314,27 @@ function AccountButton() {
 
 	if (session.data) {
 		return (
-			<button
-				type="button"
-				onClick={() => signOut.mutate()}
-				className="flex h-8 w-full items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-muted"
-			>
-				<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted font-medium text-[9px]">
-					{session.data.walletAddress.slice(0, 2)}
-				</span>
-				<span className="min-w-0 flex-1 truncate font-mono text-[12px]">
-					{short(session.data.walletAddress)}
-				</span>
-				<CaretUpDown size={14} className="shrink-0 text-muted-foreground/60" />
-			</button>
+			<div className="flex items-center gap-1">
+				<button
+					type="button"
+					className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 text-left transition-colors duration-150 hover:bg-muted"
+				>
+					<span className="flex size-5 shrink-0 items-center justify-center rounded border border-line bg-inset font-medium font-mono text-[9px] text-text-muted">
+						{session.data.walletAddress.slice(0, 2)}
+					</span>
+					<span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-text-muted">
+						{short(session.data.walletAddress)}
+					</span>
+					<CaretUpDown size={12} className="shrink-0 text-text-faint" />
+				</button>
+				<IconButton
+					icon={SignOut}
+					label="Disconnect wallet"
+					size={13}
+					onClick={() => signOut.mutate()}
+					disabled={signOut.isPending}
+				/>
+			</div>
 		);
 	}
 
@@ -246,12 +343,10 @@ function AccountButton() {
 			type="button"
 			onClick={() => signIn.mutate()}
 			disabled={signIn.isPending}
-			className="flex h-8 w-full items-center gap-2.5 rounded-lg px-2 text-left text-[13px] transition-colors hover:bg-muted"
+			className="flex h-8 w-full items-center justify-center gap-2 rounded-md bg-accent px-2 font-medium text-[12px] text-[oklch(0.14_0.01_254)] transition-colors duration-150 hover:bg-accent-hover disabled:opacity-50"
 		>
-			<span className="size-5 shrink-0 rounded-full bg-muted" />
-			<span className="min-w-0 flex-1 truncate">
-				{signIn.isPending ? "Check your wallet" : "Connect wallet"}
-			</span>
+			<Wallet size={13} />
+			{signIn.isPending ? "Check your wallet" : "Connect wallet"}
 		</button>
 	);
 }

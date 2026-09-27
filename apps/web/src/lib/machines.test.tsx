@@ -154,3 +154,22 @@ describe("showing an amount", () => {
 		expect(amount("1000000000000")).toBe("1,000,000.00");
 	});
 });
+
+describe("showing a result that can be a loss", () => {
+	it("keeps the sign, rather than rounding a small loss up to nothing", () => {
+		// The bug this exists for: dividing a negative bigint rounds towards zero, so -14920 read as
+		// "0.-1" and a machine that had lost money looked like one that had done nothing.
+		expect(amount("-14920")).toBe("-0.01");
+		expect(amount("-5100000")).toBe("-5.10");
+	});
+
+	it("does not put a sign on nothing", () => {
+		expect(amount("-0")).toBe("0.00");
+		expect(amount("0")).toBe("0.00");
+	});
+
+	it("reads lamports at nine decimals, so fees are not read as whole SOL", () => {
+		expect(amount("41160339", 9)).toBe("0.04");
+		expect(amount("5000", 9)).toBe("0.00");
+	});
+});
