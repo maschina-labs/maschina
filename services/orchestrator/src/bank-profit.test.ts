@@ -138,3 +138,33 @@ describe("looking again and again", () => {
 		expect(DEFAULT_SWEEP_EVERY_MS).toBeGreaterThanOrEqual(3 * 60_000);
 	});
 });
+
+describe("waiting between looks, without a stand-in", () => {
+	it("stops at once when told to, even in the middle of a wait", async () => {
+		const stop = new AbortController();
+		let looks = 0;
+		const { ports: p } = ports({
+			everyMs: 60_000,
+			candidates: async () => {
+				looks += 1;
+				// Abort just after the first look, so the real wait starts and has to end early.
+				setTimeout(() => stop.abort(), 5);
+				return [];
+			},
+		});
+
+		const started = Date.now();
+		await bankProfit(p, stop.signal);
+
+		expect(looks).toBe(1);
+		expect(Date.now() - started).toBeLessThan(5_000);
+	});
+
+	it("does not wait at all when it was stopped before it began", async () => {
+		const stop = new AbortController();
+		stop.abort();
+		const { ports: p } = ports({ candidates: async () => [] });
+
+		await bankProfit(p, stop.signal);
+	});
+});
