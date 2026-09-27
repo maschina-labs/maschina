@@ -56,6 +56,9 @@ function app(leases: Leases, signer: Signer, paperSigner?: Simulator) {
 			withdraw: async () => {
 				throw new Error("not used here");
 			},
+			withdrawEverything: async () => {
+				throw new Error("not used here");
+			},
 		},
 		renewals: { renew: async () => ok(new Date()) },
 	});

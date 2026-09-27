@@ -15,6 +15,11 @@ import { type MachineStates, type Withdrawer, withdrawRoutes } from "./withdraw-
 export type OrchestratorDeps = {
 	version: string;
 	daemonToken: string;
+	/**
+	 * What the gateway presents when it asks on an owner's behalf. Left unset, nothing about an owner's
+	 * money can be asked here at all, which is the safe way for a server to start before it is set.
+	 */
+	gatewayToken?: string | undefined;
 	logger: Logger;
 	reporter?: ErrorReporter | undefined;
 	checks: ReadinessCheck[];
@@ -50,7 +55,13 @@ export function buildApp(deps: OrchestratorDeps) {
 	app.route("/internal/v1", contextRoutes(deps.contexts));
 	app.route("/internal/v1", proposeRoutes(deps.leases, deps.signer, deps.paperSigner));
 	app.route("/internal/v1", renewRoutes(deps.renewals));
-	app.route("/internal/v1", withdrawRoutes(deps.states, deps.withdrawer));
+
+	// What the gateway asks for an owner lives under /owner and needs the gateway's token. A node's token
+	// opens the run queue and nothing about an owner's money.
+	if (deps.gatewayToken !== undefined) {
+		app.use("/owner/*", requireServiceToken(deps.gatewayToken));
+		app.route("/owner/v1", withdrawRoutes(deps.states, deps.withdrawer));
+	}
 
 	return app;
 }

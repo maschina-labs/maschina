@@ -52,6 +52,9 @@ function app(ports: Partial<MachinePorts> = {}) {
 			{ id: newId<"event">(), type: "machine.created", occurredAt: summary.createdAt, payload: {} },
 		],
 		act: async () => ({ state: "running" }),
+		withdrawEverything: async () => {
+			throw new Error("nothing should be withdrawn here");
+		},
 		create: async () => ({
 			machineId,
 			ownerId,
@@ -206,5 +209,88 @@ describe("the machines API", () => {
 		expect(res.status).toBe(201);
 		expect(await res.json()).toMatchObject({ walletAddress: WALLET });
 		expect(asked[0]?.ownerWallet).toBe(OWNER);
+	});
+});
+
+describe("taking everything out", () => {
+	const everythingSent = {
+		status: "sent" as const,
+		withdrawalId: newId<"withdrawal">(),
+		to: OWNER,
+		signatures: ["5".repeat(88)],
+		tokens: [
+			{
+				mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+				amount: "10000000",
+				from: "trading" as const,
+			},
+		],
+		lamports: "19995000",
+		leftBehind: [],
+	};
+	const withdraw = (
+		target: ReturnType<typeof app>,
+		id: string,
+		signedIn = true,
+		body: unknown = {},
+	) =>
+		target.request(`/v1/machines/${id}/withdraw`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				...(signedIn ? { authorization: "Bearer signed-in" } : {}),
+			},
+			body: JSON.stringify(body),
+		});
+
+	it("sends everything home and says what went", async () => {
+		const asked: unknown[] = [];
+		const res = await withdraw(
+			app({
+				withdrawEverything: async (request) => {
+					asked.push(request);
+					return everythingSent;
+				},
+			}),
+			machineId,
+		);
+
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual(everythingSent);
+		expect(asked).toEqual([{ ownerId, machineId }]);
+	});
+
+	it("asks nobody signed in to sign in, and moves nothing", async () => {
+		const res = await withdraw(app(), machineId, false);
+		expect(res.status).toBe(401);
+	});
+
+	it("treats somebody else's machine as one that does not exist", async () => {
+		const res = await withdraw(app(), newId<"machine">());
+		expect(res.status).toBe(404);
+	});
+
+	it("says a running machine has to be paused or stopped first", async () => {
+		const res = await withdraw(
+			app({
+				withdrawEverything: async () => {
+					throw new MaschinaError(
+						"conflict",
+						"this machine is running, so pause or stop it before taking its funds",
+					);
+				},
+			}),
+			machineId,
+		);
+
+		expect(res.status).toBe(409);
+		expect(JSON.stringify(await res.json())).toContain("pause or stop");
+	});
+
+	it("refuses a request that names where the money should go, because it goes to the owner", async () => {
+		const res = await withdraw(app(), machineId, true, {
+			to: "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E",
+		});
+		expect(res.status).toBe(400);
 	});
 });

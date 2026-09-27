@@ -22,6 +22,9 @@ const noMachines = {
 	read: async () => undefined,
 	record: async () => [],
 	act: async () => ({ state: "ready" }),
+	withdrawEverything: async () => {
+		throw new Error("not used here");
+	},
 	create: async () => {
 		throw new Error("not used here");
 	},
