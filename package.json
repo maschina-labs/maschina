@@ -14,6 +14,7 @@
 		"prepare": "husky",
 		"bootstrap": "node scripts/bootstrap.mjs",
 		"check:machine": "node scripts/check-machine.mjs",
+		"fonts": "node scripts/fonts.mjs",
 		"dev": "pnpm docker:up && turbo dev --filter=@maschina/web --filter=@maschina/gateway",
 		"dev:all": "pnpm docker:up && turbo dev",
 		"build": "turbo build check:bundle",

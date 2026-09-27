@@ -145,6 +145,11 @@ pnpm bootstrap  # creates .env, starts Postgres, runs migrations
 pnpm dev        # web app on :3000, gateway on :4000
 ```
 
+The interface is set in Söhne, and the font files are not in this repository: a licence covers serving
+a font for your own site, not handing the files to everybody who clones it. `pnpm fonts` fetches them
+for anybody who holds the licence. Without them everything builds and runs, and falls back to the
+system font stack.
+
 ```bash
 pnpm check:machine       # checks your machine is set up correctly
 pnpm check               # lint, format, architecture rules
