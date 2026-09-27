@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.0.24](https://github.com/maschina-labs/maschina/compare/v0.0.23...v0.0.24) (2026-09-27)
+
+
+### Added
+
+* **gateway:** let an owner take everything out of a machine ([#688](https://github.com/maschina-labs/maschina/issues/688)) ([de89029](https://github.com/maschina-labs/maschina/commit/de89029b44356393e3b88706d9f568cf0e79ef56))
+* **orchestrator:** ask for profit to be banked every five minutes ([#680](https://github.com/maschina-labs/maschina/issues/680)) ([c908b20](https://github.com/maschina-labs/maschina/commit/c908b20c45fd09878aa0ff6316bb58928548110f))
+* **provisioner:** give every machine a vault, and let it sell SOL ([#673](https://github.com/maschina-labs/maschina/issues/673)) ([892585a](https://github.com/maschina-labs/maschina/commit/892585aa285780e533d13b34e7b01b57efd33503))
+* **runtime:** work out a machine's float and when to bank profit ([#666](https://github.com/maschina-labs/maschina/issues/666)) ([f0071f3](https://github.com/maschina-labs/maschina/commit/f0071f3d816f802cedc0035fdd7ca38c00ed7170))
+* **signer:** bank a machine's profit in its vault ([#678](https://github.com/maschina-labs/maschina/issues/678)) ([983f01c](https://github.com/maschina-labs/maschina/commit/983f01cef554e1b076776f9e4a06e73b54f25809))
+* **signer:** take everything out of a machine, vault included ([#684](https://github.com/maschina-labs/maschina/issues/684)) ([c5a0e5d](https://github.com/maschina-labs/maschina/commit/c5a0e5d627082c1ba9eca1b23026c75b18c66fcf))
+* **wallet:** pin where a token may go, not only which token moves ([#670](https://github.com/maschina-labs/maschina/issues/670)) ([0e8f59b](https://github.com/maschina-labs/maschina/commit/0e8f59bbeeddfa195e0154a6f7ba8e4adb776a76))
+
+
+### Fixed
+
+* **provisioner:** refuse a machine that could never trade ([#682](https://github.com/maschina-labs/maschina/issues/682)) ([5350d37](https://github.com/maschina-labs/maschina/commit/5350d37aeaaa1209b76f667e288d9fbf2e77c8ca))
+* **signer:** let a machine sell what it bought ([#689](https://github.com/maschina-labs/maschina/issues/689)) ([6929ab7](https://github.com/maschina-labs/maschina/commit/6929ab701144c0cbbbf87616fa7f00323c9fd6f3))
+* **signer:** refuse a quoted RPC URL and check the chain is reachable ([#676](https://github.com/maschina-labs/maschina/issues/676)) ([1faf7bb](https://github.com/maschina-labs/maschina/commit/1faf7bb60ad806b412be1d4f60f87fb44891bb92))
+* **signer:** refuse a swap that moves money out around the route ([#674](https://github.com/maschina-labs/maschina/issues/674)) ([8f3814d](https://github.com/maschina-labs/maschina/commit/8f3814dd95e824901421fb5153cab9ee823bd968))
+
 ## [0.0.23](https://github.com/maschina-labs/maschina/compare/v0.0.22...v0.0.23) (2026-09-27)
 
 
