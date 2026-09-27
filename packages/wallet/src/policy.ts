@@ -20,6 +20,17 @@ export type WalletPolicy = {
 	readonly approvedPrograms: readonly SolanaAddress[];
 	/** Token mints a transfer may move. Sorted. */
 	readonly approvedMints: readonly SolanaAddress[];
+	/**
+	 * The token accounts a token transfer may pay into.
+	 *
+	 * `"any"` for a wallet that trades: a swap routes tokens through pool accounts that cannot be listed
+	 * in advance, so pinning them would refuse every real swap. A list for a wallet that only ever pays
+	 * one place, which is the whole of what makes a vault a vault. Sorted.
+	 *
+	 * Mints alone are not enough. Checking only the mint says what may move and never where it goes, so a
+	 * transfer of the right token to a stranger passes.
+	 */
+	readonly tokenDestinations: "any" | readonly SolanaAddress[];
 	/** The most SOL, in lamports, one transfer may move. */
 	readonly maxLamportsPerTransfer: bigint;
 };
@@ -63,10 +74,12 @@ export function validateRecipients(
 
 /** Returns the policy in its stored form, or why it can't be used. */
 export function validatePolicy(policy: WalletPolicy): Result<WalletPolicy, ProviderError> {
+	const destinations = policy.tokenDestinations;
 	for (const [field, values] of [
 		["owner", [policy.owner]],
 		["approvedPrograms", policy.approvedPrograms],
 		["approvedMints", policy.approvedMints],
+		["tokenDestinations", destinations === "any" ? [] : destinations],
 	] as const) {
 		const problem = badAddress(field, values);
 		if (problem) return err(problem);
@@ -77,6 +90,16 @@ export function validatePolicy(policy: WalletPolicy): Result<WalletPolicy, Provi
 	if (policy.maxLamportsPerTransfer <= 0n) {
 		return err(providerError("invalid", "maxLamportsPerTransfer must be more than zero"));
 	}
+	if (destinations !== "any" && destinations.length === 0) {
+		// An empty list would read as "nowhere", which is already said by approving no mints. Two ways to
+		// say the same thing is how one of them ends up meaning the other.
+		return err(
+			providerError(
+				"invalid",
+				'tokenDestinations is an empty list: approve no mints instead, or say "any"',
+			),
+		);
+	}
 	const recipients = validateRecipients(policy.owner, policy.recipients);
 	if (!recipients.ok) return recipients;
 	return ok({
@@ -84,6 +107,7 @@ export function validatePolicy(policy: WalletPolicy): Result<WalletPolicy, Provi
 		recipients: recipients.value,
 		approvedPrograms: sortedUnique(policy.approvedPrograms),
 		approvedMints: sortedUnique(policy.approvedMints),
+		tokenDestinations: destinations === "any" ? "any" : sortedUnique(destinations),
 		maxLamportsPerTransfer: policy.maxLamportsPerTransfer,
 	});
 }

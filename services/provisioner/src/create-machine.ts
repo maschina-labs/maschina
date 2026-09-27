@@ -91,6 +91,11 @@ export async function createMachine(
 		recipients: [],
 		approvedPrograms: Object.keys(SWAP_PROGRAMS).sort(),
 		approvedMints: [...request.limits.approvedMints].sort(),
+		// A machine that trades cannot say where its tokens go: a swap routes them through pool accounts
+		// that only exist once the route is chosen. What stops a token leaving to a stranger is the shape
+		// of the transaction, which is Maschina's own check and not the provider's (#667). A vault is the
+		// other case, and names its one destination.
+		tokenDestinations: "any",
 		maxLamportsPerTransfer: MAX_LAMPORTS_PER_TRANSFER,
 	};
 

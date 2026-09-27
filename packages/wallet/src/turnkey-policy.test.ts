@@ -9,12 +9,15 @@ const JUPITER = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
 const SYSTEM = "11111111111111111111111111111111";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SIGNER = "0199a0a0-0000-4000-8000-000000000001";
+/** The owner's USDC account, which is where a vault pays and the only place it may. */
+const OWNER_USDC_ACCOUNT = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
 
 const policy = (over: Partial<WalletPolicy> = {}): WalletPolicy => ({
 	owner: OWNER,
 	recipients: [],
 	approvedPrograms: [SYSTEM, JUPITER],
 	approvedMints: [USDC],
+	tokenDestinations: "any",
 	maxLamportsPerTransfer: 1_000_000_000n,
 	...over,
 });
@@ -80,8 +83,34 @@ describe("the policies a machine wallet gets", () => {
 		const [signing] = build();
 
 		expect(signing?.condition).toContain(
-			`solana.tx.spl_transfers.all(t, t.token_mint == '${USDC}')`,
+			`solana.tx.spl_transfers.all(s, s.token_mint == '${USDC}')`,
 		);
+	});
+
+	it("leaves a trading wallet's token destinations open, because a swap picks them", () => {
+		const [signing] = build({ tokenDestinations: "any" });
+
+		expect(signing?.condition).toContain("solana.tx.spl_transfers.all(s, s.token_mint");
+		expect(signing?.condition).not.toContain("s.to ==");
+	});
+
+	it("pins where a token may go when the wallet names its destinations", () => {
+		// This is what makes a vault a vault: the mint says what may move, and this says where it goes.
+		const [signing] = build({ tokenDestinations: [OWNER_USDC_ACCOUNT] });
+
+		expect(signing?.condition).toContain(
+			`solana.tx.spl_transfers.all(s, (s.token_mint == '${USDC}') && (s.to == '${OWNER_USDC_ACCOUNT}'))`,
+		);
+	});
+
+	it("keeps a token destination out of the SOL recipients when the policy is read back", () => {
+		// Both are `to` in Turnkey's language. Reading one as the other would quietly widen who may be
+		// paid in SOL to include a token account nobody approved for that.
+		const specs = build({ tokenDestinations: [OWNER_USDC_ACCOUNT] });
+		const readBack = policyFromExpressions(specs);
+
+		expect(readBack?.recipients).toEqual([]);
+		expect(readBack?.tokenDestinations).toEqual([OWNER_USDC_ACCOUNT]);
 	});
 
 	it("names its policies after the machine, so they can be found again", () => {
@@ -151,6 +180,34 @@ describe("reading a policy back out of its expressions", () => {
 		});
 
 		expect(policyFromExpressions(specs)).toEqual(original);
+	});
+
+	it("returns exactly what went in, destinations and all", () => {
+		const original = policy({ recipients: [PAYEE], tokenDestinations: [OWNER_USDC_ACCOUNT] });
+		const specs = turnkeyPolicies({
+			label: "weekly-sol",
+			signerUserId: SIGNER,
+			walletAddress: WALLET,
+			policy: original,
+		});
+
+		expect(policyFromExpressions(specs)).toEqual(original);
+	});
+
+	it("reads a policy written before token destinations existed as open", () => {
+		// Wallets made then still have those policies in force, and they are legible rather than broken.
+		const readBack = policyFromExpressions([
+			{
+				policyName: "machine:old:sign",
+				effect: "EFFECT_ALLOW",
+				consensus: "",
+				condition: `solana.tx.program_keys.all(p, p == '${SYSTEM}') && solana.tx.transfers.all(t, (t.to == '${OWNER}') && t.amount <= 5) && solana.tx.spl_transfers.all(t, t.token_mint == '${USDC}')`,
+				notes: "",
+			},
+		]);
+
+		expect(readBack?.approvedMints).toEqual([USDC]);
+		expect(readBack?.tokenDestinations).toBe("any");
 	});
 
 	it("reads a policy with no approved mints", () => {

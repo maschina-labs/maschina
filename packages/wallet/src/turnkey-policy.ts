@@ -73,10 +73,18 @@ export function turnkeyPolicies(input: PolicyInput): PolicySpec[] {
 
 	// A mint is only visible on a checked token transfer. A plain transfer has no mint, so it fails this
 	// rule rather than slipping past it, which is the safe way round.
-	const tokenTransfers =
-		policy.approvedMints.length === 0
-			? "solana.tx.spl_transfers.count() == 0"
-			: `solana.tx.spl_transfers.all(t, ${anyOf("t.token_mint", policy.approvedMints)})`;
+	//
+	// The lambda variable is `s` rather than `t` so that a token destination cannot be mistaken for a SOL
+	// recipient when the policy is read back out of its own expression. Both would be `t.to`.
+	const tokenTransfers = (() => {
+		if (policy.approvedMints.length === 0) return "solana.tx.spl_transfers.count() == 0";
+		const mints = anyOf("s.token_mint", policy.approvedMints);
+		// A wallet that trades cannot name where its tokens go: a swap routes them through pool accounts
+		// that only exist once the route is chosen. A wallet that only ever pays one place can, and does.
+		if (policy.tokenDestinations === "any") return `solana.tx.spl_transfers.all(s, ${mints})`;
+		const destinations = anyOf("s.to", policy.tokenDestinations);
+		return `solana.tx.spl_transfers.all(s, (${mints}) && (${destinations}))`;
+	})();
 
 	const consensus = `approvers.any(user, user.id == '${signer}')`;
 
@@ -93,7 +101,7 @@ export function turnkeyPolicies(input: PolicyInput): PolicySpec[] {
 				tokenTransfers,
 			].join(" && "),
 			notes:
-				"Machine wallet: approved programs and mints only, SOL only to approved recipients, each transfer capped.",
+				"Machine wallet: approved programs and mints only, SOL only to approved recipients, tokens only to approved token accounts where the wallet names them, each transfer capped.",
 		},
 		{
 			policyName: `machine:${label}:no-export`,
@@ -117,11 +125,17 @@ export function policyFromExpressions(specs: readonly PolicySpec[]): WalletPolic
 	const cap = /t\.amount <= (\d+)/.exec(signing.condition)?.[1];
 	if (!cap) return undefined;
 
+	// `t.token_mint` is how this was written before token destinations existed, and those policies are
+	// still in force on wallets made then. Reading both keeps an old wallet's policy legible.
+	const mints = valuesOf(signing.condition, "s.token_mint");
+	const destinations = valuesOf(signing.condition, "s.to");
+
 	return {
 		owner,
 		recipients: rest,
 		approvedPrograms: valuesOf(signing.condition, "p"),
-		approvedMints: valuesOf(signing.condition, "t.token_mint"),
+		approvedMints: mints.length > 0 ? mints : valuesOf(signing.condition, "t.token_mint"),
+		tokenDestinations: destinations.length > 0 ? destinations : "any",
 		maxLamportsPerTransfer: BigInt(cap),
 	};
 }
