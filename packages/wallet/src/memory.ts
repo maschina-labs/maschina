@@ -56,7 +56,8 @@ export function readMemoryPayment(bytes: Uint8Array): Payment | undefined {
 }
 
 export function createMemoryWalletProvider(options: { down?: boolean } = {}): WalletProvider {
-	const wallets = new Map<string, { address: SolanaAddress; policy: WalletPolicy }>();
+	type Account = { address: SolanaAddress; policy: WalletPolicy };
+	const wallets = new Map<string, { trading: Account; vault?: Account }>();
 	let next = 1;
 	const outage = () =>
 		err(providerError("unavailable", "the in-memory provider was created as down"));
@@ -66,25 +67,33 @@ export function createMemoryWalletProvider(options: { down?: boolean } = {}): Wa
 	return {
 		name: "memory",
 
-		async createWallet({ policy }) {
+		async createWallet({ policy, vault }) {
 			if (options.down) return outage();
 			const valid = validatePolicy(policy);
 			if (!valid.ok) return valid;
+			const validVault = vault === undefined ? undefined : validatePolicy(vault);
+			if (validVault && !validVault.ok) return validVault;
+
 			const walletId = `memory-${next++}`;
-			const address = base58(randomBytes(32));
-			wallets.set(walletId, { address, policy: valid.value });
-			return ok({ walletId, address });
+			const trading = { address: base58(randomBytes(32)), policy: valid.value };
+			if (!validVault) {
+				wallets.set(walletId, { trading });
+				return ok({ walletId, address: trading.address });
+			}
+			const kept = { address: base58(randomBytes(32)), policy: validVault.value };
+			wallets.set(walletId, { trading, vault: kept });
+			return ok({ walletId, address: trading.address, vaultAddress: kept.address });
 		},
 
-		async readPolicy(walletId) {
+		async readPolicy(walletId, account = "trading") {
 			if (options.down) return outage();
-			const wallet = wallets.get(walletId);
-			return wallet ? ok(wallet.policy) : missing(walletId);
+			const found = wallets.get(walletId)?.[account];
+			return found ? ok(found.policy) : missing(walletId);
 		},
 
-		async sign(walletId, unsignedTransaction) {
+		async sign(walletId, unsignedTransaction, account = "trading") {
 			if (options.down) return outage();
-			const wallet = wallets.get(walletId);
+			const wallet = wallets.get(walletId)?.[account];
 			if (!wallet) return missing(walletId);
 			const payment = readMemoryPayment(unsignedTransaction);
 			if (!payment) return err(providerError("invalid", "not a payment this provider can read"));
@@ -111,7 +120,7 @@ export function createMemoryWalletProvider(options: { down?: boolean } = {}): Wa
 
 		async setRecipients(walletId, recipients) {
 			if (options.down) return outage();
-			const wallet = wallets.get(walletId);
+			const wallet = wallets.get(walletId)?.trading;
 			if (!wallet) return missing(walletId);
 			const valid = validateRecipients(wallet.policy.owner, recipients);
 			if (!valid.ok) return valid;

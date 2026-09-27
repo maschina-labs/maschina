@@ -64,6 +64,24 @@ describe("writeMachine when the database says no", () => {
 		expect(!refused.ok && refused.error.code).toBe("conflict");
 	});
 
+	it("calls a vault already in use a conflict, and says it was the vault", async () => {
+		// Checked before the wallet, because both come back as a duplicate key and only one is right.
+		const refused = await writeMachine(
+			failing('duplicate key value violates unique constraint "machines_vault_address_unique"'),
+			machine,
+		);
+		expect(!refused.ok && refused.error.code).toBe("conflict");
+		expect(!refused.ok && refused.error.message).toMatch(/vault/);
+	});
+
+	it("calls a vault that is the wallet itself a conflict", async () => {
+		const refused = await writeMachine(
+			failing('new row violates check constraint "machines_vault_is_separate"'),
+			machine,
+		);
+		expect(!refused.ok && refused.error.message).toMatch(/vault/);
+	});
+
 	it("calls anything else a fault", async () => {
 		const refused = await writeMachine(failing("connection reset"), machine);
 		expect(!refused.ok && refused.error.code).toBe("internal");

@@ -60,6 +60,8 @@ async function main(): Promise<void> {
 		recipients: [],
 		approvedPrograms: [SYSTEM_PROGRAM],
 		approvedMints: [],
+		tokenDestinations: "any",
+		wrapsSol: false,
 		maxLamportsPerTransfer: 10_000_000n,
 	};
 

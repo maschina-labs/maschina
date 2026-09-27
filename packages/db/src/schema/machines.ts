@@ -24,6 +24,11 @@ export const machines = pgTable(
 			.references(() => owners.id),
 		/** The machine's own Solana wallet, held by the wallet provider. */
 		walletAddress: text("wallet_address").notNull().unique(),
+		/**
+		 * The vault beside the machine's wallet, where its profit is swept and cannot be traded. Empty for a
+		 * machine made before vaults existed, which has nowhere to bank and so never sweeps.
+		 */
+		vaultAddress: text("vault_address").unique(),
 		/** The provider's id for that wallet, so the signer can ask for a signature. */
 		providerWalletId: text("provider_wallet_id").notNull(),
 		/** Which provider holds it, so a wallet is never asked of the wrong one. */
@@ -43,6 +48,15 @@ export const machines = pgTable(
 	(table) => [
 		index("machines_owner").on(table.ownerId),
 		check("machines_wallet_address_shape", sql.raw(`"wallet_address" ~ '${SOLANA_ADDRESS}'`)),
+		check(
+			"machines_vault_address_shape",
+			sql.raw(`"vault_address" is null or "vault_address" ~ '${SOLANA_ADDRESS}'`),
+		),
+		// A vault that is the trading wallet is a trading wallet with a reassuring name.
+		check(
+			"machines_vault_is_separate",
+			sql.raw(`"vault_address" is null or "vault_address" <> "wallet_address"`),
+		),
 		check("machines_provider_known", sql.raw(`"provider" in ('turnkey', 'crossmint')`)),
 		check("machines_name_length", sql.raw(`length("name") between 1 and 60`)),
 	],

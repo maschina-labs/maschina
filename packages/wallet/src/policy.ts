@@ -31,6 +31,15 @@ export type WalletPolicy = {
 	 * transfer of the right token to a stranger passes.
 	 */
 	readonly tokenDestinations: "any" | readonly SolanaAddress[];
+	/**
+	 * Whether SOL may move into the wallet's own wrapped SOL account.
+	 *
+	 * Selling SOL means wrapping it first, and wrapping is a plain SOL transfer into a token account the
+	 * wallet owns. A policy that only lets SOL go to the owner refuses that, so a trading wallet could buy
+	 * and never sell. The account is derived from the wallet's own address, so SOL moved there has not
+	 * left the wallet. A vault never sells anything and says no.
+	 */
+	readonly wrapsSol: boolean;
 	/** The most SOL, in lamports, one transfer may move. */
 	readonly maxLamportsPerTransfer: bigint;
 };
@@ -108,6 +117,7 @@ export function validatePolicy(policy: WalletPolicy): Result<WalletPolicy, Provi
 		approvedPrograms: sortedUnique(policy.approvedPrograms),
 		approvedMints: sortedUnique(policy.approvedMints),
 		tokenDestinations: destinations === "any" ? "any" : sortedUnique(destinations),
+		wrapsSol: policy.wrapsSol,
 		maxLamportsPerTransfer: policy.maxLamportsPerTransfer,
 	});
 }

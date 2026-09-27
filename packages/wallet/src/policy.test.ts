@@ -12,6 +12,7 @@ const policy = (overrides: Partial<WalletPolicy> = {}): WalletPolicy => ({
 	approvedPrograms: [SYSTEM],
 	approvedMints: [],
 	tokenDestinations: "any",
+	wrapsSol: false,
 	maxLamportsPerTransfer: 50_000_000n,
 	...overrides,
 });

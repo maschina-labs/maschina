@@ -17,6 +17,7 @@
  */
 
 import { err, ok, type Result } from "@maschina/core";
+import { tokenAccountFor, WRAPPED_SOL } from "@maschina/solana";
 import {
 	type SolanaAddress,
 	validatePolicy,
@@ -24,9 +25,14 @@ import {
 	type WalletPolicy,
 } from "./policy.ts";
 import { type PolicySpec, policyFromExpressions, turnkeyPolicies } from "./turnkey-policy.ts";
-import { type ProviderError, providerError, type WalletProvider } from "./wallet-provider.ts";
+import {
+	type ProviderError,
+	providerError,
+	type WalletAccount,
+	type WalletProvider,
+} from "./wallet-provider.ts";
 
-/** A Solana account, in Turnkey's words. */
+/** A machine's trading account, in Turnkey's words. Every wallet made before vaults has only this one. */
 export const SOLANA_ACCOUNT = {
 	curve: "CURVE_ED25519",
 	pathFormat: "PATH_FORMAT_BIP32",
@@ -34,15 +40,29 @@ export const SOLANA_ACCOUNT = {
 	addressFormat: "ADDRESS_FORMAT_SOLANA",
 } as const;
 
+/**
+ * A machine's vault: the next account under the same key.
+ *
+ * Same key, different account, different policy. Turnkey enforces policy per account address, so the
+ * vault's key is technically the machine's key and still cannot sign anything the vault's policy does not
+ * allow. That is the point: the separation holds at the provider, not in a column.
+ */
+export const SOLANA_VAULT_ACCOUNT = { ...SOLANA_ACCOUNT, path: "m/44'/501'/1'/0'" } as const;
+
+const PATHS: Record<WalletAccount, string> = {
+	trading: SOLANA_ACCOUNT.path,
+	vault: SOLANA_VAULT_ACCOUNT.path,
+};
+
 /** The part of Turnkey's API this adapter uses, and nothing more. */
 export type TurnkeyApi = {
 	createWallet(body: {
 		walletName: string;
-		accounts: (typeof SOLANA_ACCOUNT)[];
+		accounts: (typeof SOLANA_ACCOUNT | typeof SOLANA_VAULT_ACCOUNT)[];
 	}): Promise<{ walletId: string; addresses: string[] }>;
 	getWalletAccounts(body: {
 		walletId: string;
-	}): Promise<{ accounts: { address: string; addressFormat: string }[] }>;
+	}): Promise<{ accounts: { address: string; addressFormat: string; path: string }[] }>;
 	getPolicies(): Promise<{ policies: StoredPolicy[] }>;
 	createPolicy(body: {
 		policyName: string;
@@ -119,8 +139,20 @@ export function classifyTurnkeyError(error: unknown, doing: string): ProviderErr
 	return providerError("unexpected", `turnkey failed while ${doing}: ${text}`, { doing }, error);
 }
 
-const solanaAddressOf = (accounts: { address: string; addressFormat: string }[]) =>
-	accounts.find((account) => account.addressFormat === SOLANA_ACCOUNT.addressFormat)?.address;
+/**
+ * One account's address, found by its derivation path rather than its position.
+ *
+ * Turnkey lists accounts in the order they were made, but order is an accident and the path is a fact.
+ * Picking the vault by position would put a trading key where a vault key was meant, silently.
+ */
+const solanaAddressOf = (
+	accounts: { address: string; addressFormat: string; path: string }[],
+	account: WalletAccount,
+) =>
+	accounts.find(
+		(found) =>
+			found.addressFormat === SOLANA_ACCOUNT.addressFormat && found.path === PATHS[account],
+	)?.address;
 
 /** Turnkey policy names are made from the wallet address, so a wallet's policies can always be found. */
 const labelFor = (walletAddress: string) => `w-${walletAddress.slice(0, 12).toLowerCase()}`;
@@ -135,9 +167,36 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 		return policies.filter((policy) => policy.policyName.startsWith(prefix));
 	}
 
-	async function addressOf(walletId: string): Promise<string | undefined> {
+	/**
+	 * What Turnkey is enforcing on one account, read out of its own stored expressions.
+	 *
+	 * The wrap account is derived here, from the address, rather than taken from anything stored. That
+	 * way a policy can only ever be read as wrapping SOL into the wallet's own account.
+	 */
+	async function storedPolicy(
+		walletAddress: string,
+	): Promise<{ policy: WalletPolicy | undefined; rows: StoredPolicy[] }> {
+		const rows = await policiesFor(walletAddress);
+		const wrapAccount = await wrapAccountOf(walletAddress);
+		const policy = policyFromExpressions(
+			rows.map((row) => ({
+				policyName: row.policyName,
+				effect: row.effect as PolicySpec["effect"],
+				consensus: row.consensus,
+				condition: row.condition,
+				notes: "",
+			})),
+			{ wrapAccount },
+		);
+		return { policy, rows };
+	}
+
+	async function addressOf(
+		walletId: string,
+		account: WalletAccount = "trading",
+	): Promise<string | undefined> {
 		const { accounts } = await admin.getWalletAccounts({ walletId });
-		return solanaAddressOf(accounts);
+		return solanaAddressOf(accounts, account);
 	}
 
 	/** Writes the policies for a wallet, updating any that already exist, then reads them back. */
@@ -151,6 +210,7 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 				label: labelFor(walletAddress),
 				signerUserId,
 				walletAddress,
+				wrapAccount: await wrapAccountOf(walletAddress),
 				policy,
 			});
 		} catch (error) {
@@ -184,16 +244,7 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 
 		// Read back from Turnkey rather than trusting what was just sent. This is the only evidence that
 		// the policy is actually in force.
-		const stored = await policiesFor(walletAddress);
-		const readBack = policyFromExpressions(
-			stored.map((policyRow) => ({
-				policyName: policyRow.policyName,
-				effect: policyRow.effect as PolicySpec["effect"],
-				consensus: policyRow.consensus,
-				condition: policyRow.condition,
-				notes: "",
-			})),
-		);
+		const { policy: readBack, rows: stored } = await storedPolicy(walletAddress);
 
 		if (!readBack) {
 			return err(
@@ -220,17 +271,22 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 	return {
 		name: "turnkey",
 
-		async createWallet({ label, policy }) {
+		async createWallet({ label, policy, vault }) {
 			const checked = validatePolicy(policy);
 			if (!checked.ok) return err(checked.error);
+			// Both policies are checked before anything is made, so a bad vault never leaves a trading
+			// account behind with nothing beside it.
+			const checkedVault = vault === undefined ? undefined : validatePolicy(vault);
+			if (checkedVault && !checkedVault.ok) return err(checkedVault.error);
 
 			try {
 				const created = await admin.createWallet({
 					walletName: label,
-					accounts: [SOLANA_ACCOUNT],
+					accounts: checkedVault ? [SOLANA_ACCOUNT, SOLANA_VAULT_ACCOUNT] : [SOLANA_ACCOUNT],
 				});
 
-				const address = created.addresses[0] ?? (await addressOf(created.walletId));
+				// Looked up by path, never taken from the order Turnkey happened to answer in.
+				const address = await addressOf(created.walletId, "trading");
 				if (!address) {
 					return err(
 						providerError("unexpected", "turnkey created a wallet with no Solana address", {
@@ -241,28 +297,31 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 
 				const applied = await applyPolicies(address, checked.value);
 				if (!applied.ok) return applied;
+				if (!checkedVault) return ok({ walletId: created.walletId, address });
 
-				return ok({ walletId: created.walletId, address });
+				const vaultAddress = await addressOf(created.walletId, "vault");
+				if (!vaultAddress) {
+					return err(
+						providerError("unexpected", "turnkey created a wallet with no vault account", {
+							walletId: created.walletId,
+						}),
+					);
+				}
+				const appliedVault = await applyPolicies(vaultAddress, checkedVault.value);
+				if (!appliedVault.ok) return appliedVault;
+
+				return ok({ walletId: created.walletId, address, vaultAddress });
 			} catch (error) {
 				return err(classifyTurnkeyError(error, "creating a wallet"));
 			}
 		},
 
-		async readPolicy(walletId) {
+		async readPolicy(walletId, account = "trading") {
 			try {
-				const address = await addressOf(walletId);
+				const address = await addressOf(walletId, account);
 				if (!address) return err(providerError("not_found", "no such wallet", { walletId }));
 
-				const stored = await policiesFor(address);
-				const policy = policyFromExpressions(
-					stored.map((policyRow) => ({
-						policyName: policyRow.policyName,
-						effect: policyRow.effect as PolicySpec["effect"],
-						consensus: policyRow.consensus,
-						condition: policyRow.condition,
-						notes: "",
-					})),
-				);
+				const { policy } = await storedPolicy(address);
 
 				return policy
 					? ok(policy)
@@ -272,13 +331,13 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 			}
 		},
 
-		async sign(walletId, unsignedTransaction) {
+		async sign(walletId, unsignedTransaction, account = "trading") {
 			if (unsignedTransaction.length === 0) {
 				return err(providerError("invalid", "there is nothing to sign", { walletId }));
 			}
 
 			try {
-				const address = await addressOf(walletId);
+				const address = await addressOf(walletId, account);
 				if (!address) return err(providerError("not_found", "no such wallet", { walletId }));
 
 				const signed = await signer.signTransaction({
@@ -301,16 +360,7 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 				const address = await addressOf(walletId);
 				if (!address) return err(providerError("not_found", "no such wallet", { walletId }));
 
-				const stored = await policiesFor(address);
-				const current = policyFromExpressions(
-					stored.map((policyRow) => ({
-						policyName: policyRow.policyName,
-						effect: policyRow.effect as PolicySpec["effect"],
-						consensus: policyRow.consensus,
-						condition: policyRow.condition,
-						notes: "",
-					})),
-				);
+				const { policy: current } = await storedPolicy(address);
 				if (!current) {
 					return err(providerError("not_found", "this wallet has no policy", { walletId }));
 				}
@@ -325,3 +375,7 @@ export function turnkeyProvider(options: TurnkeyOptions): WalletProvider {
 		},
 	};
 }
+
+/** The wallet's own wrapped SOL account: where a sale wraps SOL, and nowhere else. */
+const wrapAccountOf = (walletAddress: string): Promise<string> =>
+	tokenAccountFor({ owner: walletAddress, mint: WRAPPED_SOL });

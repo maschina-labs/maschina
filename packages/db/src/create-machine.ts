@@ -26,7 +26,13 @@ export type MachineToWrite = {
 	kind: string;
 	settings: Record<string, unknown>;
 	rules: Record<string, unknown>;
-	wallet: { address: string; providerWalletId: string; provider: string };
+	wallet: {
+		address: string;
+		/** The vault beside it, where profit is swept. A machine without one never sweeps. */
+		vaultAddress?: string | undefined;
+		providerWalletId: string;
+		provider: string;
+	};
 	limits: {
 		/** What the owner is putting behind this machine. A machine without one cannot act. */
 		budgetGranted: bigint;
@@ -63,6 +69,11 @@ export async function writeMachine(
 		// A failed statement takes the whole transaction with it, and the error surfaces here rather
 		// than where it happened. A wallet already in use is the one we expect.
 		const message = cause instanceof Error ? cause.message : String(cause);
+		if (/machines_vault_address_unique|machines_vault_is_separate/i.test(message)) {
+			return err(
+				new MaschinaError("conflict", "that vault is not this machine's alone", { cause }),
+			);
+		}
 		if (/machines_wallet_address_unique|duplicate key/i.test(message)) {
 			return err(
 				new MaschinaError("conflict", "that wallet already belongs to a machine", { cause }),
@@ -90,10 +101,12 @@ async function writeInOneGo(
 		const machineId = newId<"machine">();
 		await tx.execute(sql`
 				insert into machines
-					(id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name, paper)
+					(id, owner_id, wallet_address, vault_address, provider_wallet_id, provider,
+					definition_id, name, paper)
 				values (${machineId}::uuid, ${owner.value.id}::uuid, ${machine.wallet.address},
-					${machine.wallet.providerWalletId}, ${machine.wallet.provider}, ${definition.value.id},
-					${machine.name}, ${machine.paper ?? false})`);
+					${machine.wallet.vaultAddress ?? null}, ${machine.wallet.providerWalletId},
+					${machine.wallet.provider}, ${definition.value.id}, ${machine.name},
+					${machine.paper ?? false})`);
 
 		const limits: { limit: string; to: string }[] = [
 			{ limit: "budgetGranted", to: machine.limits.budgetGranted.toString() },
@@ -114,6 +127,9 @@ async function writeInOneGo(
 				ownerId: owner.value.id,
 				definitionVersionId: definition.value.id,
 				walletAddress: machine.wallet.address,
+				...(machine.wallet.vaultAddress === undefined
+					? {}
+					: { vaultAddress: machine.wallet.vaultAddress }),
 			},
 		});
 		if (!created.ok) return created;

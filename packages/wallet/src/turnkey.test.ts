@@ -20,9 +20,10 @@ const SIGNER_USER = "0199a0a0-0000-4000-8000-000000000001";
  * told. It holds no keys and its signature proves nothing.
  */
 function fakeTurnkey(options: { failWith?: Error } = {}) {
-	const wallets = new Map<string, string>();
+	const wallets = new Map<string, { address: string; path: string }[]>();
 	const policies: StoredPolicy[] = [];
 	let nextWallet = 0;
+	let nextAddress = 0;
 	const created: string[] = [];
 	const updated: string[] = [];
 
@@ -46,19 +47,28 @@ function fakeTurnkey(options: { failWith?: Error } = {}) {
 		async createWallet(body) {
 			check();
 			expect(body.accounts[0]).toEqual(SOLANA_ACCOUNT);
-			const address = ADDRESSES[nextWallet];
-			if (!address) throw new Error("the fake has run out of wallet addresses");
+			const accounts = body.accounts.map((account) => {
+				const address = ADDRESSES[nextAddress];
+				if (!address) throw new Error("the fake has run out of wallet addresses");
+				nextAddress += 1;
+				return { address, path: account.path };
+			});
 			nextWallet += 1;
 			const walletId = `wallet-${nextWallet}`;
-			wallets.set(walletId, address);
-			return { walletId, addresses: [address] };
+			wallets.set(walletId, accounts);
+			// Answered in reverse on purpose: nothing may depend on the order Turnkey happens to use.
+			return { walletId, addresses: accounts.map((account) => account.address).reverse() };
 		},
 
 		async getWalletAccounts({ walletId }) {
 			check();
-			const address = wallets.get(walletId);
-			if (!address) throw new Error("wallet not found");
-			return { accounts: [{ address, addressFormat: SOLANA_ACCOUNT.addressFormat }] };
+			const accounts = wallets.get(walletId);
+			if (!accounts) throw new Error("wallet not found");
+			return {
+				accounts: [...accounts]
+					.reverse()
+					.map((account) => ({ ...account, addressFormat: SOLANA_ACCOUNT.addressFormat })),
+			};
 		},
 
 		async getPolicies() {
@@ -134,6 +144,16 @@ describeWalletProvider("turnkey", {
 		approvedPrograms: ["11111111111111111111111111111111"],
 		approvedMints: [],
 		tokenDestinations: "any",
+		wrapsSol: false,
+		maxLamportsPerTransfer: 50_000_000n,
+	},
+	vaultPolicy: {
+		owner: OWNER,
+		recipients: [],
+		approvedPrograms: ["11111111111111111111111111111111"],
+		approvedMints: ["EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
+		tokenDestinations: ["2arVPHhzahANuftuDyHXP414ye2ARUgJvcbP9NHAsfnj"],
+		wrapsSol: false,
 		maxLamportsPerTransfer: 50_000_000n,
 	},
 	payment: (from, to) => memoryPayment({ from, to, lamports: 1_000_000n }),
@@ -147,6 +167,7 @@ const policy = {
 	approvedPrograms: ["11111111111111111111111111111111"],
 	approvedMints: [],
 	tokenDestinations: "any",
+	wrapsSol: false,
 	maxLamportsPerTransfer: 50_000_000n,
 } as const;
 

@@ -1,4 +1,5 @@
 import { newId } from "@maschina/core";
+import { SWAP_PROGRAMS, TRANSFER_PROGRAMS, tokenAccountFor } from "@maschina/solana";
 import { createMemoryWalletProvider, type WalletPolicy } from "@maschina/wallet";
 import { describe, expect, it } from "vitest";
 import {
@@ -90,6 +91,7 @@ describe("creating a machine", () => {
 						approvedPrograms: [],
 						approvedMints: [],
 						tokenDestinations: "any",
+						wrapsSol: true,
 						maxLamportsPerTransfer: 1n,
 					},
 				}),
@@ -108,6 +110,8 @@ describe("creating a machine", () => {
 		// this into a policy that is no longer being checked.
 		["the transfer limit", { maxLamportsPerTransfer: MAX_LAMPORTS_PER_TRANSFER + 1n }],
 		["the recipients", { recipients: ["3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF"] }],
+		// A machine that can buy and not sell is not safe to fund, even though nothing leaks.
+		["the ability to sell SOL", { wrapsSol: false }],
 	])("writes no machine when %s came back wrong", async (_what, wrong) => {
 		const provider = createMemoryWalletProvider();
 		const { ports: p, written } = ports({
@@ -121,6 +125,7 @@ describe("creating a machine", () => {
 						approvedPrograms: [],
 						approvedMints: [SOL, USDC].sort(),
 						tokenDestinations: "any" as const,
+						wrapsSol: true,
 						maxLamportsPerTransfer: 20_000_000n,
 						...wrong,
 					},
@@ -201,5 +206,81 @@ describe("the most SOL one transfer may move", () => {
 		// The only address these funds can reach is the owner's, so a tight cap protects nobody and
 		// strands money. It bounds a runaway bug; it is not what stops theft.
 		expect(MAX_LAMPORTS_PER_TRANSFER).toBeGreaterThanOrEqual(100_000_000_000n);
+	});
+});
+
+describe("the vault beside every machine", () => {
+	const JUPITER = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
+
+	/** The provider as made, with the vault's stored policy replaced by something else. */
+	function vaultReadsBack(wrong: Partial<WalletPolicy>) {
+		const provider = createMemoryWalletProvider();
+		return ports({
+			provider: {
+				...provider,
+				readPolicy: async (walletId, account) => {
+					const stored = await provider.readPolicy(walletId, account);
+					if (account !== "vault" || !stored.ok) return stored;
+					return { ok: true, value: { ...stored.value, ...wrong } };
+				},
+			},
+		});
+	}
+
+	it("is made with the machine, at its own address, and written down", async () => {
+		const { ports: p, written } = ports();
+		const made = await createMachine(p, request);
+		if (!made.ok) throw made.error;
+
+		const machine = written[0] as { wallet: { address: string; vaultAddress?: string } };
+		expect(machine.wallet.vaultAddress).toBeDefined();
+		expect(machine.wallet.vaultAddress).not.toBe(machine.wallet.address);
+	});
+
+	it("cannot call a router, so its key cannot sign a trade", async () => {
+		const { ports: p } = ports();
+		const made = await createMachine(p, request);
+		if (!made.ok) throw made.error;
+
+		const vault = await p.provider.readPolicy(made.value.providerWalletId, "vault");
+		if (!vault.ok) throw vault.error;
+		expect(vault.value.approvedPrograms).not.toContain(JUPITER);
+		expect(vault.value.approvedPrograms).toEqual(Object.keys(TRANSFER_PROGRAMS).sort());
+		for (const program of vault.value.approvedPrograms)
+			expect(SWAP_PROGRAMS[program]).toBeDefined();
+	});
+
+	it("pays tokens only into the owner's own accounts", async () => {
+		const { ports: p } = ports();
+		const made = await createMachine(p, request);
+		if (!made.ok) throw made.error;
+
+		const vault = await p.provider.readPolicy(made.value.providerWalletId, "vault");
+		if (!vault.ok) throw vault.error;
+		const classic = await tokenAccountFor({ owner: OWNER, mint: USDC });
+		expect(vault.value.owner).toBe(OWNER);
+		expect(vault.value.recipients).toEqual([]);
+		expect(vault.value.tokenDestinations).toContain(classic);
+		// Two per token, one under each token program, and every one of them derived from the owner.
+		expect(vault.value.tokenDestinations).toHaveLength(request.limits.approvedMints.length * 2);
+	});
+
+	it.each([
+		[
+			"could call a router",
+			{ approvedPrograms: [...Object.keys(TRANSFER_PROGRAMS), JUPITER].sort() },
+		],
+		["pays somewhere other than the owner", { tokenDestinations: [OWNER] }],
+		["leaves token destinations open", { tokenDestinations: "any" as const }],
+		["pays SOL to somebody else", { recipients: ["BdfAttdWTwGojNRpziKAHNcKpzbgdn3Qe7tpqds19o9n"] }],
+		["belongs to another owner", { owner: "BdfAttdWTwGojNRpziKAHNcKpzbgdn3Qe7tpqds19o9n" }],
+		["may move SOL beyond the owner", { wrapsSol: true }],
+	])("writes no machine when the vault's stored policy %s", async (_what, wrong) => {
+		const { ports: p, written } = vaultReadsBack(wrong);
+		const made = await createMachine(p, request);
+
+		expect(made.ok).toBe(false);
+		expect(!made.ok && made.error.message).toMatch(/vault/i);
+		expect(written).toEqual([]);
 	});
 });

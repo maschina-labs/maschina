@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"@maschina/core": "workspace:*",
+		"@maschina/solana": "workspace:*",
 		"@turnkey/sdk-server": "catalog:"
 	},
 	"devDependencies": {

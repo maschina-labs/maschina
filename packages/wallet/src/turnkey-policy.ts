@@ -31,6 +31,8 @@ export type PolicyInput = {
 	signerUserId: string;
 	/** The machine wallet's own Solana address. */
 	walletAddress: string;
+	/** The wallet's own wrapped SOL account, derived from its address. Needed when the policy wraps SOL. */
+	wrapAccount?: string;
 	policy: WalletPolicy;
 };
 
@@ -66,8 +68,21 @@ export function turnkeyPolicies(input: PolicyInput): PolicySpec[] {
 		throw new Error("invalid policy: a transfer limit must be more than zero");
 	}
 
-	// The owner is always allowed to receive. Everything else had to be approved deliberately.
-	const recipients = [policy.owner, ...policy.recipients];
+	if (policy.wrapsSol && input.wrapAccount === undefined) {
+		throw new Error(
+			"invalid policy: it wraps SOL, and nobody said which account is its own to wrap into",
+		);
+	}
+
+	// The owner is always allowed to receive. Everything else had to be approved deliberately. The wrap
+	// account is listed last and is the wallet's own, so SOL moved there has not left it.
+	const recipients = [
+		policy.owner,
+		...policy.recipients,
+		...(policy.wrapsSol && input.wrapAccount
+			? [checked(input.wrapAccount, ADDRESS, "wrap account")]
+			: []),
+	];
 
 	const transfers = `solana.tx.transfers.all(t, (${anyOf("t.to", recipients)}) && t.amount <= ${policy.maxLamportsPerTransfer})`;
 
@@ -113,14 +128,25 @@ export function turnkeyPolicies(input: PolicyInput): PolicySpec[] {
 	];
 }
 
-/** The policy a set of Turnkey policies describes, read back out of their expressions. */
-export function policyFromExpressions(specs: readonly PolicySpec[]): WalletPolicy | undefined {
+/**
+ * The policy a set of Turnkey policies describes, read back out of their expressions.
+ *
+ * `wrapAccount` is the wallet's own wrapped SOL account as the caller derived it. Only that exact account
+ * is read as wrapping. Any other extra SOL destination is read as exactly what it is, a recipient, so a
+ * policy cannot pass itself off as wrapping by naming some other account.
+ */
+export function policyFromExpressions(
+	specs: readonly PolicySpec[],
+	options: { wrapAccount?: string } = {},
+): WalletPolicy | undefined {
 	const signing = specs.find((spec) => spec.policyName.endsWith(":sign"));
 	if (!signing) return undefined;
 
 	const recipients = valuesOf(signing.condition, "t.to");
-	const [owner, ...rest] = recipients;
+	const [owner, ...others] = recipients;
 	if (!owner) return undefined;
+	const wrapsSol = options.wrapAccount !== undefined && others.includes(options.wrapAccount);
+	const rest = wrapsSol ? others.filter((address) => address !== options.wrapAccount) : others;
 
 	const cap = /t\.amount <= (\d+)/.exec(signing.condition)?.[1];
 	if (!cap) return undefined;
@@ -136,6 +162,7 @@ export function policyFromExpressions(specs: readonly PolicySpec[]): WalletPolic
 		approvedPrograms: valuesOf(signing.condition, "p"),
 		approvedMints: mints.length > 0 ? mints : valuesOf(signing.condition, "t.token_mint"),
 		tokenDestinations: destinations.length > 0 ? destinations : "any",
+		wrapsSol,
 		maxLamportsPerTransfer: BigInt(cap),
 	};
 }
