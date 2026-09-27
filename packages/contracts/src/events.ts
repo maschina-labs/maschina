@@ -205,11 +205,72 @@ const WITHDRAWAL_PAYLOADS = {
 	}),
 };
 
+/**
+ * Moving a machine's profit out of the account that trades.
+ *
+ * Its own group, because a sweep is neither a trade nor a withdrawal. A trade is the machine doing its
+ * job, a withdrawal is an owner taking their money out of the system, and a sweep is profit moving from
+ * the machine's trading account into the vault beside it, which cannot trade at all. The owner is not
+ * asked and nothing leaves their control, so counting it as either of the other two would make both
+ * numbers wrong.
+ *
+ * The amount carries a mint, unlike a withdrawal, which is lamports because SOL is the only thing it has
+ * ever moved. Profit is in whatever the machine spends.
+ */
+const SWEEP_PAYLOADS = {
+	/**
+	 * The decision, with the numbers it was made from.
+	 *
+	 * `value` and `floatTarget` are recorded because an owner reading this later is not asking what was
+	 * swept, which the amount says. They are asking why, and the answer is the machine was worth this
+	 * much against a line of that much.
+	 */
+	"sweep.requested": object({
+		sweepId: id,
+		/** The vault beside the machine's trading account. The only place a sweep may go. */
+		to: address,
+		mint: address,
+		amount,
+		value: amount,
+		floatTarget: amount,
+	}),
+	/**
+	 * The signature, written down before the transaction is sent.
+	 *
+	 * The same guarantee a trade and a withdrawal get: a crash between signing and sending leaves a name
+	 * to ask the chain about rather than a question nobody can answer. Without it a sweep could be sent
+	 * twice and bank profit the machine only earned once, leaving the float short.
+	 */
+	"sweep.submitted": object({
+		sweepId: id,
+		signature,
+		lastValidBlockHeight: amount,
+	}),
+	/** Banked. The vault's balance is the sum of these, which is what makes it rebuildable. */
+	"sweep.completed": object({
+		sweepId: id,
+		to: address,
+		mint: address,
+		amount,
+		signature,
+		/** What it cost to send, paid in lamports out of the machine's wallet. */
+		feeLamports: amount,
+		slot: amount,
+	}),
+	"sweep.failed": object({
+		sweepId: id,
+		reason: z.string().min(1).max(500),
+		/** Present when it was signed and sent, and failed after that. */
+		signature: signature.optional(),
+	}),
+};
+
 const PAYLOADS = {
 	...RUN_PAYLOADS,
 	...TRADE_PAYLOADS,
 	...MACHINE_PAYLOADS,
 	...WITHDRAWAL_PAYLOADS,
+	...SWEEP_PAYLOADS,
 	...AUTHORITY_PAYLOADS,
 } as const;
 
@@ -226,6 +287,7 @@ const GROUPS = {
 	trade: TRADE_PAYLOADS,
 	machine: MACHINE_PAYLOADS,
 	withdrawal: WITHDRAWAL_PAYLOADS,
+	sweep: SWEEP_PAYLOADS,
 	authority: AUTHORITY_PAYLOADS,
 } as const;
 

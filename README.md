@@ -44,6 +44,8 @@ Working today, each proved against real services rather than mocks:
 | Stopping everything at once, at the signer, so it works without the cooperation of whatever went wrong | `services/signer/src/while-halted.ts` |
 | Returning a machine's funds to its owner, with the destination looked up rather than accepted | `services/signer/src/withdraw.ts` |
 | Whether a machine has actually made money, net of what it paid | `packages/runtime/src/machine-pnl.ts` |
+| How far above its float a machine is, at every moment, including while it holds the other side | `packages/runtime/src/machine-float.ts` |
+| Refusing to sweep profit for forty cents, or against a position whose value is still an opinion | `packages/rules/src/float.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
@@ -61,6 +63,8 @@ as the product being finished:
   paper. Nothing has yet spent a real dollar.
 - **Withdrawal is not usable by a person.** The signer path exists and has been run against real
   Turnkey and real Solana, and there is no button and no public route in front of it yet.
+- **The vault.** A machine's float and its surplus are worked out, and the account that profit is
+  swept into does not exist yet, so nothing is banked and nothing is out of reach.
 - **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
 - **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
   half guards against a node Maschina does not run, which cannot happen yet.
