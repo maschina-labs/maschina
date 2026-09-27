@@ -1062,6 +1062,9 @@ importers:
       '@maschina/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@maschina/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@maschina/solana':
         specifier: workspace:*
         version: link:../../packages/solana
