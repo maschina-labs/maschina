@@ -20,6 +20,11 @@ const app = (checks: { name: string; check: () => Promise<boolean> }[] = []) =>
 				throw new MaschinaError("unavailable", "not used here");
 			},
 		},
+		sweeper: {
+			sweep: async () => {
+				throw new MaschinaError("unavailable", "not used here");
+			},
+		},
 	});
 
 describe("signer", () => {

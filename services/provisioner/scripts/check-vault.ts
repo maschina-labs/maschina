@@ -72,7 +72,13 @@ async function main(): Promise<void> {
 			ownerWallet: owner,
 			name: `check-vault-${Date.now()}`,
 			kind: "range",
-			settings: {},
+			settings: {
+				quoteMint: USDC,
+				baseMint: SOL,
+				buyLevel: "118000000",
+				sellLevel: "122000000",
+				amountPerBuy: "10000000",
+			},
 			limits: { budgetGranted: 50_000_000n, approvedMints: [SOL, USDC] },
 		},
 	);

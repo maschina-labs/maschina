@@ -1,8 +1,12 @@
 import {
 	appendOwnerEvent,
 	createDatabase,
+	floatFor,
+	machineForSweep,
 	machineForWithdrawal,
 	signerRecord,
+	sweepRequested,
+	sweepSubmission,
 	withdrawalSubmission,
 } from "@maschina/db";
 import { startServer } from "@maschina/service";
@@ -10,7 +14,7 @@ import { parseAddress, rpcReachable, solanaRpc } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { signerUserIdFor, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { buildApp, SERVICE } from "./app.ts";
-import { tradeSigner, withdrawer } from "./compose.ts";
+import { sweeper, tradeSigner, withdrawer } from "./compose.ts";
 import { loadConfig } from "./config.ts";
 
 const config = loadConfig();
@@ -83,6 +87,39 @@ startServer({
 				},
 				submissionFor: (machineId, withdrawalId) =>
 					withdrawalSubmission(database.db, machineId, withdrawalId),
+			},
+			provider,
+			rpc,
+		}),
+		sweeper: sweeper({
+			record: {
+				machineFor: async (machineId) => {
+					const machine = await machineForSweep(database.db, machineId);
+					if (!machine) return undefined;
+					// Parsed at the boundary: an address out of the database is only text until checked.
+					return {
+						wallet: parseAddress(machine.wallet),
+						...(machine.vault === undefined ? {} : { vault: parseAddress(machine.vault) }),
+						...(machine.budgetMint === undefined
+							? {}
+							: { budgetMint: parseAddress(machine.budgetMint) }),
+						providerWalletId: machine.providerWalletId,
+						paper: machine.paper,
+					};
+				},
+				floatOf: (machineId, holding) => floatFor(database.db, machineId, holding),
+				record: async (event) => {
+					// A sweep is the system's own action, not a node's, so it is not fenced by a lease.
+					const written = await appendOwnerEvent(database.db, event);
+					if (!written.ok) throw written.error;
+				},
+				submissionFor: (machineId, sweepId) => sweepSubmission(database.db, machineId, sweepId),
+				requestedFor: async (machineId, sweepId) => {
+					const decided = await sweepRequested(database.db, machineId, sweepId);
+					return decided
+						? { ...decided, to: parseAddress(decided.to), mint: parseAddress(decided.mint) }
+						: undefined;
+				},
 			},
 			provider,
 			rpc,

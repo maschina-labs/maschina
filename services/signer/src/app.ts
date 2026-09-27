@@ -5,7 +5,7 @@ import {
 	requireServiceToken,
 } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
-import { signRoutes, type TradeSigner, type Withdrawer } from "./sign-route.ts";
+import { type Sweeper, signRoutes, type TradeSigner, type Withdrawer } from "./sign-route.ts";
 
 export type SignerDeps = {
 	version: string;
@@ -18,6 +18,8 @@ export type SignerDeps = {
 	withdrawer: Withdrawer;
 	/** What the signer needs to reach before it is any use: the record, and the chain. */
 	checks?: ReadinessCheck[];
+	/** What banks a machine's profit in its vault. */
+	sweeper: Sweeper;
 };
 
 export const SERVICE = "signer";
@@ -35,7 +37,7 @@ export function buildApp(deps: SignerDeps) {
 	// Everything below this line is the orchestrator's alone. There is no public route on the signer.
 	app.use("/internal/*", requireServiceToken(deps.orchestratorToken));
 	app.get("/internal/v1/hello", (c) => c.json({ service: SERVICE, version: deps.version }));
-	app.route("/internal/v1", signRoutes(deps.signer, deps.withdrawer));
+	app.route("/internal/v1", signRoutes(deps.signer, deps.withdrawer, deps.sweeper));
 
 	return app;
 }

@@ -16,7 +16,14 @@ const request = {
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",
-	settings: { spendMint: USDC, buyMint: SOL, level: "142000000", direction: "falls_to" },
+	settings: {
+		spendMint: USDC,
+		buyMint: SOL,
+		level: "142000000",
+		direction: "falls_to",
+		amountPerTrade: "5000000",
+		slippageBps: 50,
+	},
 	limits: {
 		budgetGranted: 20_000_000n,
 		maxPerTrade: 5_000_000n,
@@ -135,6 +142,34 @@ describe("creating a machine", () => {
 
 		const made = await createMachine(p, request);
 		expect(made.ok).toBe(false);
+		expect(written).toEqual([]);
+	});
+
+	it.each([
+		["a kind nobody built", { kind: "rnage" }],
+		["settings its kind cannot read", { settings: { spendMint: USDC } }],
+		[
+			"a budget in a token nobody approved",
+			{ limits: { ...request.limits, approvedMints: [SOL] as const } },
+		],
+	])("makes no wallet and writes no machine for %s", async (_what, wrong) => {
+		// A wallet is where money goes. It is not made for a machine that could never trade.
+		let wallets = 0;
+		const provider = createMemoryWalletProvider();
+		const { ports: p, written } = ports({
+			provider: {
+				...provider,
+				createWallet: async (ask) => {
+					wallets += 1;
+					return provider.createWallet(ask);
+				},
+			},
+		});
+
+		const made = await createMachine(p, { ...request, ...wrong });
+		expect(made.ok).toBe(false);
+		expect(!made.ok && made.error.code).toBe("invalid_input");
+		expect(wallets).toBe(0);
 		expect(written).toEqual([]);
 	});
 

@@ -11,9 +11,19 @@
  * Returning a machine's funds is a separate route because it is a separate thing. A trade is the machine
  * doing its job; a withdrawal is an owner taking their money back. Nothing about a trade's rules or its
  * budget applies, and the shapes have nothing in common but the machine's id.
+ *
+ * Banking profit is a third, for the same reason. It names the machine and nothing else: what to move is
+ * decided inside from the machine's float, and where it goes is the vault the machine was made with.
  */
 
-import { SignRequest, SignResponse, WithdrawRequest, WithdrawResponse } from "@maschina/contracts";
+import {
+	SignRequest,
+	SignResponse,
+	SweepRequest,
+	SweepResponse,
+	WithdrawRequest,
+	WithdrawResponse,
+} from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
 import { Hono } from "hono";
@@ -56,7 +66,26 @@ export function readWithdrawal(body: unknown): WithdrawRequest {
 	});
 }
 
-export function signRoutes(signer: TradeSigner, withdrawer: Withdrawer) {
+/** What banks a machine's profit. Decides everything inside, including whether anything is due. */
+export type Sweeper = {
+	sweep(request: SweepRequest): Promise<SweepResponse>;
+};
+
+/** Reads the body as a sweep, or says exactly what was wrong with it. */
+function readSweep(body: unknown): SweepRequest {
+	const parsed = SweepRequest.safeParse(body);
+	if (parsed.success) return parsed.data;
+
+	const problems = parsed.error.issues.map((issue) => {
+		const field = issue.path.join(".") || "(body)";
+		return `${field}: ${issue.message}`;
+	});
+	throw new MaschinaError("invalid_input", `the sweep is not valid: ${problems.join(", ")}`, {
+		details: { problems },
+	});
+}
+
+export function signRoutes(signer: TradeSigner, withdrawer: Withdrawer, sweeper: Sweeper) {
 	return new Hono<ServiceEnv>()
 		.post("/sign", async (c) => {
 			const body = await c.req.json().catch(() => {
@@ -77,5 +106,13 @@ export function signRoutes(signer: TradeSigner, withdrawer: Withdrawer) {
 
 			const answer = await withdrawer.withdraw(readWithdrawal(body));
 			return c.json(WithdrawResponse.parse(answer), 200);
+		})
+		.post("/sweep", async (c) => {
+			const body = await c.req.json().catch(() => {
+				throw new MaschinaError("invalid_input", "the sweep is not JSON");
+			});
+
+			const answer = await sweeper.sweep(readSweep(body));
+			return c.json(SweepResponse.parse(answer), 200);
 		});
 }
