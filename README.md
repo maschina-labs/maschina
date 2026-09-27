@@ -52,8 +52,10 @@ Working today, each proved against real services rather than mocks:
 | Banking profit above the float into the vault: decided from the chain and the record, checked byte by byte, sent once | `services/signer/src/sweep.ts`, `packages/solana/src/sweep.ts` |
 | Asking every five minutes which machines have profit to bank, and finishing an open sweep before deciding a new one | `services/orchestrator/src/bank-profit.ts` |
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
+| Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
+| A signer that is not ready until it can reach the record and the chain, and refuses to start on a quoted URL | `services/signer/src/app.ts`, `packages/env/src/index.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
 
 The API is live at `https://api.maschina.dev`: `/v1/status` says it is up and `/openapi.json` describes

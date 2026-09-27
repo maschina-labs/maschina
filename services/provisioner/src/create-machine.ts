@@ -20,6 +20,7 @@
  */
 
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
+import { checkMachineSettings, KNOWN_KINDS } from "@maschina/runtime";
 import {
 	SWAP_PROGRAMS,
 	TOKEN_2022_PROGRAM,
@@ -95,6 +96,14 @@ export async function createMachine(
 	if (!isSolanaAddress(request.ownerWallet)) {
 		return err(new MaschinaError("invalid_input", "that is not a Solana address"));
 	}
+	// Before a wallet exists, because a wallet is where money goes. A machine that could never trade is
+	// refused while refusing costs nothing, not after it has been funded.
+	const works = checkMachineSettings(KNOWN_KINDS, {
+		kind: request.kind,
+		settings: request.settings,
+		approvedMints: request.limits.approvedMints,
+	});
+	if (!works.ok) return err(new MaschinaError("invalid_input", works.problem));
 
 	const wanted: WalletPolicy = {
 		owner: request.ownerWallet,
