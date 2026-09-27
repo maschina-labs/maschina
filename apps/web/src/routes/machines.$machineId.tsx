@@ -12,10 +12,12 @@
 
 import {
 	ArrowDown,
+	ArrowSquareOut,
 	ArrowUp,
 	CheckCircle,
 	Circle,
 	Coin,
+	HandCoins,
 	type Icon,
 	MinusCircle,
 	Pause,
@@ -53,6 +55,8 @@ import {
 	useMachine,
 	useMachineAction,
 	useRecord,
+	useWithdrawEverything,
+	type WithdrawnEverything,
 } from "../lib/machines.ts";
 
 export const Route = createFileRoute("/machines/$machineId")({
@@ -139,6 +143,8 @@ function Machine() {
 	const machine = useMachine(api, machineId);
 	const record = useRecord(api, machineId);
 	const act = useMachineAction(api, queryClient, machineId);
+	const withdraw = useWithdrawEverything(api, queryClient, machineId);
+	const [confirming, setConfirming] = useState(false);
 	const [budget, setBudget] = useState("");
 	const [editing, setEditing] = useState(false);
 
@@ -168,6 +174,8 @@ function Machine() {
 
 	const it = machine.data;
 	const live = it.state === "running";
+	// Only a machine that has stopped acting can be emptied: a running one may have a trade in flight.
+	const settled = it.state === "paused" || it.state === "stopped";
 	const spendable = Number(it.budget.granted) / 1_000_000;
 
 	return (
@@ -194,6 +202,14 @@ function Machine() {
 									{ACTION[action].label}
 								</Button>
 							))}
+						<Button
+							icon={HandCoins}
+							disabled={!settled || withdraw.isPending}
+							title={settled ? undefined : "Pause or stop it first"}
+							onClick={() => setConfirming(true)}
+						>
+							Withdraw everything
+						</Button>
 					</>
 				}
 			>
@@ -243,6 +259,42 @@ function Machine() {
 							Cancel
 						</Button>
 					</div>
+				) : null}
+
+				{confirming ? (
+					<div className="mb-5 rounded-lg border border-line bg-surface px-3.5 py-3">
+						<p className="text-[12.5px] text-text">
+							Every token and all the SOL in this machine, including what it banked in its vault,
+							goes back to the wallet you signed in with. Nothing stays behind but what the last
+							transfer costs to send.
+						</p>
+						<div className="mt-3 flex gap-2">
+							<Button
+								tone="primary"
+								icon={HandCoins}
+								disabled={withdraw.isPending}
+								onClick={() =>
+									withdraw.mutate(undefined, { onSettled: () => setConfirming(false) })
+								}
+							>
+								{withdraw.isPending ? "Sending it home" : "Send it all to me"}
+							</Button>
+							<Button
+								tone="quiet"
+								disabled={withdraw.isPending}
+								onClick={() => setConfirming(false)}
+							>
+								Cancel
+							</Button>
+						</div>
+					</div>
+				) : null}
+
+				{withdraw.data ? <Withdrawn result={withdraw.data} /> : null}
+				{withdraw.error ? (
+					<p className="mb-5 rounded-md border border-danger/30 bg-danger-wash/40 px-3 py-2 font-mono text-[12px] text-danger-text">
+						{withdraw.error.message}
+					</p>
 				) : null}
 
 				{act.error ? (
@@ -357,5 +409,55 @@ function Machine() {
 				</div>
 			</div>
 		</Shell>
+	);
+}
+
+/** What came home, with a link to every transaction, and anything that could not. */
+function Withdrawn({ result }: { result: WithdrawnEverything }) {
+	if (result.status === "refused") {
+		return (
+			<p className="mb-5 rounded-md border border-danger/30 bg-danger-wash/40 px-3 py-2 font-mono text-[12px] text-danger-text">
+				{result.reason}
+			</p>
+		);
+	}
+	const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+	const token = (mint: string) => (mint === USDC ? "USDC" : `${mint.slice(0, 4)}…`);
+	return (
+		<div className="mb-5 rounded-lg border border-line bg-surface px-3.5 py-3 text-[12.5px]">
+			<p className="font-medium text-text">
+				Sent home to {result.to.slice(0, 4)}…{result.to.slice(-4)}
+			</p>
+			<ul className="mt-2 space-y-1 font-mono text-[12px] text-text-muted">
+				{result.tokens.map((t) => (
+					<li key={`${t.from}-${t.mint}`}>
+						{amount(t.amount)} {token(t.mint)} from the {t.from === "vault" ? "vault" : "machine"}
+					</li>
+				))}
+				{result.lamports !== "0" ? <li>{amount(result.lamports, 9)} SOL</li> : null}
+			</ul>
+			{result.leftBehind.length > 0 ? (
+				<ul className="mt-2 space-y-1 text-[12px] text-danger-text">
+					{result.leftBehind.map((t) => (
+						<li key={`left-${t.from}-${t.mint}`}>
+							Left behind: {amount(t.amount)} {token(t.mint)}, {t.because}
+						</li>
+					))}
+				</ul>
+			) : null}
+			<div className="mt-2 flex flex-wrap gap-3">
+				{result.signatures.map((signature) => (
+					<a
+						key={signature}
+						href={`https://solscan.io/tx/${signature}`}
+						target="_blank"
+						rel="noreferrer"
+						className="inline-flex items-center gap-1 font-mono text-[11.5px] text-text-faint hover:text-text"
+					>
+						{signature.slice(0, 8)}… <ArrowSquareOut size={11} />
+					</a>
+				))}
+			</div>
+		</div>
 	);
 }
