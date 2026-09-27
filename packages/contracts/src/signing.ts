@@ -131,6 +131,56 @@ export const WithdrawResponse = z
 export type WithdrawResponse = z.infer<typeof WithdrawResponse>;
 
 /**
+ * Asking the signer to bank a machine's profit.
+ *
+ * The request names the machine and nothing else. What to sweep is decided by the signer from the
+ * machine's float, read from the chain and the record at the moment it is asked, and where it goes is
+ * the vault the machine was made with. An amount or a destination carried in the request would be one
+ * somebody could change.
+ */
+export const SweepRequest = z
+	.strictObject({
+		/** Identifies this sweep. The same one may arrive twice and must move money once. */
+		sweepId: id,
+		machineId: id,
+	})
+	.meta({ id: "SweepRequest" });
+export type SweepRequest = z.infer<typeof SweepRequest>;
+
+/**
+ * What came back from asking.
+ *
+ * Most of the time the answer is that nothing is due, because the machine is below its line, holding a
+ * position, or above it by less than a transaction is worth. That is its own answer rather than a
+ * refusal, because it is the system working and nobody needs to look at it.
+ */
+export const SweepResponse = z
+	.discriminatedUnion("status", [
+		z.strictObject({
+			status: z.literal("swept"),
+			sweepId: id,
+			signature,
+			/** The vault it went to, echoed back so it can be checked against the machine. */
+			to: address,
+			mint: address,
+			amount: whole,
+		}),
+		z.strictObject({
+			status: z.literal("not_due"),
+			sweepId: id,
+			because: z.string().min(1).max(500),
+		}),
+		z.strictObject({
+			status: z.literal("refused"),
+			sweepId: id,
+			rule: z.string().min(1).max(100),
+			reason: z.string().min(1).max(500),
+		}),
+	])
+	.meta({ id: "SweepResponse" });
+export type SweepResponse = z.infer<typeof SweepResponse>;
+
+/**
  * What came back.
  *
  * A refusal is a normal answer, not an error: Maschina's rules refusing a trade is the system working.

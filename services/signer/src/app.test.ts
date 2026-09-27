@@ -19,6 +19,11 @@ const app = () =>
 				throw new MaschinaError("unavailable", "not used here");
 			},
 		},
+		sweeper: {
+			sweep: async () => {
+				throw new MaschinaError("unavailable", "not used here");
+			},
+		},
 	});
 
 describe("signer", () => {
