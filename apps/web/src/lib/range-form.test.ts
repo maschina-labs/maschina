@@ -94,3 +94,31 @@ describe("how much of the float a buy may spend", () => {
 		expect(mostPerBuy("")).toBe("");
 	});
 });
+
+describe("what an owner types", () => {
+	it("reads dollar signs, commas and spaces as the number they are", async () => {
+		const { numberFrom } = await import("./range-form.ts");
+		expect(numberFrom("$119.40")).toBe(119.4);
+		expect(numberFrom(" 1,250.5 ")).toBe(1250.5);
+		expect(numberFrom("28")).toBe(28);
+	});
+
+	it("reads anything else as not a number, rather than as zero", async () => {
+		const { numberFrom } = await import("./range-form.ts");
+		expect(numberFrom("abc")).toBeNaN();
+		expect(numberFrom("")).toBeNaN();
+		expect(numberFrom("1.2.3")).toBeNaN();
+	});
+
+	it("builds the band and the request from a price typed with a dollar sign", () => {
+		const typed = { ...form, buyAt: "$120.25", sellAt: "$122.25" };
+		expect(bandOf(typed.buyAt, typed.sellAt).covers).toBe(true);
+		expect(rangeReady(typed)).toBe(true);
+		expect(rangeRequest(typed).settings.buyLevel).toBe("120250000");
+	});
+
+	it("is not ready, and does not break, with something that is not a number", () => {
+		expect(rangeReady({ ...form, float: "twenty" })).toBe(false);
+		expect(rangeReady({ ...form, buyAt: "1.2.3" })).toBe(false);
+	});
+});
