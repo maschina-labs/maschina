@@ -47,6 +47,26 @@ describe("saying what a machine did", () => {
 		expect(describeEvent(traded)).toEqual({ title: "TRADED", detail: "SPENT 40.35 · GOT 0.33" });
 	});
 
+	it.each([
+		["machine.created", {}, "CREATED", "WALLET MADE, POLICY WRITTEN"],
+		["machine.paused", {}, "PAUSED", "NOT ACTING UNTIL RESUMED"],
+		["machine.resumed", {}, "RESUMED", "WATCHING THE PRICE AGAIN"],
+		["machine.limits_changed", { limit: "budgetGranted" }, "LIMIT SET", "BUDGETGRANTED"],
+		["machine.limits_changed", {}, "LIMIT SET", ""],
+		["run.queued", { wokeOn: "sell" }, "WOKE UP", "SELL"],
+		["run.queued", {}, "WOKE UP", "ON SCHEDULE"],
+		["run.skipped", {}, "DID NOTHING", ""],
+		["trade.intended", {}, "DECIDED TO TRADE", "ASKING FOR A SIGNATURE"],
+		["trade.completed", {}, "TRADED", "SPENT 0.00 · GOT 0.00"],
+		["trade.simulated", {}, "TRADED ON PAPER", "NO MONEY MOVED"],
+		["trade.refused", { reason: "over budget" }, "REFUSED", "OVER BUDGET"],
+		["trade.failed", { reason: "expired" }, "TRADE FAILED", "EXPIRED"],
+		["sweep.completed", {}, "BANKED PROFIT", "MOVED TO THE VAULT"],
+		["withdrawal.completed", {}, "WITHDRAWN", "SENT BACK TO THE OWNER"],
+	])("says %s plainly", (type, payload, title, detail) => {
+		expect(describeEvent(entry(type, payload))).toEqual({ title, detail });
+	});
+
 	it("still says something for a kind of entry it has no words for", () => {
 		expect(describeEvent(entry("authority.used")).title).toBe("AUTHORITY USED");
 	});

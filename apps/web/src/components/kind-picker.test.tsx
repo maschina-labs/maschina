@@ -11,7 +11,8 @@ describe("picking a kind of machine", () => {
 			"aria-pressed",
 			"true",
 		);
-		expect(screen.getByRole("button", { name: /RANGE FINDER/ })).toHaveTextContent("COMING");
+		expect(screen.getByRole("button", { name: /RANGE FINDER/ })).not.toHaveTextContent("COMING");
+		expect(screen.getByRole("button", { name: /GRID/ })).toHaveTextContent("COMING");
 		fireEvent.click(screen.getByRole("button", { name: /GRID/ }));
 		expect(onChoose).toHaveBeenCalledWith("grid");
 	});

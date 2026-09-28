@@ -4,16 +4,16 @@
  * that exist take their name from their own module, so nothing here can drift from what the runtime calls them.
  */
 
-import { priceTrigger, range, recurringBuy } from "@maschina/runtime";
+import { followingRange, priceTrigger, range, recurringBuy } from "@maschina/runtime";
 
 export type KindCard = { id: string; name: string; earns: string; ready: boolean };
 
 export const KIND_CARDS: KindCard[] = [
 	{
-		id: "following_range",
+		id: followingRange.kind,
 		name: "RANGE FINDER",
 		earns: "CHOP, AND IT FOLLOWS THE PRICE",
-		ready: false,
+		ready: true,
 	},
 	{ id: range.kind, name: "FIXED RANGE", earns: "CHOP INSIDE A BAND YOU SET", ready: true },
 	{ id: "grid", name: "GRID", earns: "CHOP, MORE OFTEN THAN A RANGE", ready: false },

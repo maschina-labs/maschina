@@ -1,21 +1,13 @@
+import { type FinderForm, finderReady } from "../lib/finder-form.ts";
 import { numberFrom } from "../lib/range-form.ts";
 import { GLASS, GLASS_ACTIVE } from "./glass.ts";
 import { PriceChart } from "./price-chart.tsx";
 import { SliderRow, TypeRow } from "./slider-row.tsx";
 
 /**
- * The Range Finder's own controls (D-089): a band that follows the price, a floor under every buy, and
- * what to do after the floor. Laid out now so the screen is right; creating one switches on when its
- * backend ships.
+ * The Range Finder's own controls (D-089, D-093): a band that follows the price and a floor under every
+ * buy. After the floor it rests an hour and starts again around wherever the price is by then.
  */
-
-export type FinderForm = {
-	name: string;
-	float: string;
-	bandPct: number;
-	floorPct: 3 | 5;
-	afterFloor: "carry_on" | "pause";
-};
 
 const LABEL = "text-[10.5px] text-neutral-500 tracking-[0.14em]";
 
@@ -54,11 +46,19 @@ function Choice<T extends string | number>({
 export function RangeFinderForm({
 	form,
 	price,
+	paper,
+	creating,
+	error,
 	onChange,
+	onCreate,
 }: {
 	form: FinderForm;
 	price: number | undefined;
+	paper: boolean;
+	creating: boolean;
+	error?: string | undefined;
 	onChange: (form: FinderForm) => void;
+	onCreate: () => void;
 }) {
 	const half = form.bandPct / 200;
 	const float = numberFrom(form.float);
@@ -92,38 +92,37 @@ export function RangeFinderForm({
 				label="FLOOR UNDER EVERY BUY"
 				value={form.floorPct}
 				options={[
+					[8, "8%"],
 					[5, "5%"],
 					[3, "3%"],
 				]}
 				onChange={(floorPct) => onChange({ ...form, floorPct })}
 			/>
-			<Choice
-				label="AFTER THE FLOOR"
-				value={form.afterFloor}
-				options={[
-					["carry_on", "CARRY ON AFTER AN HOUR"],
-					["pause", "PAUSE UNTIL I LOOK"],
-				]}
-				onChange={(afterFloor) => onChange({ ...form, afterFloor })}
-			/>
 			<p className={`pt-2 ${LABEL}`}>
 				BUYS A {(form.bandPct / 2).toFixed(1)}% DIP · SELLS {form.bandPct.toFixed(1)}% ABOVE WHAT IT
-				PAID · FOLLOWS THE PRICE UP
+				PAID · FOLLOWS THE PRICE UP · RESTS AN HOUR AFTER THE FLOOR
 				{Number.isFinite(float) && float > 0 ? ` · EACH BUY ${(float - 0.25).toFixed(2)} USDC` : ""}
 			</p>
 			<div className="h-48 pt-2">
 				<PriceChart interval="15m" history={120} levels={levels} />
 			</div>
+			{error ? (
+				<p role="alert" className="text-[11px] text-neutral-300">
+					{error}
+				</p>
+			) : null}
 			<button
 				type="button"
-				disabled
-				className="mt-2 h-10 border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] disabled:opacity-40"
+				disabled={!finderReady(form) || creating}
+				onClick={onCreate}
+				className="mt-2 h-10 border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
 			>
-				CREATE RANGE FINDER
+				{creating
+					? "MAKING ITS WALLET"
+					: paper
+						? "CREATE PAPER RANGE FINDER"
+						: "CREATE RANGE FINDER"}
 			</button>
-			<p className="text-[10px] text-neutral-600 tracking-[0.1em]">
-				THE RANGE FINDER GOES LIVE WITH THE BACKEND PASS
-			</p>
 		</div>
 	);
 }

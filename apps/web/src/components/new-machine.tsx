@@ -1,14 +1,15 @@
-import { range } from "@maschina/runtime";
+import { followingRange, range } from "@maschina/runtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { type FinderForm, finderRequest } from "../lib/finder-form.ts";
 import { KIND_CARDS } from "../lib/kinds.ts";
 import { useCreateMachine } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { bandOf, mostPerBuy, numberFrom, rangeReady, rangeRequest } from "../lib/range-form.ts";
 import { KindPicker, PaperOrLive } from "./kind-picker.tsx";
 import { PriceChart } from "./price-chart.tsx";
-import { type FinderForm, RangeFinderForm } from "./range-finder-form.tsx";
+import { RangeFinderForm } from "./range-finder-form.tsx";
 import { SliderRow, TypeRow } from "./slider-row.tsx";
 
 /**
@@ -146,7 +147,8 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 		queryFn: () => fetchPrice(),
 		refetchInterval: 5_000,
 	});
-	const [kind, setKind] = useState("range");
+	// The Range Finder first: it is the machine that looks after itself.
+	const [kind, setKind] = useState(followingRange.kind);
 	// Paper first: the free tutorial is where a new machine should start.
 	const [paper, setPaper] = useState(true);
 	const [form, setForm] = useState<RangeForm>({
@@ -161,7 +163,6 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 		float: "",
 		bandPct: 2,
 		floorPct: 5,
-		afterFloor: "carry_on",
 	});
 
 	// The band starts from the price the first time one is known, and is the owner's to move after that.
@@ -180,7 +181,7 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 		<div className="flex flex-col gap-6">
 			<KindPicker chosen={kind} onChoose={setKind} />
 			<PaperOrLive paper={paper} onChange={setPaper} />
-			{kind === "range" ? (
+			{kind === range.kind ? (
 				<NewMachineView
 					form={form}
 					price={usd}
@@ -196,8 +197,21 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 						)
 					}
 				/>
-			) : kind === "following_range" ? (
-				<RangeFinderForm form={finder} price={usd} onChange={setFinder} />
+			) : kind === followingRange.kind ? (
+				<RangeFinderForm
+					form={finder}
+					price={usd}
+					paper={paper}
+					creating={create.isPending}
+					error={create.error?.message}
+					onChange={setFinder}
+					onCreate={() =>
+						create.mutate(
+							{ ...finderRequest(finder), paper },
+							{ onSuccess: (made) => onCreated(made.machineId) },
+						)
+					}
+				/>
 			) : (
 				<p className="text-[11px] text-neutral-500 tracking-[0.1em]">
 					{card?.name} · {card?.earns} · ITS CONTROLS ARRIVE WHEN THE KIND IS BUILT
