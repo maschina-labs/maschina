@@ -85,7 +85,7 @@ export const DOCS = "https://docs.maschina.dev";
 
 const PANEL = "bg-[oklch(0.1_0_0/0.55)] backdrop-saturate-0";
 const ICON =
-	"grid size-9 place-items-center text-neutral-500 transition-colors hover:text-neutral-100";
+	"grid size-7 place-items-center text-neutral-500 transition-colors hover:text-neutral-100";
 
 /**
  * The left side, like VS Code: a thin rail of icons on its outer edge, and a panel beside it that the

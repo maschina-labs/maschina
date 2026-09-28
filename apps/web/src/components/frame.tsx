@@ -33,7 +33,7 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 	return (
 		<div className="flex h-dvh flex-col">
 			<header
-				className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 lg:pr-1 lg:pl-[13px] ${GLASS}`}
+				className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 lg:px-[13px] ${GLASS}`}
 			>
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
