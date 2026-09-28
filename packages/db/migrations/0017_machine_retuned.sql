@@ -1,0 +1,4 @@
+-- A machine's owner changing its recipe: the kind it is, or how it is set. The database keeps the list
+-- of event types it will accept, and this adds that one. Every type already written stays valid.
+ALTER TABLE "events" DROP CONSTRAINT "events_type_known";--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_type_known" CHECK ("type" in ('run.queued', 'run.started', 'run.skipped', 'run.finished', 'trade.intended', 'trade.refused', 'trade.submitted', 'trade.simulated', 'trade.completed', 'trade.failed', 'machine.created', 'machine.started', 'machine.paused', 'machine.resumed', 'machine.stopped', 'machine.recentred', 'machine.retuned', 'machine.limits_changed', 'withdrawal.requested', 'withdrawal.submitted', 'withdrawal.completed', 'withdrawal.failed', 'sweep.requested', 'sweep.submitted', 'sweep.completed', 'sweep.failed', 'authority.used', 'authority.denied'));

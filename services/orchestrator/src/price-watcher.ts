@@ -10,22 +10,43 @@
  * levels at once, and each one arms and fires on its own: a range machine that has just bought its low
  * edge is still waiting on its high edge, and one crossing must never arm the other.
  *
+ * A machine whose band follows the price asks for two more things. With no price to work around yet, it
+ * is given the current one. And a level marked as moving the machine rather than waking it queues no
+ * run when it fires: the price that crossed is recorded as where the band now sits. Both are written to
+ * the record, so where a band sits is never something only this process knows.
+ *
  * Two things this must never do: queue a run for a crossing that did not happen, and stop watching
  * because a price source had a bad minute. An outage is reported and the loop carries on.
  */
 
 import { MaschinaError } from "@maschina/core";
 import {
+	type AnchorWanted,
 	type CrossingState,
 	levelsOf,
 	type MachineKindRegistry,
+	needsAnchorOf,
 	observePrice,
+	type RememberedEvent,
 	startWatching,
 	type WatchedLevel,
 } from "@maschina/runtime";
 import type { Logger } from "@maschina/telemetry";
 
-type WatchingMachine = { machineId: string; kind: string; settings: unknown };
+type WatchingMachine = {
+	machineId: string;
+	kind: string;
+	settings: unknown;
+	/** The machine's record, for a kind whose levels move with what it has done. */
+	events?: RememberedEvent[];
+};
+
+/** Where a following machine's band now sits, and why it moved. */
+type Recentre = {
+	machineId: string;
+	price: bigint;
+	because: AnchorWanted["because"] | "followed";
+};
 
 export type PriceWatcherPorts = {
 	/** The kinds this orchestrator knows. A kind says which prices it waits on; the watcher asks. */
@@ -42,6 +63,8 @@ export type PriceWatcherPorts = {
 		/** Which level fired, so the machine can be told what woke it. */
 		wokeOn: string;
 	}): Promise<void>;
+	/** Records the price a following machine's band now sits around. */
+	recentre(move: Recentre): Promise<void>;
 	logger: Logger;
 	now(): Date;
 	/** How long to wait between looks at the market. */
@@ -66,7 +89,7 @@ const pause = (ms: number, signal: AbortSignal) =>
 
 /** Runs until `signal` aborts. */
 export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal): Promise<void> {
-	const { kinds, watching, pricesFor, queue, logger, now } = ports;
+	const { kinds, watching, pricesFor, queue, recentre, logger, now } = ports;
 	const sleep = ports.sleep ?? pause;
 	const everyMs = ports.everyMs ?? DEFAULT_EVERY_MS;
 	/** What each level has seen so far, keyed by machine and level, so each fires once per crossing. */
@@ -84,6 +107,8 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 
 			/** Every level being waited on this tick, with the machine it belongs to. */
 			const watched: { machineId: string; level: WatchedLevel }[] = [];
+			/** Machines with no price to work around, which are given one this tick. */
+			const anchoring: { machineId: string; wanted: AnchorWanted }[] = [];
 			const mints = new Set<string>();
 			for (const machine of machines) {
 				if (!kinds.has(machine.kind)) {
@@ -93,7 +118,14 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 					);
 					continue;
 				}
-				const levels = levelsOf(kinds, machine.kind, machine.settings);
+				const memory = { events: machine.events ?? [], now: now() };
+				const wanted = needsAnchorOf(kinds, machine.kind, machine.settings, memory);
+				if (wanted) {
+					anchoring.push({ machineId: machine.machineId, wanted });
+					mints.add(wanted.pricedMint);
+					continue;
+				}
+				const levels = levelsOf(kinds, machine.kind, machine.settings, memory);
 				if (levels.length === 0) continue;
 				for (const level of levels) {
 					watched.push({ machineId: machine.machineId, level });
@@ -101,7 +133,7 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 				}
 			}
 
-			if (watched.length === 0) {
+			if (mints.size === 0) {
 				// Machines are waiting, but none of them on a price. Asking would cost quota for nothing.
 				await sleep(everyMs, signal);
 				continue;
@@ -113,16 +145,35 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 				failures = 0;
 			}
 
+			for (const { machineId, wanted } of anchoring) {
+				const price = prices.get(wanted.pricedMint);
+				if (price === undefined) {
+					logger.warn({ machineId, mint: wanted.pricedMint }, "no price for this token");
+					continue;
+				}
+				await recentre({ machineId, price, because: wanted.because });
+				logger.info(
+					{ machineId, price: price.toString(), because: wanted.because },
+					"a machine was given the price its band sits around",
+				);
+			}
+
+			// A band that moved is a new set of levels. What the old ones had seen says nothing about the
+			// new ones, so only the levels being watched now keep their state.
+			const live = new Map<string, CrossingState>();
 			for (const { machineId, level } of watched) {
+				// Crossings are kept per level, not per machine, so one edge firing leaves the other
+				// exactly as it was.
+				const key = `${machineId}:${level.id}:${level.level}`;
 				const price = prices.get(level.pricedMint);
 				if (price === undefined) {
+					// A missing price is no news, so the level keeps whatever it had already seen.
+					const kept = seen.get(key);
+					if (kept) live.set(key, kept);
 					logger.warn({ machineId, mint: level.pricedMint }, "no price for this token");
 					continue;
 				}
 
-				// Crossings are kept per level, not per machine, so one edge firing leaves the other
-				// exactly as it was.
-				const key = `${machineId}:${level.id}`;
 				const crossing = observePrice(seen.get(key) ?? startWatching(), {
 					price,
 					level: level.level,
@@ -131,8 +182,18 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 					minGapMs: level.minGapMs,
 					now: now(),
 				});
-				seen.set(key, crossing.state);
+				live.set(key, crossing.state);
 				if (!crossing.fire) continue;
+
+				if (level.recentres) {
+					// Nothing to decide, so nothing to run: the band moves to the price that crossed.
+					await recentre({ machineId, price, because: "followed" });
+					logger.info(
+						{ machineId, level: level.id, price: price.toString() },
+						"the price left the band, so the band followed it",
+					);
+					continue;
+				}
 
 				const at = now();
 				await queue({
@@ -148,6 +209,8 @@ export async function watchPrices(ports: PriceWatcherPorts, signal: AbortSignal)
 					"a price crossed a level, so a run is queued",
 				);
 			}
+			seen.clear();
+			for (const [key, state] of live) seen.set(key, state);
 		} catch (error) {
 			failures += 1;
 			// A price source having a bad minute is not a reason to stop watching, but it is worth saying,

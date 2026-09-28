@@ -1,10 +1,12 @@
 import { baseUnitsOf } from "@maschina/core";
 import { describe, expect, it } from "vitest";
 import {
+	budgetMintOf,
 	decideFor,
 	levelsOf,
 	type MachineKind,
 	type MachineView,
+	needsAnchorOf,
 	registryOf,
 } from "./machine-kind.ts";
 
@@ -128,5 +130,30 @@ describe("levelsOf", () => {
 		] as never);
 
 		expect(() => levelsOf(clashing, "clash", {})).toThrow(/two levels/);
+	});
+});
+
+describe("asking a kind what it spends and where it sits", () => {
+	const anchored = {
+		...kind("follows"),
+		budgetMint: () => "dollars",
+		needsAnchor: () => ({ pricedMint: "sol", because: "started" as const }),
+	};
+	const registry = registryOf([kind("plain"), anchored] as never);
+	const memory = { events: [], now: new Date("2026-06-15T15:00:00Z") };
+
+	it("answers for a kind that says", () => {
+		expect(budgetMintOf(registry, "follows", {})).toBe("dollars");
+		expect(needsAnchorOf(registry, "follows", {}, memory)).toEqual({
+			pricedMint: "sol",
+			because: "started",
+		});
+	});
+
+	it("has no answer for a kind that does not say, or settings it cannot read", () => {
+		expect(budgetMintOf(registry, "plain", {})).toBeUndefined();
+		expect(needsAnchorOf(registry, "plain", {}, memory)).toBeUndefined();
+		expect(budgetMintOf(registry, "follows", null)).toBeUndefined();
+		expect(needsAnchorOf(registry, "follows", null, memory)).toBeUndefined();
 	});
 });

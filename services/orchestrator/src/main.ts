@@ -6,6 +6,7 @@ import {
 	machineStateOf,
 	machinesWatchingPrices,
 	queueRun,
+	recordRecentre,
 	renewLease,
 	reportRun,
 	runContext,
@@ -96,6 +97,10 @@ const watcher = watchPrices(
 		queue: async (run) => {
 			const queued = await queueRun(database.db, run);
 			if (!queued.ok) throw queued.error;
+		},
+		recentre: async (move) => {
+			const written = await recordRecentre(database.db, move);
+			if (!written.ok) throw written.error;
 		},
 		logger,
 		now: () => new Date(),

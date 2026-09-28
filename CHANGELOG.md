@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.28](https://github.com/maschina-labs/maschina/compare/v0.0.27...v0.0.28) (2026-09-28)
+
+
+### Added
+
+* **runtime:** a range that follows the price ([#704](https://github.com/maschina-labs/maschina/issues/704)) ([ce14fdd](https://github.com/maschina-labs/maschina/commit/ce14fdd4e4c670c89a544d76e0b699e5112da182))
+
+## [0.0.27](https://github.com/maschina-labs/maschina/compare/v0.0.26...v0.0.27) (2026-09-28)
+
+
+### Fixed
+
+* **runtime:** arm a level on first sight from the right side ([#701](https://github.com/maschina-labs/maschina/issues/701)) ([4740ea7](https://github.com/maschina-labs/maschina/commit/4740ea7b30a96dfee662d580e3c61e4b9fec6861))
+
 ## [0.0.26](https://github.com/maschina-labs/maschina/compare/v0.0.25...v0.0.26) (2026-09-28)
 
 

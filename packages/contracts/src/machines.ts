@@ -111,6 +111,20 @@ export const MachineActionRequest = z
 	.meta({ id: "MachineActionRequest" });
 export type MachineActionRequest = z.infer<typeof MachineActionRequest>;
 
+/** A new recipe for a paused machine: the kind it runs, and how that kind is set. */
+export const RetuneMachineRequest = z
+	.strictObject({
+		kind: z.string().regex(/^[a-z][a-z0-9_]{2,39}$/),
+		settings: z.record(z.string(), z.unknown()),
+	})
+	.meta({ id: "RetuneMachineRequest" });
+export type RetuneMachineRequest = z.infer<typeof RetuneMachineRequest>;
+
+export const RetuneMachineResponse = z
+	.strictObject({ definitionId: z.string().regex(/^[0-9a-f]{64}$/) })
+	.meta({ id: "RetuneMachineResponse" });
+export type RetuneMachineResponse = z.infer<typeof RetuneMachineResponse>;
+
 export const MachineActionResponse = z
 	.strictObject({ state: z.enum(["draft", "ready", "running", "paused", "stopped"]) })
 	.meta({ id: "MachineActionResponse" });
