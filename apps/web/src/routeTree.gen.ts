@@ -19,6 +19,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SwapRouteImport } from './routes/swap'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as MMachineIdRouteImport } from './routes/m.$machineId'
 import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
@@ -83,6 +84,11 @@ const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/legal/terms',
   path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MMachineIdRoute = MMachineIdRouteImport.update({
+  id: '/m/$machineId',
+  path: '/m/$machineId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MachinesIndexRoute = MachinesIndexRouteImport.update({
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/swap': typeof SwapRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/swap': typeof SwapRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/swap': typeof SwapRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/swap'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
@@ -338,6 +350,7 @@ export interface RootRouteChildren {
   SwapRoute: typeof SwapRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  MMachineIdRoute: typeof MMachineIdRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
   MarketplaceListingIdRoute: typeof MarketplaceListingIdRoute
   NetworkNodeIdRoute: typeof NetworkNodeIdRoute
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/terms'
       fullPath: '/legal/terms'
       preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$machineId': {
+      id: '/m/$machineId'
+      path: '/m/$machineId'
+      fullPath: '/m/$machineId'
+      preLoaderRoute: typeof MMachineIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/machines/': {
@@ -546,6 +566,7 @@ const rootRouteChildren: RootRouteChildren = {
   SwapRoute: SwapRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  MMachineIdRoute: MMachineIdRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
   MarketplaceListingIdRoute: MarketplaceListingIdRoute,
   NetworkNodeIdRoute: NetworkNodeIdRoute,

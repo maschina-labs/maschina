@@ -15,6 +15,7 @@ import {
 import { fetchPrice } from "../lib/price.ts";
 import { statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
+import { executionBps, holdingReturn, largestDrop } from "../lib/track-record.ts";
 import { BandDial } from "./band-dial.tsx";
 import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
@@ -107,6 +108,10 @@ export function MachinePanelView({
 	const [sharing, setSharing] = useState(false);
 	const [newName, setNewName] = useState(machine.name);
 	const name = machine.name.toUpperCase();
+	// The record arrives newest first; the track record reads it oldest first, as it happened.
+	const chronological = [...record].reverse();
+	const execution = executionBps(chronological);
+	const holding = holdingReturn(chronological, price);
 	const questions: Partial<
 		Record<MachineAction | "withdraw", { lines: string[]; confirm: string }>
 	> = {
@@ -240,9 +245,34 @@ export function MachinePanelView({
 			</div>
 
 			<div className="grid border-white/[0.07] border-r border-b sm:grid-cols-3">
+				<Cell label="TRACK RECORD">
+					<div className="flex flex-col gap-2 text-[12px] tabular-nums">
+						<span className="text-neutral-100">
+							LARGEST DROP {amount(largestDrop(chronological).toString())} USDC
+						</span>
+						<span className="text-neutral-400">
+							EXECUTION{" "}
+							{execution === undefined
+								? "-"
+								: `${execution >= 0 ? "+" : ""}${execution.toFixed(1)} BPS VS QUOTE`}
+						</span>
+						<span className="text-neutral-400">
+							JUST HOLDING{" "}
+							{holding === undefined
+								? "-"
+								: `${holding >= 0 ? "+" : ""}${(holding * 100).toFixed(2)}% SINCE ITS FIRST BUY`}
+						</span>
+					</div>
+				</Cell>
 				<Cell label="LIMITS">
 					<div className="flex flex-col gap-2 text-[12px] tabular-nums">
 						<span className="text-neutral-100">BUDGET {amount(machine.budget.granted)} USDC</span>
+						<span className="text-neutral-400">
+							FEES{" "}
+							{machine.result.simulated
+								? "NONE, IT IS ON PAPER"
+								: "A MONTHLY FEE AND A SHARE PER TRADE, SET WITH BILLING"}
+						</span>
 						{machine.limits.maxPerTrade ? (
 							<span className="text-neutral-400">
 								PER TRADE {amount(machine.limits.maxPerTrade)}
@@ -287,7 +317,7 @@ export function MachinePanelView({
 			<section aria-label="Record" className="flex flex-col gap-3">
 				<h2 className={LABEL}>RECORD</h2>
 				<ol className="flex flex-col">
-					{record.map((entry) => {
+					{record.slice(0, 8).map((entry) => {
 						const said = describeEvent(entry);
 						return (
 							<li

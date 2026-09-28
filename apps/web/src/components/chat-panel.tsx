@@ -38,7 +38,8 @@ export function Conversation({ lines }: { lines: Line[] }) {
 	);
 }
 
-function MachineChat({ machine }: { machine: MachineSummary }) {
+/** Asking one machine, answered from its record. Used in the chat window and on the machine's own page. */
+export function MachineChat({ machine }: { machine: MachineSummary }) {
 	const { api } = useRouter().options.context;
 	const detail = useMachine(api, machine.machineId);
 	const record = useRecord(api, machine.machineId);

@@ -92,6 +92,29 @@ export function Settings() {
 				</p>
 			</Section>
 
+			<Section title="YOUR DATA">
+				<p className="text-[11px] text-neutral-500 tracking-[0.1em]">
+					EACH MACHINE'S RECORD EXPORTS AS CSV FROM ITS RECORD TAB. EXPORTING EVERYTHING, AND
+					DELETING YOUR ACCOUNT AND PERSONAL DATA, ARRIVE WITH ACCOUNTS.
+				</p>
+				<div className="flex gap-1.5">
+					<button
+						type="button"
+						disabled
+						className="h-9 border border-white/20 px-4 text-[10.5px] text-neutral-300 tracking-[0.14em] disabled:opacity-40"
+					>
+						EXPORT EVERYTHING
+					</button>
+					<button
+						type="button"
+						disabled
+						className="h-9 border border-white/20 px-4 text-[10.5px] text-neutral-300 tracking-[0.14em] disabled:opacity-40"
+					>
+						DELETE MY ACCOUNT
+					</button>
+				</div>
+			</Section>
+
 			<Section title="YOUR AI KEY">
 				<p className="text-[11px] text-neutral-500 tracking-[0.1em]">
 					FOR THE AI MANAGER: BRING YOUR OWN KEY AND PAY LESS. ARRIVES WITH THE AI MANAGER.
