@@ -4,6 +4,7 @@ import { CommandPalette } from "../components/command-palette.tsx";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { Frame } from "../components/frame.tsx";
+import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
@@ -25,6 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			</div>
 			<Grain />
 			<Toaster />
+			<TabTitle />
 			<CommandPalette />
 		</>
 	),
