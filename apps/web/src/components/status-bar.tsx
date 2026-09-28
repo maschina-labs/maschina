@@ -45,6 +45,7 @@ export function StatusBarView({ price, change24h, running, machines, realised }:
 					</span>
 				</>
 			)}
+			<span className="ml-auto hidden text-neutral-600 md:inline">⌘K TO GO ANYWHERE</span>
 		</footer>
 	);
 }

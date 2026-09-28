@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { CommandPalette } from "../components/command-palette.tsx";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { Frame } from "../components/frame.tsx";
@@ -24,6 +25,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			</div>
 			<Grain />
 			<Toaster />
+			<CommandPalette />
 		</>
 	),
 	notFoundComponent: () => <p>Not found</p>,
