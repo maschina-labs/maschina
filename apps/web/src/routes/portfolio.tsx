@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { HoldingsTabs } from "../components/holdings-tabs.tsx";
 import { Breakdown, Pnl, Totals } from "../components/portfolio.tsx";
 
 export const Route = createFileRoute("/portfolio")({
@@ -19,6 +20,7 @@ function Page() {
 				<h2 className="mb-3 text-[11px] text-neutral-500">BY MACHINE</h2>
 				<Breakdown />
 			</section>
+			<HoldingsTabs />
 			<p className="text-[11px] text-neutral-600">COMING: WHAT EACH VAULT HAS BANKED</p>
 		</div>
 	);

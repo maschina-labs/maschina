@@ -92,7 +92,8 @@ const machinesQuery = (api: Api) =>
 			(await read<{ machines: MachineSummary[] }>(await api.v1.machines.$get())).machines,
 	});
 
-const machineQuery = (api: Api, machineId: string) =>
+/** One machine's detail, as a query others can compose, like the portfolio's list of orders. */
+export const machineQuery = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId],
 		queryFn: async () =>
