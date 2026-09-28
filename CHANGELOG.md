@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.26](https://github.com/maschina-labs/maschina/compare/v0.0.25...v0.0.26) (2026-09-28)
+
+
+### Fixed
+
+* **runtime:** count a position from the machine's own trades ([#699](https://github.com/maschina-labs/maschina/issues/699)) ([9b927ec](https://github.com/maschina-labs/maschina/commit/9b927ec6d541ba80e94c672a1f2482eac5d3030a))
+* **web:** leave room in the float for each buy's fee ([#694](https://github.com/maschina-labs/maschina/issues/694)) ([f007520](https://github.com/maschina-labs/maschina/commit/f007520f410676223320e0ca826365ce65fd8593))
+* **web:** read typed prices as numbers and never break on one ([#697](https://github.com/maschina-labs/maschina/issues/697)) ([4cabaa6](https://github.com/maschina-labs/maschina/commit/4cabaa677c2f999e8f618f6f1ec48b1d6bad3825))
+
 ## [0.0.25](https://github.com/maschina-labs/maschina/compare/v0.0.24...v0.0.25) (2026-09-27)
 
 
