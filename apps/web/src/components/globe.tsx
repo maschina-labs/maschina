@@ -24,7 +24,14 @@ async function loadCountries(): Promise<Countries> {
 	return feature(topology, topology.objects.countries) as unknown as Countries;
 }
 
-export function Globe({ tilt = -18 }: { tilt?: number }) {
+export function Globe({
+	tilt = -18,
+	onView,
+}: {
+	tilt?: number;
+	/** Told the point on Earth at the centre of the globe, whenever it turns. */
+	onView?: (centre: { lat: number; lng: number }) => void;
+}) {
 	const [countries, setCountries] = useState<Countries>();
 	const [view, setView] = useState<[number, number]>([0, tilt]);
 	/** Where a drag started, and what the view was then. Empty when nobody is holding the globe. */
@@ -69,6 +76,12 @@ export function Globe({ tilt = -18 }: { tilt?: number }) {
 	const release = () => {
 		drag.current = undefined;
 	};
+
+	// The point facing the viewer is the opposite of the rotation.
+	useEffect(() => {
+		const wrapped = ((((-view[0] + 180) % 360) + 360) % 360) - 180;
+		onView?.({ lat: -view[1], lng: wrapped });
+	}, [view, onView]);
 
 	// Two views of the same turning planet. The near side is clipped at the horizon and drawn bright; the
 	// whole planet unclipped is drawn faint underneath, so the far side shows through like a wireframe.
