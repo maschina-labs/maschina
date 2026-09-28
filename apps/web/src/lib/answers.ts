@@ -34,7 +34,7 @@ export function answer(
 		}
 		case "HOW ARE YOU DOING?":
 			return [
-				`I AM ${machine.state.toUpperCase()}. ${statusOf(machine)}.`,
+				`I AM ${machine.state.toUpperCase()}. ${statusOf(machine, record)}.`,
 				`${machine.result.trades} TRADES SO FAR, ${machine.result.wins} WINS AND ${machine.result.losses} LOSSES.`,
 				`REALISED ${amount(machine.result.realised)} USDC. HOLDING ${amount(machine.result.position, 9)} SOL.`,
 			];

@@ -17,6 +17,21 @@ describe("saying what a machine did", () => {
 		expect(describeEvent(entry("machine.stopped")).title).toBe("STOPPED");
 	});
 
+	it("says where a following band moved to, in dollars", () => {
+		expect(
+			describeEvent(entry("machine.recentred", { price: "119017205", because: "followed" })),
+		).toEqual({ title: "BAND MOVED", detail: "FOLLOWED THE PRICE TO $119.02" });
+		expect(
+			describeEvent(entry("machine.recentred", { price: "119017205", because: "started" })),
+		).toEqual({ title: "BAND SET", detail: "AROUND $119.02" });
+	});
+
+	it("says when the owner changed the recipe", () => {
+		expect(describeEvent(entry("machine.retuned", { from: "a", to: "b" })).title).toBe(
+			"RECIPE CHANGED",
+		);
+	});
+
 	it("gives the reason a run did nothing, without the code in front of it", () => {
 		const skipped = entry("run.skipped", {
 			detail: "limit_reached: this machine already holds a position, and holds one at a time",

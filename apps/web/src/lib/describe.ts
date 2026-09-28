@@ -21,6 +21,15 @@ export function describeEvent(entry: RecordEntry): Described {
 			return { title: "RESUMED", detail: "WATCHING THE PRICE AGAIN" };
 		case "machine.stopped":
 			return { title: "STOPPED", detail: "WILL NOT ACT AGAIN" };
+		case "machine.recentred": {
+			// The price is in micro-dollars.
+			const at = `$${(Number(text(p["price"])) / 1_000_000).toFixed(2)}`;
+			return p["because"] === "followed"
+				? { title: "BAND MOVED", detail: `FOLLOWED THE PRICE TO ${at}` }
+				: { title: "BAND SET", detail: `AROUND ${at}` };
+		}
+		case "machine.retuned":
+			return { title: "RECIPE CHANGED", detail: "RUNS A NEW RECIPE FROM HERE" };
 		case "machine.limits_changed":
 			return { title: "LIMIT SET", detail: text(p["limit"]).toUpperCase() };
 		case "run.queued":

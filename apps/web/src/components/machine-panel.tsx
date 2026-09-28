@@ -182,7 +182,7 @@ export function MachinePanelView({
 
 			<div className="grid border-white/[0.07] border-r border-b sm:grid-cols-3">
 				<Cell label="STATUS">
-					<span className="text-[15px] text-neutral-100">{statusOf(machine)}</span>
+					<span className="text-[15px] text-neutral-100">{statusOf(machine, record)}</span>
 				</Cell>
 				<Cell label="BAND">
 					{buy !== undefined && sell !== undefined ? (

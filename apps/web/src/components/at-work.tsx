@@ -1,5 +1,12 @@
 import { useRouter } from "@tanstack/react-router";
-import { amount, type MachineDetail, useMachine, useMachines, useRecord } from "../lib/machines.ts";
+import {
+	amount,
+	type MachineDetail,
+	type RecordEntry,
+	useMachine,
+	useMachines,
+	useRecord,
+} from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
 import { bandOf, statusOf } from "../lib/status.ts";
 import { GLASS } from "./glass.ts";
@@ -9,14 +16,20 @@ import { GLASS } from "./glass.ts";
  * text floating on the fog, in the columns of Ash's reference.
  */
 
-export function WorkBar({ machine }: { machine: MachineDetail | undefined }) {
+export function WorkBar({
+	machine,
+	record = [],
+}: {
+	machine: MachineDetail | undefined;
+	record?: RecordEntry[];
+}) {
 	return (
 		<div className={`flex h-11 items-center gap-6 px-4 text-[11px] tracking-[0.12em] ${GLASS}`}>
 			{machine ? (
 				<>
 					<span className="text-neutral-100">{machine.name.toUpperCase()}</span>
 					<span className="h-px flex-1 bg-white/15" aria-hidden="true" />
-					<span className="text-neutral-300">{statusOf(machine)}</span>
+					<span className="text-neutral-300">{statusOf(machine, record)}</span>
 					<span className="hidden text-neutral-500 tabular-nums sm:inline">
 						FLOAT {amount(machine.budget.granted)} USDC
 					</span>

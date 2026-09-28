@@ -38,7 +38,7 @@ function Terminal() {
 	const known = !session.isPending && (!session.data || machines.data !== undefined);
 	const [interval, setInterval] = useState<Interval>("15m");
 	const [price, setPrice] = useState<number>();
-	const band = machine ? bandOf(machine) : [];
+	const band = machine ? bandOf(machine, record) : [];
 	const sell = band.find((level) => level.label === "SELL")?.price;
 	const buy = band.find((level) => level.label === "BUY")?.price;
 	return (
@@ -107,7 +107,7 @@ function Terminal() {
 					) : null}
 				</div>
 			</section>
-			<WorkBar machine={machine} />
+			<WorkBar machine={machine} record={record} />
 			<DecisionLog record={record} />
 			<div className="grid gap-10 pt-4 md:grid-cols-2">
 				<MachineTapeView trades={machineTrades} />
