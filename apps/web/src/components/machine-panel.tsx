@@ -18,6 +18,7 @@ import { toast } from "../lib/toasts.ts";
 import { BandDial } from "./band-dial.tsx";
 import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
+import { ResultCard } from "./result-card.tsx";
 import { TypeRow } from "./slider-row.tsx";
 
 /** A withdrawal only goes through once a machine has stopped acting, so it is only offered then. */
@@ -103,6 +104,7 @@ export function MachinePanelView({
 	// Anything that stops a machine or moves its money is asked about first.
 	const [asking, setAsking] = useState<MachineAction | "withdraw">();
 	const [renaming, setRenaming] = useState(false);
+	const [sharing, setSharing] = useState(false);
 	const [newName, setNewName] = useState(machine.name);
 	const name = machine.name.toUpperCase();
 	const questions: Partial<
@@ -155,6 +157,9 @@ export function MachinePanelView({
 						className={SMALL}
 					>
 						COPY LINK
+					</button>
+					<button type="button" onClick={() => setSharing(true)} className={SMALL}>
+						SHARE
 					</button>
 				</div>
 			</header>
@@ -317,6 +322,17 @@ export function MachinePanelView({
 				</p>
 			</section>
 
+			{sharing ? (
+				<ResultCard
+					machine={machine}
+					band={
+						buy !== undefined && sell !== undefined
+							? `${buy.toFixed(2)} TO ${sell.toFixed(2)}`
+							: undefined
+					}
+					onClose={() => setSharing(false)}
+				/>
+			) : null}
 			{asking && asked ? (
 				<Confirm
 					title={`${asked.confirm} ${name}?`}
