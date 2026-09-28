@@ -12,6 +12,7 @@ import {
 	totalsOf,
 } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
+import { tradesFrom } from "../lib/trades.ts";
 import { Loading } from "./loading.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 
@@ -244,4 +245,19 @@ export function FilteredActivity() {
 			))}
 		</div>
 	);
+}
+
+/** Every trade your machines made, newest first, for the machine tape. */
+export function useMachineTrades() {
+	const { signedIn, machines, records } = useEverything();
+	if (!signedIn || !machines) return [];
+	return machines
+		.flatMap((machine, index) =>
+			tradesFrom(records[index] ?? []).map((trade) => ({
+				...trade,
+				machine: machine.name.toUpperCase(),
+			})),
+		)
+		.sort((a, b) => b.at - a.at)
+		.slice(0, 20);
 }

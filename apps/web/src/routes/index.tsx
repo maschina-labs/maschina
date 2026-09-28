@@ -3,8 +3,10 @@ import { useState } from "react";
 import { bandOf, Decisions, useMachineAtWork, WorkBar } from "../components/at-work.tsx";
 import { BandRuler } from "../components/band-ruler.tsx";
 import { MarketStrip } from "../components/market-strip.tsx";
+import { useMachineTrades } from "../components/portfolio.tsx";
 import { PriceChart } from "../components/price-chart.tsx";
 import { SolPrice } from "../components/sol-price.tsx";
+import { MachineTapeView, MarketTape } from "../components/tapes.tsx";
 import { tradesFrom } from "../lib/trades.ts";
 
 export const Route = createFileRoute("/")({
@@ -21,6 +23,7 @@ type Interval = (typeof INTERVALS)[number];
 function Terminal() {
 	const { machine: chosen } = Route.useSearch();
 	const { machine, record } = useMachineAtWork(chosen);
+	const machineTrades = useMachineTrades();
 	const [interval, setInterval] = useState<Interval>("15m");
 	const [price, setPrice] = useState<number>();
 	const band = machine ? bandOf(machine) : [];
@@ -65,6 +68,10 @@ function Terminal() {
 			</section>
 			<WorkBar machine={machine} />
 			<Decisions record={record} />
+			<div className="grid gap-10 pt-4 md:grid-cols-2">
+				<MachineTapeView trades={machineTrades} />
+				<MarketTape />
+			</div>
 		</div>
 	);
 }
