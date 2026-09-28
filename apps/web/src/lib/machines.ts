@@ -120,8 +120,11 @@ export const recordQueryFor = (api: Api, machineId: string) =>
 	});
 
 export const useMachines = (api: Api) => useQuery(machinesQuery(api));
-export const useMachine = (api: Api, machineId: string) => useQuery(machineQuery(api, machineId));
-export const useRecord = (api: Api, machineId: string) => useQuery(recordQueryFor(api, machineId));
+// An empty id means there is no machine to ask about yet, so nothing is asked.
+export const useMachine = (api: Api, machineId: string) =>
+	useQuery({ ...machineQuery(api, machineId), enabled: machineId !== "" });
+export const useRecord = (api: Api, machineId: string) =>
+	useQuery({ ...recordQueryFor(api, machineId), enabled: machineId !== "" });
 
 /** Fund, start, pause, resume or stop. Funding carries the new total the machine may spend. */
 export function useMachineAction(api: Api, queryClient: QueryClient, machineId: string) {

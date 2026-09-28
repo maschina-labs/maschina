@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as NewRouteImport } from './routes/new'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as SwapRouteImport } from './routes/swap'
+import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
 import { Route as MarketplaceMineRouteImport } from './routes/marketplace.mine'
@@ -41,6 +44,21 @@ const NetworkRoute = NetworkRouteImport.update({
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SwapRoute = SwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MachinesIndexRoute = MachinesIndexRouteImport.update({
+  id: '/machines/',
+  path: '/machines/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MachinesMachineIdRoute = MachinesMachineIdRouteImport.update({
@@ -94,6 +112,8 @@ export interface FileRoutesByFullPath {
   '/activity': typeof ActivityRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/swap': typeof SwapRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -101,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/settings/keys': typeof SettingsKeysRoute
   '/wallet/balance': typeof WalletBalanceRoute
   '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
@@ -109,6 +130,8 @@ export interface FileRoutesByTo {
   '/activity': typeof ActivityRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/swap': typeof SwapRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -116,6 +139,7 @@ export interface FileRoutesByTo {
   '/settings/keys': typeof SettingsKeysRoute
   '/wallet/balance': typeof WalletBalanceRoute
   '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/machines': typeof MachinesIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/wallet': typeof WalletIndexRoute
 }
@@ -125,6 +149,8 @@ export interface FileRoutesById {
   '/activity': typeof ActivityRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/swap': typeof SwapRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -132,6 +158,7 @@ export interface FileRoutesById {
   '/settings/keys': typeof SettingsKeysRoute
   '/wallet/balance': typeof WalletBalanceRoute
   '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
@@ -142,6 +169,8 @@ export interface FileRouteTypes {
     | '/activity'
     | '/network'
     | '/new'
+    | '/portfolio'
+    | '/swap'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -149,6 +178,7 @@ export interface FileRouteTypes {
     | '/settings/keys'
     | '/wallet/balance'
     | '/wallet/withdraw'
+    | '/machines/'
     | '/marketplace/'
     | '/wallet/'
   fileRoutesByTo: FileRoutesByTo
@@ -157,6 +187,8 @@ export interface FileRouteTypes {
     | '/activity'
     | '/network'
     | '/new'
+    | '/portfolio'
+    | '/swap'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -164,6 +196,7 @@ export interface FileRouteTypes {
     | '/settings/keys'
     | '/wallet/balance'
     | '/wallet/withdraw'
+    | '/machines'
     | '/marketplace'
     | '/wallet'
   id:
@@ -172,6 +205,8 @@ export interface FileRouteTypes {
     | '/activity'
     | '/network'
     | '/new'
+    | '/portfolio'
+    | '/swap'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -179,6 +214,7 @@ export interface FileRouteTypes {
     | '/settings/keys'
     | '/wallet/balance'
     | '/wallet/withdraw'
+    | '/machines/'
     | '/marketplace/'
     | '/wallet/'
   fileRoutesById: FileRoutesById
@@ -188,6 +224,8 @@ export interface RootRouteChildren {
   ActivityRoute: typeof ActivityRoute
   NetworkRoute: typeof NetworkRoute
   NewRoute: typeof NewRoute
+  PortfolioRoute: typeof PortfolioRoute
+  SwapRoute: typeof SwapRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
   MarketplaceMineRoute: typeof MarketplaceMineRoute
   RunsFinishedRoute: typeof RunsFinishedRoute
@@ -195,6 +233,7 @@ export interface RootRouteChildren {
   SettingsKeysRoute: typeof SettingsKeysRoute
   WalletBalanceRoute: typeof WalletBalanceRoute
   WalletWithdrawRoute: typeof WalletWithdrawRoute
+  MachinesIndexRoute: typeof MachinesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   WalletIndexRoute: typeof WalletIndexRoute
 }
@@ -227,6 +266,27 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/new'
       preLoaderRoute: typeof NewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/swap': {
+      id: '/swap'
+      path: '/swap'
+      fullPath: '/swap'
+      preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/machines/': {
+      id: '/machines/'
+      path: '/machines'
+      fullPath: '/machines/'
+      preLoaderRoute: typeof MachinesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/machines/$machineId': {
@@ -300,6 +360,8 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityRoute: ActivityRoute,
   NetworkRoute: NetworkRoute,
   NewRoute: NewRoute,
+  PortfolioRoute: PortfolioRoute,
+  SwapRoute: SwapRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
   MarketplaceMineRoute: MarketplaceMineRoute,
   RunsFinishedRoute: RunsFinishedRoute,
@@ -307,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsKeysRoute: SettingsKeysRoute,
   WalletBalanceRoute: WalletBalanceRoute,
   WalletWithdrawRoute: WalletWithdrawRoute,
+  MachinesIndexRoute: MachinesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   WalletIndexRoute: WalletIndexRoute,
 }

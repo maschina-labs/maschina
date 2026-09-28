@@ -1,3 +1,64 @@
-@import "@maschina/ui/styles.css";
+@import "tailwindcss";
 
-@source "../../../packages/ui/src";
+/* Hacker minimal: monospace, uppercase, widely spaced, over fog. Geist Mono for text, Söhne Breit for the wordmark. */
+@font-face {
+	font-family: "Sohne Breit";
+	src: url("/fonts/SohneBreit-600.otf") format("opentype");
+	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-700.woff2") format("woff2");
+	font-weight: 700;
+	font-display: swap;
+}
+
+@theme {
+	--font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+	/* Geist Mono for now; JetBrains Mono is the other contender. */
+	--font-mono: "Geist Mono", ui-monospace, monospace;
+	--font-display: "Sohne", ui-sans-serif, sans-serif;
+	/* The wordmark face until the logo arrives: Söhne Breit Halbfett. */
+	--font-wordmark: "Sohne Breit", ui-sans-serif, sans-serif;
+	/* Colour is used almost nowhere, then on purpose: live and profit, stop and loss. */
+	--color-signal-on: oklch(0.8 0.2 145);
+	--color-signal-off: oklch(0.65 0.21 35);
+}
+
+/* No rubber band past the top or bottom on a trackpad or phone: the terminal stays where it is. */
+html,
+body {
+	overscroll-behavior: none;
+}
+
+/*
+ * Scrollbars: a thin square thumb of faint glass and no track at all, so only the part you grab shows,
+ * floating like everything else. Chrome and Safari read the webkit rules, which are what keep it square;
+ * Firefox only understands a width and two colours, so it gets those and nothing else.
+ */
+::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: oklch(1 0 0 / 0.14);
+	border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: oklch(1 0 0 / 0.3);
+}
+@supports (-moz-appearance: none) {
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: oklch(1 0 0 / 0.14) transparent;
+	}
+}
+
+body {
+	@apply bg-black font-mono text-neutral-100 uppercase tracking-[0.08em] antialiased;
+}
