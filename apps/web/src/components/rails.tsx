@@ -1,4 +1,4 @@
-import { BookOpen, ChatsCircle, GearSix, Pulse, Robot } from "@phosphor-icons/react";
+import { BookOpen, ChatsCircle, GearSix, Pulse, Robot, Sparkle } from "@phosphor-icons/react";
 import { Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
@@ -111,6 +111,15 @@ export function LeftRail() {
 				>
 					<Robot size={18} weight="light" />
 				</button>
+				<Link
+					to="/manager"
+					aria-label="Manager"
+					title="Manager"
+					className={ICON}
+					activeProps={{ className: `text-neutral-100 ${GLASS_ACTIVE}` }}
+				>
+					<Sparkle size={18} weight="light" />
+				</Link>
 				<a
 					href={DOCS}
 					target="_blank"

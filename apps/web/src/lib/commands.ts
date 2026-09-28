@@ -48,6 +48,12 @@ export function commandsFor(
 		{ id: "swap", label: "SWAP", hint: "PAGE · SOL AND USDC THROUGH JUPITER", to: "/swap" },
 		{ id: "marketplace", label: "MARKETPLACE", hint: "PAGE · PROVEN MACHINES", to: "/marketplace" },
 		{ id: "network", label: "NETWORK", hint: "PAGE · THE GLOBE", to: "/network" },
+		{
+			id: "manager",
+			label: "MANAGER",
+			hint: "PAGE · SUGGESTIONS FOR YOUR MACHINES",
+			to: "/manager",
+		},
 		{ id: "settings", label: "SETTINGS", hint: "PAGE · WALLETS, ALERTS, FEES", to: "/settings" },
 	];
 	const perMachine = machines.flatMap((machine) => [
