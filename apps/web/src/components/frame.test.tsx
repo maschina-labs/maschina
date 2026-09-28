@@ -10,7 +10,7 @@ vi.mock("@tanstack/react-router", () => ({
 		<a href={to}>{children}</a>
 	),
 }));
-vi.mock("./icon-rail.tsx", () => ({ IconRail: () => <nav aria-label="Tools" /> }));
+vi.mock("./status-bar.tsx", () => ({ StatusBar: () => <footer /> }));
 vi.mock("./sections.tsx", () => ({ Sections: () => <nav aria-label="Sections" /> }));
 vi.mock("./wallet-button.tsx", () => ({
 	WalletButton: () => <button type="button">Connect</button>,

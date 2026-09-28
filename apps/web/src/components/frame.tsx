@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { GLASS } from "./glass.ts";
-import { IconRail } from "./icon-rail.tsx";
 import { RightRail } from "./rails.tsx";
 import { Sections } from "./sections.tsx";
+import { StatusBar } from "./status-bar.tsx";
 import { WalletButton } from "./wallet-button.tsx";
 
 /**
@@ -33,8 +33,8 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 			<div className="flex min-h-0 flex-1 gap-1.5">
 				<main className="min-w-0 flex-1 overflow-y-auto overscroll-none">{children}</main>
 				{sides ? <RightRail /> : null}
-				<IconRail />
 			</div>
+			<StatusBar />
 		</div>
 	);
 }
