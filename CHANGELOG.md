@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.29](https://github.com/maschina-labs/maschina/compare/v0.0.28...v0.0.29) (2026-09-28)
+
+
+### Added
+
+* **web:** the new interface, with every screen ([#707](https://github.com/maschina-labs/maschina/issues/707)) ([03a7f51](https://github.com/maschina-labs/maschina/commit/03a7f51ff04b5e80a317c4fdea23e4f9c657608f))
+
 ## [0.0.28](https://github.com/maschina-labs/maschina/compare/v0.0.27...v0.0.28) (2026-09-28)
 
 
