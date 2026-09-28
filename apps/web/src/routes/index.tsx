@@ -4,6 +4,7 @@ import { bandOf, Decisions, useMachineAtWork, WorkBar } from "../components/at-w
 import { MarketStrip } from "../components/market-strip.tsx";
 import { PriceChart } from "../components/price-chart.tsx";
 import { SolPrice } from "../components/sol-price.tsx";
+import { tradesFrom } from "../lib/trades.ts";
 
 export const Route = createFileRoute("/")({
 	component: Terminal,
@@ -38,7 +39,11 @@ function Terminal() {
 					))}
 				</fieldset>
 				<div className="min-h-0 flex-1">
-					<PriceChart interval={interval} levels={machine ? bandOf(machine) : []} />
+					<PriceChart
+						interval={interval}
+						levels={machine ? bandOf(machine) : []}
+						trades={tradesFrom(record)}
+					/>
 				</div>
 			</section>
 			<WorkBar machine={machine} />

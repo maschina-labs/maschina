@@ -8,6 +8,7 @@ const update = vi.fn();
 const remove = vi.fn();
 const createPriceLine = vi.fn((line: unknown) => line);
 const removePriceLine = vi.fn();
+const setMarkers = vi.fn();
 const options: unknown[] = [];
 vi.mock("lightweight-charts", () => ({
 	CandlestickSeries: "candles",
@@ -15,6 +16,7 @@ vi.mock("lightweight-charts", () => ({
 	ColorType: { Solid: "solid" },
 	CrosshairMode: { Normal: 0 },
 	LineStyle: { Dashed: 2 },
+	createSeriesMarkers: () => ({ setMarkers }),
 	createChart: (_: unknown, given: unknown) => {
 		options.push(given);
 		return {
@@ -108,5 +110,15 @@ describe("the price chart", () => {
 		);
 		rerender(<PriceChart levels={[{ price: 119, label: "BUY" }]} />);
 		expect(removePriceLine).toHaveBeenCalledTimes(2);
+	});
+
+	it("pins the machine's trades on the candles they happened in", () => {
+		fetchCandles.mockResolvedValue([]);
+		const at = Date.parse("2026-09-28T06:22:39Z");
+		render(<PriceChart interval="15m" trades={[{ at, side: "buy", price: 118.78 }]} />);
+
+		expect(setMarkers).toHaveBeenLastCalledWith([
+			expect.objectContaining({ position: "belowBar", shape: "arrowUp", text: "BUY 118.78" }),
+		]);
 	});
 });

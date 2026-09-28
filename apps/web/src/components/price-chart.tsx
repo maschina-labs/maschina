@@ -3,14 +3,18 @@ import {
 	ColorType,
 	CrosshairMode,
 	createChart,
+	createSeriesMarkers,
 	HistogramSeries,
 	type IChartApi,
 	type IPriceLine,
 	type ISeriesApi,
+	type ISeriesMarkersPluginApi,
 	LineStyle,
+	type Time,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import { type Candle, fetchCandles, streamCandles } from "../lib/candles.ts";
+import { candleTime, type Trade } from "../lib/trades.ts";
 
 /**
  * Candles floating straight on the fog: no background and no borders, a faint grid, the price dial on the
@@ -29,6 +33,7 @@ const CROSSHAIR = "rgba(255, 255, 255, 0.25)";
 const LABEL = "rgba(38, 38, 38, 0.95)"; // oklch(0.27 0 0)
 const BAND = "rgba(229, 229, 229, 0.45)"; // oklch(0.92 0 0 / 0.45)
 const VOLUME = "rgba(255, 255, 255, 0.09)";
+const MARK = "rgba(245, 245, 245, 0.95)"; // oklch(0.97 0 0)
 
 /** A price drawn across the chart as a dashed line with its name on the dial: a machine's band. */
 export type Level = { price: number; label: string };
@@ -38,17 +43,21 @@ export function PriceChart({
 	interval = "15m",
 	history = 300,
 	levels = [],
+	trades = [],
 	onLive,
 }: {
 	symbol?: string;
 	interval?: string;
 	history?: number;
 	levels?: Level[];
+	/** The machine's own buys and sells, pinned on the candles they happened in. */
+	trades?: Trade[];
 	/** Told whether the live stream is connected. */
 	onLive?: (live: boolean) => void;
 }) {
 	const holder = useRef<HTMLDivElement>(null);
 	const series = useRef<ISeriesApi<"Candlestick">>(undefined);
+	const pins = useRef<ISeriesMarkersPluginApi<Time>>(undefined);
 	const [failed, setFailed] = useState<string>();
 	/** The candle under the pointer, for the readout; the latest one when the pointer is elsewhere. */
 	const [hover, setHover] = useState<Candle>();
@@ -92,6 +101,7 @@ export function PriceChart({
 			priceLineStyle: LineStyle.Dashed,
 		});
 		series.current = candles;
+		pins.current = createSeriesMarkers(candles, []);
 		// Volume sits faintly along the bottom fifth, on its own scale so it never squeezes the candles.
 		const volume = chart.addSeries(HistogramSeries, {
 			color: VOLUME,
@@ -137,10 +147,27 @@ export function PriceChart({
 			closed = true;
 			stop();
 			series.current = undefined;
+			pins.current = undefined;
 			chart.remove();
 		};
 		// onLive is a callback for the page; a new one each render must not rebuild the chart.
 	}, [symbol, interval, history]);
+
+	// The machine's own trades, pinned on the candle each happened in: a buy under it, a sale over it.
+	const traded = trades.map((trade) => `${trade.at}${trade.side}`).join();
+	useEffect(() => {
+		const offset = new Date().getTimezoneOffset();
+		pins.current?.setMarkers(
+			trades.map((trade) => ({
+				time: candleTime(trade.at, interval, offset) as never,
+				position: trade.side === "buy" ? ("belowBar" as const) : ("aboveBar" as const),
+				shape: trade.side === "buy" ? ("arrowUp" as const) : ("arrowDown" as const),
+				color: MARK,
+				text: `${trade.side.toUpperCase()} ${trade.price.toFixed(2)}`,
+			})),
+		);
+		// The joined key stands for the trades, so the same trades in a new array do nothing.
+	}, [traded, interval]);
 
 	// The band follows the machine, not the market, so it is drawn apart from the candles.
 	const key = levels.map((level) => `${level.label}${level.price}`).join();

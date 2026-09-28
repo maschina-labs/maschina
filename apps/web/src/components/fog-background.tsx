@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2 } from "three";
 
@@ -148,6 +148,18 @@ function Fog({ still }: { still: boolean }) {
 		[],
 	);
 
+	// Drawn thirty times a second, not sixty: the drift is far too slow for the difference to show, and it
+	// halves the work. The canvas only draws when asked (frameloop "demand"), so this is what asks.
+	const invalidate = useThree((state) => state.invalidate);
+	useEffect(() => {
+		if (still) {
+			invalidate();
+			return;
+		}
+		const timer = setInterval(() => invalidate(), 1000 / 30);
+		return () => clearInterval(timer);
+	}, [invalidate, still]);
+
 	useFrame(({ clock }) => {
 		if (!material.current) return;
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
@@ -187,8 +199,12 @@ export function FogBackground({ position = "fixed" }: { position?: "fixed" | "ab
 			<Canvas
 				linear
 				flat
-				dpr={[1, 2]}
-				gl={{ antialias: true, alpha: true }}
+				// A quarter of the screen's pixels on a Retina display, upscaled. Fog is soft by nature, so the
+				// difference cannot be seen, and it is sixteen times less work than full resolution. At full
+				// resolution and sixty frames it kept a laptop's fans running flat out (2026-09-28).
+				dpr={0.5}
+				frameloop="demand"
+				gl={{ antialias: false, alpha: true }}
 				style={{ width: "100%", height: "100%" }}
 			>
 				<Fog still={still} />
