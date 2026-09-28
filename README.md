@@ -58,6 +58,8 @@ Working today, each proved against real services rather than mocks:
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | Making a range machine from the web app, told as it is typed whether its band pays for itself, and taking everything out with one confirmed click | `apps/web/src/routes/new.tsx`, `apps/web/src/lib/range-form.ts` |
+| A range that follows the price: it re-centres on each sale, moves up with a rising price, and sells at a floor below what it paid, with every move of its band in the record | `packages/runtime/src/kinds/following-range.ts`, `services/orchestrator/src/price-watcher.ts` |
+| Changing a paused machine's recipe without losing its wallet, money or record | `packages/db/src/retune.ts` |
 | Owner withdrawals asked for by the gateway alone, never by a node, and only once the machine is paused or stopped | `services/orchestrator/src/withdraw-route.ts` |
 | A signer that is not ready until it can reach the record and the chain, and refuses to start on a quoted URL | `services/signer/src/app.ts`, `packages/env/src/index.ts` |
 | The permanent record, append only | `packages/db/src/record.ts` |
@@ -69,9 +71,9 @@ transaction.
 **Not built yet**, and worth being plain about, because the safety layer being finished is not the same
 as the product being finished:
 
-- **No machine has made a real trade on mainnet.** Everything below has been proved against real
-  Turnkey, a real database and live Jupiter prices, and a machine has completed whole round trips on
-  paper. Nothing has yet spent a real dollar.
+- **Real money is small and new.** The first machine made its first real trade on mainnet on
+  2026-09-28, buying 0.34 SOL with 40.35 USDC, and now runs as a Range Finder. One machine with forty
+  dollars is a start, not a track record.
 - **Where a route sends its output is taken on trust.** A swap's tokens move inside the router's own
   instruction, and neither the provider nor Maschina yet reads where that instruction delivers the
   result. Everything around it is checked: a bare token transfer, a delegation, a close into somebody
@@ -80,8 +82,10 @@ as the product being finished:
 - **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
 - **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
   half guards against a node Maschina does not run, which cannot happen yet.
-- **The web app** is the machines list, one machine with its withdraw button, making a machine (a range or a price trigger), and the states around them. Most of the navigation
-  leads to screens that say what will be there and why they are empty.
+- **The web app** has every screen laid out. What works against the live API: signing in, the terminal
+  following a machine, each machine's page with its record and controls, making a Range Finder, a fixed
+  range or a price trigger, withdrawing, and the papers at `/whitepaper.pdf` and `/papers/`. Live
+  balances, the stream, chat with other people and the AI analyst are laid out and say so.
 
 ## How the limits actually hold
 
