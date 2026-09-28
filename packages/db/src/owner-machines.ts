@@ -41,6 +41,8 @@ export type OwnedMachine = {
 
 export type OwnedMachineDetail = OwnedMachine & {
 	settings: unknown;
+	/** Where its profit is banked. Absent for a machine made before vaults existed. */
+	vaultAddress?: string | undefined;
 	limits: {
 		maxPerTrade?: bigint | undefined;
 		maxPerDay?: bigint | undefined;
@@ -61,6 +63,7 @@ type Row = {
 	kind: string;
 	settings: unknown;
 	wallet_address: string;
+	vault_address?: string | null;
 	created_at: string | Date;
 };
 
@@ -116,7 +119,7 @@ export async function machineForOwner(
 ): Promise<OwnedMachineDetail | undefined> {
 	const rows = await db.execute<Row>(sql`
 		select machines.id, machines.name, machine_definitions.kind, machine_definitions.settings,
-			machines.wallet_address, machines.created_at
+			machines.wallet_address, machines.vault_address, machines.created_at
 		from machines
 		join machine_definitions on machine_definitions.id = machines.definition_id
 		where machines.id = ${machineId}::uuid and machines.owner_id = ${ownerId}::uuid`);
@@ -129,6 +132,7 @@ export async function machineForOwner(
 	return {
 		...summary,
 		settings: row.settings,
+		...(row.vault_address ? { vaultAddress: row.vault_address } : {}),
 		limits: {
 			maxPerTrade: limits.maxPerTrade,
 			maxPerDay: limits.maxPerDay,

@@ -54,6 +54,13 @@ function app(ports: Partial<MachinePorts> = {}) {
 		],
 		act: async () => ({ state: "running" }),
 		retune: async () => ({ definitionId: "e".repeat(64) }),
+		balances: async () => ({
+			wallet: {
+				address: WALLET,
+				lamports: "12000000",
+				tokens: [{ mint: SOL, amount: "339698787", decimals: 9 }],
+			},
+		}),
 		withdrawEverything: async () => {
 			throw new Error("nothing should be withdrawn here");
 		},
@@ -194,6 +201,22 @@ describe("the machines API", () => {
 			headers: { "content-type": "application/json" },
 		});
 		expect(res.status).toBe(401);
+	});
+
+	it("reads what a machine's wallet and vault hold", async () => {
+		const res = await app().request(`/v1/machines/${machineId}/balances`, { headers: signedIn });
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({
+			wallet: { address: WALLET, lamports: "12000000", tokens: [{ amount: "339698787" }] },
+		});
+	});
+
+	it("reads nobody's balances without a session, and nothing of somebody else's machine", async () => {
+		expect((await app().request(`/v1/machines/${machineId}/balances`)).status).toBe(401);
+		const other = newId<"machine">();
+		expect(
+			(await app().request(`/v1/machines/${other}/balances`, { headers: signedIn })).status,
+		).toBe(404);
 	});
 
 	it("refuses an action nobody has heard of", async () => {

@@ -5,9 +5,12 @@ import { describeEvent } from "../lib/describe.ts";
 import {
 	ApiError,
 	amount,
+	holdingOf,
 	type MachineAction,
+	type MachineBalances,
 	type MachineDetail,
 	type RecordEntry,
+	useBalances,
 	useMachine,
 	useMachineAction,
 	useRecord,
@@ -74,6 +77,8 @@ function Big({ label, value }: { label: string; value: string }) {
 const SMALL =
 	"text-[10.5px] text-neutral-400 tracking-[0.14em] transition-colors hover:text-neutral-100";
 
+const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
 /** The tokens machines trade, by the name people know them by. */
 const SYMBOLS: Record<string, string> = {
 	EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: "USDC",
@@ -84,12 +89,15 @@ export function MachinePanelView({
 	machine,
 	record,
 	price,
+	balances,
 	busy,
 	onAction,
 	onWithdraw,
 }: {
 	machine: MachineDetail;
 	record: RecordEntry[];
+	/** What it holds on chain right now, when that has been read. */
+	balances?: MachineBalances | undefined;
 	/** The live SOL price, when there is one, for the band meter. */
 	price?: number | undefined;
 	busy: boolean;
@@ -105,6 +113,12 @@ export function MachinePanelView({
 			: undefined;
 	// Every level it is watching, for a band that moves and so has no fixed edges to read.
 	const levels = bandOf(machine, record);
+	// What is on chain. The SOL it keeps for fees is what it holds beyond the SOL its trades bought.
+	const walletSol = balances ? Number(balances.wallet.lamports) / 1e9 : undefined;
+	const feeSol =
+		walletSol === undefined
+			? undefined
+			: Math.max(walletSol - Number(machine.result.position) / 1e9, 0);
 	const controls = machine.actions.filter((action) => action !== "fund");
 	// Anything that stops a machine or moves its money is asked about first.
 	const [asking, setAsking] = useState<MachineAction | "withdraw">();
@@ -217,6 +231,11 @@ export function MachinePanelView({
 						<span className="text-neutral-400">
 							HOLDING {amount(machine.result.position, 9)} SOL
 						</span>
+						{balances ? (
+							<span className="text-neutral-400">
+								{`IN ITS WALLET ${holdingOf(balances.wallet, USDC).toFixed(2)} USDC · ${(walletSol ?? 0).toFixed(4)} SOL`}
+							</span>
+						) : null}
 						{typeof settings["amountPerBuy"] === "string" ? (
 							<span className="text-neutral-400">
 								EACH BUY {amount(settings["amountPerBuy"])} USDC
@@ -301,10 +320,13 @@ export function MachinePanelView({
 				</Cell>
 				<Cell label="VAULT">
 					<div className="flex flex-col gap-2">
-						<span className="text-[26px] text-neutral-500 tabular-nums">-</span>
+						<span
+							className={`text-[26px] tabular-nums ${balances?.vault ? "text-neutral-100" : "text-neutral-500"}`}
+						>
+							{balances?.vault ? `${holdingOf(balances.vault, USDC).toFixed(2)} USDC` : "-"}
+						</span>
 						<span className="text-[10px] text-neutral-600 tracking-[0.1em]">
-							PROFIT ABOVE THE FLOAT IS BANKED HERE, WHERE IT CAN NEVER BE TRADED. ITS BALANCE
-							ARRIVES WITH THE BACKEND PASS.
+							PROFIT ABOVE THE FLOAT IS BANKED HERE, WHERE IT CAN NEVER BE TRADED.
 						</span>
 					</div>
 				</Cell>
@@ -316,9 +338,15 @@ export function MachinePanelView({
 								<span key={index} className="block h-full w-px bg-white/12" />
 							))}
 						</div>
+						{feeSol === undefined ? null : (
+							<span className="text-[26px] text-neutral-100 tabular-nums">
+								{feeSol.toFixed(4)} SOL
+							</span>
+						)}
 						<span className="text-[10px] text-neutral-600 tracking-[0.1em]">
-							WHAT IT HOLDS TO PAY ITS OWN NETWORK FEES. IT WARNS YOU TO TOP UP BELOW 0.005 SOL. THE
-							LIVE READING ARRIVES WITH THE BACKEND PASS.
+							{feeSol !== undefined && feeSol < 0.005
+								? "RUNNING LOW. TOP IT UP WITH A LITTLE SOL OR IT CANNOT PAY FOR ITS NEXT TRADE."
+								: "WHAT IT HOLDS TO PAY ITS OWN NETWORK FEES. IT WARNS YOU BELOW 0.005 SOL."}
 						</span>
 					</div>
 				</Cell>
@@ -405,6 +433,7 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 	const queryClient = useQueryClient();
 	const machine = useMachine(api, machineId);
 	const record = useRecord(api, machineId);
+	const balances = useBalances(api, machineId);
 	const act = useMachineAction(api, queryClient, machineId);
 	const withdraw = useWithdrawEverything(api, queryClient, machineId);
 	const price = useQuery({
@@ -433,6 +462,7 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 				machine={machine.data}
 				record={record.data ?? []}
 				price={price.data?.usd}
+				balances={balances.data}
 				busy={act.isPending || withdraw.isPending}
 				onAction={(action) =>
 					act.mutate(

@@ -17,6 +17,8 @@ export function loadConfig(source?: EnvSource) {
 			 * gateway refusing to start.
 			 */
 			ORCHESTRATOR_URL: env.optional(env.url()),
+			/** Where balances are read from. Unset, a machine's balances cannot be asked for. */
+			SOLANA_RPC_URL: env.optional(env.url()),
 			ORCHESTRATOR_GATEWAY_TOKEN: env.optional(env.secret()),
 			/**
 			 * The domain a sign in message names, and the only domain its signature is good for. Wallets

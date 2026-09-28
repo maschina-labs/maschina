@@ -24,6 +24,7 @@ vi.mock("../lib/machines.ts", async (real) => ({
 	...(await real<object>()),
 	useMachine: () => state.machine,
 	useRecord: () => ({ data: state.record }),
+	useBalances: () => ({ data: undefined }),
 	useMachineAction: () => ({ mutate: state.mutate, isPending: false, error: null }),
 	useWithdrawEverything: () => ({ mutate: state.withdraw, isPending: false, error: null }),
 }));
