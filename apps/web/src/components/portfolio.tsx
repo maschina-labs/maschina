@@ -1,6 +1,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { amount, recordQueryFor, useMachines } from "../lib/machines.ts";
+import { portfolioPnl } from "../lib/pnl.ts";
 import {
 	type ActivityEntry,
 	activityOf,
@@ -8,6 +9,7 @@ import {
 	totalsOf,
 } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
+import { PnlChartView } from "./pnl-chart.tsx";
 
 function Figure({ label, value }: { label: string; value: string }) {
 	return (
@@ -68,7 +70,8 @@ function useEverything() {
 			events: records[index]?.data ?? [],
 		})),
 	);
-	return { signedIn, machines: machines.data, feed };
+	const all = records.map((record) => record.data ?? []);
+	return { signedIn, machines: machines.data, feed, records: all };
 }
 
 const SIGN_IN = <p className="text-[12px] text-neutral-500">CONNECT TO SEE YOUR MACHINES</p>;
@@ -112,4 +115,11 @@ export function Breakdown() {
 			))}
 		</ol>
 	);
+}
+
+/** Realised profit across every machine, over time. */
+export function Pnl() {
+	const { signedIn, machines, records } = useEverything();
+	if (!signedIn || !machines) return null;
+	return <PnlChartView points={portfolioPnl(records)} />;
 }
