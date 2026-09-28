@@ -213,6 +213,7 @@ describe("after the floor", () => {
 describe("deciding, once a level has woken it", () => {
 	const view = (over: Partial<MachineView> = {}): MachineView => ({
 		balances: new Map([[USDC, baseUnitsOf(28_000_000n)]]),
+		position: new Map(),
 		availableBudget: baseUnitsOf(28_000_000n),
 		now: T0,
 		totals: { spent: baseUnitsOf(0n), buys: 0 },
@@ -224,6 +225,7 @@ describe("deciding, once a level has woken it", () => {
 				[SOL, baseUnitsOf(lamports)],
 				[USDC, baseUnitsOf(0n)],
 			]),
+			position: new Map([[SOL, baseUnitsOf(lamports)]]),
 		});
 
 	it("buys at the bottom of the band", () => {
@@ -259,6 +261,44 @@ describe("deciding, once a level has woken it", () => {
 	it("does nothing on a sell or floor it is not holding anything for", () => {
 		expect(followingRange.decide(read(), view({ wokeOn: "sell" }))).toMatchObject({
 			decide: "wait",
+		});
+	});
+
+	it("does not count SOL kept for fees as a position, because it never bought it", () => {
+		const funded = view({
+			wokeOn: "buy",
+			balances: new Map([
+				[USDC, baseUnitsOf(28_000_000n)],
+				[SOL, baseUnitsOf(10_900_000n)],
+			]),
+		});
+		expect(followingRange.decide(read(), funded)).toMatchObject({
+			decide: "act",
+			action: { inputMint: USDC, inputAmount: 27_750_000n },
+		});
+	});
+
+	it("sells what it bought and leaves the SOL kept for fees", () => {
+		const withFees = view({
+			wokeOn: "sell",
+			balances: new Map([[SOL, baseUnitsOf(240_900_000n)]]),
+			position: new Map([[SOL, baseUnitsOf(230_000_000n)]]),
+		});
+		expect(followingRange.decide(read(), withFees)).toMatchObject({
+			decide: "act",
+			action: { inputMint: SOL, inputAmount: 230_000_000n },
+		});
+	});
+
+	it("never sells more than the wallet actually holds", () => {
+		const short = view({
+			wokeOn: "sell",
+			balances: new Map([[SOL, baseUnitsOf(229_000_000n)]]),
+			position: new Map([[SOL, baseUnitsOf(230_000_000n)]]),
+		});
+		expect(followingRange.decide(read(), short)).toMatchObject({
+			decide: "act",
+			action: { inputAmount: 229_000_000n },
 		});
 	});
 

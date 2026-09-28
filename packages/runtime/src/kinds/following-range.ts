@@ -311,8 +311,12 @@ export const followingRange: MachineKind<FollowingRangeSettings> = {
 	},
 
 	decide(settings, view: MachineView): Decision {
-		const held = view.balances.get(settings.baseMint) ?? baseUnitsOf(0n);
-		const holding = held > 0n && held >= settings.minBase;
+		// In the market means holding what its own trades bought, never whatever the wallet holds: the wallet
+		// also keeps SOL for fees (M35). A sale is capped by the wallet, which is what can actually be spent.
+		const bought = view.position.get(settings.baseMint) ?? baseUnitsOf(0n);
+		const inWallet = view.balances.get(settings.baseMint) ?? baseUnitsOf(0n);
+		const held = bought < inWallet ? bought : inWallet;
+		const holding = bought > 0n && bought >= settings.minBase;
 
 		if (view.wokeOn === "buy") {
 			if (holding) {
@@ -351,11 +355,11 @@ export const followingRange: MachineKind<FollowingRangeSettings> = {
 		}
 
 		if (view.wokeOn === "sell" || view.wokeOn === "floor") {
-			if (!holding) {
+			if (!holding || held === 0n) {
 				return {
 					decide: "wait",
 					because: "balance_too_low",
-					detail: `a sale needs ${settings.minBase}, and the wallet holds ${held}`,
+					detail: `a sale needs what this machine bought, and it holds ${held} of it`,
 				};
 			}
 			// Everything it holds. A following range is either in or out, and a remainder would read as
