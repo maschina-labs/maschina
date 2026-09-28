@@ -96,3 +96,24 @@ describe("a machine whose band follows the price", () => {
 		]);
 	});
 });
+
+describe("the band the API sends", () => {
+	it("is drawn as sent, whatever part of the record the app has", () => {
+		const sent = {
+			kind: followingRange.kind,
+			state: "running",
+			settings: {},
+			result: { position: "339698787" },
+			levels: [
+				{ id: "floor", price: "109280000", direction: "falls_to" },
+				{ id: "sell", price: "121750000", direction: "rises_to" },
+			],
+		} as unknown as MachineDetail;
+
+		expect(statusOf(sent, [])).toBe("HOLDING · SELLS AT 121.75");
+		expect(bandOf(sent, [])).toEqual([
+			{ price: 121.75, label: "SELL" },
+			{ price: 109.28, label: "FLOOR" },
+		]);
+	});
+});

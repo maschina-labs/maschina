@@ -9,11 +9,22 @@ const LABELS: Record<string, string> = {
 };
 
 /**
- * Where a following machine's band sits right now, worked out from its record the same way the server
- * works it out, so the chart and the watcher never disagree.
+ * Where a following machine's band sits right now: as the API sends it, or worked out from the record the
+ * same way the server works it out, so the chart and the watcher never disagree.
  */
 function followingLevels(machine: MachineDetail, record: readonly RecordEntry[]) {
 	if (machine.kind !== followingRange.kind) return undefined;
+	// The API works the band out from the whole record; the app only has part of it. What the API sends
+	// wins, and the record is read only when talking to an API from before it sent levels.
+	const sent = (machine as { levels?: { id: string; price: string }[] }).levels;
+	if (sent)
+		return sent
+			.map((level) => ({
+				id: level.id,
+				price: Number(level.price) / 1_000_000,
+				label: LABELS[level.id] ?? level.id.toUpperCase(),
+			}))
+			.sort((a, b) => b.price - a.price);
 	const read = followingRange.readSettings(machine.settings);
 	if (!read.ok) return [];
 	// The record arrives newest first; the band is worked out from the oldest.

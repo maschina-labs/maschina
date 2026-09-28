@@ -50,6 +50,7 @@ export const asDetail = (machine: OwnedMachineDetail) => ({
 		approvedMints: machine.limits.approvedMints,
 	},
 	actions: machine.actions,
+	levels: machine.levels.map((level) => ({ ...level, price: digits(level.price) })),
 });
 
 /** The record, newest first, cut to what was asked for. */

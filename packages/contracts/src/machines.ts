@@ -99,6 +99,14 @@ export const MachineDetail = MachineSummary.extend({
 		approvedMints: z.array(address),
 	}),
 	actions: z.array(z.enum(["fund", "start", "pause", "resume", "stop"])),
+	/** The prices it is waiting on now, in micro-dollars, worked out from its whole record. */
+	levels: z.array(
+		z.strictObject({
+			id: z.string(),
+			price: whole,
+			direction: z.enum(["falls_to", "rises_to"]),
+		}),
+	),
 }).meta({ id: "MachineDetail" });
 export type MachineDetail = z.infer<typeof MachineDetail>;
 

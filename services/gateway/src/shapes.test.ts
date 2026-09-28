@@ -27,6 +27,7 @@ const machine: OwnedMachineDetail = {
 	settings: { level: "142000000" },
 	limits: { maxPerTrade: 5_000_000n, maxPerDay: undefined, approvedMints: [SOL] },
 	actions: ["pause", "stop"],
+	levels: [{ id: "buy", price: 142_000_000n, direction: "falls_to" }],
 };
 
 describe("what the API says about a machine", () => {
@@ -41,6 +42,12 @@ describe("what the API says about a machine", () => {
 		const detail = asDetail(machine);
 		expect(detail.limits).toEqual({ maxPerTrade: "5000000", approvedMints: [SOL] });
 		expect("maxPerDay" in detail.limits).toBe(false);
+	});
+
+	it("gives the prices it is waiting on, as digits", () => {
+		expect(asDetail(machine).levels).toEqual([
+			{ id: "buy", price: "142000000", direction: "falls_to" },
+		]);
 	});
 
 	it("says why a machine is paused when the record knows", () => {

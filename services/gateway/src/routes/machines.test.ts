@@ -38,6 +38,7 @@ const detail = {
 	settings: { level: "142000000" },
 	limits: { maxPerTrade: "5000000", approvedMints: [SOL] },
 	actions: ["fund", "start", "stop"] as const,
+	levels: [],
 };
 
 function app(ports: Partial<MachinePorts> = {}) {

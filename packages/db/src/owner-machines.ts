@@ -11,6 +11,7 @@ import {
 	allowedActions,
 	budgetMintOf,
 	KNOWN_KINDS,
+	levelsOf,
 	type MachineAction,
 	type MachinePnl,
 	type MachineState,
@@ -47,6 +48,11 @@ export type OwnedMachineDetail = OwnedMachine & {
 	};
 	/** What the owner may do with it right now, from the lifecycle rules. */
 	actions: MachineAction[];
+	/**
+	 * The prices it is waiting on right now, worked out from its whole record, so an app draws exactly
+	 * the band the watcher is watching rather than guessing from part of the history.
+	 */
+	levels: { id: string; price: bigint; direction: "falls_to" | "rises_to" }[];
 };
 
 type Row = {
@@ -129,6 +135,9 @@ export async function machineForOwner(
 			approvedMints: limits.approvedMints,
 		},
 		actions: allowedActions(summary.state),
+		levels: levelsOf(KNOWN_KINDS, row.kind, row.settings, { events, now: new Date() }).map(
+			(level) => ({ id: level.id, price: level.level, direction: level.direction }),
+		),
 	};
 }
 
