@@ -5,7 +5,8 @@
  * than carrying a wallet library. Two reasons: the app never touches a chain, and a signing flow this
  * short is easier to read than a dependency that hides it.
  *
- * Nothing here approves a transaction. The only thing it ever signs is a sentence.
+ * It signs two things: a sentence, to sign in, and a transaction the owner approves in their own wallet
+ * to fund one of their machines. Nothing here approves anything by itself.
  */
 
 import { encodeBase58 } from "@maschina/auth";
@@ -19,6 +20,8 @@ type Injected = {
 		message: Uint8Array,
 		encoding?: string,
 	): Promise<{ signature: Uint8Array } | Uint8Array>;
+	/** Phantom's request interface, which takes a serialised transaction as base58. */
+	request?(call: { method: string; params: unknown }): Promise<{ signature: string }>;
 };
 
 declare global {
@@ -52,4 +55,20 @@ export async function signMessage(message: string): Promise<string> {
 	const signed = await injected().signMessage(new TextEncoder().encode(message), "utf8");
 	const signature = signed instanceof Uint8Array ? signed : signed.signature;
 	return encodeBase58(signature);
+}
+
+/**
+ * Asks the wallet to approve and send a transaction, given as base64, and returns its signature. The
+ * wallet shows the owner what it does first; nothing moves unless they approve.
+ */
+export async function sendTransaction(base64: string): Promise<string> {
+	const wallet = injected();
+	if (!wallet.request)
+		throw new Error("This wallet cannot send transactions from here. Try Phantom.");
+	const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+	const sent = await wallet.request({
+		method: "signAndSendTransaction",
+		params: { message: encodeBase58(bytes) },
+	});
+	return sent.signature;
 }

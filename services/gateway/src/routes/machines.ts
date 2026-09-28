@@ -14,6 +14,8 @@ import {
 	CreateMachineRequest,
 	CreateMachineResponse,
 	ErrorBody,
+	FundingRequest,
+	FundingTransaction,
 	MachineActionRequest,
 	MachineActionResponse,
 	MachineBalances,
@@ -49,6 +51,17 @@ export type MachinePorts = {
 		kind: string;
 		settings: Record<string, unknown>;
 	}): Promise<RetuneMachineResponse>;
+	/**
+	 * An unsigned transaction moving the owner's own dollars and SOL into the machine, for their wallet to
+	 * approve. The paying wallet is always the one signed in.
+	 */
+	funding(request: {
+		ownerId: string;
+		ownerWallet: string;
+		machineId: string;
+		usdc: bigint;
+		lamports: bigint;
+	}): Promise<FundingTransaction>;
 	/** What the machine holds on chain right now. The machine is known to be theirs by now. */
 	balances(ownerId: string, machineId: string): Promise<MachineBalances>;
 	create(request: CreateMachineRequest & { ownerWallet: string }): Promise<CreateMachineResponse>;
@@ -125,6 +138,30 @@ const balances = createRoute({
 		},
 		503: {
 			description: "The chain cannot be read from here",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		...problem,
+	},
+});
+
+const funding = createRoute({
+	method: "post",
+	path: "/machines/{machineId}/funding",
+	tags: ["Machines"],
+	summary: "A transaction that funds a machine from your wallet",
+	description:
+		"Built for the wallet that signed in and nothing else: your USDC and a little SOL for its fees, into the machine's own wallet. Nothing moves until your wallet approves it.",
+	request: {
+		params: z.object({ machineId }),
+		body: { content: { "application/json": { schema: FundingRequest } } },
+	},
+	responses: {
+		200: {
+			description: "The unsigned transaction",
+			content: { "application/json": { schema: FundingTransaction } },
+		},
+		503: {
+			description: "The chain cannot be reached from here",
 			content: { "application/json": { schema: ErrorBody } },
 		},
 		...problem,
@@ -265,6 +302,21 @@ export function machineRoutes(ports: MachinePorts) {
 				MachineRecord.parse({ events: await ports.record(who.ownerId, id, limit) }),
 				200,
 			);
+		})
+		.openapi(funding, async (c) => {
+			const who = await owner(c);
+			const { machineId: id } = c.req.valid("param");
+			mustExist(await ports.read(who.ownerId, id));
+			const body = c.req.valid("json");
+			const built = await ports.funding({
+				ownerId: who.ownerId,
+				// The session's wallet pays. A request cannot name somebody else's.
+				ownerWallet: who.walletAddress,
+				machineId: id,
+				usdc: BigInt(body.usdc),
+				lamports: BigInt(body.lamports),
+			});
+			return c.json(FundingTransaction.parse(built), 200);
 		})
 		.openapi(balances, async (c) => {
 			const who = await owner(c);

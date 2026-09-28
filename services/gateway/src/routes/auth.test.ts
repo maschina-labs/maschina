@@ -23,6 +23,9 @@ const noMachines = {
 	record: async () => [],
 	act: async () => ({ state: "ready" }),
 	retune: async () => ({ definitionId: "e".repeat(64) }),
+	funding: async () => {
+		throw new Error("not used here");
+	},
 	balances: async () => {
 		throw new Error("not used here");
 	},

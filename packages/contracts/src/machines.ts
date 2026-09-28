@@ -125,6 +125,18 @@ export const MachineBalances = z
 	.meta({ id: "MachineBalances" });
 export type MachineBalances = z.infer<typeof MachineBalances>;
 
+/** Money to send a machine from the owner's own wallet: dollars to trade with, and SOL for its fees. */
+export const FundingRequest = z
+	.strictObject({ usdc: whole, lamports: whole })
+	.meta({ id: "FundingRequest" });
+export type FundingRequest = z.infer<typeof FundingRequest>;
+
+/** An unsigned transaction for the owner's wallet to approve, as base64. */
+export const FundingTransaction = z
+	.strictObject({ transaction: z.string().min(1), lastValidBlockHeight: whole })
+	.meta({ id: "FundingTransaction" });
+export type FundingTransaction = z.infer<typeof FundingTransaction>;
+
 /** What an owner asks a machine to do. Funding carries the budget it may now spend in total. */
 export const MachineActionRequest = z
 	.strictObject({

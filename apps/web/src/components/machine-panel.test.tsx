@@ -286,3 +286,58 @@ describe("what the machine holds, from the chain", () => {
 		expect(screen.getByText(/TOP IT UP/)).toBeInTheDocument();
 	});
 });
+
+describe("funding it from your wallet", () => {
+	it("sends the dollars typed, with SOL for fees, in one approval", () => {
+		const onFund = vi.fn();
+		render(
+			<MachinePanelView
+				machine={machine("running", ["fund", "pause", "stop"])}
+				record={[]}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+				onFund={onFund}
+			/>,
+		);
+
+		fireEvent.change(screen.getByRole("textbox", { name: /ADD USDC/ }), {
+			target: { value: "40" },
+		});
+		fireEvent.click(screen.getByRole("button", { name: "FUND FROM MY WALLET" }));
+		expect(onFund).toHaveBeenCalledWith({ usdc: "40000000", lamports: "12000000" });
+	});
+
+	it("can send SOL for fees alone, and never sends nothing", () => {
+		const onFund = vi.fn();
+		render(
+			<MachinePanelView
+				machine={machine("running", ["fund"])}
+				record={[]}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+				onFund={onFund}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "FUND FROM MY WALLET" }));
+		expect(onFund).toHaveBeenCalledWith({ usdc: "0", lamports: "12000000" });
+		fireEvent.click(screen.getByRole("button", { name: /WITH 0.012 SOL FOR FEES/ }));
+		expect(screen.getByRole("button", { name: "FUND FROM MY WALLET" })).toBeDisabled();
+	});
+
+	it("is not offered once a machine has stopped", () => {
+		render(
+			<MachinePanelView
+				machine={machine("stopped", [])}
+				record={[]}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+				onFund={vi.fn()}
+			/>,
+		);
+		expect(screen.queryByRole("button", { name: "FUND FROM MY WALLET" })).not.toBeInTheDocument();
+	});
+});

@@ -199,6 +199,45 @@ export function useWithdrawEverything(api: Api, queryClient: QueryClient, machin
 	});
 }
 
+/**
+ * Funding a machine from the owner's wallet, in one approval: the gateway builds the transaction for the
+ * signed in wallet, the wallet shows it and sends it, and the machine's budget rises by the dollars sent.
+ * The budget only moves once the wallet has sent, so a cancelled approval changes nothing.
+ */
+export function useFund(
+	api: Api,
+	queryClient: QueryClient,
+	machineId: string,
+	send: (base64: string) => Promise<string>,
+) {
+	return useMutation({
+		mutationFn: async (request: { usdc: string; lamports: string; granted: string }) => {
+			const built = await read<{ transaction: string }>(
+				await api.v1.machines[":machineId"].funding.$post({
+					param: { machineId },
+					json: { usdc: request.usdc, lamports: request.lamports },
+				}),
+			);
+			const signature = await send(built.transaction);
+			if (BigInt(request.usdc) > 0n) {
+				await read(
+					await api.v1.machines[":machineId"].actions.$post({
+						param: { machineId },
+						json: {
+							action: "fund",
+							budgetGranted: (BigInt(request.granted) + BigInt(request.usdc)).toString(),
+						},
+					}),
+				);
+			}
+			return { signature };
+		},
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["machines"] });
+		},
+	});
+}
+
 export type NewMachine = {
 	name: string;
 	kind: string;

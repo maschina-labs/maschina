@@ -11,15 +11,18 @@ import {
 	type MachineDetail,
 	type RecordEntry,
 	useBalances,
+	useFund,
 	useMachine,
 	useMachineAction,
 	useRecord,
 	useWithdrawEverything,
 } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
+import { numberFrom, sixDecimals } from "../lib/range-form.ts";
 import { bandOf, statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
 import { executionBps, holdingReturn, largestDrop } from "../lib/track-record.ts";
+import { sendTransaction } from "../lib/wallet.ts";
 import { BandDial } from "./band-dial.tsx";
 import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
@@ -38,6 +41,44 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
 		<div className="flex min-h-[132px] flex-col gap-4 border-white/[0.07] border-t p-4 sm:border-l">
 			<span className={LABEL}>{label}</span>
 			{children}
+		</div>
+	);
+}
+
+const FEE_LAMPORTS = "12000000";
+
+/** Adding money from the owner's own wallet: dollars to trade with, and SOL for its fees. */
+function FundForm({
+	busy,
+	onFund,
+}: {
+	busy: boolean;
+	onFund: (amounts: { usdc: string; lamports: string }) => void;
+}) {
+	const [typed, setTyped] = useState("");
+	const [withSol, setWithSol] = useState(true);
+	const dollars = numberFrom(typed);
+	const usdc = Number.isFinite(dollars) && dollars > 0 ? sixDecimals(typed) : "0";
+	const sendsSomething = usdc !== "0" || withSol;
+	return (
+		<div className="flex flex-col gap-1.5 pt-2">
+			<TypeRow label="ADD USDC" value={typed} onChange={setTyped} suffix="USDC" />
+			<button
+				type="button"
+				aria-pressed={withSol}
+				onClick={() => setWithSol((was) => !was)}
+				className={`h-8 text-[10.5px] tracking-[0.12em] ${withSol ? "text-neutral-100" : "text-neutral-500"}`}
+			>
+				{withSol ? "WITH 0.012 SOL FOR FEES" : "NO SOL FOR FEES"}
+			</button>
+			<button
+				type="button"
+				disabled={busy || !sendsSomething}
+				onClick={() => onFund({ usdc, lamports: withSol ? FEE_LAMPORTS : "0" })}
+				className="h-9 w-full border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
+			>
+				FUND FROM MY WALLET
+			</button>
 		</div>
 	);
 }
@@ -93,6 +134,7 @@ export function MachinePanelView({
 	busy,
 	onAction,
 	onWithdraw,
+	onFund,
 }: {
 	machine: MachineDetail;
 	record: RecordEntry[];
@@ -103,6 +145,8 @@ export function MachinePanelView({
 	busy: boolean;
 	onAction: (action: MachineAction) => void;
 	onWithdraw: () => void;
+	/** Money from the owner's wallet into this machine, approved in their wallet. */
+	onFund?: ((amounts: { usdc: string; lamports: string }) => void) | undefined;
 }) {
 	const settings = machine.settings;
 	const buy =
@@ -259,6 +303,9 @@ export function MachinePanelView({
 								{action.toUpperCase()}
 							</button>
 						))}
+						{onFund && machine.state !== "stopped" ? (
+							<FundForm busy={busy} onFund={onFund} />
+						) : null}
 						{SETTLED.has(machine.state) ? (
 							<button
 								type="button"
@@ -436,6 +483,7 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 	const balances = useBalances(api, machineId);
 	const act = useMachineAction(api, queryClient, machineId);
 	const withdraw = useWithdrawEverything(api, queryClient, machineId);
+	const fund = useFund(api, queryClient, machineId, sendTransaction);
 	const price = useQuery({
 		queryKey: ["sol-price"],
 		queryFn: () => fetchPrice(),
@@ -463,7 +511,16 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 				record={record.data ?? []}
 				price={price.data?.usd}
 				balances={balances.data}
-				busy={act.isPending || withdraw.isPending}
+				busy={act.isPending || withdraw.isPending || fund.isPending}
+				onFund={(amounts) =>
+					fund.mutate(
+						{ ...amounts, granted: machine.data?.budget.granted ?? "0" },
+						{
+							onSuccess: () => toast("funded from your wallet"),
+							onError: (error) => toast(error.message, "problem"),
+						},
+					)
+				}
 				onAction={(action) =>
 					act.mutate(
 						{ action },
