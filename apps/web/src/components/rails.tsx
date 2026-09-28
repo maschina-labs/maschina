@@ -1,6 +1,7 @@
-import { BookOpen, ChatsCircle, GearSix, Pulse, Robot, Sparkle } from "@phosphor-icons/react";
+import { Bell, BookOpen, ChatsCircle, GearSix, Pulse, Robot, Sparkle } from "@phosphor-icons/react";
 import { Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
+import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
@@ -160,8 +161,19 @@ export function LeftRail() {
  * chat as a tool window beside it. One is open at a time; pressing the open one closes it.
  */
 export function RightRail() {
-	const [open, setOpen] = useState<"live" | "chat" | undefined>("live");
-	const toggle = (tool: "live" | "chat") => setOpen((was) => (was === tool ? undefined : tool));
+	const [open, setOpen] = useState<"live" | "chat" | "alerts" | undefined>("live");
+	const toggle = (tool: "live" | "chat" | "alerts") =>
+		setOpen((was) => (was === tool ? undefined : tool));
+	const alerts = alertsFrom(useActivity());
+	const [seenAt, setSeenAt] = useState(lastSeen);
+	const fresh = open === "alerts" ? 0 : unread(alerts, seenAt);
+	// Opening the alerts is looking at them: everything up to now counts as seen.
+	const openAlerts = () => {
+		const now = new Date().toISOString();
+		markSeen(now);
+		setSeenAt(now);
+		toggle("alerts");
+	};
 	return (
 		<div className="hidden shrink-0 lg:flex">
 			{open === "live" ? (
@@ -170,6 +182,26 @@ export function RightRail() {
 						<section aria-label="Live" className="flex flex-col gap-4">
 							<h2 className={LABEL}>LIVE</h2>
 							<Live />
+						</section>
+					</ScrollArea>
+				</aside>
+			) : null}
+			{open === "alerts" ? (
+				<aside aria-label="Alerts" className={`w-72 ${PANEL}`}>
+					<ScrollArea className={INSIDE}>
+						<section aria-label="Alerts list" className="flex flex-col gap-4">
+							<h2 className={LABEL}>ALERTS</h2>
+							{alerts.length === 0 ? <p className={LABEL}>NOTHING TO TELL YOU YET</p> : null}
+							<div className="flex flex-col gap-6">
+								{alerts.slice(0, 30).map((entry) => (
+									<Note
+										key={entry.id}
+										top={`${new Date(entry.occurredAt).toLocaleString("en-CA", { hour12: false })} · ${entry.machineName.toUpperCase()}`}
+										title={describeEvent(entry).title}
+										detail={describeEvent(entry).detail}
+									/>
+								))}
+							</div>
 						</section>
 					</ScrollArea>
 				</aside>
@@ -192,6 +224,21 @@ export function RightRail() {
 					className={`${ICON} ${open === "live" ? `text-neutral-100 ${GLASS_ACTIVE}` : ""}`}
 				>
 					<Pulse size={18} weight="light" />
+				</button>
+				<button
+					type="button"
+					aria-label={fresh > 0 ? `Alerts, ${fresh} new` : "Alerts"}
+					title="Alerts"
+					aria-pressed={open === "alerts"}
+					onClick={openAlerts}
+					className={`relative ${ICON} ${open === "alerts" ? `text-neutral-100 ${GLASS_ACTIVE}` : ""}`}
+				>
+					<Bell size={18} weight="light" />
+					{fresh > 0 ? (
+						<span className="absolute top-0.5 right-0.5 min-w-3.5 bg-neutral-100 px-0.5 text-center text-[8.5px] text-neutral-950 leading-[14px]">
+							{fresh > 9 ? "9+" : fresh}
+						</span>
+					) : null}
 				</button>
 				<button
 					type="button"
