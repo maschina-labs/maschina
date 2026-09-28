@@ -53,7 +53,7 @@ function Machines() {
 					/>
 				</Link>
 			))}
-			<Link to="/machines" className={`${LABEL} hover:text-neutral-100`}>
+			<Link to="/new" className={`${LABEL} hover:text-neutral-100`}>
 				+ NEW MACHINE
 			</Link>
 		</div>

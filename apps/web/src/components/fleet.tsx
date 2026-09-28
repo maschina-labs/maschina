@@ -17,7 +17,7 @@ export function FleetView({
 		return (
 			<p className="text-[12px] text-neutral-500">
 				NO MACHINES YET ·{" "}
-				<Link to="/machines" className="text-neutral-200 hover:text-neutral-50">
+				<Link to="/new" className="text-neutral-200 hover:text-neutral-50">
 					MAKE A PAPER ONE, IT'S FREE →
 				</Link>
 			</p>

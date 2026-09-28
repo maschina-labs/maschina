@@ -27,7 +27,7 @@ vi.mock("../components/portfolio.tsx", () => ({
 	],
 }));
 
-const { Route } = await import("./network.tsx");
+const { Route } = await import("./network.index.tsx");
 const Page = (Route as unknown as { component: () => React.ReactNode }).component;
 
 describe("the network page", () => {

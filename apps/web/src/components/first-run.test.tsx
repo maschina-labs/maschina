@@ -21,7 +21,7 @@ describe("the first run", () => {
 		render(<FirstRun connected hasMachine={false} />);
 
 		expect(screen.getByText("DONE")).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: /MAKE ONE/ })).toHaveAttribute("href", "/machines");
+		expect(screen.getByRole("link", { name: /MAKE ONE/ })).toHaveAttribute("href", "/new");
 	});
 
 	it("goes away once there is a machine", () => {

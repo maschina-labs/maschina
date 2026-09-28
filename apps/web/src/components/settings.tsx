@@ -1,5 +1,4 @@
-import { useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useSession } from "../lib/session.ts";
 import { GLASS, GLASS_ACTIVE } from "./glass.ts";
 
@@ -43,21 +42,9 @@ export function Toggle({
 	);
 }
 
-const ALERTS = [
-	"EVERY TRADE",
-	"A MACHINE HITS ITS FLOOR",
-	"A MACHINE PAUSES ITSELF",
-	"FEE SOL RUNNING LOW",
-	"A DAILY SUMMARY",
-] as const;
-
 export function Settings() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
-	const [alerts, setAlerts] = useState<Record<string, boolean>>({
-		"EVERY TRADE": true,
-		"A MACHINE HITS ITS FLOOR": true,
-	});
 	return (
 		<div className="flex max-w-[640px] flex-col gap-10">
 			<Section title="WALLET">
@@ -69,20 +56,15 @@ export function Settings() {
 				</p>
 			</Section>
 
-			<Section title="TELL ME WHEN">
-				<div className="flex flex-col gap-1.5">
-					{ALERTS.map((alert) => (
-						<Toggle
-							key={alert}
-							label={alert}
-							on={alerts[alert] === true}
-							onChange={(on) => setAlerts((was) => ({ ...was, [alert]: on }))}
-						/>
-					))}
+			<Section title="MORE SETTINGS">
+				<div className="flex flex-col gap-2 text-[11px] tracking-[0.14em]">
+					<Link to="/settings/alerts" className="text-neutral-200 hover:text-neutral-50">
+						ALERTS →
+					</Link>
+					<Link to="/settings/keys" className="text-neutral-200 hover:text-neutral-50">
+						API KEYS →
+					</Link>
 				</div>
-				<p className="text-[10px] text-neutral-600 tracking-[0.1em]">
-					ALERTS GO TO TELEGRAM FIRST, AND MASCHINA'S OWN APP LATER. SAVED WITH THE BACKEND PASS.
-				</p>
 			</Section>
 
 			<Section title="FEES AND PLAN">

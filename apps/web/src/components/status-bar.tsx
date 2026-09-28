@@ -57,10 +57,10 @@ export function StatusBarView({ price, change24h, running, machines, realised }:
 				<a href="mailto:support@maschina.dev" className="hover:text-neutral-200">
 					SUPPORT
 				</a>
-				<a href="/terms" className="hover:text-neutral-200">
+				<a href="/legal/terms" className="hover:text-neutral-200">
 					TERMS
 				</a>
-				<a href="/privacy" className="hover:text-neutral-200">
+				<a href="/legal/privacy" className="hover:text-neutral-200">
 					PRIVACY
 				</a>
 			</span>

@@ -21,7 +21,7 @@ export function SearchBox() {
 export function NewMachineButton() {
 	return (
 		<Link
-			to="/machines"
+			to="/new"
 			aria-label="New machine"
 			className="inline-flex h-7 items-center gap-1.5 bg-[oklch(1_0_0/0.08)] px-3 text-[10.5px] text-neutral-200 tracking-[0.14em] transition-colors hover:bg-[oklch(1_0_0/0.14)]"
 		>

@@ -1,8 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@tanstack/react-router", () => ({
 	useRouter: () => ({ options: { context: { api: {} } } }),
+	Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+		<a href={to}>{children}</a>
+	),
 }));
 vi.mock("../lib/session.ts", () => ({
 	useSession: () => ({
@@ -19,13 +22,13 @@ describe("settings", () => {
 		expect(screen.getByText("8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR")).toBeInTheDocument();
 	});
 
-	it("switches an alert on and off", () => {
+	it("links to alerts and keys", () => {
 		render(<Settings />);
 
-		const daily = screen.getByRole("button", { name: /A DAILY SUMMARY/ });
-		expect(daily).toHaveAttribute("aria-pressed", "false");
-		fireEvent.click(daily);
-		expect(daily).toHaveAttribute("aria-pressed", "true");
+		expect(screen.getByRole("link", { name: "ALERTS →" })).toHaveAttribute(
+			"href",
+			"/settings/alerts",
+		);
 	});
 
 	it("states plainly that paper is free", () => {

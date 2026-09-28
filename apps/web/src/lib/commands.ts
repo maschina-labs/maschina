@@ -44,7 +44,7 @@ export function commandsFor(
 			to: "/portfolio",
 		},
 		{ id: "machines", label: "MACHINES", hint: "PAGE · YOUR FLEET", to: "/machines" },
-		{ id: "new", label: "NEW MACHINE", hint: "CREATE · PAPER OR LIVE", to: "/machines" },
+		{ id: "new", label: "NEW MACHINE", hint: "CREATE · PAPER OR LIVE", to: "/new" },
 		{
 			id: "activity",
 			label: "ACTIVITY",

@@ -27,7 +27,7 @@ describe("the header's tools", () => {
 
 	it("keeps making a machine one press away", () => {
 		render(<NewMachineButton />);
-		expect(screen.getByRole("link", { name: "New machine" })).toHaveAttribute("href", "/machines");
+		expect(screen.getByRole("link", { name: "New machine" })).toHaveAttribute("href", "/new");
 	});
 });
 

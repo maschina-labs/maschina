@@ -34,7 +34,7 @@ export function FirstRun({ connected, hasMachine }: { connected: boolean; hasMac
 						</span>
 						{index === 1 && index === next ? (
 							<Link
-								to="/machines"
+								to="/new"
 								className="self-start border border-white/30 px-3 py-1.5 text-[10.5px] text-neutral-100 tracking-[0.12em] hover:bg-white/[0.06]"
 							>
 								MAKE ONE →

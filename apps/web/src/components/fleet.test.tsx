@@ -48,9 +48,6 @@ describe("the fleet", () => {
 		render(<FleetView machines={[]} selected={undefined} onSelect={vi.fn()} />);
 
 		expect(screen.getByText(/NO MACHINES YET/)).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: /MAKE A PAPER ONE/ })).toHaveAttribute(
-			"href",
-			"/machines",
-		);
+		expect(screen.getByRole("link", { name: /MAKE A PAPER ONE/ })).toHaveAttribute("href", "/new");
 	});
 });

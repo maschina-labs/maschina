@@ -10,7 +10,7 @@ import { useSession } from "../lib/session.ts";
 
 const LABEL = "text-[10.5px] text-neutral-500 tracking-[0.14em]";
 
-export const Route = createFileRoute("/network")({
+export const Route = createFileRoute("/network/")({
 	component: Page,
 });
 
