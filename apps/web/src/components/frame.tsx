@@ -51,14 +51,17 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 					<MobileMenu />
 				</div>
 			</header>
-			<TickerView machines={mine} price={price.data?.usd} />
 			<div className="flex min-h-0 flex-1">
 				{sides ? <LeftRail /> : null}
-				<main className="min-w-0 flex-1">
-					<ScrollArea>
-						{/* The page in a centred column, with the two sidebars either side. */}
-						<div className="mx-auto h-full w-full max-w-[1100px]">{children}</div>
-					</ScrollArea>
+				<main className="flex min-w-0 flex-1 flex-col">
+					{/* The ticker runs across the page only, between the rails. */}
+					<TickerView machines={mine} price={price.data?.usd} />
+					<div className="min-h-0 flex-1">
+						<ScrollArea>
+							{/* The page in a centred column, with the two sidebars either side. */}
+							<div className="mx-auto h-full w-full max-w-[1100px]">{children}</div>
+						</ScrollArea>
+					</div>
 				</main>
 
 				{sides ? <RightRail /> : null}
