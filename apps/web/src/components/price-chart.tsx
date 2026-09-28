@@ -45,6 +45,7 @@ export function PriceChart({
 	levels = [],
 	trades = [],
 	onLive,
+	onPrice,
 }: {
 	symbol?: string;
 	interval?: string;
@@ -54,6 +55,8 @@ export function PriceChart({
 	trades?: Trade[];
 	/** Told whether the live stream is connected. */
 	onLive?: (live: boolean) => void;
+	/** Told the latest price with every trade the stream reports. */
+	onPrice?: (price: number) => void;
 }) {
 	const holder = useRef<HTMLDivElement>(null);
 	const series = useRef<ISeriesApi<"Candlestick">>(undefined);
@@ -128,6 +131,7 @@ export function PriceChart({
 				for (const candle of past) known.set(candle.time, candle);
 				latest.current = past.at(-1);
 				setHover(latest.current);
+				if (latest.current) onPrice?.(latest.current.close);
 				stop = streamCandles(
 					symbol,
 					interval,
@@ -136,6 +140,7 @@ export function PriceChart({
 						volume.update(bar(live) as never);
 						known.set(live.time, live);
 						latest.current = live;
+						onPrice?.(live.close);
 					},
 					undefined,
 					onLive,

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { bandOf, Decisions, useMachineAtWork, WorkBar } from "../components/at-work.tsx";
+import { BandRuler } from "../components/band-ruler.tsx";
 import { MarketStrip } from "../components/market-strip.tsx";
 import { PriceChart } from "../components/price-chart.tsx";
 import { SolPrice } from "../components/sol-price.tsx";
@@ -21,6 +22,10 @@ function Terminal() {
 	const { machine: chosen } = Route.useSearch();
 	const { machine, record } = useMachineAtWork(chosen);
 	const [interval, setInterval] = useState<Interval>("15m");
+	const [price, setPrice] = useState<number>();
+	const band = machine ? bandOf(machine) : [];
+	const sell = band.find((level) => level.label === "SELL")?.price;
+	const buy = band.find((level) => level.label === "BUY")?.price;
 	return (
 		<div className="flex w-full flex-col gap-6 px-2 pt-6 pb-16 sm:px-6 sm:pt-10">
 			<section aria-label="SOL price" className="flex h-[60vh] min-h-[360px] flex-col gap-4">
@@ -42,12 +47,20 @@ function Terminal() {
 						</button>
 					))}
 				</fieldset>
-				<div className="min-h-0 flex-1">
-					<PriceChart
-						interval={interval}
-						levels={machine ? bandOf(machine) : []}
-						trades={tradesFrom(record)}
-					/>
+				<div className="flex min-h-0 flex-1 gap-4">
+					<div className="min-w-0 flex-1">
+						<PriceChart
+							interval={interval}
+							levels={band}
+							trades={tradesFrom(record)}
+							onPrice={setPrice}
+						/>
+					</div>
+					{buy !== undefined && sell !== undefined ? (
+						<div className="hidden sm:block">
+							<BandRuler buy={buy} sell={sell} price={price} />
+						</div>
+					) : null}
 				</div>
 			</section>
 			<WorkBar machine={machine} />
