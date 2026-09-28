@@ -66,6 +66,19 @@ body {
 	}
 }
 
+/* The loading ruler: each tick brightens and grows in turn. */
+@keyframes tick {
+	0%,
+	100% {
+		background-color: oklch(1 0 0 / 0.15);
+		height: 0.5rem;
+	}
+	50% {
+		background-color: oklch(1 0 0 / 0.85);
+		height: 0.9rem;
+	}
+}
+
 body {
 	@apply bg-black font-mono text-neutral-100 uppercase tracking-[0.08em] antialiased;
 }

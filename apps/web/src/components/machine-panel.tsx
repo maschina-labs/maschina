@@ -16,6 +16,7 @@ import { fetchPrice } from "../lib/price.ts";
 import { statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
 import { Confirm } from "./confirm.tsx";
+import { Loading } from "./loading.tsx";
 
 /** A withdrawal only goes through once a machine has stopped acting, so it is only offered then. */
 const SETTLED = new Set(["draft", "ready", "paused", "stopped"]);
@@ -289,7 +290,7 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 				{machine.error.message}
 			</p>
 		);
-	if (!machine.data) return <p className="text-[12px] text-neutral-500">…</p>;
+	if (!machine.data) return <Loading what="LOADING THE MACHINE" />;
 	return (
 		<>
 			<MachinePanelView

@@ -1,7 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@tanstack/react-router", () => ({
+	Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+		<a href={to}>{children}</a>
+	),
+	useRouter: () => ({ options: { context: {} } }),
+}));
+
 import type { MachineSummary } from "../lib/machines.ts";
-import { FleetView } from "./fleet.tsx";
+
+const { FleetView } = await import("./fleet.tsx");
 
 const machine = (machineId: string, name: string, state: MachineSummary["state"]) =>
 	({ machineId, name, state, kind: "range" }) as MachineSummary;
@@ -38,6 +47,10 @@ describe("the fleet", () => {
 	it("says so when there are none", () => {
 		render(<FleetView machines={[]} selected={undefined} onSelect={vi.fn()} />);
 
-		expect(screen.getByText("NO MACHINES YET")).toBeInTheDocument();
+		expect(screen.getByText(/NO MACHINES YET/)).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /MAKE A PAPER ONE/ })).toHaveAttribute(
+			"href",
+			"/machines",
+		);
 	});
 });

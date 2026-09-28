@@ -12,6 +12,7 @@ import {
 	totalsOf,
 } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
+import { Loading } from "./loading.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 
 function Figure({ label, value }: { label: string; value: string }) {
@@ -83,7 +84,7 @@ const SIGN_IN = <p className="text-[12px] text-neutral-500">CONNECT TO SEE YOUR 
 export function Totals() {
 	const { signedIn, machines } = useEverything();
 	if (!signedIn) return SIGN_IN;
-	if (!machines) return <p className="text-[12px] text-neutral-500">…</p>;
+	if (!machines) return <Loading what="LOADING YOUR MACHINES" />;
 	return <TotalsView totals={totalsOf(machines)} />;
 }
 
@@ -96,7 +97,7 @@ export function useActivity() {
 export function Activity() {
 	const { signedIn, machines, feed } = useEverything();
 	if (!signedIn) return SIGN_IN;
-	if (!machines) return <p className="text-[12px] text-neutral-500">…</p>;
+	if (!machines) return <Loading what="LOADING YOUR MACHINES" />;
 	return <ActivityView feed={feed} />;
 }
 
@@ -169,7 +170,7 @@ export function FilteredActivity() {
 	const [kind, setKind] = useState<Kind>("ALL");
 	const [machineId, setMachineId] = useState<string>();
 	if (!signedIn) return SIGN_IN;
-	if (!machines) return <p className="text-[12px] text-neutral-500">…</p>;
+	if (!machines) return <Loading what="LOADING YOUR MACHINES" />;
 	const chip = (on: boolean) =>
 		`border px-2.5 py-1.5 text-[10.5px] tracking-[0.12em] transition-colors ${
 			on

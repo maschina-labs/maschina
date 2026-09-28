@@ -1,6 +1,7 @@
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { type MachineSummary, useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
+import { Loading } from "./loading.tsx";
 
 /** Plain for now: exposed first, arranged and styled once everything is on the page. */
 export function FleetView({
@@ -13,7 +14,14 @@ export function FleetView({
 	onSelect: (machineId: string) => void;
 }) {
 	if (machines.length === 0) {
-		return <p className="text-[12px] text-neutral-500">NO MACHINES YET</p>;
+		return (
+			<p className="text-[12px] text-neutral-500">
+				NO MACHINES YET ·{" "}
+				<Link to="/machines" className="text-neutral-200 hover:text-neutral-50">
+					MAKE A PAPER ONE, IT'S FREE →
+				</Link>
+			</p>
+		);
 	}
 	return (
 		<ul aria-label="Your machines" className="flex flex-col">
@@ -57,6 +65,6 @@ export function Fleet({
 				{machines.error.message}
 			</p>
 		);
-	if (!machines.data) return <p className="text-[12px] text-neutral-500">…</p>;
+	if (!machines.data) return <Loading what="LOADING MACHINES" />;
 	return <FleetView machines={machines.data} selected={selected} onSelect={onSelect} />;
 }
