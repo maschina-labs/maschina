@@ -91,9 +91,6 @@ const ICON =
  * machines icon opens and closes. Docs and settings are pages, so their icons go to them; settings sits
  * at the bottom, where people look for it.
  */
-/** A hairline where two attached pieces of the frame meet: the only line in it. */
-const EDGE = "border-white/[0.07]";
-
 /**
  * The left side, like JetBrains: a rail of icons attached to the edge of the screen, and the tool window
  * it opens attached to that, with no gaps. Docs are their own app, so that icon leaves for them; settings
@@ -103,10 +100,7 @@ export function LeftRail() {
 	const [open, setOpen] = useState(true);
 	return (
 		<div className="hidden shrink-0 lg:flex">
-			<nav
-				aria-label="Tools"
-				className={`flex w-11 flex-col items-center gap-1 border-r py-1.5 ${EDGE} ${GLASS}`}
-			>
+			<nav aria-label="Tools" className={`flex w-11 flex-col items-center gap-1 py-1.5 ${GLASS}`}>
 				<button
 					type="button"
 					aria-label="Your machines"
@@ -139,7 +133,7 @@ export function LeftRail() {
 				</Link>
 			</nav>
 			{open ? (
-				<aside aria-label="Left" className={`w-64 border-r ${EDGE} ${PANEL}`}>
+				<aside aria-label="Left" className={`w-64 ${PANEL}`}>
 					<ScrollArea className={INSIDE}>
 						<section aria-label="Your machines" className="flex flex-col gap-4">
 							<h2 className={LABEL}>YOUR MACHINES</h2>
@@ -162,7 +156,7 @@ export function RightRail() {
 	return (
 		<div className="hidden shrink-0 lg:flex">
 			{open === "live" ? (
-				<aside aria-label="Right" className={`w-72 border-l ${EDGE} ${PANEL}`}>
+				<aside aria-label="Right" className={`w-72 ${PANEL}`}>
 					<ScrollArea className={INSIDE}>
 						<section aria-label="Live" className="flex flex-col gap-4">
 							<h2 className={LABEL}>LIVE</h2>
@@ -172,13 +166,13 @@ export function RightRail() {
 				</aside>
 			) : null}
 			{open === "chat" ? (
-				<aside aria-label="Chat window" className={`w-[380px] border-l ${EDGE} ${PANEL}`}>
+				<aside aria-label="Chat window" className={`w-[380px] ${PANEL}`}>
 					<ChatPanel docked onClose={() => setOpen(undefined)} />
 				</aside>
 			) : null}
 			<nav
 				aria-label="Right tools"
-				className={`flex w-11 flex-col items-center gap-1 border-l py-1.5 ${EDGE} ${GLASS}`}
+				className={`flex w-11 flex-col items-center gap-1 py-1.5 ${GLASS}`}
 			>
 				<button
 					type="button"

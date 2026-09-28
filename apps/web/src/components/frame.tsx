@@ -10,16 +10,14 @@ import { WalletButton } from "./wallet-button.tsx";
 
 /**
  * The terminal's frame, like JetBrains: a header, a left and a right rail of tools, and a status bar,
- * all attached to the edges and to each other with no gaps. Hairlines only where two of them meet.
+ * all attached to the edges and to each other, with no gaps and no lines between them.
  * The page sits in the middle, straight on the fog.
  */
 
 export function Frame({ children, sides = true }: { children: ReactNode; sides?: boolean }) {
 	return (
 		<div className="flex h-dvh flex-col">
-			<header
-				className={`sticky top-0 z-20 flex h-11 shrink-0 items-center border-white/[0.07] border-b px-4 ${GLASS}`}
-			>
+			<header className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 ${GLASS}`}>
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
 					to="/"

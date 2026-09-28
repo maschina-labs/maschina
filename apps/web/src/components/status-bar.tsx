@@ -23,7 +23,7 @@ export type StatusFigures = {
 export function StatusBarView({ price, change24h, running, machines, realised }: StatusFigures) {
 	return (
 		<footer
-			className={`flex h-6 shrink-0 items-center gap-5 border-white/[0.07] border-t px-3 text-[10px] text-neutral-500 tracking-[0.12em] ${GLASS}`}
+			className={`flex h-6 shrink-0 items-center gap-5 px-3 text-[10px] text-neutral-500 tracking-[0.12em] ${GLASS}`}
 		>
 			<span className={ITEM}>SOLANA MAINNET</span>
 			<span className={ITEM}>
