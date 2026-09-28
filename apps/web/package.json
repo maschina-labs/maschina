@@ -15,6 +15,7 @@
 		"@maschina/auth": "workspace:*",
 		"@maschina/env": "workspace:*",
 		"@maschina/runtime": "workspace:*",
+		"@phosphor-icons/react": "2.1.10",
 		"@react-three/fiber": "9.7.0",
 		"@sentry/react": "catalog:",
 		"@tanstack/react-query": "catalog:",

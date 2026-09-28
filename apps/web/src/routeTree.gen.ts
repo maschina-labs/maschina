@@ -21,6 +21,7 @@ import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index
 import { Route as MarketplaceMineRouteImport } from './routes/marketplace.mine'
 import { Route as RunsFinishedRouteImport } from './routes/runs.finished'
 import { Route as RunsQueuedRouteImport } from './routes/runs.queued'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsKeysRouteImport } from './routes/settings.keys'
 import { Route as WalletIndexRouteImport } from './routes/wallet.index'
 import { Route as WalletBalanceRouteImport } from './routes/wallet.balance'
@@ -86,6 +87,11 @@ const RunsQueuedRoute = RunsQueuedRouteImport.update({
   path: '/runs/queued',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsKeysRoute = SettingsKeysRouteImport.update({
   id: '/settings/keys',
   path: '/settings/keys',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRoutesByTo {
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/machines': typeof MachinesIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/wallet': typeof WalletIndexRoute
 }
 export interface FileRoutesById {
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/wallet/withdraw': typeof WalletWithdrawRoute
   '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/machines/'
     | '/marketplace/'
+    | '/settings/'
     | '/wallet/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/machines'
     | '/marketplace'
+    | '/settings'
     | '/wallet'
   id:
     | '__root__'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/wallet/withdraw'
     | '/machines/'
     | '/marketplace/'
+    | '/settings/'
     | '/wallet/'
   fileRoutesById: FileRoutesById
 }
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   WalletWithdrawRoute: typeof WalletWithdrawRoute
   MachinesIndexRoute: typeof MachinesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   WalletIndexRoute: typeof WalletIndexRoute
 }
 
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsQueuedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/keys': {
       id: '/settings/keys'
       path: '/settings/keys'
@@ -371,6 +391,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletWithdrawRoute: WalletWithdrawRoute,
   MachinesIndexRoute: MachinesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   WalletIndexRoute: WalletIndexRoute,
 }
 export const routeTree = rootRouteImport
