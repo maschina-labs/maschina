@@ -149,11 +149,14 @@ export type MachineKind<Settings> = {
 	 */
 	levels?(settings: Settings, memory?: KindMemory): readonly WatchedLevel[];
 	/**
-	 * True when the machine has no price to work around and wants one. The watcher answers by
-	 * recording the current price as where the band sits, then asks for levels again.
+	 * Asked for when the machine has no price to work around and wants one. The watcher answers by
+	 * recording the current price of `pricedMint` as where the band sits, then asks for levels again.
 	 */
-	needsAnchor?(settings: Settings, memory: KindMemory): boolean;
+	needsAnchor?(settings: Settings, memory: KindMemory): AnchorWanted | undefined;
 };
+
+/** A machine asking to be given the current price to work around, and why. */
+export type AnchorWanted = { pricedMint: string; because: "started" | "after_floor" };
 
 /** The kinds a running Maschina knows about, by name. */
 export type MachineKindRegistry = ReadonlyMap<string, MachineKind<unknown>>;
@@ -228,15 +231,15 @@ export function decideFor(
 	return kind.decide(read.value, view);
 }
 
-/** Whether a machine wants a price to work around. False for a kind that never moves its band. */
+/** Whether a machine wants a price to work around. Never for a kind that does not move its band. */
 export function needsAnchorOf(
 	kinds: MachineKindRegistry,
 	kind: string,
 	settings: unknown,
 	memory: KindMemory,
-): boolean {
+): AnchorWanted | undefined {
 	const known = kinds.get(kind);
-	if (!known?.needsAnchor) return false;
+	if (!known?.needsAnchor) return undefined;
 	const read = known.readSettings(settings);
-	return read.ok ? known.needsAnchor(read.value, memory) : false;
+	return read.ok ? known.needsAnchor(read.value, memory) : undefined;
 }

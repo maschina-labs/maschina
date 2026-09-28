@@ -25,6 +25,7 @@
 import { type BaseUnits, baseUnitsOf } from "@maschina/core";
 import { DEFAULT_ROUND_TRIP_COST_BPS } from "@maschina/rules";
 import type {
+	AnchorWanted,
 	Decision,
 	KindMemory,
 	MachineKind,
@@ -247,12 +248,14 @@ export const followingRange: MachineKind<FollowingRangeSettings> = {
 		return settings.quoteMint;
 	},
 
-	needsAnchor(settings, memory: KindMemory) {
+	needsAnchor(settings, memory: KindMemory): AnchorWanted | undefined {
 		const state = followingState(memory.events, settings);
-		if (state.anchor === undefined) return true;
+		if (state.anchor === undefined) return { pricedMint: settings.baseMint, because: "started" };
 		// Back from the floor: the band starts again around wherever the price is now, not around a price
 		// from an hour ago that the market has already left.
-		return !holds(state, settings) && state.anchorFromLoss && !resting(state, settings, memory.now);
+		const rested =
+			!holds(state, settings) && state.anchorFromLoss && !resting(state, settings, memory.now);
+		return rested ? { pricedMint: settings.baseMint, because: "after_floor" } : undefined;
 	},
 
 	levels(settings, memory?: KindMemory): readonly WatchedLevel[] {

@@ -113,7 +113,10 @@ describe("reading a following range's settings", () => {
 describe("before it has a price to work around", () => {
 	it("asks for one, and watches nothing until it has it", () => {
 		const settings = read();
-		expect(followingRange.needsAnchor?.(settings, { events: [], now: T0 })).toBe(true);
+		expect(followingRange.needsAnchor?.(settings, { events: [], now: T0 })).toEqual({
+			pricedMint: SOL,
+			because: "started",
+		});
 		expect(levelsAt([], T0)).toEqual([]);
 	});
 });
@@ -139,7 +142,7 @@ describe("holding what it spends", () => {
 	});
 
 	it("needs nothing once it has a price", () => {
-		expect(followingRange.needsAnchor?.(read(), { events: started, now: T0 })).toBe(false);
+		expect(followingRange.needsAnchor?.(read(), { events: started, now: T0 })).toBeUndefined();
 	});
 });
 
@@ -192,11 +195,16 @@ describe("after the floor", () => {
 
 	it("rests for an hour, watching nothing, rather than buying straight back into a fall", () => {
 		expect(levelsAt(floored(), at(90))).toEqual([]);
-		expect(followingRange.needsAnchor?.(read(), { events: floored(), now: at(90) })).toBe(false);
+		expect(
+			followingRange.needsAnchor?.(read(), { events: floored(), now: at(90) }),
+		).toBeUndefined();
 	});
 
 	it("asks for a fresh price once the hour is up, and carries on from there", () => {
-		expect(followingRange.needsAnchor?.(read(), { events: floored(), now: at(121) })).toBe(true);
+		expect(followingRange.needsAnchor?.(read(), { events: floored(), now: at(121) })).toEqual({
+			pricedMint: SOL,
+			because: "after_floor",
+		});
 		const resumed = [...floored(), recentred(110, at(121), "after_floor")];
 		expect(byId(levelsAt(resumed, at(122)))["buy"]?.level).toBe(usd(108.9));
 	});
