@@ -50,6 +50,7 @@ describe("the wallet button, wired up", () => {
 		vi.resetModules();
 		vi.doMock("@tanstack/react-router", () => ({
 			useRouter: () => ({ options: { context: { api: {} } } }),
+			useNavigate: () => vi.fn(),
 		}));
 		vi.doMock("@tanstack/react-query", () => ({ useQueryClient: () => ({}) }));
 		vi.doMock("../lib/session.ts", () => ({

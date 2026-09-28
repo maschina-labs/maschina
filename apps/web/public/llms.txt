@@ -1,0 +1,12 @@
+# Maschina
+
+> Give software a job and money, safely, so it can go to work for you. Built on Solana.
+
+A machine on Maschina is a piece of software with its own Solana wallet, a budget it cannot exceed, rules it
+cannot break, and a permanent record of every decision. Its funds can only ever go back to the wallet that
+made it. The first machines trade: ranges that buy dips and sell rises, price triggers, and more, each set
+once and left to run. Paper machines are free and trade against real prices without moving money.
+
+- App: https://maschina.dev
+- Docs: https://docs.maschina.dev
+- Source: https://github.com/maschina-labs/maschina

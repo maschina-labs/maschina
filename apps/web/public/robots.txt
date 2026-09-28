@@ -1,0 +1,7 @@
+# Maschina. Every public page may be read; the app's private pages are signed in and not listed.
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /wallet
+
+Sitemap: https://maschina.dev/sitemap.xml

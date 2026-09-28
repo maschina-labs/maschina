@@ -49,6 +49,17 @@ function Terminal() {
 					hasMachine={(machines.data?.length ?? 0) > 0 && Boolean(session.data)}
 				/>
 			) : null}
+			{known && !session.data ? (
+				<section aria-label="Public activity" className="flex flex-col gap-2">
+					<h2 className="text-[10.5px] text-neutral-500 tracking-[0.14em]">
+						{"PUBLIC // EVERY MACHINE, LIVE"}
+					</h2>
+					<p className="text-[10.5px] text-neutral-600 tracking-[0.1em]">
+						EVERY PUBLIC MACHINE'S TRADES AND REFUSALS, WATCHABLE WITHOUT CONNECTING, ARRIVE WITH
+						THE BACKEND PASS. THE MARKET BELOW IS LIVE NOW.
+					</p>
+				</section>
+			) : null}
 			<FleetStrip
 				machines={session.data ? (machines.data ?? []) : []}
 				following={machine?.machineId}

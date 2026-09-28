@@ -11,12 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as GetAWalletRouteImport } from './routes/get-a-wallet'
 import { Route as IntelRouteImport } from './routes/intel'
+import { Route as InviteRouteImport } from './routes/invite'
+import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SwapRouteImport } from './routes/swap'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as MMachineIdRouteImport } from './routes/m.$machineId'
@@ -46,9 +51,29 @@ const ActivityRoute = ActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GetAWalletRoute = GetAWalletRouteImport.update({
+  id: '/get-a-wallet',
+  path: '/get-a-wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntelRoute = IntelRouteImport.update({
   id: '/intel',
   path: '/intel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaintenanceRoute = MaintenanceRouteImport.update({
+  id: '/maintenance',
+  path: '/maintenance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManagerRoute = ManagerRouteImport.update({
@@ -74,6 +99,11 @@ const SignInRoute = SignInRouteImport.update({
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
   path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
@@ -170,12 +200,17 @@ const WalletStakeRoute = WalletStakeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
   '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
@@ -198,12 +233,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
   '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
@@ -227,12 +267,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
   '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
@@ -257,12 +302,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/feedback'
+    | '/get-a-wallet'
     | '/intel'
+    | '/invite'
+    | '/maintenance'
     | '/manager'
     | '/new'
     | '/portfolio'
     | '/sign-in'
     | '/swap'
+    | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
@@ -285,12 +335,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/feedback'
+    | '/get-a-wallet'
     | '/intel'
+    | '/invite'
+    | '/maintenance'
     | '/manager'
     | '/new'
     | '/portfolio'
     | '/sign-in'
     | '/swap'
+    | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
@@ -313,12 +368,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/activity'
+    | '/feedback'
+    | '/get-a-wallet'
     | '/intel'
+    | '/invite'
+    | '/maintenance'
     | '/manager'
     | '/new'
     | '/portfolio'
     | '/sign-in'
     | '/swap'
+    | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
@@ -342,12 +402,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  FeedbackRoute: typeof FeedbackRoute
+  GetAWalletRoute: typeof GetAWalletRoute
   IntelRoute: typeof IntelRoute
+  InviteRoute: typeof InviteRoute
+  MaintenanceRoute: typeof MaintenanceRoute
   ManagerRoute: typeof ManagerRoute
   NewRoute: typeof NewRoute
   PortfolioRoute: typeof PortfolioRoute
   SignInRoute: typeof SignInRoute
   SwapRoute: typeof SwapRoute
+  WelcomeRoute: typeof WelcomeRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   MMachineIdRoute: typeof MMachineIdRoute
@@ -384,11 +449,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/get-a-wallet': {
+      id: '/get-a-wallet'
+      path: '/get-a-wallet'
+      fullPath: '/get-a-wallet'
+      preLoaderRoute: typeof GetAWalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/intel': {
       id: '/intel'
       path: '/intel'
       fullPath: '/intel'
       preLoaderRoute: typeof IntelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maintenance': {
+      id: '/maintenance'
+      path: '/maintenance'
+      fullPath: '/maintenance'
+      preLoaderRoute: typeof MaintenanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manager': {
@@ -424,6 +517,13 @@ declare module '@tanstack/react-router' {
       path: '/swap'
       fullPath: '/swap'
       preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/privacy': {
@@ -558,12 +658,17 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  FeedbackRoute: FeedbackRoute,
+  GetAWalletRoute: GetAWalletRoute,
   IntelRoute: IntelRoute,
+  InviteRoute: InviteRoute,
+  MaintenanceRoute: MaintenanceRoute,
   ManagerRoute: ManagerRoute,
   NewRoute: NewRoute,
   PortfolioRoute: PortfolioRoute,
   SignInRoute: SignInRoute,
   SwapRoute: SwapRoute,
+  WelcomeRoute: WelcomeRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   MMachineIdRoute: MMachineIdRoute,

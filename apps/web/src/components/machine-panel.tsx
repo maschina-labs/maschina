@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import {
+	ApiError,
 	amount,
 	type MachineAction,
 	type MachineDetail,
@@ -21,6 +22,7 @@ import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
 import { ResultCard } from "./result-card.tsx";
 import { TypeRow } from "./slider-row.tsx";
+import { NotYours, SessionEnded } from "./status-pages.tsx";
 
 /** A withdrawal only goes through once a machine has stopped acting, so it is only offered then. */
 const SETTLED = new Set(["draft", "ready", "paused", "stopped"]);
@@ -402,6 +404,13 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 		refetchInterval: 5_000,
 	});
 
+	// Not yours and signed out get their own pages; anything else shows the real message.
+	if (
+		machine.error instanceof ApiError &&
+		(machine.error.status === 403 || machine.error.status === 404)
+	)
+		return <NotYours />;
+	if (machine.error instanceof ApiError && machine.error.status === 401) return <SessionEnded />;
 	if (machine.error)
 		return (
 			<p role="alert" className="text-[12px] text-neutral-500">

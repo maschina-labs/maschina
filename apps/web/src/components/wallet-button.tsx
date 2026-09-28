@@ -1,9 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useMachines } from "../lib/machines.ts";
 import { type SignedInOwner, useSession, useSignIn, useSignOut } from "../lib/session.ts";
+import { toast } from "../lib/toasts.ts";
 import { WalletPanelView } from "./wallet-panel.tsx";
 
 /**
@@ -52,6 +53,7 @@ export function WalletButton() {
 	const session = useSession(api);
 	const signIn = useSignIn(api, queryClient);
 	const signOut = useSignOut(api, queryClient);
+	const navigate = useNavigate();
 	const machines = useMachines(api);
 	const [open, setOpen] = useState(false);
 	const owner = session.isPending ? undefined : (session.data ?? null);
@@ -60,7 +62,15 @@ export function WalletButton() {
 			<WalletButtonView
 				owner={owner}
 				signingIn={signIn.isPending}
-				onSignIn={() => signIn.mutate()}
+				onSignIn={() =>
+					signIn.mutate(undefined, {
+						// No wallet in this browser: show where to get one rather than a bare error.
+						onError: (error) =>
+							error.name === "NoWallet"
+								? void navigate({ to: "/get-a-wallet" })
+								: toast(error.message, "problem"),
+					})
+				}
 				onOpen={() => setOpen((was) => !was)}
 			/>
 			{/*
