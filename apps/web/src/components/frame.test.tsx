@@ -14,6 +14,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("./scroll-ticks.tsx", () => ({
 	ScrollArea: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
+vi.mock("./chat-panel.tsx", () => ({ ChatPanel: () => <aside aria-label="Chat" /> }));
 vi.mock("./status-bar.tsx", () => ({ StatusBar: () => <footer /> }));
 vi.mock("./sections.tsx", () => ({ Sections: () => <nav aria-label="Sections" /> }));
 vi.mock("./wallet-button.tsx", () => ({
