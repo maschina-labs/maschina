@@ -24,7 +24,14 @@ const machine = (state: MachineDetail["state"], actions: MachineDetail["actions"
 			simulated: false,
 		},
 		settings: { buyLevel: "118800000", sellLevel: "121200000", amountPerBuy: "40350000" },
-		limits: { approvedMints: [] },
+		limits: {
+			maxPerTrade: "40350000",
+			maxPerDay: "40600000",
+			approvedMints: [
+				"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+				"So11111111111111111111111111111111111111112",
+			],
+		},
 		actions,
 	}) as MachineDetail;
 
@@ -59,7 +66,10 @@ describe("the selected machine", () => {
 		const onAction = vi.fn();
 		view(machine("running", ["pause", "stop"]), { onAction });
 
-		expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual(["PAUSE", "STOP"]);
+		const actions = screen.getAllByRole("button").map((b) => b.textContent);
+		expect(actions).toEqual(expect.arrayContaining(["PAUSE", "STOP"]));
+		expect(actions).not.toContain("START");
+		expect(actions).not.toContain("WITHDRAW EVERYTHING");
 		fireEvent.click(screen.getByRole("button", { name: "STOP" }));
 		// Stopping is asked about first, and only happens once confirmed.
 		expect(onAction).not.toHaveBeenCalled();
@@ -125,5 +135,19 @@ describe("where the price sits in the band", () => {
 		fireEvent.click(screen.getByRole("button", { name: "CANCEL" }));
 		expect(onAction).not.toHaveBeenCalled();
 		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+	});
+
+	it("shows its limits, by the names people know its tokens by", () => {
+		view(machine("running", []));
+
+		expect(screen.getByText("PER TRADE 40.35")).toBeInTheDocument();
+		expect(screen.getByText("PER DAY 40.60")).toBeInTheDocument();
+		expect(screen.getByText("TRADES ONLY USDC · SOL")).toBeInTheDocument();
+	});
+
+	it("never offers to retire a machine before that can be done safely", () => {
+		view(machine("stopped", []));
+
+		expect(screen.getByRole("button", { name: "RETIRE THIS MACHINE" })).toBeDisabled();
 	});
 });

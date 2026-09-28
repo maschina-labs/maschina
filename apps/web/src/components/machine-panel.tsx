@@ -17,6 +17,7 @@ import { statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
 import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
+import { TypeRow } from "./slider-row.tsx";
 
 /** A withdrawal only goes through once a machine has stopped acting, so it is only offered then. */
 const SETTLED = new Set(["draft", "ready", "paused", "stopped"]);
@@ -97,6 +98,15 @@ function Big({ label, value }: { label: string; value: string }) {
 	);
 }
 
+const SMALL =
+	"text-[10.5px] text-neutral-400 tracking-[0.14em] transition-colors hover:text-neutral-100";
+
+/** The tokens machines trade, by the name people know them by. */
+const SYMBOLS: Record<string, string> = {
+	EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: "USDC",
+	So11111111111111111111111111111111111111112: "SOL",
+};
+
 export function MachinePanelView({
 	machine,
 	record,
@@ -123,6 +133,8 @@ export function MachinePanelView({
 	const controls = machine.actions.filter((action) => action !== "fund");
 	// Anything that stops a machine or moves its money is asked about first.
 	const [asking, setAsking] = useState<MachineAction | "withdraw">();
+	const [renaming, setRenaming] = useState(false);
+	const [newName, setNewName] = useState(machine.name);
 	const name = machine.name.toUpperCase();
 	const questions: Partial<
 		Record<MachineAction | "withdraw", { lines: string[]; confirm: string }>
@@ -156,10 +168,36 @@ export function MachinePanelView({
 				<h1 className="text-[20px] text-neutral-100 tracking-[0.08em]">
 					{machine.name.toUpperCase()}
 				</h1>
-				<span className={LABEL}>
-					{machine.kind.toUpperCase()} · {machine.state.toUpperCase()}
-				</span>
+				<div className="flex items-center gap-4">
+					<span className={LABEL}>
+						{machine.kind.toUpperCase()} · {machine.state.toUpperCase()}
+					</span>
+					<button type="button" onClick={() => setRenaming((was) => !was)} className={SMALL}>
+						RENAME
+					</button>
+					<button
+						type="button"
+						onClick={() => {
+							void navigator.clipboard?.writeText(
+								`${window.location.origin}/machines/${machine.machineId}`,
+							);
+							toast("link copied");
+						}}
+						className={SMALL}
+					>
+						COPY LINK
+					</button>
+				</div>
 			</header>
+			{renaming ? (
+				<div className="flex flex-col gap-1.5">
+					<TypeRow label="NEW NAME" value={newName} onChange={setNewName} />
+					<p className="text-[10px] text-neutral-600 tracking-[0.1em]">
+						RENAMING, AND RETUNING A MACHINE WITHOUT MAKING A NEW ONE, ARRIVE WITH THE BACKEND PASS.
+						BOTH WILL BE RECORDED IN ITS HISTORY.
+					</p>
+				</div>
+			) : null}
 
 			<div className="grid border-white/[0.07] border-r border-b sm:grid-cols-3">
 				<Cell label="STATUS">
@@ -225,6 +263,51 @@ export function MachinePanelView({
 				</Cell>
 			</div>
 
+			<div className="grid border-white/[0.07] border-r border-b sm:grid-cols-3">
+				<Cell label="LIMITS">
+					<div className="flex flex-col gap-2 text-[12px] tabular-nums">
+						<span className="text-neutral-100">BUDGET {amount(machine.budget.granted)} USDC</span>
+						{machine.limits.maxPerTrade ? (
+							<span className="text-neutral-400">
+								PER TRADE {amount(machine.limits.maxPerTrade)}
+							</span>
+						) : null}
+						{machine.limits.maxPerDay ? (
+							<span className="text-neutral-400">PER DAY {amount(machine.limits.maxPerDay)}</span>
+						) : null}
+						<span className="text-neutral-500">
+							TRADES ONLY{" "}
+							{machine.limits.approvedMints
+								.map((mint) => SYMBOLS[mint] ?? `${mint.slice(0, 4)}…`)
+								.join(" · ")}
+						</span>
+					</div>
+				</Cell>
+				<Cell label="VAULT">
+					<div className="flex flex-col gap-2">
+						<span className="text-[26px] text-neutral-500 tabular-nums">-</span>
+						<span className="text-[10px] text-neutral-600 tracking-[0.1em]">
+							PROFIT ABOVE THE FLOAT IS BANKED HERE, WHERE IT CAN NEVER BE TRADED. ITS BALANCE
+							ARRIVES WITH THE BACKEND PASS.
+						</span>
+					</div>
+				</Cell>
+				<Cell label="FEE SOL">
+					<div className="flex flex-col gap-2">
+						<div className="flex h-4 items-end gap-[3px]" aria-hidden="true">
+							{Array.from({ length: 24 }, (_, index) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: ticks never reorder
+								<span key={index} className="block h-full w-px bg-white/12" />
+							))}
+						</div>
+						<span className="text-[10px] text-neutral-600 tracking-[0.1em]">
+							WHAT IT HOLDS TO PAY ITS OWN NETWORK FEES. IT WARNS YOU TO TOP UP BELOW 0.005 SOL. THE
+							LIVE READING ARRIVES WITH THE BACKEND PASS.
+						</span>
+					</div>
+				</Cell>
+			</div>
+
 			<section aria-label="Record" className="flex flex-col gap-3">
 				<h2 className={LABEL}>RECORD</h2>
 				<ol className="flex flex-col">
@@ -245,6 +328,24 @@ export function MachinePanelView({
 					})}
 				</ol>
 			</section>
+			<section aria-label="Danger zone" className="flex flex-col gap-3 border border-white/15 p-4">
+				<h2 className={LABEL}>DANGER ZONE</h2>
+				<p className="text-[11px] text-neutral-400 leading-relaxed tracking-[0.08em]">
+					RETIRING A STOPPED, EMPTY MACHINE DELETES ITS WALLET FOR GOOD. ANYTHING SENT TO THAT
+					ADDRESS AFTERWARDS IS LOST, SO IT IS ONLY OFFERED ONCE BOTH ITS ACCOUNTS ARE EMPTY.
+				</p>
+				<button
+					type="button"
+					disabled
+					className="h-9 self-start border border-white/20 px-4 text-[11px] text-neutral-300 tracking-[0.14em] disabled:opacity-40"
+				>
+					RETIRE THIS MACHINE
+				</button>
+				<p className="text-[10px] text-neutral-600 tracking-[0.1em]">
+					ARRIVES WITH THE BACKEND PASS
+				</p>
+			</section>
+
 			{asking && asked ? (
 				<Confirm
 					title={`${asked.confirm} ${name}?`}
