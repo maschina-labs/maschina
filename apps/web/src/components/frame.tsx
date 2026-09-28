@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { GLASS } from "./glass.ts";
 import { RightRail } from "./rails.tsx";
+import { ScrollTicks } from "./scroll-ticks.tsx";
 import { Sections } from "./sections.tsx";
 import { StatusBar } from "./status-bar.tsx";
 import { WalletButton } from "./wallet-button.tsx";
@@ -12,6 +13,7 @@ import { WalletButton } from "./wallet-button.tsx";
  */
 
 export function Frame({ children, sides = true }: { children: ReactNode; sides?: boolean }) {
+	const page = useRef<HTMLElement>(null);
 	return (
 		<div className="flex h-dvh flex-col gap-1.5 p-1.5">
 			<header className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 ${GLASS}`}>
@@ -31,10 +33,13 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 				</div>
 			</header>
 			<div className="flex min-h-0 flex-1 gap-1.5">
-				<main className="min-w-0 flex-1 overflow-y-auto overscroll-none">{children}</main>
+				<main ref={page} className="min-w-0 flex-1 overflow-y-auto overscroll-none">
+					{children}
+				</main>
 				{sides ? <RightRail /> : null}
 			</div>
 			<StatusBar />
+			<ScrollTicks target={page} />
 		</div>
 	);
 }
