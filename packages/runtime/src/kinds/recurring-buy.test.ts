@@ -18,6 +18,7 @@ const settings = (overrides: Record<string, unknown> = {}) => ({
 
 const view = (overrides: Partial<MachineView> = {}): MachineView => ({
 	balances: new Map([[USDC, amount(100_000_000n)]]),
+	position: new Map(),
 	availableBudget: amount(500_000_000n),
 	now: new Date("2026-06-15T15:00:00Z"),
 	totals: { spent: amount(0n), buys: 0 },

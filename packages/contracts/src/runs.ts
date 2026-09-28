@@ -100,6 +100,13 @@ export const RunContextResponse = z
 		 * them from the chain itself.
 		 */
 		holdings: z.record(z.string(), whole).optional(),
+		/**
+		 * What the machine's own trades hold, by mint, worked out from its record.
+		 *
+		 * For every machine. A wallet also holds the SOL kept for fees and anything anyone sends it, so
+		 * whether a machine is in the market comes from here, never from its balances (M35).
+		 */
+		position: z.record(z.string(), whole),
 		settings: z.unknown(),
 		dueAt: z.iso.datetime(),
 		state: z.string().min(1),

@@ -175,8 +175,12 @@ export const range: MachineKind<RangeSettings> = {
 	},
 
 	decide(settings, view: MachineView): Decision {
-		const held = view.balances.get(settings.baseMint) ?? baseUnitsOf(0n);
-		const holdingPosition = held >= settings.minBase && held > 0n;
+		// In the market means holding what its own trades bought, never whatever the wallet holds: the wallet
+		// also keeps SOL for fees (M35). A sale is capped at the wallet, which is what can actually move.
+		const bought = view.position.get(settings.baseMint) ?? baseUnitsOf(0n);
+		const inWallet = view.balances.get(settings.baseMint) ?? baseUnitsOf(0n);
+		const held = bought < inWallet ? bought : inWallet;
+		const holdingPosition = bought >= settings.minBase && bought > 0n;
 
 		if (view.wokeOn === "buy") {
 			if (holdingPosition) {
@@ -216,7 +220,7 @@ export const range: MachineKind<RangeSettings> = {
 		}
 
 		if (view.wokeOn === "sell") {
-			if (!holdingPosition) {
+			if (!holdingPosition || held === 0n) {
 				return {
 					decide: "wait",
 					because: "balance_too_low",

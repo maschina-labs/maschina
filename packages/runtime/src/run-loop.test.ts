@@ -37,6 +37,7 @@ const buyer: MachineKind<unknown> = {
 
 const view: MachineView = {
 	balances: new Map([[USDC, baseUnitsOf(100_000_000n)]]),
+	position: new Map(),
 	availableBudget: baseUnitsOf(500_000_000n),
 	now: request.dueAt,
 	totals: { spent: baseUnitsOf(0n), buys: 0 },

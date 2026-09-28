@@ -12,6 +12,7 @@ import {
 	machineBudget,
 	machineState,
 	paperHoldings,
+	positionsFrom,
 } from "@maschina/runtime";
 import { sql } from "drizzle-orm";
 import type { Executor } from "./client.ts";
@@ -28,6 +29,8 @@ export type RunContext = {
 	wokeOn?: string;
 	/** What a machine on paper holds, by mint, from its own record. */
 	holdings?: Record<string, bigint>;
+	/** What its own trades hold, by mint. Every machine, paper or real. */
+	position: Record<string, bigint>;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -88,6 +91,7 @@ export async function runContext(
 		...(row.woke_on === null || row.woke_on === undefined ? {} : { wokeOn: row.woke_on }),
 		// Only a machine on paper needs telling what it holds. A real one reads its own wallet.
 		...(row.paper ? { holdings: Object.fromEntries(paperHoldings(events)) } : {}),
+		position: Object.fromEntries(positionsFrom(events)),
 		settings: row.settings,
 		dueAt: row.due_at instanceof Date ? row.due_at : new Date(row.due_at),
 		state,

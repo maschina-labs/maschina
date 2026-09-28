@@ -54,6 +54,40 @@ describe("runContext", () => {
 		expect(context?.dueAt).toEqual(new Date("2026-09-21T09:00:00.000Z"));
 	});
 
+	it("tells a real machine what its own trades hold, not what its wallet holds", async () => {
+		const tradeId = newId<"trade">();
+		const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+		const SOL = "So11111111111111111111111111111111111111112";
+		const events = [
+			event("trade.intended", {
+				runId: lease.runId,
+				tradeId,
+				inputMint: USDC,
+				outputMint: SOL,
+				inputAmount: "27750000",
+				quotedOutputAmount: "232000000",
+				slippageBps: 50,
+			}),
+			event("trade.completed", {
+				runId: lease.runId,
+				tradeId,
+				signature: "5".repeat(88),
+				inputAmount: "27750000",
+				outputAmount: "232000000",
+				feeLamports: "5000",
+			}),
+		];
+		const context = await runContext(fakeDatabase([{ ...row, paper: false }], events), lease);
+
+		expect(context?.position).toEqual({ [SOL]: 232_000_000n });
+	});
+
+	it("tells a machine that has not traded that it holds nothing", async () => {
+		const context = await runContext(fakeDatabase([{ ...row, paper: false }], []), lease);
+
+		expect(context?.position).toEqual({});
+	});
+
 	it("accepts a due time the driver already turned into a date", async () => {
 		const due = new Date("2026-09-21T09:00:00.000Z");
 		const context = await runContext(fakeDatabase([{ ...row, due_at: due }], []), lease);

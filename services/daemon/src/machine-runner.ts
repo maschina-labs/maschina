@@ -104,6 +104,7 @@ export function machineRunner(ports: MachineRunnerPorts): RunExecutor {
 
 		const decision = decideFor(kind, context.settings, {
 			balances,
+			position: new Map([...context.position].map(([mint, held]) => [mint, baseUnitsOf(held)])),
 			availableBudget: baseUnitsOf(context.availableBudget),
 			now: ports.now(),
 			...(context.wokeOn === undefined ? {} : { wokeOn: context.wokeOn }),

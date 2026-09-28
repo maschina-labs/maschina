@@ -9,9 +9,11 @@ import {
 	closeSync,
 	constants,
 	fstatSync,
+	linkSync,
 	mkdirSync,
 	openSync,
 	readFileSync,
+	unlinkSync,
 	writeFileSync,
 } from "node:fs";
 import { dirname } from "node:path";
@@ -54,11 +56,16 @@ export function loadOrCreateIdentity(
 	};
 
 	mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+	// Written in full under a name of its own, then linked into place. A link either appears complete or
+	// fails because another daemon's already did, so nobody can ever read a half written identity.
+	// Creating the file in place and then writing to it left a moment where a second daemon read it empty.
+	const draft = `${path}.${process.pid}.${newId<"node">()}.draft`;
+	writeFileSync(draft, `${JSON.stringify({ version: 1, ...identity }, null, "\t")}\n`, {
+		mode: OWNER_ONLY,
+		flag: "wx",
+	});
 	try {
-		writeFileSync(path, `${JSON.stringify({ version: 1, ...identity }, null, "\t")}\n`, {
-			mode: OWNER_ONLY,
-			flag: "wx",
-		});
+		linkSync(draft, path);
 	} catch (error) {
 		// Another daemon created it first. Use that one, so both agree on who this node is.
 		if (hasCode(error, "EEXIST")) {
@@ -66,6 +73,8 @@ export function loadOrCreateIdentity(
 			if (winner) return winner;
 		}
 		throw error;
+	} finally {
+		unlinkSync(draft);
 	}
 	return identity;
 }

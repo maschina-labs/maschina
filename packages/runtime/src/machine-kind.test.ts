@@ -10,6 +10,7 @@ import {
 
 const view: MachineView = {
 	balances: new Map(),
+	position: new Map(),
 	availableBudget: baseUnitsOf(0n),
 	now: new Date("2026-06-15T15:00:00Z"),
 	totals: { spent: baseUnitsOf(0n), buys: 0 },

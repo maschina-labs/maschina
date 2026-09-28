@@ -19,6 +19,7 @@ const settings = {
 
 const view = (overrides: Partial<MachineView> = {}): MachineView => ({
 	balances: new Map([[USDC, baseUnitsOf(50_000_000n)]]),
+	position: new Map(),
 	availableBudget: baseUnitsOf(20_000_000n),
 	now: new Date("2026-09-21T09:00:00Z"),
 	totals: { spent: baseUnitsOf(0n), buys: 0 },
