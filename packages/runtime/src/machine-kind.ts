@@ -15,6 +15,7 @@
  *   stop  this machine's job is finished
  */
 
+import type { RecordedEvent } from "@maschina/contracts";
 import type { BaseUnits } from "@maschina/core";
 import type { TriggerDirection } from "./price-trigger.ts";
 
@@ -44,7 +45,25 @@ export type WatchedLevel = {
 	hysteresisBps: number;
 	/** The least time between two runs from this level. */
 	minGapMs: number;
+	/**
+	 * True for a level that moves the machine rather than waking it. Crossing it queues no run: the
+	 * watcher records that the machine's band now sits around the price that crossed, and the machine's
+	 * levels are worked out again from there. This is how a band follows a price that has left it.
+	 */
+	recentres?: boolean;
 };
+
+/** An event as the record holds it, with the moment it happened. */
+export type RememberedEvent = RecordedEvent & { occurredAt: Date };
+
+/**
+ * What a kind may know when it says which prices it is waiting on: its own record, and the time.
+ *
+ * Most kinds wait on fixed prices and need neither. A kind whose band moves works its levels out from
+ * what it has done, so it is given what it has done, and it is still given everything rather than
+ * fetching anything.
+ */
+export type KindMemory = { events: readonly RememberedEvent[]; now: Date };
 
 /** What a machine can see when it decides. Everything is given; nothing is fetched. */
 export type MachineView = {
@@ -128,7 +147,12 @@ export type MachineKind<Settings> = {
 	 * kind rather than reading settings itself, so adding a kind that waits on prices never means
 	 * editing the watcher.
 	 */
-	levels?(settings: Settings): readonly WatchedLevel[];
+	levels?(settings: Settings, memory?: KindMemory): readonly WatchedLevel[];
+	/**
+	 * True when the machine has no price to work around and wants one. The watcher answers by
+	 * recording the current price as where the band sits, then asks for levels again.
+	 */
+	needsAnchor?(settings: Settings, memory: KindMemory): boolean;
 };
 
 /** The kinds a running Maschina knows about, by name. */
@@ -173,13 +197,14 @@ export function levelsOf(
 	kinds: MachineKindRegistry,
 	kind: string,
 	settings: unknown,
+	memory?: KindMemory,
 ): readonly WatchedLevel[] {
 	const known = kinds.get(kind);
 	if (!known?.levels) return [];
 	const read = known.readSettings(settings);
 	if (!read.ok) return [];
 
-	const levels = known.levels(read.value);
+	const levels = known.levels(read.value, memory);
 	const names = new Set<string>();
 	for (const level of levels) {
 		if (names.has(level.id)) {
@@ -201,4 +226,17 @@ export function decideFor(
 		return { decide: "wait", because: "market_conditions", detail: read.problem };
 	}
 	return kind.decide(read.value, view);
+}
+
+/** Whether a machine wants a price to work around. False for a kind that never moves its band. */
+export function needsAnchorOf(
+	kinds: MachineKindRegistry,
+	kind: string,
+	settings: unknown,
+	memory: KindMemory,
+): boolean {
+	const known = kinds.get(kind);
+	if (!known?.needsAnchor) return false;
+	const read = known.readSettings(settings);
+	return read.ok ? known.needsAnchor(read.value, memory) : false;
 }
