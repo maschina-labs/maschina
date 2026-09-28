@@ -4,6 +4,7 @@
  */
 
 export * from "./definitions.ts";
+export * from "./deliveries.ts";
 export * from "./events.ts";
 export * from "./halts.ts";
 export * from "./machines.ts";
