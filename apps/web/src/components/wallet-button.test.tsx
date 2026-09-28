@@ -9,7 +9,7 @@ const view = (props: Partial<Parameters<typeof WalletButtonView>[0]> = {}) =>
 			owner={null}
 			signingIn={false}
 			onSignIn={vi.fn()}
-			onSignOut={vi.fn()}
+			onOpen={vi.fn()}
 			{...props}
 		/>,
 	);
@@ -35,12 +35,12 @@ describe("the wallet button", () => {
 		expect(screen.getByRole("button", { name: "Check your wallet" })).toBeDisabled();
 	});
 
-	it("offers to disconnect once signed in, without showing the address", () => {
-		const onSignOut = vi.fn();
-		view({ owner, onSignOut });
+	it("opens the wallet once signed in, without showing the address", () => {
+		const onOpen = vi.fn();
+		view({ owner, onOpen });
 
-		fireEvent.click(screen.getByRole("button", { name: "Disconnect" }));
-		expect(onSignOut).toHaveBeenCalledOnce();
+		fireEvent.click(screen.getByRole("button", { name: "Wallet" }));
+		expect(onOpen).toHaveBeenCalledOnce();
 		expect(screen.queryByText(/8GTg/)).not.toBeInTheDocument();
 	});
 });

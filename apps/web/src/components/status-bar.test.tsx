@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", () => ({
 const { StatusBarView } = await import("./status-bar.tsx");
 
 describe("the status bar", () => {
-	it("shows the network, SOL and how the machines stand, with settings", () => {
+	it("shows the network, SOL and how the machines stand", () => {
 		render(
 			<StatusBarView price={118.73} change24h={-2.1} running={1} machines={4} realised="0.63" />,
 		);
@@ -22,7 +22,6 @@ describe("the status bar", () => {
 		expect(screen.getByText("118.73")).toBeInTheDocument();
 		expect(screen.getByText("▼")).toBeInTheDocument();
 		expect(screen.getByText("0.63")).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
 	});
 
 	it("leaves the machines out until someone is signed in", () => {

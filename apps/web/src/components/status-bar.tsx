@@ -1,6 +1,5 @@
-import { GearSix } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { amount, useMachines } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { useSession } from "../lib/session.ts";
@@ -8,7 +7,7 @@ import { GLASS } from "./glass.ts";
 
 /**
  * A thin data bar along the bottom of the screen, like the status bar in JetBrains' editors: the network,
- * SOL, and how your machines stand, always in view, with settings at the far right.
+ * SOL, and how your machines stand, always in view.
  */
 
 const ITEM = "flex items-center gap-1.5 whitespace-nowrap";
@@ -46,15 +45,6 @@ export function StatusBarView({ price, change24h, running, machines, realised }:
 					</span>
 				</>
 			)}
-			<Link
-				to="/settings"
-				aria-label="Settings"
-				title="Settings"
-				className="ml-auto grid size-5 place-items-center text-neutral-500 transition-colors hover:text-neutral-100"
-				activeProps={{ className: "text-neutral-100" }}
-			>
-				<GearSix size={13} weight="light" />
-			</Link>
 		</footer>
 	);
 }

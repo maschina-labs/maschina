@@ -1,6 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { useMachines } from "../lib/machines.ts";
 import { type SignedInOwner, useSession, useSignIn, useSignOut } from "../lib/session.ts";
+import { WalletPanelView } from "./wallet-panel.tsx";
 
 /**
  * The header's own language: the nav's small caps, in a chip of the same glass one step brighter, with no
@@ -13,18 +16,19 @@ export function WalletButtonView({
 	owner,
 	signingIn,
 	onSignIn,
-	onSignOut,
+	onOpen,
 }: {
 	/** Undefined while the session is still being asked for, null when nobody is signed in. */
 	owner: SignedInOwner | null | undefined;
 	signingIn: boolean;
 	onSignIn: () => void;
-	onSignOut: () => void;
+	/** Opens the wallet panel, once signed in. */
+	onOpen: () => void;
 }) {
 	if (owner) {
 		return (
-			<button type="button" onClick={onSignOut} className={BUTTON}>
-				Disconnect
+			<button type="button" onClick={onOpen} className={BUTTON}>
+				Wallet
 			</button>
 		);
 	}
@@ -40,18 +44,35 @@ export function WalletButtonView({
 	);
 }
 
+/** Connect when signed out; once signed in, the wallet panel. */
 export function WalletButton() {
 	const { api } = useRouter().options.context;
 	const queryClient = useQueryClient();
 	const session = useSession(api);
 	const signIn = useSignIn(api, queryClient);
 	const signOut = useSignOut(api, queryClient);
+	const machines = useMachines(api);
+	const [open, setOpen] = useState(false);
+	const owner = session.isPending ? undefined : (session.data ?? null);
 	return (
-		<WalletButtonView
-			owner={session.isPending ? undefined : (session.data ?? null)}
-			signingIn={signIn.isPending}
-			onSignIn={() => signIn.mutate()}
-			onSignOut={() => signOut.mutate()}
-		/>
+		<>
+			<WalletButtonView
+				owner={owner}
+				signingIn={signIn.isPending}
+				onSignIn={() => signIn.mutate()}
+				onOpen={() => setOpen((was) => !was)}
+			/>
+			{open && owner ? (
+				<WalletPanelView
+					owner={owner}
+					machines={machines.data ?? []}
+					onClose={() => setOpen(false)}
+					onDisconnect={() => {
+						setOpen(false);
+						signOut.mutate();
+					}}
+				/>
+			) : null}
+		</>
 	);
 }
