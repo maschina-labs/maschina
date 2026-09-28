@@ -25,7 +25,7 @@ export function MobileMenu() {
 				? createPortal(
 						<nav
 							aria-label="Menu"
-							className="fixed inset-x-1.5 top-14 bottom-9 z-40 flex flex-col gap-1 overflow-y-auto bg-black/85 p-4 backdrop-saturate-0 md:hidden"
+							className="fixed inset-x-1.5 top-19 bottom-9 z-40 flex flex-col gap-1 overflow-y-auto bg-black/85 p-4 backdrop-saturate-0 md:hidden"
 						>
 							{[...SECTIONS, { to: "/settings", label: "Settings" }].map((section) => (
 								<Link

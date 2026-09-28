@@ -6,6 +6,7 @@ import { BandRuler } from "../components/band-ruler.tsx";
 import { DecisionLog } from "../components/decision-log.tsx";
 import { FirstRun } from "../components/first-run.tsx";
 import { FleetStrip } from "../components/fleet-strip.tsx";
+import { Fullscreen } from "../components/fullscreen.tsx";
 import { MarketStrip } from "../components/market-strip.tsx";
 import { useMachineTrades } from "../components/portfolio.tsx";
 import { PriceChart } from "../components/price-chart.tsx";
@@ -79,12 +80,14 @@ function Terminal() {
 						</div>
 					) : null}
 					<div className="min-w-0 flex-1">
-						<PriceChart
-							interval={interval}
-							levels={band}
-							trades={tradesFrom(record)}
-							onPrice={setPrice}
-						/>
+						<Fullscreen label="Chart">
+							<PriceChart
+								interval={interval}
+								levels={band}
+								trades={tradesFrom(record)}
+								onPrice={setPrice}
+							/>
+						</Fullscreen>
 					</div>
 					{buy !== undefined && sell !== undefined ? (
 						<div className="hidden sm:block">

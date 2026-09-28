@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { byDay, filterActivity, KINDS, type Kind } from "../lib/activity-filter.ts";
 import { describeEvent } from "../lib/describe.ts";
+import { standings, type Window } from "../lib/leaderboard.ts";
 import { amount, type MachineSummary, recordQueryFor, useMachines } from "../lib/machines.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
 import {
@@ -260,4 +261,16 @@ export function useMachineTrades() {
 		)
 		.sort((a, b) => b.at - a.at)
 		.slice(0, 20);
+}
+
+/** Your machines, ranked for the leaderboard over a window. */
+export function useStandings() {
+	const { signedIn, machines, records } = useEverything();
+	return (window: Window) =>
+		signedIn && machines
+			? standings(
+					machines.map((machine, index) => ({ machine, record: records[index] ?? [] })),
+					window,
+				)
+			: [];
 }

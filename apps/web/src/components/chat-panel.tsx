@@ -92,7 +92,7 @@ export function ChatPanel({ onClose, docked = false }: { onClose: () => void; do
 			className={
 				docked
 					? "flex h-full flex-col gap-6 overflow-y-auto overscroll-none p-5"
-					: "fixed top-11 right-0 bottom-6 z-40 flex w-[min(380px,100vw)] flex-col gap-6 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
+					: "fixed top-17 right-0 bottom-6 z-40 flex w-[min(380px,100vw)] flex-col gap-6 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
 			}
 		>
 			<header className="flex items-center justify-between">
