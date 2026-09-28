@@ -11,17 +11,35 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
-import { Route as NetworkRouteImport } from './routes/network'
+import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as GetAWalletRouteImport } from './routes/get-a-wallet'
+import { Route as IntelRouteImport } from './routes/intel'
+import { Route as InviteRouteImport } from './routes/invite'
+import { Route as MaintenanceRouteImport } from './routes/maintenance'
+import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NewRouteImport } from './routes/new'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SwapRouteImport } from './routes/swap'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as MMachineIdRouteImport } from './routes/m.$machineId'
+import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
-import { Route as MarketplaceMineRouteImport } from './routes/marketplace.mine'
-import { Route as RunsFinishedRouteImport } from './routes/runs.finished'
-import { Route as RunsQueuedRouteImport } from './routes/runs.queued'
+import { Route as MarketplaceListingIdRouteImport } from './routes/marketplace.$listingId'
+import { Route as NetworkIndexRouteImport } from './routes/network.index'
+import { Route as NetworkNodeIdRouteImport } from './routes/network.$nodeId'
+import { Route as NetworkJoinRouteImport } from './routes/network.join'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsAlertsRouteImport } from './routes/settings.alerts'
 import { Route as SettingsKeysRouteImport } from './routes/settings.keys'
+import { Route as TeamsIndexRouteImport } from './routes/teams.index'
+import { Route as TeamsTeamIdRouteImport } from './routes/teams.$teamId'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as WalletIndexRouteImport } from './routes/wallet.index'
-import { Route as WalletBalanceRouteImport } from './routes/wallet.balance'
-import { Route as WalletWithdrawRouteImport } from './routes/wallet.withdraw'
+import { Route as WalletStakeRouteImport } from './routes/wallet.stake'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,14 +51,79 @@ const ActivityRoute = ActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NetworkRoute = NetworkRouteImport.update({
-  id: '/network',
-  path: '/network',
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GetAWalletRoute = GetAWalletRouteImport.update({
+  id: '/get-a-wallet',
+  path: '/get-a-wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntelRoute = IntelRouteImport.update({
+  id: '/intel',
+  path: '/intel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaintenanceRoute = MaintenanceRouteImport.update({
+  id: '/maintenance',
+  path: '/maintenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerRoute = ManagerRouteImport.update({
+  id: '/manager',
+  path: '/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SwapRoute = SwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MMachineIdRoute = MMachineIdRouteImport.update({
+  id: '/m/$machineId',
+  path: '/m/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MachinesIndexRoute = MachinesIndexRouteImport.update({
+  id: '/machines/',
+  path: '/machines/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MachinesMachineIdRoute = MachinesMachineIdRouteImport.update({
@@ -53,19 +136,34 @@ const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
   path: '/marketplace/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MarketplaceMineRoute = MarketplaceMineRouteImport.update({
-  id: '/marketplace/mine',
-  path: '/marketplace/mine',
+const MarketplaceListingIdRoute = MarketplaceListingIdRouteImport.update({
+  id: '/marketplace/$listingId',
+  path: '/marketplace/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsFinishedRoute = RunsFinishedRouteImport.update({
-  id: '/runs/finished',
-  path: '/runs/finished',
+const NetworkIndexRoute = NetworkIndexRouteImport.update({
+  id: '/network/',
+  path: '/network/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RunsQueuedRoute = RunsQueuedRouteImport.update({
-  id: '/runs/queued',
-  path: '/runs/queued',
+const NetworkNodeIdRoute = NetworkNodeIdRouteImport.update({
+  id: '/network/$nodeId',
+  path: '/network/$nodeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NetworkJoinRoute = NetworkJoinRouteImport.update({
+  id: '/network/join',
+  path: '/network/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAlertsRoute = SettingsAlertsRouteImport.update({
+  id: '/settings/alerts',
+  path: '/settings/alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsKeysRoute = SettingsKeysRouteImport.update({
@@ -73,66 +171,130 @@ const SettingsKeysRoute = SettingsKeysRouteImport.update({
   path: '/settings/keys',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamsIndexRoute = TeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamsTeamIdRoute = TeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WalletIndexRoute = WalletIndexRouteImport.update({
   id: '/wallet/',
   path: '/wallet/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WalletBalanceRoute = WalletBalanceRouteImport.update({
-  id: '/wallet/balance',
-  path: '/wallet/balance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WalletWithdrawRoute = WalletWithdrawRouteImport.update({
-  id: '/wallet/withdraw',
-  path: '/wallet/withdraw',
+const WalletStakeRoute = WalletStakeRouteImport.update({
+  id: '/wallet/stake',
+  path: '/wallet/stake',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/network': typeof NetworkRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
+  '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/sign-in': typeof SignInRoute
+  '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
-  '/marketplace/mine': typeof MarketplaceMineRoute
-  '/runs/finished': typeof RunsFinishedRoute
-  '/runs/queued': typeof RunsQueuedRoute
+  '/marketplace/$listingId': typeof MarketplaceListingIdRoute
+  '/network/$nodeId': typeof NetworkNodeIdRoute
+  '/network/join': typeof NetworkJoinRoute
+  '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
-  '/wallet/balance': typeof WalletBalanceRoute
-  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/teams/$teamId': typeof TeamsTeamIdRoute
+  '/u/$handle': typeof UHandleRoute
+  '/wallet/stake': typeof WalletStakeRoute
+  '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
+  '/network/': typeof NetworkIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/teams/': typeof TeamsIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/network': typeof NetworkRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
+  '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/sign-in': typeof SignInRoute
+  '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
-  '/marketplace/mine': typeof MarketplaceMineRoute
-  '/runs/finished': typeof RunsFinishedRoute
-  '/runs/queued': typeof RunsQueuedRoute
+  '/marketplace/$listingId': typeof MarketplaceListingIdRoute
+  '/network/$nodeId': typeof NetworkNodeIdRoute
+  '/network/join': typeof NetworkJoinRoute
+  '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
-  '/wallet/balance': typeof WalletBalanceRoute
-  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/teams/$teamId': typeof TeamsTeamIdRoute
+  '/u/$handle': typeof UHandleRoute
+  '/wallet/stake': typeof WalletStakeRoute
+  '/machines': typeof MachinesIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
+  '/network': typeof NetworkIndexRoute
+  '/settings': typeof SettingsIndexRoute
+  '/teams': typeof TeamsIndexRoute
   '/wallet': typeof WalletIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
-  '/network': typeof NetworkRoute
+  '/feedback': typeof FeedbackRoute
+  '/get-a-wallet': typeof GetAWalletRoute
+  '/intel': typeof IntelRoute
+  '/invite': typeof InviteRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/portfolio': typeof PortfolioRoute
+  '/sign-in': typeof SignInRoute
+  '/swap': typeof SwapRoute
+  '/welcome': typeof WelcomeRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
+  '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
-  '/marketplace/mine': typeof MarketplaceMineRoute
-  '/runs/finished': typeof RunsFinishedRoute
-  '/runs/queued': typeof RunsQueuedRoute
+  '/marketplace/$listingId': typeof MarketplaceListingIdRoute
+  '/network/$nodeId': typeof NetworkNodeIdRoute
+  '/network/join': typeof NetworkJoinRoute
+  '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
-  '/wallet/balance': typeof WalletBalanceRoute
-  '/wallet/withdraw': typeof WalletWithdrawRoute
+  '/teams/$teamId': typeof TeamsTeamIdRoute
+  '/u/$handle': typeof UHandleRoute
+  '/wallet/stake': typeof WalletStakeRoute
+  '/machines/': typeof MachinesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
+  '/network/': typeof NetworkIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/teams/': typeof TeamsIndexRoute
   '/wallet/': typeof WalletIndexRoute
 }
 export interface FileRouteTypes {
@@ -140,62 +302,134 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
-    | '/network'
+    | '/feedback'
+    | '/get-a-wallet'
+    | '/intel'
+    | '/invite'
+    | '/maintenance'
+    | '/manager'
     | '/new'
+    | '/portfolio'
+    | '/sign-in'
+    | '/swap'
+    | '/welcome'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
-    | '/marketplace/mine'
-    | '/runs/finished'
-    | '/runs/queued'
+    | '/marketplace/$listingId'
+    | '/network/$nodeId'
+    | '/network/join'
+    | '/settings/alerts'
     | '/settings/keys'
-    | '/wallet/balance'
-    | '/wallet/withdraw'
+    | '/teams/$teamId'
+    | '/u/$handle'
+    | '/wallet/stake'
+    | '/machines/'
     | '/marketplace/'
+    | '/network/'
+    | '/settings/'
+    | '/teams/'
     | '/wallet/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/activity'
-    | '/network'
+    | '/feedback'
+    | '/get-a-wallet'
+    | '/intel'
+    | '/invite'
+    | '/maintenance'
+    | '/manager'
     | '/new'
+    | '/portfolio'
+    | '/sign-in'
+    | '/swap'
+    | '/welcome'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
-    | '/marketplace/mine'
-    | '/runs/finished'
-    | '/runs/queued'
+    | '/marketplace/$listingId'
+    | '/network/$nodeId'
+    | '/network/join'
+    | '/settings/alerts'
     | '/settings/keys'
-    | '/wallet/balance'
-    | '/wallet/withdraw'
+    | '/teams/$teamId'
+    | '/u/$handle'
+    | '/wallet/stake'
+    | '/machines'
     | '/marketplace'
+    | '/network'
+    | '/settings'
+    | '/teams'
     | '/wallet'
   id:
     | '__root__'
     | '/'
     | '/activity'
-    | '/network'
+    | '/feedback'
+    | '/get-a-wallet'
+    | '/intel'
+    | '/invite'
+    | '/maintenance'
+    | '/manager'
     | '/new'
+    | '/portfolio'
+    | '/sign-in'
+    | '/swap'
+    | '/welcome'
+    | '/legal/privacy'
+    | '/legal/terms'
+    | '/m/$machineId'
     | '/machines/$machineId'
-    | '/marketplace/mine'
-    | '/runs/finished'
-    | '/runs/queued'
+    | '/marketplace/$listingId'
+    | '/network/$nodeId'
+    | '/network/join'
+    | '/settings/alerts'
     | '/settings/keys'
-    | '/wallet/balance'
-    | '/wallet/withdraw'
+    | '/teams/$teamId'
+    | '/u/$handle'
+    | '/wallet/stake'
+    | '/machines/'
     | '/marketplace/'
+    | '/network/'
+    | '/settings/'
+    | '/teams/'
     | '/wallet/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
-  NetworkRoute: typeof NetworkRoute
+  FeedbackRoute: typeof FeedbackRoute
+  GetAWalletRoute: typeof GetAWalletRoute
+  IntelRoute: typeof IntelRoute
+  InviteRoute: typeof InviteRoute
+  MaintenanceRoute: typeof MaintenanceRoute
+  ManagerRoute: typeof ManagerRoute
   NewRoute: typeof NewRoute
+  PortfolioRoute: typeof PortfolioRoute
+  SignInRoute: typeof SignInRoute
+  SwapRoute: typeof SwapRoute
+  WelcomeRoute: typeof WelcomeRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
+  MMachineIdRoute: typeof MMachineIdRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
-  MarketplaceMineRoute: typeof MarketplaceMineRoute
-  RunsFinishedRoute: typeof RunsFinishedRoute
-  RunsQueuedRoute: typeof RunsQueuedRoute
+  MarketplaceListingIdRoute: typeof MarketplaceListingIdRoute
+  NetworkNodeIdRoute: typeof NetworkNodeIdRoute
+  NetworkJoinRoute: typeof NetworkJoinRoute
+  SettingsAlertsRoute: typeof SettingsAlertsRoute
   SettingsKeysRoute: typeof SettingsKeysRoute
-  WalletBalanceRoute: typeof WalletBalanceRoute
-  WalletWithdrawRoute: typeof WalletWithdrawRoute
+  TeamsTeamIdRoute: typeof TeamsTeamIdRoute
+  UHandleRoute: typeof UHandleRoute
+  WalletStakeRoute: typeof WalletStakeRoute
+  MachinesIndexRoute: typeof MachinesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
+  NetworkIndexRoute: typeof NetworkIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+  TeamsIndexRoute: typeof TeamsIndexRoute
   WalletIndexRoute: typeof WalletIndexRoute
 }
 
@@ -215,11 +449,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/network': {
-      id: '/network'
-      path: '/network'
-      fullPath: '/network'
-      preLoaderRoute: typeof NetworkRouteImport
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/get-a-wallet': {
+      id: '/get-a-wallet'
+      path: '/get-a-wallet'
+      fullPath: '/get-a-wallet'
+      preLoaderRoute: typeof GetAWalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intel': {
+      id: '/intel'
+      path: '/intel'
+      fullPath: '/intel'
+      preLoaderRoute: typeof IntelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maintenance': {
+      id: '/maintenance'
+      path: '/maintenance'
+      fullPath: '/maintenance'
+      preLoaderRoute: typeof MaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager': {
+      id: '/manager'
+      path: '/manager'
+      fullPath: '/manager'
+      preLoaderRoute: typeof ManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new': {
@@ -227,6 +496,62 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/new'
       preLoaderRoute: typeof NewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/swap': {
+      id: '/swap'
+      path: '/swap'
+      fullPath: '/swap'
+      preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$machineId': {
+      id: '/m/$machineId'
+      path: '/m/$machineId'
+      fullPath: '/m/$machineId'
+      preLoaderRoute: typeof MMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/machines/': {
+      id: '/machines/'
+      path: '/machines'
+      fullPath: '/machines/'
+      preLoaderRoute: typeof MachinesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/machines/$machineId': {
@@ -243,25 +568,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplaceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/marketplace/mine': {
-      id: '/marketplace/mine'
-      path: '/marketplace/mine'
-      fullPath: '/marketplace/mine'
-      preLoaderRoute: typeof MarketplaceMineRouteImport
+    '/marketplace/$listingId': {
+      id: '/marketplace/$listingId'
+      path: '/marketplace/$listingId'
+      fullPath: '/marketplace/$listingId'
+      preLoaderRoute: typeof MarketplaceListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/finished': {
-      id: '/runs/finished'
-      path: '/runs/finished'
-      fullPath: '/runs/finished'
-      preLoaderRoute: typeof RunsFinishedRouteImport
+    '/network/': {
+      id: '/network/'
+      path: '/network'
+      fullPath: '/network/'
+      preLoaderRoute: typeof NetworkIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/runs/queued': {
-      id: '/runs/queued'
-      path: '/runs/queued'
-      fullPath: '/runs/queued'
-      preLoaderRoute: typeof RunsQueuedRouteImport
+    '/network/$nodeId': {
+      id: '/network/$nodeId'
+      path: '/network/$nodeId'
+      fullPath: '/network/$nodeId'
+      preLoaderRoute: typeof NetworkNodeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network/join': {
+      id: '/network/join'
+      path: '/network/join'
+      fullPath: '/network/join'
+      preLoaderRoute: typeof NetworkJoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/alerts': {
+      id: '/settings/alerts'
+      path: '/settings/alerts'
+      fullPath: '/settings/alerts'
+      preLoaderRoute: typeof SettingsAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/keys': {
@@ -271,6 +617,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teams/': {
+      id: '/teams/'
+      path: '/teams'
+      fullPath: '/teams/'
+      preLoaderRoute: typeof TeamsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teams/$teamId': {
+      id: '/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof TeamsTeamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wallet/': {
       id: '/wallet/'
       path: '/wallet'
@@ -278,18 +645,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wallet/balance': {
-      id: '/wallet/balance'
-      path: '/wallet/balance'
-      fullPath: '/wallet/balance'
-      preLoaderRoute: typeof WalletBalanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/wallet/withdraw': {
-      id: '/wallet/withdraw'
-      path: '/wallet/withdraw'
-      fullPath: '/wallet/withdraw'
-      preLoaderRoute: typeof WalletWithdrawRouteImport
+    '/wallet/stake': {
+      id: '/wallet/stake'
+      path: '/wallet/stake'
+      fullPath: '/wallet/stake'
+      preLoaderRoute: typeof WalletStakeRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -298,16 +658,34 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
-  NetworkRoute: NetworkRoute,
+  FeedbackRoute: FeedbackRoute,
+  GetAWalletRoute: GetAWalletRoute,
+  IntelRoute: IntelRoute,
+  InviteRoute: InviteRoute,
+  MaintenanceRoute: MaintenanceRoute,
+  ManagerRoute: ManagerRoute,
   NewRoute: NewRoute,
+  PortfolioRoute: PortfolioRoute,
+  SignInRoute: SignInRoute,
+  SwapRoute: SwapRoute,
+  WelcomeRoute: WelcomeRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
+  MMachineIdRoute: MMachineIdRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
-  MarketplaceMineRoute: MarketplaceMineRoute,
-  RunsFinishedRoute: RunsFinishedRoute,
-  RunsQueuedRoute: RunsQueuedRoute,
+  MarketplaceListingIdRoute: MarketplaceListingIdRoute,
+  NetworkNodeIdRoute: NetworkNodeIdRoute,
+  NetworkJoinRoute: NetworkJoinRoute,
+  SettingsAlertsRoute: SettingsAlertsRoute,
   SettingsKeysRoute: SettingsKeysRoute,
-  WalletBalanceRoute: WalletBalanceRoute,
-  WalletWithdrawRoute: WalletWithdrawRoute,
+  TeamsTeamIdRoute: TeamsTeamIdRoute,
+  UHandleRoute: UHandleRoute,
+  WalletStakeRoute: WalletStakeRoute,
+  MachinesIndexRoute: MachinesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
+  NetworkIndexRoute: NetworkIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+  TeamsIndexRoute: TeamsIndexRoute,
   WalletIndexRoute: WalletIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,7 +1,18 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// No WebGL in a test browser, so the background's canvas is stood in for.
+vi.mock("@react-three/fiber", () => ({
+	Canvas: () => <canvas />,
+	useFrame: () => undefined,
+	useThree: () => ({ width: 1, height: 1 }),
+}));
+
+// No canvas either, so the price chart, which draws on one, is stood in for too. It has its own tests.
+vi.mock("./components/price-chart.tsx", () => ({ PriceChart: () => <div /> }));
+
 import { createApi } from "./lib/api.ts";
 import { createQueryClient } from "./lib/query.ts";
 import { createAppRouter } from "./router.tsx";
@@ -29,6 +40,6 @@ describe("the web app", () => {
 
 	it("shows a not-found page for unknown routes", async () => {
 		renderAt("/nowhere");
-		expect(await screen.findByText("There is nothing at this address")).toBeInTheDocument();
+		expect(await screen.findByText("NOTHING AT THIS ADDRESS")).toBeInTheDocument();
 	});
 });

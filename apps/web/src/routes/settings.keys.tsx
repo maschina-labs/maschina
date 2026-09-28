@@ -1,20 +1,25 @@
-import { Key } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Planned } from "../components/planned.tsx";
+import { Coming, Copy, Later, Page, Part } from "../components/page.tsx";
 
 export const Route = createFileRoute("/settings/keys")({
-	component: () => (
-		<Planned
-			icon={Key}
-			title="API keys"
-			note="For talking to Maschina from your own code."
-			will={[
-				"Keys you can make, name and revoke, shown once and never again",
-				"What each key may do, which is never more than you may do",
-				"When each was last used, and from where",
-				"The same interface machines are built on, so nothing is a special case",
-			]}
-			waiting="the SDK, and keys that are scoped rather than total"
-		/>
-	),
+	component: Keys,
 });
+
+/** API keys for the SDK (stage B): made here, shown once, revoked here. */
+function Keys() {
+	return (
+		<Page code="SETTINGS // KEYS" title="API KEYS">
+			<Part title="YOUR KEYS">
+				<Copy>NONE YET.</Copy>
+			</Part>
+			<Part title="A NEW KEY">
+				<Copy>
+					SHOWN ONCE WHEN MADE, NEVER AGAIN. EACH KEY CAN ONLY DO WHAT ITS SCOPE ALLOWS, AND CAN BE
+					REVOKED HERE.
+				</Copy>
+				<Later>MAKE A KEY</Later>
+			</Part>
+			<Coming>API KEYS ARRIVE WITH THE SDK (STAGE B).</Coming>
+		</Page>
+	);
+}

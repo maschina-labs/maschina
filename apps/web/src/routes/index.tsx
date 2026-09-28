@@ -1,131 +1,118 @@
-/**
- * Every machine you own, as one table.
- *
- * Ordered by nothing clever: the record's order, newest last, because a list that reorders itself while
- * you read it is a list you cannot trust. Each row carries the two numbers somebody actually wants from a
- * glance, which are what it has left to spend and what it has made, and nothing else.
- */
-
-import { Plus, Pulse, Wallet } from "@phosphor-icons/react";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ForError } from "../components/for-error.tsx";
-import { Shell } from "../components/shell.tsx";
-import { Button, Empty, Loading, PageHead, Pill } from "../components/ui.tsx";
-import { amount, type MachineSummary, useMachines } from "../lib/machines.ts";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { bandOf, useMachineAtWork, WorkBar } from "../components/at-work.tsx";
+import { BandDial } from "../components/band-dial.tsx";
+import { BandRuler } from "../components/band-ruler.tsx";
+import { DecisionLog } from "../components/decision-log.tsx";
+import { FirstRun } from "../components/first-run.tsx";
+import { FleetStrip } from "../components/fleet-strip.tsx";
+import { Fullscreen } from "../components/fullscreen.tsx";
+import { MarketStrip } from "../components/market-strip.tsx";
+import { useMachineTrades } from "../components/portfolio.tsx";
+import { PriceChart } from "../components/price-chart.tsx";
+import { SolPrice } from "../components/sol-price.tsx";
+import { MachineTapeView, MarketTape } from "../components/tapes.tsx";
+import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
+import { tradesFrom } from "../lib/trades.ts";
 
 export const Route = createFileRoute("/")({
-	component: Machines,
+	component: Terminal,
+	// Which machine to follow, when one has been chosen from the sidebar.
+	validateSearch: (search: Record<string, unknown>): { machine?: string } =>
+		typeof search["machine"] === "string" ? { machine: search["machine"] } : {},
 });
 
-function MachineRow({ machine }: { machine: MachineSummary }) {
-	const live = machine.state === "running";
-	const lost = machine.result.realised.startsWith("-");
-	const made = machine.result.realised !== "0";
+const INTERVALS = ["5m", "15m", "1h", "4h", "1d"] as const;
+type Interval = (typeof INTERVALS)[number];
 
-	return (
-		<Link
-			to="/machines/$machineId"
-			params={{ machineId: machine.machineId }}
-			className="group flex items-center gap-4 border-line/50 border-b px-7 py-3 transition-colors duration-150 last:border-0 hover:bg-surface"
-		>
-			<span className="min-w-0 flex-1">
-				<span className="flex items-center gap-2">
-					<span className="truncate font-medium text-[13px] text-text">{machine.name}</span>
-					<Pill tone={live ? "live" : "quiet"} dot={live}>
-						{machine.state}
-					</Pill>
-					{machine.result.simulated ? <Pill tone="quiet">paper</Pill> : null}
-				</span>
-				<span className="mt-0.5 flex items-center gap-2 font-mono text-[11.5px] text-text-faint">
-					<span>{machine.kind}</span>
-					<span className="text-line-strong">·</span>
-					<span className="truncate">
-						{`${machine.walletAddress.slice(0, 4)}…${machine.walletAddress.slice(-4)}`}
-					</span>
-					{machine.stateReason ? (
-						<>
-							<span className="text-line-strong">·</span>
-							<span className="truncate font-sans text-text-muted">{machine.stateReason}</span>
-						</>
-					) : null}
-				</span>
-			</span>
-
-			<span className="hidden w-[104px] shrink-0 text-right font-mono text-[13px] text-text sm:block">
-				{amount(machine.budget.available)}
-			</span>
-
-			<span
-				className={`w-[104px] shrink-0 text-right font-mono text-[13px] ${
-					lost ? "text-danger-text" : made ? "text-accent-text" : "text-text-faint"
-				}`}
-			>
-				{amount(machine.result.realised)}
-			</span>
-		</Link>
-	);
-}
-
-function Machines() {
+/** The market, the machine working it, and what it last decided. */
+function Terminal() {
+	const { machine: chosen } = Route.useSearch();
+	const { machine, record } = useMachineAtWork(chosen);
+	const machineTrades = useMachineTrades();
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
-
+	// Nothing shows until the session is known, so a returning owner never sees the first run flash past.
+	const known = !session.isPending && (!session.data || machines.data !== undefined);
+	const [interval, setInterval] = useState<Interval>("15m");
+	const [price, setPrice] = useState<number>();
+	const band = machine ? bandOf(machine, record) : [];
+	const sell = band.find((level) => level.label === "SELL")?.price;
+	const buy = band.find((level) => level.label === "BUY")?.price;
 	return (
-		<Shell>
-			<PageHead
-				title="Machines"
-				note="Each one does a single job with money you set aside for it, and nothing else."
-				actions={
-					<Link to="/new">
-						<Button tone="primary" icon={Plus}>
-							New machine
-						</Button>
-					</Link>
-				}
+		<div className="flex w-full flex-col gap-6 px-2 pt-6 pb-16 sm:px-6 sm:pt-10">
+			{known ? (
+				<FirstRun
+					connected={Boolean(session.data)}
+					hasMachine={(machines.data?.length ?? 0) > 0 && Boolean(session.data)}
+				/>
+			) : null}
+			{known && !session.data ? (
+				<section aria-label="Public activity" className="flex flex-col gap-2">
+					<h2 className="text-[10.5px] text-neutral-500 tracking-[0.14em]">
+						{"PUBLIC // EVERY MACHINE, LIVE"}
+					</h2>
+					<p className="text-[10.5px] text-neutral-600 tracking-[0.1em]">
+						EVERY PUBLIC MACHINE'S TRADES AND REFUSALS, WATCHABLE WITHOUT CONNECTING, ARRIVE WITH
+						THE BACKEND PASS. THE MARKET BELOW IS LIVE NOW.
+					</p>
+				</section>
+			) : null}
+			<FleetStrip
+				machines={session.data ? (machines.data ?? []) : []}
+				following={machine?.machineId}
 			/>
-
-			{!session.data ? (
-				<Empty
-					icon={Wallet}
-					title="Connect a wallet to see your machines"
-					note="Signing in proves the wallet is yours. Maschina never holds your keys, and a machine can only ever pay the wallet that made it."
-				/>
-			) : machines.isPending ? (
-				<Loading rows={4} />
-			) : machines.error ? (
-				<ForError
-					error={machines.error}
-					title="Your machines could not be read"
-					retry={() => machines.refetch()}
-				/>
-			) : machines.data.length === 0 ? (
-				<Empty
-					icon={Pulse}
-					title="No machines yet"
-					note="A machine is a job, a budget and a set of limits. It can spend what you give it and nothing more, and everything it does is written down."
-					action={
-						<Link to="/new">
-							<Button tone="primary" icon={Plus}>
-								Make the first one
-							</Button>
-						</Link>
-					}
-				/>
-			) : (
-				<div className="mx-auto w-full max-w-[1180px]">
-					{/* Labelled once, at the top, rather than under every number. */}
-					<div className="flex items-center gap-4 border-line/50 border-b px-7 py-2 text-[10px] text-text-faint uppercase tracking-[0.08em]">
-						<span className="min-w-0 flex-1">Machine</span>
-						<span className="hidden w-[104px] shrink-0 text-right sm:block">Left to spend</span>
-						<span className="w-[104px] shrink-0 text-right">Made</span>
-					</div>
-					{machines.data.map((machine) => (
-						<MachineRow key={machine.machineId} machine={machine} />
+			<section aria-label="SOL price" className="flex h-[60vh] min-h-[360px] flex-col gap-4">
+				<SolPrice />
+				<MarketStrip />
+				<fieldset className="flex gap-4 text-[10.5px] tracking-[0.14em]">
+					<legend className="sr-only">Interval</legend>
+					{INTERVALS.map((each) => (
+						<button
+							key={each}
+							type="button"
+							onClick={() => setInterval(each)}
+							aria-pressed={each === interval}
+							className={
+								each === interval ? "text-neutral-100" : "text-neutral-500 hover:text-neutral-300"
+							}
+						>
+							{each.toUpperCase()}
+						</button>
 					))}
+				</fieldset>
+				<div className="flex min-h-0 flex-1 gap-4">
+					{/* The instrument: the machine's band as a dial, the live price at its centre. */}
+					{buy !== undefined && sell !== undefined ? (
+						<div className="hidden aspect-square h-full max-h-[340px] shrink-0 self-center xl:block">
+							<BandDial buy={buy} sell={sell} price={price} />
+						</div>
+					) : null}
+					<div className="min-w-0 flex-1">
+						<Fullscreen label="Chart">
+							<PriceChart
+								interval={interval}
+								levels={band}
+								trades={tradesFrom(record)}
+								onPrice={setPrice}
+							/>
+						</Fullscreen>
+					</div>
+					{buy !== undefined && sell !== undefined ? (
+						<div className="hidden sm:block">
+							<BandRuler buy={buy} sell={sell} price={price} />
+						</div>
+					) : null}
 				</div>
-			)}
-		</Shell>
+			</section>
+			<WorkBar machine={machine} record={record} />
+			<DecisionLog record={record} />
+			<div className="grid gap-10 pt-4 md:grid-cols-2">
+				<MachineTapeView trades={machineTrades} />
+				<MarketTape />
+			</div>
+		</div>
 	);
 }
