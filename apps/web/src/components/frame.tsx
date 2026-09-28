@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useMachines } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { useSession } from "../lib/session.ts";
-import { LogoMark } from "./brand.tsx";
 import { GLASS } from "./glass.ts";
 import { NewMachineButton, SearchBox } from "./header-tools.tsx";
 import { MobileMenu } from "./mobile-menu.tsx";
@@ -33,15 +32,14 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 	const mine = session.data ? (machines.data ?? []) : [];
 	return (
 		<div className="flex h-dvh flex-col">
-			<header className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 ${GLASS}`}>
+			<header
+				className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 lg:pr-1 lg:pl-[13px] ${GLASS}`}
+			>
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
 					to="/"
-					className="flex items-center gap-2.5 font-semibold font-wordmark text-[17px] text-neutral-100 tracking-normal"
+					className="font-semibold font-wordmark text-[17px] text-neutral-100 tracking-normal"
 				>
-					<span aria-hidden="true">
-						<LogoMark className="size-5" />
-					</span>
 					MASCHINA
 				</Link>
 				{/* Left aligned, just after the wordmark. */}
