@@ -9,11 +9,22 @@ const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 export type Trade = { at: number; side: "buy" | "sell"; price: number };
 
+/**
+ * A record in the order it happened. The API sends it newest first and some callers already turned it
+ * around, so whichever way it arrives, it comes back oldest first. Reading a trade's completion before
+ * its intent drops the trade, and counting a sale before its buy counts nothing.
+ */
+export function oldestFirst(events: readonly RecordEntry[]): RecordEntry[] {
+	const first = events[0];
+	const last = events.at(-1);
+	return first && last && first.occurredAt > last.occurredAt ? [...events].reverse() : [...events];
+}
+
 export function tradesFrom(events: RecordEntry[]): Trade[] {
 	const intents = new Map<string, { input: string; output: string }>();
 	const done = new Set<string>();
 	const trades: Trade[] = [];
-	for (const event of events) {
+	for (const event of oldestFirst(events)) {
 		const p = event.payload as Record<string, string>;
 		if (event.type === "trade.intended") {
 			intents.set(p["tradeId"] ?? "", {

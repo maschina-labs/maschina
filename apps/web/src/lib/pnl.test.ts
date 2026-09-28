@@ -32,6 +32,14 @@ describe("realised profit over time", () => {
 		expect(realisedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
 	});
 
+	it("reads a record newest first, the way the API sends it", () => {
+		const events = [
+			...trade(USDC, SOL, "40350000", "339698000", 22),
+			...trade(SOL, USDC, "339698000", "40980000", 50),
+		].reverse();
+		expect(realisedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
+	});
+
 	it("counts a loss as a loss", () => {
 		const events = [
 			...trade(USDC, SOL, "40000000", "340000000", 1),

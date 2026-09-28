@@ -35,6 +35,14 @@ describe("the trades a machine made", () => {
 		expect(buy?.price).toBeCloseTo(118.78, 2);
 	});
 
+	it("reads a record newest first, the way the API sends it", () => {
+		const newestFirst = [
+			...trade("t1", USDC, SOL, "40350000", "339698000", "2026-09-28T06:22:39Z"),
+			...trade("t2", SOL, USDC, "339698000", "41170000", "2026-09-28T09:00:00Z"),
+		].reverse();
+		expect(tradesFrom(newestFirst).map((each) => each.side)).toEqual(["buy", "sell"]);
+	});
+
 	it("reads a sale the other way round", () => {
 		const [sell] = tradesFrom(
 			trade("t2", SOL, USDC, "339698000", "41170000", "2026-09-28T09:00:00Z"),

@@ -1,4 +1,5 @@
 import type { RecordEntry } from "./machines.ts";
+import { oldestFirst } from "./trades.ts";
 
 /**
  * Realised profit over time, from machines' own records: each sale's proceeds less what the sold part
@@ -18,7 +19,7 @@ export function realisedSteps(events: RecordEntry[]): PnlPoint[] {
 	let basis = 0n;
 	let realised = 0n;
 	const steps: PnlPoint[] = [];
-	for (const event of events) {
+	for (const event of oldestFirst(events)) {
 		const p = event.payload as Record<string, string>;
 		if (event.type === "trade.intended") {
 			intents.set(p["tradeId"] ?? "", {
