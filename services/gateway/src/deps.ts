@@ -13,6 +13,8 @@ import {
 	readMachineEvents,
 	retuneMachine,
 } from "@maschina/db";
+import { rpcBalanceReader, solanaRpc } from "@maschina/solana";
+import { machineBalances } from "./balances.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
 import type { AuthPorts } from "./routes/auth.ts";
@@ -30,6 +32,7 @@ export type GatewayConfig = {
 	PROVISIONER_URL: string;
 	PROVISIONER_GATEWAY_TOKEN: string;
 	ORCHESTRATOR_URL?: string | undefined;
+	SOLANA_RPC_URL?: string | undefined;
 	ORCHESTRATOR_GATEWAY_TOKEN?: string | undefined;
 	GATEWAY_DOMAIN: string;
 	GATEWAY_APP_URL: string;
@@ -50,6 +53,11 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 					token: config.ORCHESTRATOR_GATEWAY_TOKEN,
 				})
 			: undefined;
+
+	const balanceReader =
+		config.SOLANA_RPC_URL === undefined
+			? undefined
+			: rpcBalanceReader(solanaRpc(config.SOLANA_RPC_URL));
 
 	const sessions = walletSessions(database.db, clock, {
 		domain: config.GATEWAY_DOMAIN,
@@ -76,6 +84,13 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 			const done = await retuneMachine(database.db, request);
 			if (!done.ok) throw done.error;
 			return done.value;
+		},
+		balances: async (ownerId, machineId) => {
+			if (!balanceReader)
+				throw new MaschinaError("unavailable", "balances cannot be read here yet");
+			const machine = await machineForOwner(database.db, ownerId, machineId);
+			if (!machine) throw new MaschinaError("not_found", "no such machine");
+			return machineBalances(balanceReader, machine);
 		},
 		create: async (request) => provisioner.create(request),
 		withdrawEverything: async ({ machineId }) => {

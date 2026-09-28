@@ -840,6 +840,9 @@ importers:
       '@maschina/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@maschina/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@maschina/env':
         specifier: workspace:*
         version: link:../../packages/env

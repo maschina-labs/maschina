@@ -5,6 +5,8 @@ import {
 	holdsRun,
 	machineStateOf,
 	machinesWatchingPrices,
+	markDelivered,
+	pendingAlerts,
 	queueRun,
 	recordRecentre,
 	renewLease,
@@ -16,6 +18,7 @@ import { KNOWN_KINDS } from "@maschina/runtime";
 import { startServer } from "@maschina/service";
 import { jupiterPrices, parseAddress } from "@maschina/solana";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
+import { alertOnWire } from "./alerts-route.ts";
 import { buildApp, SERVICE } from "./app.ts";
 import { bankProfit } from "./bank-profit.ts";
 import { loadConfig } from "./config.ts";
@@ -46,6 +49,11 @@ const app = buildApp({
 	version: config.SERVICE_VERSION,
 	daemonToken: config.ORCHESTRATOR_DAEMON_TOKEN,
 	gatewayToken: config.ORCHESTRATOR_GATEWAY_TOKEN,
+	botsToken: config.ORCHESTRATOR_BOTS_TOKEN,
+	alerts: {
+		pending: async (ask) => (await pendingAlerts(database.db, ask)).map(alertOnWire),
+		delivered: (delivered) => markDelivered(database.db, delivered),
+	},
 	logger,
 	reporter,
 	checks: [{ name: "database", check: database.ping }],

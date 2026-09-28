@@ -226,3 +226,63 @@ describe("the panel's other controls", () => {
 		fireEvent.click(screen.getByRole("button", { name: "RESUME" }));
 	});
 });
+
+describe("what the machine holds, from the chain", () => {
+	it("shows its wallet, its vault, and the SOL it keeps for fees", () => {
+		render(
+			<MachinePanelView
+				machine={{
+					...machine("running", []),
+					result: { ...machine("running", []).result, position: "339698787" },
+				}}
+				record={[]}
+				balances={{
+					wallet: {
+						address: "w",
+						lamports: "351698787",
+						tokens: [
+							{
+								mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+								amount: "250000",
+								decimals: 6,
+							},
+						],
+					},
+					vault: {
+						address: "v",
+						lamports: "0",
+						tokens: [
+							{
+								mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+								amount: "1010000",
+								decimals: 6,
+							},
+						],
+					},
+				}}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+			/>,
+		);
+
+		expect(screen.getByText("IN ITS WALLET 0.25 USDC · 0.3517 SOL")).toBeInTheDocument();
+		expect(screen.getByText("1.01 USDC")).toBeInTheDocument();
+		expect(screen.getByText("0.0120 SOL")).toBeInTheDocument();
+	});
+
+	it("warns when the SOL for fees runs low", () => {
+		render(
+			<MachinePanelView
+				machine={machine("running", [])}
+				record={[]}
+				balances={{ wallet: { address: "w", lamports: "3000000", tokens: [] } }}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+			/>,
+		);
+
+		expect(screen.getByText(/TOP IT UP/)).toBeInTheDocument();
+	});
+});

@@ -16,6 +16,7 @@ import {
 	ErrorBody,
 	MachineActionRequest,
 	MachineActionResponse,
+	MachineBalances,
 	MachineDetail,
 	MachineList,
 	MachineRecord,
@@ -48,6 +49,8 @@ export type MachinePorts = {
 		kind: string;
 		settings: Record<string, unknown>;
 	}): Promise<RetuneMachineResponse>;
+	/** What the machine holds on chain right now. The machine is known to be theirs by now. */
+	balances(ownerId: string, machineId: string): Promise<MachineBalances>;
 	create(request: CreateMachineRequest & { ownerWallet: string }): Promise<CreateMachineResponse>;
 	/** Everything the machine holds, back to its owner. The machine is known to be theirs by now. */
 	withdrawEverything(request: {
@@ -103,6 +106,27 @@ const record = createRoute({
 	},
 	responses: {
 		200: { description: "The record", content: { "application/json": { schema: MachineRecord } } },
+		...problem,
+	},
+});
+
+const balances = createRoute({
+	method: "get",
+	path: "/machines/{machineId}/balances",
+	tags: ["Machines"],
+	summary: "What the machine holds on chain",
+	description:
+		"Read from the chain at the moment of asking: the trading wallet, and the vault profit is banked into. Amounts are whole numbers of each token's smallest unit.",
+	request: { params: z.object({ machineId }) },
+	responses: {
+		200: {
+			description: "Its balances",
+			content: { "application/json": { schema: MachineBalances } },
+		},
+		503: {
+			description: "The chain cannot be read from here",
+			content: { "application/json": { schema: ErrorBody } },
+		},
 		...problem,
 	},
 });
@@ -241,6 +265,13 @@ export function machineRoutes(ports: MachinePorts) {
 				MachineRecord.parse({ events: await ports.record(who.ownerId, id, limit) }),
 				200,
 			);
+		})
+		.openapi(balances, async (c) => {
+			const who = await owner(c);
+			const { machineId: id } = c.req.valid("param");
+			// Somebody else's machine is not found, the same as one that does not exist.
+			mustExist(await ports.read(who.ownerId, id));
+			return c.json(MachineBalances.parse(await ports.balances(who.ownerId, id)), 200);
 		})
 		.openapi(act, async (c) => {
 			const who = await owner(c);

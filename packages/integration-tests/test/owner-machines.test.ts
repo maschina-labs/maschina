@@ -87,6 +87,35 @@ describe("what an owner sees", () => {
 		});
 	});
 
+	it("says which prices it is waiting on, worked out from its whole record", async () => {
+		const written = await writeMachine(handle.db, {
+			ownerWallet: address(),
+			name: "Range",
+			kind: "range",
+			settings: {
+				quoteMint: USDC,
+				baseMint: SOL,
+				buyLevel: "118800000",
+				sellLevel: "121200000",
+				amountPerBuy: "40350000",
+			},
+			rules: {},
+			wallet: { address: address(), providerWalletId: "wallet-1", provider: "turnkey" },
+			limits: { budgetGranted: 40_600_000n, approvedMints: [USDC, SOL] },
+		});
+		if (!written.ok) throw written.error;
+		const machine = await machineForOwner(
+			handle.db,
+			written.value.ownerId,
+			written.value.machineId,
+		);
+
+		expect(machine?.levels.map((level) => [level.id, level.price, level.direction])).toEqual([
+			["buy", 118_800_000n, "falls_to"],
+			["sell", 121_200_000n, "rises_to"],
+		]);
+	});
+
 	it("tells an owner nothing about a machine that is not theirs", async () => {
 		const mine = await aMachineFor(address());
 		const theirs = await aMachineFor(address());

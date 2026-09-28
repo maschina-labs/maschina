@@ -1,3 +1,4 @@
+export * from "./alerts.ts";
 export * from "./client.ts";
 export * from "./connection.ts";
 export * from "./create-machine.ts";

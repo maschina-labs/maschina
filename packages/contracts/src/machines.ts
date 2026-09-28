@@ -99,8 +99,31 @@ export const MachineDetail = MachineSummary.extend({
 		approvedMints: z.array(address),
 	}),
 	actions: z.array(z.enum(["fund", "start", "pause", "resume", "stop"])),
+	/** The prices it is waiting on now, in micro-dollars, worked out from its whole record. */
+	levels: z.array(
+		z.strictObject({
+			id: z.string(),
+			price: whole,
+			direction: z.enum(["falls_to", "rises_to"]),
+		}),
+	),
 }).meta({ id: "MachineDetail" });
 export type MachineDetail = z.infer<typeof MachineDetail>;
+
+/** What one account holds, read from the chain: SOL in lamports and each token in its smallest unit. */
+const Holdings = z.strictObject({
+	address,
+	lamports: whole,
+	tokens: z.array(
+		z.strictObject({ mint: address, amount: whole, decimals: z.int().min(0).max(18) }),
+	),
+});
+
+/** What a machine holds right now: its trading wallet, and its vault when it has one. */
+export const MachineBalances = z
+	.strictObject({ wallet: Holdings, vault: Holdings.optional() })
+	.meta({ id: "MachineBalances" });
+export type MachineBalances = z.infer<typeof MachineBalances>;
 
 /** What an owner asks a machine to do. Funding carries the budget it may now spend in total. */
 export const MachineActionRequest = z

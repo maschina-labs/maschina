@@ -127,6 +127,33 @@ export const useMachine = (api: Api, machineId: string) =>
 export const useRecord = (api: Api, machineId: string) =>
 	useQuery({ ...recordQueryFor(api, machineId), enabled: machineId !== "" });
 
+/** What one account holds on chain, as the API sends it. */
+export type Holdings = {
+	address: string;
+	lamports: string;
+	tokens: { mint: string; amount: string; decimals: number }[];
+};
+export type MachineBalances = { wallet: Holdings; vault?: Holdings };
+
+/** What a machine holds right now, read from the chain. Refreshed often: it is the money. */
+export const useBalances = (api: Api, machineId: string) =>
+	useQuery({
+		queryKey: ["machines", machineId, "balances"],
+		queryFn: async () =>
+			read<MachineBalances>(
+				await api.v1.machines[":machineId"].balances.$get({ param: { machineId } }),
+			),
+		enabled: machineId !== "",
+		refetchInterval: 15_000,
+		retry: false,
+	});
+
+/** How much of one token an account holds, in whole units, or zero. */
+export function holdingOf(holdings: Holdings | undefined, mint: string): number {
+	const token = holdings?.tokens.find((each) => each.mint === mint);
+	return token ? Number(token.amount) / 10 ** token.decimals : 0;
+}
+
 /** Fund, start, pause, resume or stop. Funding carries the new total the machine may spend. */
 export function useMachineAction(api: Api, queryClient: QueryClient, machineId: string) {
 	return useMutation({

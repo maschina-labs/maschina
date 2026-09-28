@@ -5,6 +5,7 @@ import {
 	requireServiceToken,
 } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
+import { type AlertStore, alertRoutes } from "./alerts-route.ts";
 import { claimRoutes, type RunQueue } from "./claim-route.ts";
 import { contextRoutes, type RunContexts } from "./context-route.ts";
 import { type Leases, proposeRoutes, type Signer, type Simulator } from "./propose-route.ts";
@@ -20,6 +21,10 @@ export type OrchestratorDeps = {
 	 * money can be asked here at all, which is the safe way for a server to start before it is set.
 	 */
 	gatewayToken?: string | undefined;
+	/** The bots present this to ask what owners have not been told. Unset, nobody is alerted. */
+	botsToken?: string | undefined;
+	/** What is worth telling an owner, and who has been told. */
+	alerts?: AlertStore | undefined;
 	logger: Logger;
 	reporter?: ErrorReporter | undefined;
 	checks: ReadinessCheck[];
@@ -61,6 +66,13 @@ export function buildApp(deps: OrchestratorDeps) {
 	if (deps.gatewayToken !== undefined) {
 		app.use("/owner/*", requireServiceToken(deps.gatewayToken));
 		app.route("/owner/v1", withdrawRoutes(deps.states, deps.withdrawer));
+	}
+
+	// What the bots ask lives under /alerts and needs their own token: what an owner hears is nobody
+	// else's business.
+	if (deps.botsToken !== undefined && deps.alerts !== undefined) {
+		app.use("/alerts/*", requireServiceToken(deps.botsToken));
+		app.route("/alerts/v1", alertRoutes(deps.alerts));
 	}
 
 	return app;

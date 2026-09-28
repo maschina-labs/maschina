@@ -11,6 +11,7 @@ import {
 	allowedActions,
 	budgetMintOf,
 	KNOWN_KINDS,
+	levelsOf,
 	type MachineAction,
 	type MachinePnl,
 	type MachineState,
@@ -40,6 +41,8 @@ export type OwnedMachine = {
 
 export type OwnedMachineDetail = OwnedMachine & {
 	settings: unknown;
+	/** Where its profit is banked. Absent for a machine made before vaults existed. */
+	vaultAddress?: string | undefined;
 	limits: {
 		maxPerTrade?: bigint | undefined;
 		maxPerDay?: bigint | undefined;
@@ -47,6 +50,11 @@ export type OwnedMachineDetail = OwnedMachine & {
 	};
 	/** What the owner may do with it right now, from the lifecycle rules. */
 	actions: MachineAction[];
+	/**
+	 * The prices it is waiting on right now, worked out from its whole record, so an app draws exactly
+	 * the band the watcher is watching rather than guessing from part of the history.
+	 */
+	levels: { id: string; price: bigint; direction: "falls_to" | "rises_to" }[];
 };
 
 type Row = {
@@ -55,6 +63,7 @@ type Row = {
 	kind: string;
 	settings: unknown;
 	wallet_address: string;
+	vault_address?: string | null;
 	created_at: string | Date;
 };
 
@@ -110,7 +119,7 @@ export async function machineForOwner(
 ): Promise<OwnedMachineDetail | undefined> {
 	const rows = await db.execute<Row>(sql`
 		select machines.id, machines.name, machine_definitions.kind, machine_definitions.settings,
-			machines.wallet_address, machines.created_at
+			machines.wallet_address, machines.vault_address, machines.created_at
 		from machines
 		join machine_definitions on machine_definitions.id = machines.definition_id
 		where machines.id = ${machineId}::uuid and machines.owner_id = ${ownerId}::uuid`);
@@ -123,12 +132,16 @@ export async function machineForOwner(
 	return {
 		...summary,
 		settings: row.settings,
+		...(row.vault_address ? { vaultAddress: row.vault_address } : {}),
 		limits: {
 			maxPerTrade: limits.maxPerTrade,
 			maxPerDay: limits.maxPerDay,
 			approvedMints: limits.approvedMints,
 		},
 		actions: allowedActions(summary.state),
+		levels: levelsOf(KNOWN_KINDS, row.kind, row.settings, { events, now: new Date() }).map(
+			(level) => ({ id: level.id, price: level.level, direction: level.direction }),
+		),
 	};
 }
 
