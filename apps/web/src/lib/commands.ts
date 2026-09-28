@@ -62,6 +62,46 @@ export function commandsFor(
 		},
 		{ id: "settings", label: "SETTINGS", hint: "PAGE · WALLETS, ALERTS, FEES", to: "/settings" },
 	];
+	pages.push({
+		id: "wallet",
+		label: "WALLET",
+		hint: "PAGE · WHAT CAME HOME, WHAT IS IDLE",
+		to: "/wallet",
+	});
+	pages.push({ id: "stake", label: "STAKE", hint: "WALLET · STAKE IDLE SOL", to: "/wallet/stake" });
+	pages.push({ id: "teams", label: "TEAMS", hint: "PAGE · TEAMS OF MACHINES", to: "/teams" });
+	pages.push({
+		id: "sign-in",
+		label: "SIGN IN",
+		hint: "ACCOUNT · WALLET, EMAIL, PASSKEY",
+		to: "/sign-in",
+	});
+	pages.push({ id: "welcome", label: "WELCOME", hint: "THE FRONT DOOR", to: "/welcome" });
+	pages.push({
+		id: "invite",
+		label: "INVITE CODE",
+		hint: "BETA · JOIN WITH A CODE",
+		to: "/invite",
+	});
+	pages.push({
+		id: "feedback",
+		label: "FEEDBACK",
+		hint: "SUPPORT · SOMETHING BROKE, OR AN IDEA",
+		to: "/feedback",
+	});
+	pages.push({
+		id: "alerts",
+		label: "ALERTS",
+		hint: "SETTINGS · WHAT YOU ARE TOLD ABOUT",
+		to: "/settings/alerts",
+	});
+	pages.push({
+		id: "keys",
+		label: "API KEYS",
+		hint: "SETTINGS · KEYS FOR THE SDK",
+		to: "/settings/keys",
+	});
+	pages.push({ id: "join", label: "RUN A NODE", hint: "NETWORK · JOIN", to: "/network/join" });
 	const perMachine = machines.flatMap((machine) => [
 		{
 			id: `open-${machine.machineId}`,
