@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.30](https://github.com/maschina-labs/maschina/compare/v0.0.29...v0.0.30) (2026-09-28)
+
+
+### Added
+
+* **gateway:** balances, band levels and Telegram alerts ([#712](https://github.com/maschina-labs/maschina/issues/712)) ([e86af9d](https://github.com/maschina-labs/maschina/commit/e86af9d86458f267844760824f4f57b686dac49c))
+
 ## [0.0.29](https://github.com/maschina-labs/maschina/compare/v0.0.28...v0.0.29) (2026-09-28)
 
 
