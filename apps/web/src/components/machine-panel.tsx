@@ -15,6 +15,7 @@ import {
 import { fetchPrice } from "../lib/price.ts";
 import { statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
+import { BandDial } from "./band-dial.tsx";
 import { Confirm } from "./confirm.tsx";
 import { Loading } from "./loading.tsx";
 import { TypeRow } from "./slider-row.tsx";
@@ -30,38 +31,6 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
 		<div className="flex min-h-[132px] flex-col gap-4 border-white/[0.07] border-t p-4 sm:border-l">
 			<span className={LABEL}>{label}</span>
 			{children}
-		</div>
-	);
-}
-
-/** Where the price sits between the buy and sell lines, 0 at buy and 1 at sell, held to the track. */
-export function placeInBand(price: number, buy: number, sell: number): number {
-	if (!(sell > buy)) return 0;
-	return Math.min(1, Math.max(0, (price - buy) / (sell - buy)));
-}
-
-function BandMeter({ price, buy, sell }: { price: number | undefined; buy: number; sell: number }) {
-	const at = price === undefined ? undefined : placeInBand(price, buy, sell);
-	return (
-		<div className="flex flex-col gap-2">
-			<div className="relative h-5">
-				<div className="absolute inset-x-0 top-1/2 h-px bg-white/20" />
-				<div className="absolute top-0 left-0 h-full w-px bg-white/50" />
-				<div className="absolute top-0 right-0 h-full w-px bg-white/50" />
-				{at !== undefined ? (
-					<div
-						role="img"
-						aria-label="The price"
-						className="-translate-x-1/2 absolute top-0 h-full w-0.5 bg-neutral-100"
-						style={{ left: `${at * 100}%` }}
-					/>
-				) : null}
-			</div>
-			<div className="flex justify-between text-[11px] text-neutral-400 tabular-nums">
-				<span>BUY {buy.toFixed(2)}</span>
-				<span className="text-neutral-100">{price === undefined ? "…" : price.toFixed(2)}</span>
-				<span>SELL {sell.toFixed(2)}</span>
-			</div>
 		</div>
 	);
 }
@@ -205,7 +174,9 @@ export function MachinePanelView({
 				</Cell>
 				<Cell label="BAND">
 					{buy !== undefined && sell !== undefined ? (
-						<BandMeter price={price} buy={buy} sell={sell} />
+						<div className="mx-auto aspect-square w-full max-w-[240px]">
+							<BandDial buy={buy} sell={sell} price={price} />
+						</div>
 					) : null}
 				</Cell>
 				<Cell label="FLOAT">

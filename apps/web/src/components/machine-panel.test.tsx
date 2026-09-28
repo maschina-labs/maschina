@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { MachineDetail } from "../lib/machines.ts";
-import { MachinePanelView, placeInBand } from "./machine-panel.tsx";
+import { MachinePanelView } from "./machine-panel.tsx";
 
 const machine = (state: MachineDetail["state"], actions: MachineDetail["actions"]) =>
 	({
@@ -95,7 +95,7 @@ describe("the selected machine", () => {
 		expect(screen.getByText("WATCHING THE PRICE")).toBeInTheDocument();
 	});
 
-	it("marks the live price on the band meter", () => {
+	it("shows its band as a dial with the live price in the middle", () => {
 		render(
 			<MachinePanelView
 				machine={machine("running", [])}
@@ -107,24 +107,8 @@ describe("the selected machine", () => {
 			/>,
 		);
 
-		expect(screen.getByLabelText("The price")).toHaveStyle({ left: "50%" });
-	});
-});
-
-describe("where the price sits in the band", () => {
-	it("is 0 at the buy line and 1 at the sell line", () => {
-		expect(placeInBand(118.8, 118.8, 121.2)).toBe(0);
-		expect(placeInBand(121.2, 118.8, 121.2)).toBe(1);
-		expect(placeInBand(120, 118.8, 121.2)).toBeCloseTo(0.5);
-	});
-
-	it("stays on the track when the price leaves the band", () => {
-		expect(placeInBand(100, 118.8, 121.2)).toBe(0);
-		expect(placeInBand(150, 118.8, 121.2)).toBe(1);
-	});
-
-	it("never divides by a band with no width", () => {
-		expect(placeInBand(120, 120, 120)).toBe(0);
+		expect(screen.getByText("120.00")).toBeInTheDocument();
+		expect(screen.getByText("IN_BAND 50%")).toBeInTheDocument();
 	});
 
 	it("does nothing when a question is cancelled", () => {
