@@ -169,3 +169,60 @@ describe("a machine whose band follows the price", () => {
 		expect(screen.getByText("WAITING TO BUY AT 118.50")).toBeInTheDocument();
 	});
 });
+
+describe("the panel's other controls", () => {
+	it("renames, copies its link and shares its result", () => {
+		const writeText = vi.fn(async () => undefined);
+		Object.assign(navigator, { clipboard: { writeText } });
+		view(machine("running", []));
+
+		fireEvent.click(screen.getByRole("button", { name: "RENAME" }));
+		expect(screen.getByRole("textbox", { name: /NEW NAME/ })).toHaveValue("Range Finder");
+		fireEvent.click(screen.getByRole("button", { name: "COPY LINK" }));
+		expect(writeText).toHaveBeenCalledWith(expect.stringContaining("/machines/m"));
+		fireEvent.click(screen.getByRole("button", { name: "SHARE" }));
+		expect(screen.getByText(/118\.80 TO 121\.20/)).toBeInTheDocument();
+	});
+
+	it("reads its track record from trades, and says it is on paper", () => {
+		const onPaper = {
+			...machine("paused", ["resume"]),
+			result: { ...machine("paused", []).result, simulated: true },
+		} as MachineDetail;
+		render(
+			<MachinePanelView
+				machine={onPaper}
+				record={[
+					{
+						id: "c",
+						type: "trade.completed",
+						occurredAt: "2026-09-28T06:22:39Z",
+						payload: { tradeId: "t", inputAmount: "40350000", outputAmount: "339698787" },
+					},
+					{
+						id: "i",
+						type: "trade.intended",
+						occurredAt: "2026-09-28T06:22:36Z",
+						payload: {
+							tradeId: "t",
+							inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+							outputMint: "So11111111111111111111111111111111111111112",
+							inputAmount: "40350000",
+							quotedOutputAmount: "339000000",
+						},
+					},
+				]}
+				price={121}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+			/>,
+		);
+
+		expect(screen.getByText(/FEES NONE, IT IS ON PAPER/)).toBeInTheDocument();
+		expect(screen.getByText(/BPS VS QUOTE/)).toBeInTheDocument();
+		expect(screen.getByText(/SINCE ITS FIRST BUY/)).toBeInTheDocument();
+		// Resuming is not asked about; it happens when pressed.
+		fireEvent.click(screen.getByRole("button", { name: "RESUME" }));
+	});
+});
