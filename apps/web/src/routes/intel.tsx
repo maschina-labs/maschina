@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Dossier } from "../components/dossier.tsx";
-import { IntelGraph } from "../components/intel-graph.tsx";
 import { useOperatingPicture } from "../components/portfolio.tsx";
 import { briefOn } from "../lib/analyst.ts";
 import { describeEvent } from "../lib/describe.ts";
@@ -65,7 +64,7 @@ function Page() {
 					{graph.nodes.length} OBJECTS · {graph.links.length} LINKS · {timeline.length} EVENTS
 				</span>
 			</header>
-			<div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[180px_1fr_300px]">
+			<div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-[180px_1fr]">
 				<nav aria-label="Objects" className="hidden flex-col gap-5 overflow-y-auto lg:flex">
 					{GROUPS.map(([kind, title]) => (
 						<section key={kind} className="flex flex-col gap-1.5">
@@ -87,9 +86,6 @@ function Page() {
 						</section>
 					))}
 				</nav>
-				<div className="min-h-[360px]">
-					<IntelGraph graph={graph} selected={selected} onSelect={setSelected} />
-				</div>
 				<div className="overflow-y-auto">
 					<Dossier node={node} graph={graph} events={events} brief={brief} onSelect={setSelected} />
 				</div>
