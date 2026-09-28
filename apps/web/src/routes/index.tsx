@@ -1,8 +1,11 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { bandOf, Decisions, useMachineAtWork, WorkBar } from "../components/at-work.tsx";
+import { bandOf, useMachineAtWork, WorkBar } from "../components/at-work.tsx";
+import { BandDial } from "../components/band-dial.tsx";
 import { BandRuler } from "../components/band-ruler.tsx";
+import { DecisionLog } from "../components/decision-log.tsx";
 import { FirstRun } from "../components/first-run.tsx";
+import { FleetStrip } from "../components/fleet-strip.tsx";
 import { MarketStrip } from "../components/market-strip.tsx";
 import { useMachineTrades } from "../components/portfolio.tsx";
 import { PriceChart } from "../components/price-chart.tsx";
@@ -45,6 +48,10 @@ function Terminal() {
 					hasMachine={(machines.data?.length ?? 0) > 0 && Boolean(session.data)}
 				/>
 			) : null}
+			<FleetStrip
+				machines={session.data ? (machines.data ?? []) : []}
+				following={machine?.machineId}
+			/>
 			<section aria-label="SOL price" className="flex h-[60vh] min-h-[360px] flex-col gap-4">
 				<SolPrice />
 				<MarketStrip />
@@ -65,6 +72,12 @@ function Terminal() {
 					))}
 				</fieldset>
 				<div className="flex min-h-0 flex-1 gap-4">
+					{/* The instrument: the machine's band as a dial, the live price at its centre. */}
+					{buy !== undefined && sell !== undefined ? (
+						<div className="hidden aspect-square h-full max-h-[340px] shrink-0 self-center xl:block">
+							<BandDial buy={buy} sell={sell} price={price} />
+						</div>
+					) : null}
 					<div className="min-w-0 flex-1">
 						<PriceChart
 							interval={interval}
@@ -81,7 +94,7 @@ function Terminal() {
 				</div>
 			</section>
 			<WorkBar machine={machine} />
-			<Decisions record={record} />
+			<DecisionLog record={record} />
 			<div className="grid gap-10 pt-4 md:grid-cols-2">
 				<MachineTapeView trades={machineTrades} />
 				<MarketTape />

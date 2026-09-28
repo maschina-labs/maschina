@@ -25,3 +25,20 @@ export function Grain() {
 		/>
 	);
 }
+
+/**
+ * A faint grid of dots over the fog, like the drafting grid under an instrument: a dot every 24 pixels,
+ * barely there, so the field reads as measured space rather than sky.
+ */
+export function DotGrid() {
+	return (
+		<div
+			aria-hidden="true"
+			className="pointer-events-none fixed inset-0 z-0"
+			style={{
+				backgroundImage: "radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1px)",
+				backgroundSize: "24px 24px",
+			}}
+		/>
+	);
+}

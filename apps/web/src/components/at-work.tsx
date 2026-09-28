@@ -1,13 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
-import { describeEvent } from "../lib/describe.ts";
-import {
-	amount,
-	type MachineDetail,
-	type RecordEntry,
-	useMachine,
-	useMachines,
-	useRecord,
-} from "../lib/machines.ts";
+import { amount, type MachineDetail, useMachine, useMachines, useRecord } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
 import { bandOf, statusOf } from "../lib/status.ts";
 import { GLASS } from "./glass.ts";
@@ -36,27 +28,6 @@ export function WorkBar({ machine }: { machine: MachineDetail | undefined }) {
 				<span className="text-neutral-500">CONNECT TO SEE YOUR MACHINE AT WORK</span>
 			)}
 		</div>
-	);
-}
-
-export function Decisions({ record }: { record: RecordEntry[] }) {
-	const latest = [...record].reverse().slice(0, 3);
-	if (latest.length === 0) return null;
-	return (
-		<ol aria-label="Latest decisions" className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-			{latest.map((entry) => {
-				const said = describeEvent(entry);
-				return (
-					<li key={entry.id} className="flex flex-col gap-2 text-[11px] tracking-[0.1em]">
-						<time className="text-neutral-500 tabular-nums" dateTime={entry.occurredAt}>
-							{new Date(entry.occurredAt).toLocaleTimeString("en-CA", { hour12: false })}
-						</time>
-						<span className="text-neutral-100">{said.title}</span>
-						{said.detail ? <span className="text-neutral-500">{said.detail}</span> : null}
-					</li>
-				);
-			})}
-		</ol>
 	);
 }
 
