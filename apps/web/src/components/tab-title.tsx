@@ -2,11 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { fetchPrice, type Price } from "../lib/price.ts";
 
-/** What the browser tab says: the live SOL price and which way it moved, so the tab is a ticker too. */
+/** What the browser tab says: the live SOL price, then the name, so the tab is a ticker too. */
 export function tabTitle(price: Price | undefined): string {
-	if (!price) return "MASCHINA";
-	const arrow = price.change24h > 0 ? " ▲" : price.change24h < 0 ? " ▼" : "";
-	return `${price.usd.toFixed(2)}${arrow} SOL · MASCHINA`;
+	return price ? `${price.usd.toFixed(2)} / Maschina` : "Maschina";
 }
 
 export function TabTitle() {
