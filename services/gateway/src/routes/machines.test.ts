@@ -52,6 +52,7 @@ function app(ports: Partial<MachinePorts> = {}) {
 			{ id: newId<"event">(), type: "machine.created", occurredAt: summary.createdAt, payload: {} },
 		],
 		act: async () => ({ state: "running" }),
+		retune: async () => ({ definitionId: "e".repeat(64) }),
 		withdrawEverything: async () => {
 			throw new Error("nothing should be withdrawn here");
 		},
@@ -153,6 +154,45 @@ describe("the machines API", () => {
 			body: JSON.stringify({ action: "start" }),
 		});
 		expect(res.status).toBe(409);
+	});
+
+	it("changes a machine's recipe for the owner who is signed in", async () => {
+		const asked: { ownerId: string; machineId: string; kind: string }[] = [];
+		const res = await app({
+			retune: async (request) => {
+				asked.push(request);
+				return { definitionId: "e".repeat(64) };
+			},
+		}).request(`/v1/machines/${machineId}/recipe`, {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ kind: "following_range", settings: { bandBps: 100 } }),
+		});
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ definitionId: "e".repeat(64) });
+		expect(asked[0]).toMatchObject({ ownerId, machineId, kind: "following_range" });
+	});
+
+	it("passes on a recipe change a running machine cannot take", async () => {
+		const res = await app({
+			retune: async () => {
+				throw new MaschinaError("conflict", "pause the machine before changing its recipe");
+			},
+		}).request(`/v1/machines/${machineId}/recipe`, {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ kind: "following_range", settings: {} }),
+		});
+		expect(res.status).toBe(409);
+	});
+
+	it("changes nobody's recipe without a session", async () => {
+		const res = await app().request(`/v1/machines/${machineId}/recipe`, {
+			method: "POST",
+			body: JSON.stringify({ kind: "following_range", settings: {} }),
+			headers: { "content-type": "application/json" },
+		});
+		expect(res.status).toBe(401);
 	});
 
 	it("refuses an action nobody has heard of", async () => {

@@ -19,6 +19,8 @@ import {
 	MachineDetail,
 	MachineList,
 	MachineRecord,
+	RetuneMachineRequest,
+	RetuneMachineResponse,
 	WithdrawEverythingResponse,
 } from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
@@ -39,6 +41,13 @@ export type MachinePorts = {
 		action: "fund" | "start" | "pause" | "resume" | "stop";
 		budgetGranted?: bigint;
 	}): Promise<{ state: string }>;
+	/** A new recipe for a paused machine. The record decides whether it is theirs and paused. */
+	retune(request: {
+		ownerId: string;
+		machineId: string;
+		kind: string;
+		settings: Record<string, unknown>;
+	}): Promise<RetuneMachineResponse>;
 	create(request: CreateMachineRequest & { ownerWallet: string }): Promise<CreateMachineResponse>;
 	/** Everything the machine holds, back to its owner. The machine is known to be theirs by now. */
 	withdrawEverything(request: {
@@ -114,6 +123,30 @@ const act = createRoute({
 		},
 		409: {
 			description: "The machine cannot do that from where it is",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		...problem,
+	},
+});
+
+const retune = createRoute({
+	method: "post",
+	path: "/machines/{machineId}/recipe",
+	tags: ["Machines"],
+	summary: "Change a paused machine's recipe",
+	description:
+		"The machine keeps its wallet, its money and its record, and runs the new recipe from when it is resumed. It has to be paused first, and it keeps spending the token its budget is counted in.",
+	request: {
+		params: z.object({ machineId }),
+		body: { content: { "application/json": { schema: RetuneMachineRequest } } },
+	},
+	responses: {
+		200: {
+			description: "The recipe it now runs",
+			content: { "application/json": { schema: RetuneMachineResponse } },
+		},
+		409: {
+			description: "The machine is not paused",
 			content: { "application/json": { schema: ErrorBody } },
 		},
 		...problem,
@@ -220,6 +253,18 @@ export function machineRoutes(ports: MachinePorts) {
 				...(body.budgetGranted === undefined ? {} : { budgetGranted: BigInt(body.budgetGranted) }),
 			});
 			return c.json(MachineActionResponse.parse(done), 200);
+		})
+		.openapi(retune, async (c) => {
+			const who = await owner(c);
+			const { machineId: id } = c.req.valid("param");
+			const body = c.req.valid("json");
+			const done = await ports.retune({
+				ownerId: who.ownerId,
+				machineId: id,
+				kind: body.kind,
+				settings: body.settings,
+			});
+			return c.json(RetuneMachineResponse.parse(done), 200);
 		})
 		.openapi(withdraw, async (c) => {
 			const who = await owner(c);

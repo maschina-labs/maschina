@@ -8,6 +8,7 @@ export * from "./owner-machines.ts";
 export * from "./owners.ts";
 export * from "./read-events.ts";
 export * from "./record.ts";
+export * from "./retune.ts";
 export * from "./run-context.ts";
 export * from "./runs.ts";
 export * as schema from "./schema/index.ts";

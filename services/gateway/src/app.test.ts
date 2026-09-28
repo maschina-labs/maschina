@@ -13,6 +13,7 @@ const noMachines = {
 	read: async () => undefined,
 	record: async () => [],
 	act: async () => ({ state: "ready" }),
+	retune: async () => ({ definitionId: "e".repeat(64) }),
 	withdrawEverything: async () => {
 		throw new Error("not used here");
 	},

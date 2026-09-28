@@ -11,6 +11,7 @@ import {
 	machineForOwner,
 	machinesOf,
 	readMachineEvents,
+	retuneMachine,
 } from "@maschina/db";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
@@ -68,6 +69,11 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 			asRecord(await readMachineEvents(database.db, machineId), limit),
 		act: async (request) => {
 			const done = await actOnMachine(database.db, request);
+			if (!done.ok) throw done.error;
+			return done.value;
+		},
+		retune: async (request) => {
+			const done = await retuneMachine(database.db, request);
 			if (!done.ok) throw done.error;
 			return done.value;
 		},

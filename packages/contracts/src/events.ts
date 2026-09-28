@@ -155,6 +155,14 @@ const MACHINE_PAYLOADS = {
 		price: amount,
 		because: z.enum(["started", "followed", "after_floor"]),
 	}),
+	/**
+	 * The owner changed the machine's recipe: what kind it is, or how it is set. Everything it did before
+	 * stays in the record, and it carries on from there under the new one.
+	 */
+	"machine.retuned": object({
+		from: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
+		to: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
+	}),
 	"machine.limits_changed": object({
 		limit: z.enum(["maxPerTrade", "maxPerDay", "budgetGranted", "approvedMints", "recipients"]),
 		/** The old and new values as text, so every limit is recorded the same way. */
