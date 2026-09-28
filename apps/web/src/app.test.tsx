@@ -10,6 +10,9 @@ vi.mock("@react-three/fiber", () => ({
 	useThree: () => ({ width: 1, height: 1 }),
 }));
 
+// No canvas either, so the price chart, which draws on one, is stood in for too. It has its own tests.
+vi.mock("./components/price-chart.tsx", () => ({ PriceChart: () => <div /> }));
+
 import { createApi } from "./lib/api.ts";
 import { createQueryClient } from "./lib/query.ts";
 import { createAppRouter } from "./router.tsx";

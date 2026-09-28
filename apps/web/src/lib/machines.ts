@@ -114,7 +114,7 @@ export const recordQueryFor = (api: Api, machineId: string) =>
 				await read<{ events: RecordEntry[] }>(
 					await api.v1.machines[":machineId"].record.$get({
 						param: { machineId },
-						query: { limit: "100" },
+						query: { limit: "200" },
 					}),
 				)
 			).events,

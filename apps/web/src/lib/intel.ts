@@ -7,7 +7,7 @@ import { tradesFrom } from "./trades.ts";
  * path leads back to the owner, which is the harness drawn as a picture.
  */
 
-export type Kind = "wallet" | "machine" | "vault" | "token";
+type Kind = "wallet" | "machine" | "vault" | "token";
 export type Node = {
 	id: string;
 	kind: Kind;
@@ -16,7 +16,7 @@ export type Node = {
 	address?: string;
 	machineId?: string;
 };
-export type Link = { from: string; to: string; kind: "funds" | "banks" | "trades"; count: number };
+type Link = { from: string; to: string; kind: "funds" | "banks" | "trades"; count: number };
 export type Graph = { nodes: Node[]; links: Link[] };
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";

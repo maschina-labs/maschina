@@ -13,7 +13,7 @@ import type { SignedInOwner } from "../lib/session.ts";
  */
 
 /** What a machine needs in SOL to pay its own network fees, sent alongside its float. */
-export const FEE_SOL = "0.011";
+const FEE_SOL = "0.011";
 
 const LABEL = "text-[10.5px] text-neutral-500 tracking-[0.14em]";
 const BUTTON =

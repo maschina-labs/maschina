@@ -7,7 +7,7 @@ export const Route = createFileRoute("/settings/alerts")({
 	component: Alerts,
 });
 
-export const ALERTS = [
+const ALERTS = [
 	"EVERY TRADE",
 	"A MACHINE HITS ITS FLOOR",
 	"A MACHINE PAUSES ITSELF",

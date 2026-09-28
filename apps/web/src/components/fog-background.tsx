@@ -21,7 +21,7 @@ export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; g
  * Palettes to try the app in. City is measured from Ash's Obsidian reference (2026-09-28), region by region;
  * the others keep its shape and change its light. Chosen with `?fog=name` on any address.
  */
-export const PALETTES = {
+const PALETTES = {
 	city: {
 		night: { l: 0.16, c: 0.002, h: 286 },
 		top: { l: 0.246, c: 0.021, h: 136 },

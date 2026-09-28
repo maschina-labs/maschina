@@ -1,3 +1,4 @@
+import { followingRange } from "@maschina/runtime";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { MachineDetail } from "../lib/machines.ts";
@@ -133,5 +134,38 @@ describe("the selected machine", () => {
 		view(machine("stopped", []));
 
 		expect(screen.getByRole("button", { name: "RETIRE THIS MACHINE" })).toBeDisabled();
+	});
+});
+
+describe("a machine whose band follows the price", () => {
+	const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+	const SOL = "So11111111111111111111111111111111111111112";
+
+	it("shows where its band sits now, from its record", () => {
+		const following = {
+			...machine("running", ["pause", "stop"]),
+			kind: followingRange.kind,
+			settings: { quoteMint: USDC, baseMint: SOL, bandBps: 250, amountPerBuy: "40350000" },
+		} as MachineDetail;
+		render(
+			<MachinePanelView
+				machine={following}
+				record={[
+					{
+						id: "c",
+						type: "machine.recentred",
+						occurredAt: "2026-09-28T19:22:24Z",
+						payload: { price: "120000000", because: "started" },
+					},
+				]}
+				busy={false}
+				onAction={vi.fn()}
+				onWithdraw={vi.fn()}
+			/>,
+		);
+
+		expect(screen.getByText("FOLLOW 121.50")).toBeInTheDocument();
+		expect(screen.getByText("BUY 118.50")).toBeInTheDocument();
+		expect(screen.getByText("WAITING TO BUY AT 118.50")).toBeInTheDocument();
 	});
 });

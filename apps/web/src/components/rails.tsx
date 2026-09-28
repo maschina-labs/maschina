@@ -81,7 +81,7 @@ const INSIDE = "flex flex-col gap-10 px-5 py-6";
 
 /** A darker panel than the header's glass, so a column of text reads clearly over the moving fog. */
 /** The docs and the whitepaper live in their own app, not this one. */
-export const DOCS = "https://docs.maschina.dev";
+const DOCS = "https://docs.maschina.dev";
 
 const PANEL = "bg-[oklch(0.1_0_0/0.55)] backdrop-saturate-0";
 const ICON =

@@ -16,7 +16,7 @@ export function winRate(machine: MachineSummary): string {
 	return done === 0 ? "-" : `${Math.round((machine.result.wins / done) * 100)}%`;
 }
 
-export function ListingCard({ machine }: { machine: MachineSummary }) {
+function ListingCard({ machine }: { machine: MachineSummary }) {
 	return (
 		<article aria-label={machine.name} className={`flex flex-col gap-4 p-4 ${GLASS}`}>
 			<header className="flex items-baseline justify-between gap-3">

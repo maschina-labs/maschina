@@ -14,7 +14,7 @@ import {
 	useWithdrawEverything,
 } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
-import { statusOf } from "../lib/status.ts";
+import { bandOf, statusOf } from "../lib/status.ts";
 import { toast } from "../lib/toasts.ts";
 import { executionBps, holdingReturn, largestDrop } from "../lib/track-record.ts";
 import { BandDial } from "./band-dial.tsx";
@@ -103,6 +103,8 @@ export function MachinePanelView({
 		typeof settings["sellLevel"] === "string"
 			? Number(settings["sellLevel"]) / 1_000_000
 			: undefined;
+	// Every level it is watching, for a band that moves and so has no fixed edges to read.
+	const levels = bandOf(machine, record);
 	const controls = machine.actions.filter((action) => action !== "fund");
 	// Anything that stops a machine or moves its money is asked about first.
 	const [asking, setAsking] = useState<MachineAction | "withdraw">();
@@ -189,7 +191,13 @@ export function MachinePanelView({
 						<div className="mx-auto aspect-square w-full max-w-[240px]">
 							<BandDial buy={buy} sell={sell} price={price} />
 						</div>
-					) : null}
+					) : (
+						<div className="flex flex-col gap-2 text-[15px] text-neutral-100 tabular-nums">
+							{levels.map((level) => (
+								<span key={level.label}>{`${level.label} ${level.price.toFixed(2)}`}</span>
+							))}
+						</div>
+					)}
 				</Cell>
 				<Cell label="FLOAT">
 					<FloatBar granted={machine.budget.granted} available={machine.budget.available} />
@@ -360,7 +368,8 @@ export function MachinePanelView({
 					band={
 						buy !== undefined && sell !== undefined
 							? `${buy.toFixed(2)} TO ${sell.toFixed(2)}`
-							: undefined
+							: levels.map((level) => `${level.label} ${level.price.toFixed(2)}`).join(" · ") ||
+								undefined
 					}
 					onClose={() => setSharing(false)}
 				/>
@@ -422,7 +431,7 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 		<>
 			<MachinePanelView
 				machine={machine.data}
-				record={[...(record.data ?? [])].reverse()}
+				record={record.data ?? []}
 				price={price.data?.usd}
 				busy={act.isPending || withdraw.isPending}
 				onAction={(action) =>

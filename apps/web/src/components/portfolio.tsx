@@ -96,13 +96,6 @@ export function useActivity() {
 	return signedIn ? feed : [];
 }
 
-export function Activity() {
-	const { signedIn, machines, feed } = useEverything();
-	if (!signedIn) return SIGN_IN;
-	if (!machines) return <Loading what="LOADING YOUR MACHINES" />;
-	return <ActivityView feed={feed} />;
-}
-
 /** Per machine: what it was given, what it has taken, what it holds. */
 /** Each machine's share of everything in play, as whole percentages that always add to 100. */
 export function sharesOf(machines: MachineSummary[]): { machineId: string; share: number }[] {
