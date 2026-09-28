@@ -30,7 +30,10 @@ describe("the left side", () => {
 		render(<LeftRail />);
 
 		expect(screen.getByRole("button", { name: "Your machines" })).toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
+		expect(screen.getByRole("link", { name: "Docs" })).toHaveAttribute(
+			"href",
+			"https://docs.maschina.dev",
+		);
 		expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
 	});
 

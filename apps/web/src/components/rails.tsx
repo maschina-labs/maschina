@@ -79,6 +79,9 @@ const RAIL = "hidden shrink-0 lg:block";
 const INSIDE = "flex flex-col gap-10 px-5 py-6";
 
 /** A darker panel than the header's glass, so a column of text reads clearly over the moving fog. */
+/** The docs and the whitepaper live in their own app, not this one. */
+export const DOCS = "https://docs.maschina.dev";
+
 const PANEL = "bg-[oklch(0.1_0_0/0.55)] backdrop-saturate-0";
 const ICON =
 	"grid size-9 place-items-center text-neutral-500 transition-colors hover:text-neutral-100";
@@ -103,15 +106,17 @@ export function LeftRail() {
 				>
 					<Robot size={18} weight="light" />
 				</button>
-				<Link
-					to="/docs"
+				{/* Docs are their own app, so this leaves Maschina for them. */}
+				<a
+					href={DOCS}
+					target="_blank"
+					rel="noreferrer"
 					aria-label="Docs"
 					title="Docs"
 					className={ICON}
-					activeProps={{ className: `text-neutral-100 ${GLASS_ACTIVE}` }}
 				>
 					<BookOpen size={18} weight="light" />
-				</Link>
+				</a>
 				<div className="flex-1" />
 				<Link
 					to="/settings"

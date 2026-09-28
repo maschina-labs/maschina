@@ -20,7 +20,7 @@ vi.mock("@tanstack/react-router", () => ({
 const { MobileMenu } = await import("./mobile-menu.tsx");
 
 describe("the phone menu", () => {
-	it("opens a sheet with every page, docs and settings, and closes on a choice", () => {
+	it("opens a sheet with every page and settings, and closes on a choice", () => {
 		render(<MobileMenu />);
 
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));

@@ -27,11 +27,7 @@ export function MobileMenu() {
 							aria-label="Menu"
 							className="fixed inset-x-1.5 top-14 bottom-9 z-40 flex flex-col gap-1 overflow-y-auto bg-black/85 p-4 backdrop-saturate-0 md:hidden"
 						>
-							{[
-								...SECTIONS,
-								{ to: "/docs", label: "Docs" },
-								{ to: "/settings", label: "Settings" },
-							].map((section) => (
+							{[...SECTIONS, { to: "/settings", label: "Settings" }].map((section) => (
 								<Link
 									key={section.to}
 									to={section.to}
