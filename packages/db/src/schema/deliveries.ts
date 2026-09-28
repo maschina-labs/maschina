@@ -9,14 +9,13 @@
 
 import { sql } from "drizzle-orm";
 import { check, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { events } from "./events.ts";
 
 export const deliveries = pgTable(
 	"deliveries",
 	{
-		eventId: uuid("event_id")
-			.notNull()
-			.references(() => events.id),
+		// Not a foreign key: a key referencing the record would change how the database refuses to
+		// truncate it, and the record is never deleted from, so every id here stays valid.
+		eventId: uuid("event_id").notNull(),
 		/** Where it was told. Telegram first; the app's own notifications later. */
 		channel: text("channel").notNull(),
 		deliveredAt: timestamp("delivered_at", { withTimezone: true }).notNull().defaultNow(),

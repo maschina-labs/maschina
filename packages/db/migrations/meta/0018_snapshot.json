@@ -1,5 +1,5 @@
 {
-  "id": "f86e430b-43f3-416a-a4b8-68040300a768",
+  "id": "f2850c33-5d60-474f-90b3-7f5cd29b9ac6",
   "prevId": "f7d1978f-24b0-4aa4-9028-6cf3c2066fb5",
   "version": "7",
   "dialect": "postgresql",
@@ -82,21 +82,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "deliveries_event_id_events_id_fk": {
-          "name": "deliveries_event_id_events_id_fk",
-          "tableFrom": "deliveries",
-          "tableTo": "events",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {
         "deliveries_event_id_channel_pk": {
           "name": "deliveries_event_id_channel_pk",
