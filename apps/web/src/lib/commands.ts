@@ -32,6 +32,12 @@ export function commandsFor(
 			to: "/",
 		},
 		{
+			id: "intel",
+			label: "INTEL",
+			hint: "PAGE · THE OPERATING PICTURE: OBJECTS, LINKS, THE ANALYST",
+			to: "/intel",
+		},
+		{
 			id: "portfolio",
 			label: "PORTFOLIO",
 			hint: "PAGE · TOTALS AND PROFIT OVER TIME",

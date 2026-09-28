@@ -16,6 +16,7 @@ describe("the header's sections", () => {
 		const links = screen.getAllByRole("link");
 		expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
 			["Terminal", "/"],
+			["Intel", "/intel"],
 			["Portfolio", "/portfolio"],
 			["Machines", "/machines"],
 			["Activity", "/activity"],

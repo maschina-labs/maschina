@@ -11,6 +11,7 @@ vi.mock("@tanstack/react-router", () => ({
 		<a href={to}>{children}</a>
 	),
 	useRouter: () => ({ options: { context: { api: {} } } }),
+	useRouterState: () => "/",
 }));
 vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ data: undefined }) }));
 vi.mock("../lib/session.ts", () => ({ useSession: () => ({ data: null }) }));

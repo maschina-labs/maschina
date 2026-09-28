@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useMachines } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
@@ -30,6 +30,9 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 		refetchInterval: 5_000,
 	});
 	const mine = session.data ? (machines.data ?? []) : [];
+	// The operating pictures use every pixel between the rails; everything else reads in a column.
+	const path = useRouterState({ select: (state) => state.location.pathname });
+	const wide = path === "/intel" || path === "/network";
 	return (
 		<div className="flex h-dvh flex-col">
 			<header
@@ -61,7 +64,9 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 					<div className="min-h-0 flex-1">
 						<ScrollArea>
 							{/* The page in a centred column, with the two sidebars either side. */}
-							<div className="mx-auto h-full w-full max-w-[1100px]">{children}</div>
+							<div className={`mx-auto h-full w-full ${wide ? "" : "max-w-[1100px]"}`}>
+								{children}
+							</div>
 						</ScrollArea>
 					</div>
 				</main>

@@ -274,3 +274,11 @@ export function useStandings() {
 				)
 			: [];
 }
+
+/** Every machine with its record, for the operating picture. */
+export function useOperatingPicture() {
+	const { signedIn, machines, records } = useEverything();
+	return signedIn && machines
+		? machines.map((machine, index) => ({ machine, record: records[index] ?? [] }))
+		: [];
+}

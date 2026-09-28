@@ -25,7 +25,7 @@ describe("the command palette", () => {
 		const box = screen.getByRole("textbox", { name: "Search commands" });
 		fireEvent.keyDown(box, { key: "ArrowDown" });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(onRun).toHaveBeenCalledWith(expect.objectContaining({ id: "portfolio" }));
+		expect(onRun).toHaveBeenCalledWith(expect.objectContaining({ id: "intel" }));
 		fireEvent.keyDown(box, { key: "Escape" });
 		expect(onClose).toHaveBeenCalled();
 	});

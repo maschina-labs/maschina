@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as IntelRouteImport } from './routes/intel'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as NewRouteImport } from './routes/new'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const ActivityRoute = ActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntelRoute = IntelRouteImport.update({
+  id: '/intel',
+  path: '/intel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManagerRoute = ManagerRouteImport.update({
@@ -134,6 +140,7 @@ const WalletWithdrawRoute = WalletWithdrawRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/intel': typeof IntelRoute
   '/manager': typeof ManagerRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/intel': typeof IntelRoute
   '/manager': typeof ManagerRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/intel': typeof IntelRoute
   '/manager': typeof ManagerRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/intel'
     | '/manager'
     | '/network'
     | '/new'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/intel'
     | '/manager'
     | '/network'
     | '/new'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/activity'
+    | '/intel'
     | '/manager'
     | '/network'
     | '/new'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  IntelRoute: typeof IntelRoute
   ManagerRoute: typeof ManagerRoute
   NetworkRoute: typeof NetworkRoute
   NewRoute: typeof NewRoute
@@ -304,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intel': {
+      id: '/intel'
+      path: '/intel'
+      fullPath: '/intel'
+      preLoaderRoute: typeof IntelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manager': {
@@ -438,6 +458,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  IntelRoute: IntelRoute,
   ManagerRoute: ManagerRoute,
   NetworkRoute: NetworkRoute,
   NewRoute: NewRoute,
