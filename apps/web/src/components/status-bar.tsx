@@ -45,7 +45,25 @@ export function StatusBarView({ price, change24h, running, machines, realised }:
 					</span>
 				</>
 			)}
-			<span className="ml-auto hidden text-neutral-600 md:inline">⌘K TO GO ANYWHERE</span>
+			<span className="ml-auto hidden items-center gap-4 md:flex">
+				<a
+					href="https://docs.maschina.dev"
+					target="_blank"
+					rel="noreferrer"
+					className="hover:text-neutral-200"
+				>
+					DOCS
+				</a>
+				<a href="mailto:support@maschina.dev" className="hover:text-neutral-200">
+					SUPPORT
+				</a>
+				<a href="/terms" className="hover:text-neutral-200">
+					TERMS
+				</a>
+				<a href="/privacy" className="hover:text-neutral-200">
+					PRIVACY
+				</a>
+			</span>
 		</footer>
 	);
 }

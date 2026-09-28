@@ -66,6 +66,16 @@ body {
 	}
 }
 
+/* The ticker scrolls half its width, which is one full copy of its items, then starts again unseen. */
+@keyframes ticker {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-50%);
+	}
+}
+
 /* The loading ruler: each tick brightens and grows in turn. */
 @keyframes tick {
 	0%,

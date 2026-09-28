@@ -15,7 +15,9 @@ import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SwapRouteImport } from './routes/swap'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
@@ -58,9 +60,19 @@ const PortfolioRoute = PortfolioRouteImport.update({
   path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
   path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MachinesIndexRoute = MachinesIndexRouteImport.update({
@@ -126,7 +138,9 @@ export interface FileRoutesByFullPath {
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
   '/swap': typeof SwapRoute
+  '/terms': typeof TermsRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -146,7 +160,9 @@ export interface FileRoutesByTo {
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
   '/swap': typeof SwapRoute
+  '/terms': typeof TermsRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -167,7 +183,9 @@ export interface FileRoutesById {
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
   '/swap': typeof SwapRoute
+  '/terms': typeof TermsRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
   '/marketplace/mine': typeof MarketplaceMineRoute
   '/runs/finished': typeof RunsFinishedRoute
@@ -189,7 +207,9 @@ export interface FileRouteTypes {
     | '/network'
     | '/new'
     | '/portfolio'
+    | '/privacy'
     | '/swap'
+    | '/terms'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -209,7 +229,9 @@ export interface FileRouteTypes {
     | '/network'
     | '/new'
     | '/portfolio'
+    | '/privacy'
     | '/swap'
+    | '/terms'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -229,7 +251,9 @@ export interface FileRouteTypes {
     | '/network'
     | '/new'
     | '/portfolio'
+    | '/privacy'
     | '/swap'
+    | '/terms'
     | '/machines/$machineId'
     | '/marketplace/mine'
     | '/runs/finished'
@@ -250,7 +274,9 @@ export interface RootRouteChildren {
   NetworkRoute: typeof NetworkRoute
   NewRoute: typeof NewRoute
   PortfolioRoute: typeof PortfolioRoute
+  PrivacyRoute: typeof PrivacyRoute
   SwapRoute: typeof SwapRoute
+  TermsRoute: typeof TermsRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
   MarketplaceMineRoute: typeof MarketplaceMineRoute
   RunsFinishedRoute: typeof RunsFinishedRoute
@@ -308,11 +334,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/swap': {
       id: '/swap'
       path: '/swap'
       fullPath: '/swap'
       preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/machines/': {
@@ -402,7 +442,9 @@ const rootRouteChildren: RootRouteChildren = {
   NetworkRoute: NetworkRoute,
   NewRoute: NewRoute,
   PortfolioRoute: PortfolioRoute,
+  PrivacyRoute: PrivacyRoute,
   SwapRoute: SwapRoute,
+  TermsRoute: TermsRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
   MarketplaceMineRoute: MarketplaceMineRoute,
   RunsFinishedRoute: RunsFinishedRoute,

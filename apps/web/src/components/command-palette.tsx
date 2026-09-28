@@ -73,6 +73,10 @@ export function CommandPaletteView({
 	);
 }
 
+/** Raised by anything that wants the palette open, like the search box in the header. */
+export const OPEN_PALETTE = "maschina:palette";
+export const openPalette = () => window.dispatchEvent(new Event(OPEN_PALETTE));
+
 export function CommandPalette() {
 	const { api } = useRouter().options.context;
 	const navigate = useNavigate();
@@ -86,8 +90,13 @@ export function CommandPalette() {
 				setOpen((was) => !was);
 			}
 		};
+		const onAsk = () => setOpen(true);
 		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
+		window.addEventListener(OPEN_PALETTE, onAsk);
+		return () => {
+			window.removeEventListener("keydown", onKey);
+			window.removeEventListener(OPEN_PALETTE, onAsk);
+		};
 	}, []);
 	if (!open) return null;
 	const commands = commandsFor(session.data ? (machines.data ?? []) : []);

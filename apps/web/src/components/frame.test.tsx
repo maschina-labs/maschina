@@ -10,7 +10,12 @@ vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
 		<a href={to}>{children}</a>
 	),
+	useRouter: () => ({ options: { context: { api: {} } } }),
 }));
+vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ data: undefined }) }));
+vi.mock("../lib/session.ts", () => ({ useSession: () => ({ data: null }) }));
+vi.mock("../lib/machines.ts", () => ({ useMachines: () => ({ data: [] }) }));
+vi.mock("./header-tools.tsx", () => ({ SearchBox: () => null, NewMachineButton: () => null }));
 vi.mock("./scroll-ticks.tsx", () => ({
 	ScrollArea: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
