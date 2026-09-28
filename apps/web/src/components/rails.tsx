@@ -1,9 +1,10 @@
-import { BookOpen, GearSix, Robot } from "@phosphor-icons/react";
+import { BookOpen, ChatsCircle, GearSix, Pulse, Robot } from "@phosphor-icons/react";
 import { Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
+import { ChatPanel } from "./chat-panel.tsx";
 import { GLASS, GLASS_ACTIVE } from "./glass.ts";
 import { useActivity } from "./portfolio.tsx";
 import { ScrollArea } from "./scroll-ticks.tsx";
@@ -75,7 +76,6 @@ function Live() {
 	);
 }
 
-const RAIL = "hidden shrink-0 lg:block";
 const INSIDE = "flex flex-col gap-10 px-5 py-6";
 
 /** A darker panel than the header's glass, so a column of text reads clearly over the moving fog. */
@@ -91,11 +91,22 @@ const ICON =
  * machines icon opens and closes. Docs and settings are pages, so their icons go to them; settings sits
  * at the bottom, where people look for it.
  */
+/** A hairline where two attached pieces of the frame meet: the only line in it. */
+const EDGE = "border-white/[0.07]";
+
+/**
+ * The left side, like JetBrains: a rail of icons attached to the edge of the screen, and the tool window
+ * it opens attached to that, with no gaps. Docs are their own app, so that icon leaves for them; settings
+ * sits at the bottom, where people look for it.
+ */
 export function LeftRail() {
 	const [open, setOpen] = useState(true);
 	return (
-		<div className="hidden shrink-0 gap-1.5 lg:flex">
-			<nav aria-label="Tools" className={`flex w-11 flex-col items-center gap-1 py-1.5 ${GLASS}`}>
+		<div className="hidden shrink-0 lg:flex">
+			<nav
+				aria-label="Tools"
+				className={`flex w-11 flex-col items-center gap-1 border-r py-1.5 ${EDGE} ${GLASS}`}
+			>
 				<button
 					type="button"
 					aria-label="Your machines"
@@ -106,7 +117,6 @@ export function LeftRail() {
 				>
 					<Robot size={18} weight="light" />
 				</button>
-				{/* Docs are their own app, so this leaves Maschina for them. */}
 				<a
 					href={DOCS}
 					target="_blank"
@@ -129,7 +139,7 @@ export function LeftRail() {
 				</Link>
 			</nav>
 			{open ? (
-				<aside aria-label="Left" className={`w-64 ${PANEL}`}>
+				<aside aria-label="Left" className={`w-64 border-r ${EDGE} ${PANEL}`}>
 					<ScrollArea className={INSIDE}>
 						<section aria-label="Your machines" className="flex flex-col gap-4">
 							<h2 className={LABEL}>YOUR MACHINES</h2>
@@ -142,15 +152,55 @@ export function LeftRail() {
 	);
 }
 
+/**
+ * The right side, the mirror of the left: a rail of icons attached to the edge, opening the live feed or
+ * chat as a tool window beside it. One is open at a time; pressing the open one closes it.
+ */
 export function RightRail() {
+	const [open, setOpen] = useState<"live" | "chat" | undefined>("live");
+	const toggle = (tool: "live" | "chat") => setOpen((was) => (was === tool ? undefined : tool));
 	return (
-		<aside aria-label="Right" className={`w-72 ${RAIL}`}>
-			<ScrollArea className={INSIDE}>
-				<section aria-label="Live" className="flex flex-col gap-4">
-					<h2 className={LABEL}>LIVE</h2>
-					<Live />
-				</section>
-			</ScrollArea>
-		</aside>
+		<div className="hidden shrink-0 lg:flex">
+			{open === "live" ? (
+				<aside aria-label="Right" className={`w-72 border-l ${EDGE} ${PANEL}`}>
+					<ScrollArea className={INSIDE}>
+						<section aria-label="Live" className="flex flex-col gap-4">
+							<h2 className={LABEL}>LIVE</h2>
+							<Live />
+						</section>
+					</ScrollArea>
+				</aside>
+			) : null}
+			{open === "chat" ? (
+				<aside aria-label="Chat window" className={`w-[380px] border-l ${EDGE} ${PANEL}`}>
+					<ChatPanel docked onClose={() => setOpen(undefined)} />
+				</aside>
+			) : null}
+			<nav
+				aria-label="Right tools"
+				className={`flex w-11 flex-col items-center gap-1 border-l py-1.5 ${EDGE} ${GLASS}`}
+			>
+				<button
+					type="button"
+					aria-label="Live"
+					title="Live"
+					aria-pressed={open === "live"}
+					onClick={() => toggle("live")}
+					className={`${ICON} ${open === "live" ? `text-neutral-100 ${GLASS_ACTIVE}` : ""}`}
+				>
+					<Pulse size={18} weight="light" />
+				</button>
+				<button
+					type="button"
+					aria-label="Chat"
+					title="Chat"
+					aria-pressed={open === "chat"}
+					onClick={() => toggle("chat")}
+					className={`${ICON} ${open === "chat" ? `text-neutral-100 ${GLASS_ACTIVE}` : ""}`}
+				>
+					<ChatsCircle size={18} weight="light" />
+				</button>
+			</nav>
+		</div>
 	);
 }

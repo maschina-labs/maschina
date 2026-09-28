@@ -36,7 +36,7 @@ export function WalletPanelView({
 	return (
 		<aside
 			aria-label="Wallet"
-			className="fixed top-14 right-1.5 bottom-9 z-40 flex w-[min(360px,calc(100vw-12px))] flex-col gap-8 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
+			className="fixed top-11 right-0 bottom-6 z-40 flex w-[min(360px,100vw)] border-white/[0.07] border-l flex-col gap-8 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
 		>
 			<header className="flex items-center justify-between">
 				<h2 className="text-[11px] text-neutral-300 tracking-[0.14em]">WALLET</h2>

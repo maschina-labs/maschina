@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
-import { ChatPanel } from "./chat-panel.tsx";
+import type { ReactNode } from "react";
 import { GLASS } from "./glass.ts";
 import { MobileMenu } from "./mobile-menu.tsx";
 import { LeftRail, RightRail } from "./rails.tsx";
@@ -10,15 +9,17 @@ import { StatusBar } from "./status-bar.tsx";
 import { WalletButton } from "./wallet-button.tsx";
 
 /**
- * The terminal's frame: square glass panels over the fog, with thin gutters between them. No borders
- * and no shadows: the glass is only a lighter, blurred patch of the light behind it.
+ * The terminal's frame, like JetBrains: a header, a left and a right rail of tools, and a status bar,
+ * all attached to the edges and to each other with no gaps. Hairlines only where two of them meet.
+ * The page sits in the middle, straight on the fog.
  */
 
 export function Frame({ children, sides = true }: { children: ReactNode; sides?: boolean }) {
-	const [chatting, setChatting] = useState(false);
 	return (
-		<div className="flex h-dvh flex-col gap-1.5 p-1.5">
-			<header className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 ${GLASS}`}>
+		<div className="flex h-dvh flex-col">
+			<header
+				className={`sticky top-0 z-20 flex h-11 shrink-0 items-center border-white/[0.07] border-b px-4 ${GLASS}`}
+			>
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
 					to="/"
@@ -31,19 +32,11 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 					<Sections />
 				</div>
 				<div className="ml-auto flex items-center gap-1.5">
-					<button
-						type="button"
-						onClick={() => setChatting((was) => !was)}
-						aria-pressed={chatting}
-						className="inline-flex h-7 items-center bg-[oklch(1_0_0/0.08)] px-3.5 text-[10.5px] text-neutral-200 uppercase tracking-[0.14em] transition-colors hover:bg-[oklch(1_0_0/0.14)]"
-					>
-						Chat
-					</button>
 					<WalletButton />
 					<MobileMenu />
 				</div>
 			</header>
-			<div className="flex min-h-0 flex-1 gap-1.5">
+			<div className="flex min-h-0 flex-1">
 				{sides ? <LeftRail /> : null}
 				<main className="min-w-0 flex-1">
 					<ScrollArea>
@@ -55,7 +48,6 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 				{sides ? <RightRail /> : null}
 			</div>
 			<StatusBar />
-			{chatting ? <ChatPanel onClose={() => setChatting(false)} /> : null}
 		</div>
 	);
 }

@@ -77,7 +77,8 @@ function MachineChat({ machine }: { machine: MachineSummary }) {
 	);
 }
 
-export function ChatPanel({ onClose }: { onClose: () => void }) {
+/** Floating over the page, or docked as a tool window in the right rail. */
+export function ChatPanel({ onClose, docked = false }: { onClose: () => void; docked?: boolean }) {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
@@ -88,7 +89,11 @@ export function ChatPanel({ onClose }: { onClose: () => void }) {
 	return (
 		<aside
 			aria-label="Chat"
-			className="fixed top-14 right-1.5 bottom-9 z-40 flex w-[min(380px,calc(100vw-12px))] flex-col gap-6 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
+			className={
+				docked
+					? "flex h-full flex-col gap-6 overflow-y-auto overscroll-none p-5"
+					: "fixed top-11 right-0 bottom-6 z-40 flex w-[min(380px,100vw)] flex-col gap-6 overflow-y-auto overscroll-none bg-black/75 p-5 backdrop-saturate-0"
+			}
 		>
 			<header className="flex items-center justify-between">
 				<div className="flex gap-5 text-[11px] tracking-[0.14em]">
