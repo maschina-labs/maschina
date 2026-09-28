@@ -23,6 +23,8 @@ export type CrossingState = {
 	 * side of its level first, so it never fires on the price it was created at.
 	 */
 	armed: boolean;
+	/** Set once the first price has been seen, which is when a machine decides if it starts armed. */
+	seen?: true;
 	lastFiredAt?: Date;
 };
 
@@ -64,8 +66,18 @@ export function observePrice(state: CrossingState, input: CrossingInput): Crossi
 		throw new MaschinaError("invalid_input", "the minimum gap is a whole number of milliseconds");
 	}
 
-	// Being clear of the level is what arms the machine, whether that is the first time it is seen or
-	// the price coming back after a run.
+	// The first price decides where the machine starts. On the far side of its level it is armed at once,
+	// however close: the margin is for re-arming after a run, not for starting. Past the level it waits, so
+	// it never acts on the price it was created at. This is also where a restart begins, so a deploy never
+	// leaves a machine disarmed (2026-09-28: one started 0.4% above its level ignored the dip).
+	if (!state.seen) {
+		return {
+			state: { ...state, seen: true, armed: !reached(price, level, direction) },
+			fire: false,
+		};
+	}
+
+	// After that, being clear of the level by the margin is what arms it again once it has run.
 	if (clearOf(price, level, direction, hysteresisBps)) {
 		return { state: { ...state, armed: true }, fire: false };
 	}
@@ -78,5 +90,5 @@ export function observePrice(state: CrossingState, input: CrossingInput): Crossi
 		return { state, fire: false };
 	}
 
-	return { state: { armed: false, lastFiredAt: now }, fire: true };
+	return { state: { armed: false, seen: true, lastFiredAt: now }, fire: true };
 }

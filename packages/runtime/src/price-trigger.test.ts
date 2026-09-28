@@ -33,6 +33,22 @@ describe("a price falling to a level", () => {
 		expect(feed([140_000_000n, 139_000_000n]).fired).toEqual([]);
 	});
 
+	it("arms on first sight when it starts just above its level, closer than the hysteresis", () => {
+		// The first funded range sat through its buy level like this: started 0.4% above it, never saw the
+		// price 0.5% clear, and ignored the dip (2026-09-28). On the right side at first sight is armed.
+		expect(feed([142_400_000n, 141_900_000n]).fired).toEqual([1]);
+	});
+
+	it("never fires on the first price it sees, even one past its level", () => {
+		expect(feed([141_000_000n]).fired).toEqual([]);
+	});
+
+	it("arms again from the first price after a restart, so a deploy never disarms it", () => {
+		// A restart starts from nothing. Just above the level is enough to be ready for the next dip.
+		const restarted = feed([142_300_000n, 141_990_000n], startWatching());
+		expect(restarted.fired).toEqual([1]);
+	});
+
 	it("fires once while a price hovers at the level", () => {
 		const hovering = [145_000_000n, 141_900_000n, 142_100_000n, 141_800_000n, 142_050_000n];
 		expect(feed(hovering).fired).toEqual([1]);
