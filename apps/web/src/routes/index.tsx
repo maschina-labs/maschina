@@ -8,6 +8,9 @@ import { tradesFrom } from "../lib/trades.ts";
 
 export const Route = createFileRoute("/")({
 	component: Terminal,
+	// Which machine to follow, when one has been chosen from the sidebar.
+	validateSearch: (search: Record<string, unknown>): { machine?: string } =>
+		typeof search["machine"] === "string" ? { machine: search["machine"] } : {},
 });
 
 const INTERVALS = ["5m", "15m", "1h", "4h", "1d"] as const;
@@ -15,7 +18,8 @@ type Interval = (typeof INTERVALS)[number];
 
 /** The market, the machine working it, and what it last decided. */
 function Terminal() {
-	const { machine, record } = useMachineAtWork();
+	const { machine: chosen } = Route.useSearch();
+	const { machine, record } = useMachineAtWork(chosen);
 	const [interval, setInterval] = useState<Interval>("15m");
 	return (
 		<div className="flex w-full flex-col gap-6 px-2 pt-6 pb-16 sm:px-6 sm:pt-10">

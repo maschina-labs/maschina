@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useRef } from "react";
 import { GLASS } from "./glass.ts";
-import { RightRail } from "./rails.tsx";
+import { LeftRail, RightRail } from "./rails.tsx";
 import { ScrollTicks } from "./scroll-ticks.tsx";
 import { Sections } from "./sections.tsx";
 import { StatusBar } from "./status-bar.tsx";
@@ -33,8 +33,10 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 				</div>
 			</header>
 			<div className="flex min-h-0 flex-1 gap-1.5">
+				{sides ? <LeftRail /> : null}
 				<main ref={page} className="min-w-0 flex-1 overflow-y-auto overscroll-none">
-					{children}
+					{/* The page in a centred column, with the two sidebars either side. */}
+					<div className="mx-auto h-full w-full max-w-[1100px]">{children}</div>
 				</main>
 				{sides ? <RightRail /> : null}
 			</div>

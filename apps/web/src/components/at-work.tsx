@@ -60,13 +60,16 @@ export function Decisions({ record }: { record: RecordEntry[] }) {
 	);
 }
 
-/** The machine the terminal follows: the first one running, or the first one at all. */
-export function useMachineAtWork() {
+/** The machine the terminal follows: the one chosen, else the first running, else the first at all. */
+export function useMachineAtWork(chosen?: string) {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
 	const list = session.data ? (machines.data ?? []) : [];
-	const pick = list.find((machine) => machine.state === "running") ?? list[0];
+	const pick =
+		list.find((machine) => machine.machineId === chosen) ??
+		list.find((machine) => machine.state === "running") ??
+		list[0];
 	// With nothing to follow the id is empty, and the queries wait rather than ask.
 	const detail = useMachine(api, pick?.machineId ?? "");
 	const record = useRecord(api, pick?.machineId ?? "");

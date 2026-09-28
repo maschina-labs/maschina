@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 // The rails and the wallet button talk to the API; the frame is tested for where things sit.
 vi.mock("./rails.tsx", () => ({
+	LeftRail: () => <aside aria-label="Left" />,
 	RightRail: () => <aside aria-label="Right" />,
 }));
 vi.mock("@tanstack/react-router", () => ({
@@ -20,7 +21,7 @@ vi.mock("./wallet-button.tsx", () => ({
 const { Frame } = await import("./frame.tsx");
 
 describe("the terminal frame", () => {
-	it("has a header, the page, and one sidebar on the right", () => {
+	it("has a header, the page, and a sidebar either side", () => {
 		render(
 			<Frame>
 				<p>the page</p>
@@ -28,6 +29,7 @@ describe("the terminal frame", () => {
 		);
 
 		expect(screen.getByRole("banner")).toBeInTheDocument();
+		expect(screen.getByRole("complementary", { name: "Left" })).toBeInTheDocument();
 		expect(screen.getByRole("complementary", { name: "Right" })).toBeInTheDocument();
 		expect(screen.getByRole("main")).toHaveTextContent("the page");
 	});
