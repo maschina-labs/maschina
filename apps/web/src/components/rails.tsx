@@ -3,6 +3,7 @@ import { describeEvent } from "../lib/describe.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
 import { useActivity } from "./portfolio.tsx";
+import { ScrollArea } from "./scroll-ticks.tsx";
 
 /**
  * The two sidebars, as plain text floating on the fog like the columns in Ash's reference: your machines
@@ -71,15 +72,18 @@ function Live() {
 	);
 }
 
-const RAIL = "hidden shrink-0 flex-col gap-10 overflow-y-auto overscroll-none px-5 py-6 lg:flex";
+const RAIL = "hidden shrink-0 lg:block";
+const INSIDE = "flex flex-col gap-10 px-5 py-6";
 
 export function LeftRail() {
 	return (
 		<aside aria-label="Left" className={`w-64 ${RAIL}`}>
-			<section aria-label="Your machines" className="flex flex-col gap-4">
-				<h2 className={LABEL}>YOUR MACHINES</h2>
-				<Machines />
-			</section>
+			<ScrollArea className={INSIDE}>
+				<section aria-label="Your machines" className="flex flex-col gap-4">
+					<h2 className={LABEL}>YOUR MACHINES</h2>
+					<Machines />
+				</section>
+			</ScrollArea>
 		</aside>
 	);
 }
@@ -87,10 +91,12 @@ export function LeftRail() {
 export function RightRail() {
 	return (
 		<aside aria-label="Right" className={`w-72 ${RAIL}`}>
-			<section aria-label="Live" className="flex flex-col gap-4">
-				<h2 className={LABEL}>LIVE</h2>
-				<Live />
-			</section>
+			<ScrollArea className={INSIDE}>
+				<section aria-label="Live" className="flex flex-col gap-4">
+					<h2 className={LABEL}>LIVE</h2>
+					<Live />
+				</section>
+			</ScrollArea>
 		</aside>
 	);
 }

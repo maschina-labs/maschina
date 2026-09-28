@@ -21,3 +21,10 @@ Object.defineProperty(window, "matchMedia", {
 		dispatchEvent: vi.fn(),
 	}),
 });
+
+// Nor does it measure layout, so nothing ever resizes. Scrolling areas watch for size changes.
+globalThis.ResizeObserver ??= class {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+} as unknown as typeof ResizeObserver;

@@ -1,23 +1,25 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ScrollTicks, tickFor } from "./scroll-ticks.tsx";
+import { placeOf, ScrollArea } from "./scroll-ticks.tsx";
 
 describe("the scroll ruler", () => {
-	it("sits at the top tick at the top, and the last at the bottom", () => {
-		expect(tickFor(0, 2000, 800)).toBe(0);
-		expect(tickFor(1200, 2000, 800)).toBe(47);
-		expect(tickFor(600, 2000, 800)).toBe(24);
+	it("says where the scroll sits, from the top to the bottom", () => {
+		expect(placeOf(0, 2000, 800)).toBe(0);
+		expect(placeOf(1200, 2000, 800)).toBe(1);
+		expect(placeOf(600, 2000, 800)).toBe(0.5);
 	});
 
-	it("stays at the top when the page does not scroll at all", () => {
-		expect(tickFor(0, 800, 800)).toBe(0);
+	it("says nothing when there is nothing to scroll", () => {
+		expect(placeOf(0, 800, 800)).toBeUndefined();
 	});
 
-	it("draws a ruler down each edge, hidden from screen readers", () => {
-		const { container } = render(<ScrollTicks target={{ current: null }} />);
-		const rulers = container.querySelectorAll('[aria-hidden="true"]');
+	it("shows no ruler over an area that does not scroll", () => {
+		const { container } = render(
+			<ScrollArea>
+				<p>short</p>
+			</ScrollArea>,
+		);
 
-		expect(rulers).toHaveLength(2);
-		expect(rulers[0]?.children).toHaveLength(48);
+		expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
 	});
 });

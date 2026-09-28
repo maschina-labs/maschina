@@ -52,6 +52,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
 	background: oklch(1 0 0 / 0.3);
 }
+/* Where the scroll ruler stands in for the scrollbar, the scrollbar itself is hidden. */
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
 @supports (-moz-appearance: none) {
 	* {
 		scrollbar-width: thin;
