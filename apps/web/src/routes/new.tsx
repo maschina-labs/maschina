@@ -4,7 +4,14 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useState } from "react";
 import { Shell } from "../components/shell.tsx";
 import { useCreateMachine } from "../lib/machines.ts";
-import { bandOf, mostPerBuy, rangeReady, rangeRequest } from "../lib/range-form.ts";
+import {
+	bandOf,
+	mostPerBuy,
+	numberFrom,
+	rangeReady,
+	rangeRequest,
+	sixDecimals,
+} from "../lib/range-form.ts";
 
 export const Route = createFileRoute("/new")({
 	component: NewMachine,
@@ -14,9 +21,9 @@ const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOL = "So11111111111111111111111111111111111111112";
 
 /** USDC has six decimals, and every amount crosses the wire as digits in base units. */
-const usdc = (value: string) => BigInt(Math.round(Number(value) * 1_000_000)).toString();
+const usdc = sixDecimals;
 /** A price level is micro dollars, so the same six. */
-const dollars = (value: string) => BigInt(Math.round(Number(value) * 1_000_000)).toString();
+const dollars = sixDecimals;
 
 type Kind = "range" | "trigger";
 
@@ -44,9 +51,11 @@ function NewMachine() {
 	const ready =
 		kind === "range"
 			? rangeReady({ name, buyAt, sellAt, perBuy, float })
-			: [name, level, perTrade, budget, perDay].every(Boolean);
+			: [name, level, perTrade, budget, perDay].every(Boolean) &&
+				[level, perTrade, budget, perDay].every((value) => numberFrom(value) > 0);
 
-	const request =
+	// Built only when Create is pressed, never while typing: a half typed price is not a request.
+	const buildRequest = () =>
 		kind === "range"
 			? rangeRequest({ name, kind: range.kind, buyAt, sellAt, perBuy, float })
 			: {
@@ -117,7 +126,7 @@ function NewMachine() {
 							</p>
 						) : null}
 						<Field label="Spend each buy (USDC)" value={perBuy} onChange={setPerBuy} />
-						{Number(float) > 0 && Number(perBuy) > Number(mostPerBuy(float)) ? (
+						{numberFrom(float) > 0 && numberFrom(perBuy) > Number(mostPerBuy(float)) ? (
 							<p className="text-[12px] text-destructive">
 								At most {mostPerBuy(float)} of a {float} float: each buy keeps a little back for the
 								fee to send it.
@@ -147,7 +156,7 @@ function NewMachine() {
 					type="button"
 					disabled={!ready || create.isPending}
 					onClick={() =>
-						create.mutate(request, {
+						create.mutate(buildRequest(), {
 							onSuccess: (made) =>
 								navigate({ to: "/machines/$machineId", params: { machineId: made.machineId } }),
 						})
