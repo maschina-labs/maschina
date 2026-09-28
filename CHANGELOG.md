@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.28](https://github.com/maschina-labs/maschina/compare/v0.0.27...v0.0.28) (2026-09-28)
+
+
+### Added
+
+* **runtime:** a range that follows the price ([#704](https://github.com/maschina-labs/maschina/issues/704)) ([ce14fdd](https://github.com/maschina-labs/maschina/commit/ce14fdd4e4c670c89a544d76e0b699e5112da182))
+
 ## [0.0.27](https://github.com/maschina-labs/maschina/compare/v0.0.26...v0.0.27) (2026-09-28)
 
 
