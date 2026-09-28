@@ -1,5 +1,8 @@
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { byDay, filterActivity, KINDS, type Kind } from "../lib/activity-filter.ts";
+import { describeEvent } from "../lib/describe.ts";
 import { amount, type MachineSummary, recordQueryFor, useMachines } from "../lib/machines.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
 import {
@@ -69,6 +72,7 @@ function useEverything() {
 			machine,
 			events: records[index]?.data ?? [],
 		})),
+		500,
 	);
 	const all = records.map((record) => record.data ?? []);
 	return { signedIn, machines: machines.data, feed, records: all };
@@ -157,4 +161,86 @@ export function Pnl() {
 	const { signedIn, machines, records } = useEverything();
 	if (!signedIn || !machines) return null;
 	return <PnlChartView points={portfolioPnl(records)} />;
+}
+
+/** Every machine's record, filterable by kind and machine, in days. */
+export function FilteredActivity() {
+	const { signedIn, machines, feed } = useEverything();
+	const [kind, setKind] = useState<Kind>("ALL");
+	const [machineId, setMachineId] = useState<string>();
+	if (!signedIn) return SIGN_IN;
+	if (!machines) return <p className="text-[12px] text-neutral-500">…</p>;
+	const chip = (on: boolean) =>
+		`border px-2.5 py-1.5 text-[10.5px] tracking-[0.12em] transition-colors ${
+			on
+				? "border-white/40 text-neutral-100"
+				: "border-white/10 text-neutral-500 hover:text-neutral-300"
+		}`;
+	const days = byDay(filterActivity(feed, kind, machineId));
+	return (
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-2">
+				<div className="flex flex-wrap gap-1.5">
+					{KINDS.map((each) => (
+						<button
+							key={each}
+							type="button"
+							aria-pressed={kind === each}
+							onClick={() => setKind(each)}
+							className={chip(kind === each)}
+						>
+							{each}
+						</button>
+					))}
+				</div>
+				<div className="flex flex-wrap gap-1.5">
+					<button
+						type="button"
+						aria-pressed={machineId === undefined}
+						onClick={() => setMachineId(undefined)}
+						className={chip(machineId === undefined)}
+					>
+						EVERY MACHINE
+					</button>
+					{machines.map((machine) => (
+						<button
+							key={machine.machineId}
+							type="button"
+							aria-pressed={machineId === machine.machineId}
+							onClick={() => setMachineId(machine.machineId)}
+							className={chip(machineId === machine.machineId)}
+						>
+							{machine.name.toUpperCase()}
+						</button>
+					))}
+				</div>
+			</div>
+			{days.length === 0 ? <p className="text-[12px] text-neutral-500">NOTHING MATCHES</p> : null}
+			{days.map(({ day, entries }) => (
+				<section key={day} aria-label={day} className="flex flex-col gap-2">
+					<h2 className="text-[10.5px] text-neutral-500 tracking-[0.14em]">{day}</h2>
+					<ol className="flex flex-col">
+						{entries.map((entry) => {
+							const said = describeEvent(entry);
+							return (
+								<li
+									key={entry.id}
+									className="grid grid-cols-[auto_auto_1fr_auto] gap-5 border-white/[0.06] border-b py-2.5 text-[11px] tracking-[0.1em]"
+								>
+									<time className="text-neutral-500 tabular-nums" dateTime={entry.occurredAt}>
+										{new Date(entry.occurredAt).toLocaleTimeString("en-CA", { hour12: false })}
+									</time>
+									<span className="text-neutral-100">{said.title}</span>
+									<span className="truncate text-neutral-500">{said.detail}</span>
+									<span className="truncate text-neutral-500">
+										{entry.machineName.toUpperCase()}
+									</span>
+								</li>
+							);
+						})}
+					</ol>
+				</section>
+			))}
+		</div>
+	);
 }
