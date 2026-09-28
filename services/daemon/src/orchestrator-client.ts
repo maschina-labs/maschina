@@ -33,6 +33,8 @@ export type RunContext = {
 	wokeOn?: string;
 	/** What a machine on paper holds, by mint. Absent for a machine that trades for real. */
 	holdings?: ReadonlyMap<string, bigint>;
+	/** What the machine's own trades hold, by mint, which is not what its wallet holds. */
+	position: ReadonlyMap<string, bigint>;
 	runId: string;
 	machineId: string;
 	wallet: string;
@@ -142,9 +144,10 @@ export function orchestratorClient(options: {
 			if (response.status === 409) return undefined;
 			if (!response.ok) throw new Error(`asking about a run failed with ${response.status}`);
 			const read = RunContextResponse.parse(await response.json());
-			const { wokeOn, holdings, ...rest } = read;
+			const { wokeOn, holdings, position, ...rest } = read;
 			return {
 				...rest,
+				position: new Map(Object.entries(position).map(([mint, held]) => [mint, BigInt(held)])),
 				...(holdings === undefined
 					? {}
 					: {

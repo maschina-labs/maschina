@@ -50,6 +50,13 @@ export type WatchedLevel = {
 export type MachineView = {
 	/** The machine's own wallet balances, by mint, in that token's smallest unit. */
 	balances: ReadonlyMap<string, BaseUnits>;
+	/**
+	 * What the machine holds because its own trades bought it, by mint.
+	 *
+	 * Not the same as its balances. The wallet also holds the SOL kept for fees and anything anyone
+	 * sends it, and none of that is a position (M35).
+	 */
+	position: ReadonlyMap<string, BaseUnits>;
 	/** What the machine may still spend, from its budget. */
 	availableBudget: BaseUnits;
 	/** The moment this run is for, not the moment the code happens to run. */

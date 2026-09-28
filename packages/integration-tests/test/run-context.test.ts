@@ -111,7 +111,49 @@ describe("runContext", () => {
 			canAct: true,
 			availableBudget: 20_000_000n,
 			totals: { spent: 0n, buys: 0 },
+			position: {},
 		});
+	});
+
+	it("tells the node what the machine's own trades hold, from the real record", async () => {
+		const claimed = await aClaimedRun();
+		const tradeId = newId<"trade">();
+		const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+		const SOL = "So11111111111111111111111111111111111111112";
+		for (const event of [
+			{
+				type: "trade.intended",
+				payload: {
+					runId: claimed.run.id,
+					tradeId,
+					inputMint: USDC,
+					outputMint: SOL,
+					inputAmount: "5000000",
+					quotedOutputAmount: "41000000",
+					slippageBps: 50,
+				},
+			},
+			{
+				type: "trade.completed",
+				payload: {
+					runId: claimed.run.id,
+					tradeId,
+					signature: "5".repeat(88),
+					inputAmount: "5000000",
+					outputAmount: "41000000",
+					feeLamports: "5000",
+				},
+			},
+		]) {
+			const written = await appendEvent(handle.db, {
+				machineId: claimed.machineId,
+				leaseEpoch: claimed.run.leaseEpoch,
+				...event,
+			} as never);
+			if (!written.ok) throw written.error;
+		}
+
+		expect((await ask(claimed))?.position).toEqual({ [SOL]: 41_000_000n });
 	});
 
 	it("says a machine that is not running may not act", async () => {

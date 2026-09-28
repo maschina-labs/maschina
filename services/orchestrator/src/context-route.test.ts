@@ -71,6 +71,7 @@ describe("a node asking about its run", () => {
 					canAct: true,
 					availableBudget: 20_000_000n,
 					totals: { spent: 0n, buys: 0 },
+					position: { So11111111111111111111111111111111111111112: 41_000_000n },
 				}),
 			}),
 			{ nodeId, runId, leaseEpoch: "2" },
@@ -87,6 +88,7 @@ describe("a node asking about its run", () => {
 			canAct: true,
 			availableBudget: "20000000",
 			totals: { spent: "0", buys: 0 },
+			position: { So11111111111111111111111111111111111111112: "41000000" },
 		});
 	});
 

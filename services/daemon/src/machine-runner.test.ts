@@ -1,6 +1,6 @@
 import type { SignRequest, SignResponse, SimulateRequest } from "@maschina/contracts";
 import { baseUnitsOf, newId } from "@maschina/core";
-import { type MachineKind, recurringBuy, registryOf } from "@maschina/runtime";
+import { type MachineKind, type MachineView, recurringBuy, registryOf } from "@maschina/runtime";
 import { describe, expect, it, vi } from "vitest";
 import { type MachineRunnerPorts, machineRunner } from "./machine-runner.ts";
 import type { ClaimedRun, RunContext } from "./orchestrator-client.ts";
@@ -30,6 +30,7 @@ const context: RunContext = {
 	canAct: true,
 	availableBudget: 20_000_000n,
 	totals: { spent: 0n, buys: 0 },
+	position: new Map(),
 };
 
 const swap = {
@@ -272,6 +273,27 @@ describe("a machine on paper", () => {
 		// The token it bought, from the record, and its budget in what it spends.
 		expect(seen[0]?.get(SOL)).toBe(41_000_000n);
 		expect(seen[0]?.get(USDC)).toBe(context.availableBudget);
+	});
+
+	it("shows a real machine what its own trades hold, apart from its wallet", async () => {
+		const seen: MachineView[] = [];
+		const watching: MachineKind<never> = {
+			kind: "recurring_buy",
+			readSettings: () => ({ ok: true, value: undefined as never }),
+			budgetMint: () => USDC,
+			decide: (_settings, view) => {
+				seen.push(view);
+				return { decide: "wait", because: "not_due" };
+			},
+		};
+		const { ports: real } = ports({
+			kinds: registryOf([watching]),
+			context: async () => ({ ...context, position: new Map([[SOL, 41_000_000n]]) }),
+		});
+
+		await machineRunner(real)(run, live());
+
+		expect(seen[0]?.position.get(SOL)).toBe(41_000_000n);
 	});
 
 	it("skips when the quote disagrees with the independent price, the same as a real machine", async () => {

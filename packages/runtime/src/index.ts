@@ -14,6 +14,7 @@ export * from "./machine-limits.ts";
 export * from "./machine-pnl.ts";
 export * from "./machine-state.ts";
 export * from "./paper-holdings.ts";
+export * from "./positions.ts";
 export * from "./price-trigger.ts";
 export * from "./recovery.ts";
 export * from "./run.ts";

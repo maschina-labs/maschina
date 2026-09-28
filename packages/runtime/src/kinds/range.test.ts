@@ -28,6 +28,7 @@ const settingsOf = (raw: unknown): RangeSettings => {
 /** Holding nothing but dollars, which is where a range machine starts. */
 const view = (overrides: Partial<MachineView> = {}): MachineView => ({
 	balances: new Map([[USDC, baseUnitsOf(50_000_000n)]]),
+	position: new Map(),
 	availableBudget: baseUnitsOf(50_000_000n),
 	now: new Date("2026-09-26T09:00:00Z"),
 	totals: { spent: baseUnitsOf(0n), buys: 0 },
@@ -41,6 +42,7 @@ const holding = (overrides: Partial<MachineView> = {}) =>
 			[USDC, baseUnitsOf(45_000_000n)],
 			[SOL, baseUnitsOf(41_000_000n)],
 		]),
+		position: new Map([[SOL, baseUnitsOf(41_000_000n)]]),
 		availableBudget: baseUnitsOf(45_000_000n),
 		...overrides,
 	});
@@ -183,6 +185,61 @@ describe("what a range machine does when an edge fires", () => {
 		const empty = view({ wokeOn: "buy", balances: new Map([[USDC, baseUnitsOf(1_000_000n)]]) });
 
 		expect(range.decide(settingsOf(settings), empty)).toMatchObject({
+			decide: "wait",
+			because: "balance_too_low",
+		});
+	});
+
+	it("does not count SOL kept for fees as a position, because it never bought it", () => {
+		// The first funded machine sat through its buy level like this: 0.012 SOL sent for fees read as
+		// holding, so it refused to buy (M35).
+		const funded = view({
+			wokeOn: "buy",
+			balances: new Map([
+				[USDC, baseUnitsOf(28_000_000n)],
+				[SOL, baseUnitsOf(10_900_000n)],
+			]),
+		});
+
+		expect(
+			range.decide(settingsOf({ ...settings, amountPerBuy: "27750000" }), funded),
+		).toMatchObject({
+			decide: "act",
+			action: { inputMint: USDC, inputAmount: 27_750_000n },
+		});
+	});
+
+	it("sells what it bought and leaves the SOL kept for fees", () => {
+		const withFees = holding({
+			wokeOn: "sell",
+			balances: new Map([
+				[USDC, baseUnitsOf(0n)],
+				[SOL, baseUnitsOf(51_900_000n)],
+			]),
+		});
+
+		expect(range.decide(settingsOf(settings), withFees)).toMatchObject({
+			decide: "act",
+			action: { inputMint: SOL, inputAmount: 41_000_000n },
+		});
+	});
+
+	it("never offers to sell more than the wallet holds", () => {
+		const short = holding({
+			wokeOn: "sell",
+			balances: new Map([[SOL, baseUnitsOf(40_000_000n)]]),
+		});
+
+		expect(range.decide(settingsOf(settings), short)).toMatchObject({
+			decide: "act",
+			action: { inputAmount: 40_000_000n },
+		});
+	});
+
+	it("waits rather than sell nothing when the wallet no longer holds what it bought", () => {
+		const gone = holding({ wokeOn: "sell", balances: new Map([[USDC, baseUnitsOf(0n)]]) });
+
+		expect(range.decide(settingsOf(settings), gone)).toMatchObject({
 			decide: "wait",
 			because: "balance_too_low",
 		});

@@ -152,7 +152,19 @@ describe("asking about a run and proposing a trade", () => {
 		canAct: true,
 		availableBudget: "20000000",
 		totals: { spent: "0", buys: 0 },
+		position: {},
 	};
+
+	it("reads what the machine's own trades hold, as numbers", async () => {
+		const SOL = "So11111111111111111111111111111111111111112";
+		const client = orchestratorClient({
+			url: "http://orchestrator:4100",
+			token: "tok",
+			fetch: async () => json({ ...context, position: { [SOL]: "41000000" } }),
+		});
+		const read = await client.context({ nodeId, runId, leaseEpoch: 2n });
+		expect(read?.position).toEqual(new Map([[SOL, 41_000_000n]]));
+	});
 
 	it("reads a run's context, with amounts back as numbers", async () => {
 		const client = orchestratorClient({

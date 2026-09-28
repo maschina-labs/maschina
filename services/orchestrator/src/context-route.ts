@@ -21,6 +21,8 @@ type RunContext = {
 	wokeOn?: string;
 	/** What a machine on paper holds, by mint. Absent for a machine that trades for real. */
 	holdings?: Record<string, bigint>;
+	/** What its own trades hold, by mint. */
+	position: Record<string, bigint>;
 	settings: unknown;
 	dueAt: Date;
 	state: string;
@@ -73,6 +75,9 @@ export function contextRoutes(contexts: RunContexts) {
 								Object.entries(context.holdings).map(([mint, held]) => [mint, held.toString()]),
 							),
 						}),
+				position: Object.fromEntries(
+					Object.entries(context.position).map(([mint, held]) => [mint, held.toString()]),
+				),
 				dueAt: context.dueAt.toISOString(),
 				availableBudget: context.availableBudget.toString(),
 				totals: { spent: context.totals.spent.toString(), buys: context.totals.buys },
