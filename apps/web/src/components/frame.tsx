@@ -36,7 +36,7 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
 					to="/"
-					className="font-semibold font-wordmark text-[22px] text-neutral-100 tracking-normal"
+					className="font-semibold font-wordmark text-[17px] text-neutral-100 tracking-normal"
 				>
 					MASCHINA
 				</Link>
