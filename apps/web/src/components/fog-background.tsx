@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ShaderMaterial } from "three";
-import { Vector2 } from "three";
+import { Vector2, Vector3 } from "three";
 
 /**
  * The field behind the terminal: city light through a fogged window, far out of focus. Dark olive at
@@ -14,22 +14,72 @@ import { Vector2 } from "three";
 
 type Oklch = { l: number; c: number; h: number };
 
-// Measured from Ash's reference (2026-09-28), region by region, then converted to OKLCH.
-const NIGHT: Oklch = { l: 0.16, c: 0.002, h: 286 };
-const OLIVE: Oklch = { l: 0.246, c: 0.021, h: 136 };
-const SLATE: Oklch = { l: 0.367, c: 0.021, h: 232 };
-const FOG: Oklch = { l: 0.405, c: 0.012, h: 72 };
-const AMBER: Oklch = { l: 0.471, c: 0.047, h: 77 };
+/** The fog's five colours: the dark, the top, the upper haze, the middle fog, and the one glow. */
+export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; glow: Oklch };
+
+/**
+ * Palettes to try the app in. City is measured from Ash's Obsidian reference (2026-09-28), region by region;
+ * the others keep its shape and change its light. Chosen with `?fog=name` on any address.
+ */
+export const PALETTES = {
+	city: {
+		night: { l: 0.16, c: 0.002, h: 286 },
+		top: { l: 0.246, c: 0.021, h: 136 },
+		upper: { l: 0.367, c: 0.021, h: 232 },
+		middle: { l: 0.405, c: 0.012, h: 72 },
+		glow: { l: 0.471, c: 0.047, h: 77 },
+	},
+	gunmetal: {
+		night: { l: 0.14, c: 0.003, h: 250 },
+		top: { l: 0.2, c: 0.01, h: 250 },
+		upper: { l: 0.3, c: 0.015, h: 245 },
+		middle: { l: 0.34, c: 0.008, h: 240 },
+		glow: { l: 0.42, c: 0.012, h: 235 },
+	},
+	ember: {
+		night: { l: 0.12, c: 0.004, h: 40 },
+		top: { l: 0.16, c: 0.01, h: 40 },
+		upper: { l: 0.22, c: 0.03, h: 45 },
+		middle: { l: 0.3, c: 0.04, h: 50 },
+		glow: { l: 0.5, c: 0.1, h: 55 },
+	},
+	lavender: {
+		night: { l: 0.13, c: 0.006, h: 290 },
+		top: { l: 0.2, c: 0.02, h: 295 },
+		upper: { l: 0.32, c: 0.04, h: 290 },
+		middle: { l: 0.36, c: 0.02, h: 300 },
+		glow: { l: 0.46, c: 0.06, h: 305 },
+	},
+	ink: {
+		night: { l: 0.1, c: 0, h: 0 },
+		top: { l: 0.15, c: 0, h: 0 },
+		upper: { l: 0.22, c: 0, h: 0 },
+		middle: { l: 0.28, c: 0, h: 0 },
+		glow: { l: 0.36, c: 0, h: 0 },
+	},
+	arctic: {
+		night: { l: 0.14, c: 0.006, h: 230 },
+		top: { l: 0.22, c: 0.015, h: 220 },
+		upper: { l: 0.38, c: 0.03, h: 225 },
+		middle: { l: 0.44, c: 0.015, h: 215 },
+		glow: { l: 0.56, c: 0.03, h: 210 },
+	},
+} satisfies Record<string, Palette>;
+export type PaletteName = keyof typeof PALETTES;
+
+/** The palette asked for in the address, or the one last chosen here, or city. */
+export function paletteName(search: string, remembered: string | null): PaletteName {
+	const asked = new URLSearchParams(search).get("fog");
+	for (const name of [asked, remembered]) if (name && name in PALETTES) return name as PaletteName;
+	return "city";
+}
 
 /** OKLCH to OKLab, the form the shader mixes in. */
 const lab = ({ l, c, h }: Oklch) => {
 	const radians = (h * Math.PI) / 180;
 	return [l, c * Math.cos(radians), c * Math.sin(radians)] as const;
 };
-const glsl = (color: Oklch) =>
-	`vec3(${lab(color)
-		.map((n) => n.toFixed(6))
-		.join(", ")})`;
+const vector = (color: Oklch) => new Vector3(...lab(color));
 const css = ({ l, c, h }: Oklch) => `oklch(${l} ${c} ${h})`;
 
 const VERTEX = /* glsl */ `
@@ -48,11 +98,12 @@ const FRAGMENT = /* glsl */ `
 	uniform vec2 uResolution;
 	varying vec2 vUv;
 
-	const vec3 NIGHT = ${glsl(NIGHT)};
-	const vec3 SLATE = ${glsl(SLATE)};
-	const vec3 AMBER = ${glsl(AMBER)};
-	const vec3 FOG = ${glsl(FOG)};
-	const vec3 OLIVE = ${glsl(OLIVE)};
+	// The palette arrives as inputs, in OKLab, so it can change without rebuilding the shader.
+	uniform vec3 NIGHT;
+	uniform vec3 OLIVE;
+	uniform vec3 SLATE;
+	uniform vec3 FOG;
+	uniform vec3 AMBER;
 
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
@@ -139,12 +190,20 @@ const FRAGMENT = /* glsl */ `
 	}
 `;
 
-function Fog({ still }: { still: boolean }) {
+function Fog({ still, palette }: { still: boolean; palette: Palette }) {
 	const material = useRef<ShaderMaterial>(null);
 	const size = useThree((state) => state.size);
 	// Made once: rebuilding uniforms would send the clock back to zero and make the field jump.
 	const uniforms = useMemo(
-		() => ({ uTime: { value: 0 }, uResolution: { value: new Vector2(1, 1) } }),
+		() => ({
+			uTime: { value: 0 },
+			uResolution: { value: new Vector2(1, 1) },
+			NIGHT: { value: new Vector3() },
+			OLIVE: { value: new Vector3() },
+			SLATE: { value: new Vector3() },
+			FOG: { value: new Vector3() },
+			AMBER: { value: new Vector3() },
+		}),
 		[],
 	);
 
@@ -165,6 +224,11 @@ function Fog({ still }: { still: boolean }) {
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
 		uniforms.uTime.value = still ? 0 : clock.getElapsedTime();
 		uniforms.uResolution.value.set(size.width, size.height);
+		uniforms.NIGHT.value.copy(vector(palette.night));
+		uniforms.OLIVE.value.copy(vector(palette.top));
+		uniforms.SLATE.value.copy(vector(palette.upper));
+		uniforms.FOG.value.copy(vector(palette.middle));
+		uniforms.AMBER.value.copy(vector(palette.glow));
 	});
 
 	return (
@@ -183,6 +247,18 @@ function Fog({ still }: { still: boolean }) {
 
 /** `fixed` fills the screen; `absolute` fills the nearest positioned parent, for a panel. */
 export function FogBackground({ position = "fixed" }: { position?: "fixed" | "absolute" } = {}) {
+	// Remembered in this browser for convenience only: it may be missing or blocked, and city is the default.
+	const [palette] = useState<Palette>(() => {
+		let remembered: string | null = null;
+		try {
+			remembered = localStorage.getItem("maschina.fog");
+		} catch {}
+		const name = paletteName(window.location.search, remembered);
+		try {
+			localStorage.setItem("maschina.fog", name);
+		} catch {}
+		return PALETTES[name];
+	});
 	const still =
 		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -193,7 +269,7 @@ export function FogBackground({ position = "fixed" }: { position?: "fixed" | "ab
 			className={`pointer-events-none ${position} inset-0 z-0`}
 			// The same light in CSS, holding the screen while WebGL starts and standing in without it.
 			style={{
-				background: `radial-gradient(ellipse at 90% 55%, ${css(AMBER)} 0%, transparent 40%), linear-gradient(in oklab to bottom, ${css(OLIVE)} 0%, ${css(SLATE)} 33%, ${css(FOG)} 50%, ${css(NIGHT)} 85%)`,
+				background: `radial-gradient(ellipse at 90% 55%, ${css(palette.glow)} 0%, transparent 40%), linear-gradient(in oklab to bottom, ${css(palette.top)} 0%, ${css(palette.upper)} 33%, ${css(palette.middle)} 50%, ${css(palette.night)} 85%)`,
 			}}
 		>
 			<Canvas
@@ -207,7 +283,7 @@ export function FogBackground({ position = "fixed" }: { position?: "fixed" | "ab
 				gl={{ antialias: false, alpha: true }}
 				style={{ width: "100%", height: "100%" }}
 			>
-				<Fog still={still} />
+				<Fog still={still} palette={palette} />
 			</Canvas>
 		</div>
 	);
