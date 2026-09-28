@@ -32,6 +32,7 @@ function ports(
 		: Awaited<ReturnType<PriceWatcherPorts["watching"]>> = [waiting],
 ) {
 	const queued: { machineId: string; occurrenceKey: string; wokeOn: string }[] = [];
+	const moved: { machineId: string; price: bigint; because: string }[] = [];
 	const asked: string[][] = [];
 	let tick = 0;
 	const base: PriceWatcherPorts = {
@@ -49,10 +50,22 @@ function ports(
 				wokeOn: run.wokeOn,
 			});
 		},
+		recentre: async (move) => {
+			moved.push(move);
+			// The record now says where the band sits, so the next look at this machine sees it.
+			const machine = machines.find((each) => each.machineId === move.machineId);
+			machine?.events?.push({
+				machineId: move.machineId,
+				type: "machine.recentred",
+				payload: { price: move.price.toString(), because: move.because },
+				leaseEpoch: 0n,
+				occurredAt: new Date(2026, 8, 21, 9, tick),
+			} as never);
+		},
 		logger,
 		now: () => new Date(2026, 8, 21, 9, tick),
 	};
-	return { ports: base, queued, asked };
+	return { ports: base, queued, asked, moved };
 }
 
 /** Runs the watcher for a fixed number of ticks. */
@@ -122,6 +135,17 @@ describe("watching prices for machines", () => {
 		expect(failures).toBeGreaterThan(2);
 		// The machine starts below its level after an outage, so nothing fires: a crossing was not seen.
 		expect(queued).toEqual([]);
+	});
+
+	it("remembers an armed level through a tick with no price for its token", async () => {
+		const { ports: p, queued } = ports([145_000_000n, 141_000_000n]);
+		const answered = p.pricesFor;
+		let call = 0;
+		// The second look finds no price at all for the token, the way a source leaves one out.
+		p.pricesFor = async (mints) => (call++ === 1 ? new Map() : answered(mints));
+		await ticks(3, p);
+
+		expect(queued).toHaveLength(1);
 	});
 
 	it("ignores a machine whose settings make no sense, without stopping", async () => {
@@ -234,5 +258,59 @@ describe("kinds the watcher was not given", () => {
 			expect.objectContaining({ kind: "sniper" }),
 			expect.stringContaining("does not know"),
 		);
+	});
+});
+
+describe("a machine whose band follows the price", () => {
+	const following = (events: unknown[] = []) => ({
+		machineId,
+		kind: "following_range",
+		settings: {
+			quoteMint: USDC,
+			baseMint: SOL,
+			bandBps: 200,
+			amountPerBuy: "27750000",
+			minGapMs: 0,
+		},
+		events: events as never[],
+	});
+	const centredAt = (price: bigint) => ({
+		machineId,
+		type: "machine.recentred",
+		payload: { price: price.toString(), because: "started" },
+		leaseEpoch: 0n,
+		occurredAt: new Date(2026, 8, 21, 8, 0),
+	});
+
+	it("is given the price it starts around, and queues nothing for it", async () => {
+		const { ports: p, queued, moved } = ports([120_000_000n], [following()]);
+		await ticks(1, p);
+
+		expect(moved).toEqual([{ machineId, price: 120_000_000n, because: "started" }]);
+		expect(queued).toEqual([]);
+	});
+
+	it("moves its band up to meet a price that rises away, rather than waking it", async () => {
+		const {
+			ports: p,
+			queued,
+			moved,
+		} = ports([120_000_000n, 121_500_000n], [following([centredAt(120_000_000n)])]);
+		await ticks(2, p);
+
+		expect(moved).toEqual([{ machineId, price: 121_500_000n, because: "followed" }]);
+		expect(queued).toEqual([]);
+	});
+
+	it("buys the dip under the band it moved to, not the one it started with", async () => {
+		// Started at 120, followed to 121.5, so it buys at 120.285 and no longer waits for 118.80.
+		const { ports: p, queued } = ports(
+			[120_000_000n, 121_500_000n, 121_500_000n, 120_200_000n],
+			[following([centredAt(120_000_000n)])],
+		);
+		await ticks(4, p);
+
+		expect(queued).toHaveLength(1);
+		expect(queued[0]?.wokeOn).toBe("buy");
 	});
 });

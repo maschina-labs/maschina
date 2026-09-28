@@ -8,6 +8,7 @@
 
 import type { MachineKind } from "../machine-kind.ts";
 import { registryOf } from "../machine-kind.ts";
+import { followingRange } from "./following-range.ts";
 import { priceTrigger } from "./price-trigger.ts";
 import { range } from "./range.ts";
 import { recurringBuy } from "./recurring-buy.ts";
@@ -16,6 +17,7 @@ export const KNOWN_KINDS = registryOf([
 	recurringBuy as MachineKind<never>,
 	priceTrigger as MachineKind<never>,
 	range as MachineKind<never>,
+	followingRange as MachineKind<never>,
 ]);
 
 /**

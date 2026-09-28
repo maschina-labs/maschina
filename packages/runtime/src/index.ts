@@ -2,6 +2,7 @@ export * from "./check-settings.ts";
 export * from "./classify.ts";
 export * from "./effect.ts";
 export * from "./failure.ts";
+export * from "./kinds/following-range.ts";
 export * from "./kinds/index.ts";
 export * from "./kinds/price-trigger.ts";
 export * from "./kinds/range.ts";

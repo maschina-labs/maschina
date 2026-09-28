@@ -143,6 +143,26 @@ const MACHINE_PAYLOADS = {
 		by: z.enum(["owner", "system"]),
 		reason: z.string().max(500).optional(),
 	}),
+	/**
+	 * A following machine's band moved: the price it works around is now this one.
+	 *
+	 * Written when it starts, when the price rises away while it holds what it spends, and when it comes
+	 * back from the floor. Every other move of the band follows from a trade, which the record already
+	 * has, so this is the one fact the band cannot be rebuilt without.
+	 */
+	"machine.recentred": object({
+		/** The price the band now sits around, in micro-dollars. */
+		price: amount,
+		because: z.enum(["started", "followed", "after_floor"]),
+	}),
+	/**
+	 * The owner changed the machine's recipe: what kind it is, or how it is set. Everything it did before
+	 * stays in the record, and it carries on from there under the new one.
+	 */
+	"machine.retuned": object({
+		from: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
+		to: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
+	}),
 	"machine.limits_changed": object({
 		limit: z.enum(["maxPerTrade", "maxPerDay", "budgetGranted", "approvedMints", "recipients"]),
 		/** The old and new values as text, so every limit is recorded the same way. */
