@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { ChatPanel } from "./chat-panel.tsx";
 import { GLASS } from "./glass.ts";
+import { MobileMenu } from "./mobile-menu.tsx";
 import { LeftRail, RightRail } from "./rails.tsx";
 import { ScrollArea } from "./scroll-ticks.tsx";
 import { Sections } from "./sections.tsx";
@@ -39,6 +40,7 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 						Chat
 					</button>
 					<WalletButton />
+					<MobileMenu />
 				</div>
 			</header>
 			<div className="flex min-h-0 flex-1 gap-1.5">
