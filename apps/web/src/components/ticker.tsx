@@ -24,7 +24,7 @@ export function TickerView({
 		<div
 			role="marquee"
 			aria-label="Ticker"
-			className="group relative h-6 shrink-0 overflow-hidden bg-[oklch(1_0_0/0.025)]"
+			className="group relative h-6 shrink-0 overflow-hidden bg-[oklch(0.08_0_0/0.55)] backdrop-saturate-0"
 		>
 			<div className="flex h-full w-max animate-[ticker_60s_linear_infinite] items-center gap-10 px-4 group-hover:[animation-play-state:paused]">
 				{loop.map((item, index) => (

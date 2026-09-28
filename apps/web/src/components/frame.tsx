@@ -32,8 +32,6 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 	const mine = session.data ? (machines.data ?? []) : [];
 	return (
 		<div className="flex h-dvh flex-col">
-			{/* The ticker runs along the very top, above everything. */}
-			<TickerView machines={mine} price={price.data?.usd} />
 			<header className={`sticky top-0 z-20 flex h-11 shrink-0 items-center px-4 ${GLASS}`}>
 				{/* Set in type until the redrawn logo arrives. It always takes you home. */}
 				<Link
@@ -53,6 +51,7 @@ export function Frame({ children, sides = true }: { children: ReactNode; sides?:
 					<MobileMenu />
 				</div>
 			</header>
+			<TickerView machines={mine} price={price.data?.usd} />
 			<div className="flex min-h-0 flex-1">
 				{sides ? <LeftRail /> : null}
 				<main className="min-w-0 flex-1">
