@@ -1,7 +1,10 @@
+import { BookOpen, GearSix, Robot } from "@phosphor-icons/react";
 import { Link, useRouter, useSearch } from "@tanstack/react-router";
+import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
+import { GLASS, GLASS_ACTIVE } from "./glass.ts";
 import { useActivity } from "./portfolio.tsx";
 import { ScrollArea } from "./scroll-ticks.tsx";
 
@@ -75,16 +78,62 @@ function Live() {
 const RAIL = "hidden shrink-0 lg:block";
 const INSIDE = "flex flex-col gap-10 px-5 py-6";
 
+/** A darker panel than the header's glass, so a column of text reads clearly over the moving fog. */
+const PANEL = "bg-[oklch(0.1_0_0/0.55)] backdrop-saturate-0";
+const ICON =
+	"grid size-9 place-items-center text-neutral-500 transition-colors hover:text-neutral-100";
+
+/**
+ * The left side, like VS Code: a thin rail of icons on its outer edge, and a panel beside it that the
+ * machines icon opens and closes. Docs and settings are pages, so their icons go to them; settings sits
+ * at the bottom, where people look for it.
+ */
 export function LeftRail() {
+	const [open, setOpen] = useState(true);
 	return (
-		<aside aria-label="Left" className={`w-64 ${RAIL}`}>
-			<ScrollArea className={INSIDE}>
-				<section aria-label="Your machines" className="flex flex-col gap-4">
-					<h2 className={LABEL}>YOUR MACHINES</h2>
-					<Machines />
-				</section>
-			</ScrollArea>
-		</aside>
+		<div className="hidden shrink-0 gap-1.5 lg:flex">
+			<nav aria-label="Tools" className={`flex w-11 flex-col items-center gap-1 py-1.5 ${GLASS}`}>
+				<button
+					type="button"
+					aria-label="Your machines"
+					title="Your machines"
+					aria-pressed={open}
+					onClick={() => setOpen((was) => !was)}
+					className={`${ICON} ${open ? `text-neutral-100 ${GLASS_ACTIVE}` : ""}`}
+				>
+					<Robot size={18} weight="light" />
+				</button>
+				<Link
+					to="/docs"
+					aria-label="Docs"
+					title="Docs"
+					className={ICON}
+					activeProps={{ className: `text-neutral-100 ${GLASS_ACTIVE}` }}
+				>
+					<BookOpen size={18} weight="light" />
+				</Link>
+				<div className="flex-1" />
+				<Link
+					to="/settings"
+					aria-label="Settings"
+					title="Settings"
+					className={ICON}
+					activeProps={{ className: `text-neutral-100 ${GLASS_ACTIVE}` }}
+				>
+					<GearSix size={18} weight="light" />
+				</Link>
+			</nav>
+			{open ? (
+				<aside aria-label="Left" className={`w-64 ${PANEL}`}>
+					<ScrollArea className={INSIDE}>
+						<section aria-label="Your machines" className="flex flex-col gap-4">
+							<h2 className={LABEL}>YOUR MACHINES</h2>
+							<Machines />
+						</section>
+					</ScrollArea>
+				</aside>
+			) : null}
+		</div>
 	);
 }
 

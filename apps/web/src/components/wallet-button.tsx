@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useMachines } from "../lib/machines.ts";
 import { type SignedInOwner, useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { WalletPanelView } from "./wallet-panel.tsx";
@@ -62,17 +63,25 @@ export function WalletButton() {
 				onSignIn={() => signIn.mutate()}
 				onOpen={() => setOpen((was) => !was)}
 			/>
-			{open && owner ? (
-				<WalletPanelView
-					owner={owner}
-					machines={machines.data ?? []}
-					onClose={() => setOpen(false)}
-					onDisconnect={() => {
-						setOpen(false);
-						signOut.mutate();
-					}}
-				/>
-			) : null}
+			{/*
+			 * Rendered at the top of the page, not inside the header: the header's glass is a backdrop
+			 * filter, and a filter traps fixed children inside it, which squashed the panel to the
+			 * header's height.
+			 */}
+			{open && owner
+				? createPortal(
+						<WalletPanelView
+							owner={owner}
+							machines={machines.data ?? []}
+							onClose={() => setOpen(false)}
+							onDisconnect={() => {
+								setOpen(false);
+								signOut.mutate();
+							}}
+						/>,
+						document.body,
+					)
+				: null}
 		</>
 	);
 }

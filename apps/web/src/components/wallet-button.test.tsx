@@ -44,3 +44,27 @@ describe("the wallet button", () => {
 		expect(screen.queryByText(/8GTg/)).not.toBeInTheDocument();
 	});
 });
+
+describe("the wallet button, wired up", () => {
+	it("opens the wallet panel when pressed", async () => {
+		vi.resetModules();
+		vi.doMock("@tanstack/react-router", () => ({
+			useRouter: () => ({ options: { context: { api: {} } } }),
+		}));
+		vi.doMock("@tanstack/react-query", () => ({ useQueryClient: () => ({}) }));
+		vi.doMock("../lib/session.ts", () => ({
+			useSession: () => ({ isPending: false, data: owner }),
+			useSignIn: () => ({ isPending: false, mutate: vi.fn() }),
+			useSignOut: () => ({ mutate: vi.fn() }),
+		}));
+		vi.doMock("../lib/machines.ts", () => ({
+			useMachines: () => ({ data: [] }),
+			amount: () => "0",
+		}));
+		const { WalletButton } = await import("./wallet-button.tsx");
+		render(<WalletButton />);
+
+		fireEvent.click(screen.getByRole("button", { name: "Wallet" }));
+		expect(await screen.findByRole("complementary", { name: "Wallet" })).toBeInTheDocument();
+	});
+});

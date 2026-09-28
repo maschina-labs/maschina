@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const ActivityRoute = ActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NetworkRoute = NetworkRouteImport.update({
@@ -116,6 +122,7 @@ const WalletWithdrawRoute = WalletWithdrawRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/docs': typeof DocsRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/docs': typeof DocsRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/docs': typeof DocsRoute
   '/network': typeof NetworkRoute
   '/new': typeof NewRoute
   '/portfolio': typeof PortfolioRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/docs'
     | '/network'
     | '/new'
     | '/portfolio'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/docs'
     | '/network'
     | '/new'
     | '/portfolio'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/activity'
+    | '/docs'
     | '/network'
     | '/new'
     | '/portfolio'
@@ -234,6 +246,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  DocsRoute: typeof DocsRoute
   NetworkRoute: typeof NetworkRoute
   NewRoute: typeof NewRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/network': {
@@ -378,6 +398,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  DocsRoute: DocsRoute,
   NetworkRoute: NetworkRoute,
   NewRoute: NewRoute,
   PortfolioRoute: PortfolioRoute,

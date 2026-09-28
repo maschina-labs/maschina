@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ActivityView, TotalsView } from "./portfolio.tsx";
+import type { MachineSummary } from "../lib/machines.ts";
+import { ActivityView, BreakdownView, sharesOf, TotalsView } from "./portfolio.tsx";
 
 describe("portfolio totals", () => {
 	it("shows what is in play, taken, held and running", () => {
@@ -68,5 +69,34 @@ describe("activity", () => {
 		render(<ActivityView feed={[]} />);
 
 		expect(screen.getByText("NOTHING YET")).toBeInTheDocument();
+	});
+});
+
+const machine = (machineId: string, granted: string) =>
+	({
+		machineId,
+		name: `Machine ${machineId}`,
+		state: "running",
+		budget: { granted },
+		result: { realised: "0", trades: 0 },
+	}) as unknown as MachineSummary;
+
+describe("where the money is", () => {
+	it("gives each machine its share of what is in play", () => {
+		expect(sharesOf([machine("a", "30000000"), machine("b", "10000000")])).toEqual([
+			{ machineId: "a", share: 75 },
+			{ machineId: "b", share: 25 },
+		]);
+	});
+
+	it("gives nobody a share when nothing is in play", () => {
+		expect(sharesOf([machine("a", "0")])).toEqual([{ machineId: "a", share: 0 }]);
+	});
+
+	it("shows each machine's share and figures", () => {
+		render(<BreakdownView machines={[machine("a", "30000000"), machine("b", "10000000")]} />);
+
+		expect(screen.getByText("75.0% OF IN PLAY")).toBeInTheDocument();
+		expect(screen.getByText("FLOAT 30.00")).toBeInTheDocument();
 	});
 });

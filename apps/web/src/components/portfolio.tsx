@@ -1,6 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { amount, recordQueryFor, useMachines } from "../lib/machines.ts";
+import { amount, type MachineSummary, recordQueryFor, useMachines } from "../lib/machines.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
 import {
 	type ActivityEntry,
@@ -97,24 +97,59 @@ export function Activity() {
 }
 
 /** Per machine: what it was given, what it has taken, what it holds. */
+/** Each machine's share of everything in play, as whole percentages that always add to 100. */
+export function sharesOf(machines: MachineSummary[]): { machineId: string; share: number }[] {
+	const total = machines.reduce((sum, machine) => sum + BigInt(machine.budget.granted), 0n);
+	if (total === 0n) return machines.map((machine) => ({ machineId: machine.machineId, share: 0 }));
+	return machines.map((machine) => ({
+		machineId: machine.machineId,
+		share: Number((BigInt(machine.budget.granted) * 1000n) / total) / 10,
+	}));
+}
+
+/** Where the money is: one row of thin segments per machine, lit by its share, then its own figures. */
+export function BreakdownView({ machines }: { machines: MachineSummary[] }) {
+	const shares = new Map(sharesOf(machines).map((each) => [each.machineId, each.share]));
+	return (
+		<ol aria-label="By machine" className="grid gap-px sm:grid-cols-2">
+			{machines.map((machine) => {
+				const share = shares.get(machine.machineId) ?? 0;
+				const lit = Math.round(share / 2.5);
+				return (
+					<li
+						key={machine.machineId}
+						className="flex flex-col gap-3 border-white/[0.07] border-t p-4"
+					>
+						<div className="flex items-baseline justify-between gap-4 text-[11px] tracking-[0.12em]">
+							<span className="truncate text-neutral-100">{machine.name.toUpperCase()}</span>
+							<span className="text-neutral-500">{machine.state.toUpperCase()}</span>
+						</div>
+						<div className="flex h-4 gap-[3px]" aria-hidden="true">
+							{Array.from({ length: 40 }, (_, index) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: segments never reorder
+								<span
+									key={index}
+									className={`w-full ${index < lit ? "bg-neutral-100" : "bg-white/10"}`}
+								/>
+							))}
+						</div>
+						<div className="flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-neutral-400 tabular-nums tracking-[0.08em]">
+							<span className="text-neutral-100">{share.toFixed(1)}% OF IN PLAY</span>
+							<span>FLOAT {amount(machine.budget.granted)}</span>
+							<span>REALISED {amount(machine.result.realised)}</span>
+							<span>{machine.result.trades} TRADES</span>
+						</div>
+					</li>
+				);
+			})}
+		</ol>
+	);
+}
+
 export function Breakdown() {
 	const { signedIn, machines } = useEverything();
 	if (!signedIn || !machines) return null;
-	return (
-		<ol aria-label="By machine" className="flex flex-col">
-			{machines.map((machine) => (
-				<li
-					key={machine.machineId}
-					className="grid grid-cols-[1fr_auto_auto_auto] gap-6 border-white/[0.06] border-b py-2 text-[12px] tabular-nums"
-				>
-					<span className="truncate text-neutral-200">{machine.name}</span>
-					<span className="text-neutral-500">{amount(machine.budget.granted)} USDC</span>
-					<span className="text-neutral-100">{amount(machine.result.realised)} USDC</span>
-					<span className="text-neutral-500">{amount(machine.result.position, 9)} SOL</span>
-				</li>
-			))}
-		</ol>
-	);
+	return <BreakdownView machines={machines} />;
 }
 
 /** Realised profit across every machine, over time. */
