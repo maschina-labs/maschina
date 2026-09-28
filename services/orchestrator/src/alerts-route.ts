@@ -71,7 +71,7 @@ export function alertRoutes(store: AlertStore) {
 			}
 			const since = new Date(c.req.query("since") ?? "");
 			if (Number.isNaN(since.getTime())) {
-				throw new MaschinaError("invalid_input", "since is the moment to tell things from");
+				throw new MaschinaError("invalid_input", "since is the moment to start telling");
 			}
 			const alerts = await store.pending({ channel: channel as AlertChannel, ownerIds, since });
 			return c.json(PendingAlerts.parse({ alerts }), 200);
