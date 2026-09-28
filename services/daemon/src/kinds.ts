@@ -7,10 +7,18 @@
  * this file holds that line.
  */
 
-import { type MachineKind, priceTrigger, range, recurringBuy, registryOf } from "@maschina/runtime";
+import {
+	followingRange,
+	type MachineKind,
+	priceTrigger,
+	range,
+	recurringBuy,
+	registryOf,
+} from "@maschina/runtime";
 
 export const NODE_KINDS = registryOf([
 	recurringBuy as MachineKind<never>,
 	priceTrigger as MachineKind<never>,
 	range as MachineKind<never>,
+	followingRange as MachineKind<never>,
 ]);
