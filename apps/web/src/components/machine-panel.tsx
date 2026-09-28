@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import {
 	amount,
@@ -13,6 +14,8 @@ import {
 } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { statusOf } from "../lib/status.ts";
+import { toast } from "../lib/toasts.ts";
+import { Confirm } from "./confirm.tsx";
 
 /** A withdrawal only goes through once a machine has stopped acting, so it is only offered then. */
 const SETTLED = new Set(["draft", "ready", "paused", "stopped"]);
@@ -117,6 +120,33 @@ export function MachinePanelView({
 			? Number(settings["sellLevel"]) / 1_000_000
 			: undefined;
 	const controls = machine.actions.filter((action) => action !== "fund");
+	// Anything that stops a machine or moves its money is asked about first.
+	const [asking, setAsking] = useState<MachineAction | "withdraw">();
+	const name = machine.name.toUpperCase();
+	const questions: Partial<
+		Record<MachineAction | "withdraw", { lines: string[]; confirm: string }>
+	> = {
+		pause: {
+			lines: ["IT STOPS ACTING UNTIL YOU RESUME IT.", "WHAT IT HOLDS STAYS WHERE IT IS."],
+			confirm: "PAUSE",
+		},
+		stop: {
+			lines: ["IT WILL NEVER ACT AGAIN.", "ITS MONEY STAYS IN ITS WALLET UNTIL YOU WITHDRAW IT."],
+			confirm: "STOP",
+		},
+		withdraw: {
+			lines: [
+				"EVERY TOKEN AND ALL THE SOL, FROM ITS WALLET AND ITS VAULT, GO BACK TO YOUR WALLET.",
+				"IT CAN ONLY EVER SEND TO YOU.",
+			],
+			confirm: "WITHDRAW",
+		},
+	};
+	const press = (action: MachineAction | "withdraw") => {
+		if (questions[action]) return setAsking(action);
+		if (action !== "withdraw") onAction(action);
+	};
+	const asked = asking ? questions[asking] : undefined;
 	const button =
 		"h-9 w-full border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] transition-colors hover:bg-white/[0.06] disabled:opacity-40";
 	return (
@@ -174,14 +204,19 @@ export function MachinePanelView({
 								key={action}
 								type="button"
 								disabled={busy}
-								onClick={() => onAction(action)}
+								onClick={() => press(action)}
 								className={button}
 							>
 								{action.toUpperCase()}
 							</button>
 						))}
 						{SETTLED.has(machine.state) ? (
-							<button type="button" disabled={busy} onClick={onWithdraw} className={button}>
+							<button
+								type="button"
+								disabled={busy}
+								onClick={() => press("withdraw")}
+								className={button}
+							>
 								WITHDRAW EVERYTHING
 							</button>
 						) : null}
@@ -209,9 +244,31 @@ export function MachinePanelView({
 					})}
 				</ol>
 			</section>
+			{asking && asked ? (
+				<Confirm
+					title={`${asked.confirm} ${name}?`}
+					lines={asked.lines}
+					confirm={asked.confirm}
+					onCancel={() => setAsking(undefined)}
+					onConfirm={() => {
+						setAsking(undefined);
+						if (asking === "withdraw") onWithdraw();
+						else onAction(asking);
+					}}
+				/>
+			) : null}
 		</article>
 	);
 }
+
+/** What each action reads as once it has happened. */
+const DONE: Record<MachineAction, string> = {
+	fund: "funded",
+	start: "started",
+	pause: "paused",
+	resume: "resumed",
+	stop: "stopped",
+};
 
 export function MachinePanel({ machineId }: { machineId: string }) {
 	const { api } = useRouter().options.context;
@@ -240,8 +297,24 @@ export function MachinePanel({ machineId }: { machineId: string }) {
 				record={[...(record.data ?? [])].reverse()}
 				price={price.data?.usd}
 				busy={act.isPending || withdraw.isPending}
-				onAction={(action) => act.mutate({ action })}
-				onWithdraw={() => withdraw.mutate()}
+				onAction={(action) =>
+					act.mutate(
+						{ action },
+						{
+							onSuccess: () => toast(`${DONE[action]} · ${machine.data?.name ?? ""}`),
+							onError: (error) => toast(error.message, "problem"),
+						},
+					)
+				}
+				onWithdraw={() =>
+					withdraw.mutate(undefined, {
+						onSuccess: (result) =>
+							result.status === "sent"
+								? toast("withdrawal sent to your wallet")
+								: toast(`withdrawal refused · ${result.reason}`, "problem"),
+						onError: (error) => toast(error.message, "problem"),
+					})
+				}
 			/>
 			{act.error || withdraw.error ? (
 				<p role="alert" className="mt-3 text-[12px] text-neutral-400">

@@ -3,6 +3,7 @@ import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { Frame } from "../components/frame.tsx";
+import { Toaster } from "../components/toaster.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
 
@@ -22,6 +23,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				</Frame>
 			</div>
 			<Grain />
+			<Toaster />
 		</>
 	),
 	notFoundComponent: () => <p>Not found</p>,

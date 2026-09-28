@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { MachineDetail } from "../lib/machines.ts";
 import { MachinePanelView, placeInBand } from "./machine-panel.tsx";
@@ -61,6 +61,11 @@ describe("the selected machine", () => {
 
 		expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual(["PAUSE", "STOP"]);
 		fireEvent.click(screen.getByRole("button", { name: "STOP" }));
+		// Stopping is asked about first, and only happens once confirmed.
+		expect(onAction).not.toHaveBeenCalled();
+		const dialog = screen.getByRole("alertdialog", { name: "STOP RANGE FINDER?" });
+		expect(dialog).toHaveTextContent("IT WILL NEVER ACT AGAIN.");
+		fireEvent.click(within(dialog).getByRole("button", { name: "STOP" }));
 		expect(onAction).toHaveBeenCalledWith("stop");
 	});
 
@@ -69,6 +74,7 @@ describe("the selected machine", () => {
 		view(machine("stopped", []), { onWithdraw });
 
 		fireEvent.click(screen.getByRole("button", { name: "WITHDRAW EVERYTHING" }));
+		fireEvent.click(screen.getByRole("button", { name: "WITHDRAW" }));
 		expect(onWithdraw).toHaveBeenCalledOnce();
 	});
 
@@ -109,5 +115,15 @@ describe("where the price sits in the band", () => {
 
 	it("never divides by a band with no width", () => {
 		expect(placeInBand(120, 120, 120)).toBe(0);
+	});
+
+	it("does nothing when a question is cancelled", () => {
+		const onAction = vi.fn();
+		view(machine("running", ["pause", "stop"]), { onAction });
+
+		fireEvent.click(screen.getByRole("button", { name: "PAUSE" }));
+		fireEvent.click(screen.getByRole("button", { name: "CANCEL" }));
+		expect(onAction).not.toHaveBeenCalled();
+		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 	});
 });
