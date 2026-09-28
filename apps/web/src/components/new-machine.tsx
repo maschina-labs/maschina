@@ -1,9 +1,18 @@
 import { range } from "@maschina/runtime";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCreateMachine } from "../lib/machines.ts";
+import { fetchPrice } from "../lib/price.ts";
 import { bandOf, mostPerBuy, numberFrom, rangeReady, rangeRequest } from "../lib/range-form.ts";
+import { PriceChart } from "./price-chart.tsx";
+import { SliderRow, TypeRow } from "./slider-row.tsx";
+
+/**
+ * Making a range machine by tuning it, not filling a form: glass rows you drag, starting from the live
+ * price, with the band drawn on the real candles as it moves. The checks are the same ones the form
+ * always had: a band that pays for itself, and a buy that leaves room in the float for its fee.
+ */
 
 export type RangeForm = {
 	name: string;
@@ -13,36 +22,26 @@ export type RangeForm = {
 	float: string;
 };
 
-function Field({
-	label,
-	value,
-	onChange,
-}: {
-	label: string;
-	value: string;
-	onChange: (value: string) => void;
-}) {
-	return (
-		<label className="flex items-baseline justify-between gap-4 border-white/[0.06] border-b py-2 text-[12px]">
-			<span className="shrink-0 text-neutral-500">{label}</span>
-			<input
-				value={value}
-				onChange={(event) => onChange(event.target.value)}
-				className="w-40 bg-transparent text-right text-neutral-100 tabular-nums outline-none placeholder:text-neutral-700"
-			/>
-		</label>
-	);
+const LABEL = "text-[10.5px] text-neutral-500 tracking-[0.14em]";
+const two = (n: number) => n.toFixed(2);
+
+/** Where a new band starts: buy just under the price, sell two percent above that. */
+export function startingBand(price: number): { buyAt: string; sellAt: string } {
+	const buy = Math.floor(price * 0.992 * 100) / 100;
+	return { buyAt: two(buy), sellAt: two(Math.ceil(buy * 1.02 * 100) / 100) };
 }
 
-/** Plain for now: exposed first, styled once everything is on the page. */
 export function NewMachineView({
 	form,
+	price,
 	onChange,
 	onCreate,
 	creating,
 	error,
 }: {
 	form: RangeForm;
+	/** The live SOL price, which the sliders are ranged around. */
+	price: number | undefined;
 	onChange: (form: RangeForm) => void;
 	onCreate: () => void;
 	creating: boolean;
@@ -50,8 +49,10 @@ export function NewMachineView({
 }) {
 	const set = (key: keyof RangeForm) => (value: string) => onChange({ ...form, [key]: value });
 	const band = bandOf(form.buyAt, form.sellAt);
-	const tooBig =
-		numberFrom(form.float) > 0 && numberFrom(form.perBuy) > Number(mostPerBuy(form.float));
+	const most = numberFrom(mostPerBuy(form.float));
+	const buy = numberFrom(form.buyAt);
+	const sell = numberFrom(form.sellAt);
+	const around = price ?? (Number.isFinite(buy) ? buy : 100);
 	return (
 		<form
 			aria-label="New machine"
@@ -59,35 +60,70 @@ export function NewMachineView({
 				event.preventDefault();
 				onCreate();
 			}}
-			className="flex flex-col"
+			className="flex flex-col gap-1.5"
 		>
-			<Field label="NAME" value={form.name} onChange={set("name")} />
-			<Field label="BUY SOL AT" value={form.buyAt} onChange={set("buyAt")} />
-			<Field label="SELL SOL AT" value={form.sellAt} onChange={set("sellAt")} />
-			<Field label="SPEND EACH BUY" value={form.perBuy} onChange={set("perBuy")} />
-			<Field label="FLOAT" value={form.float} onChange={set("float")} />
-			{band.width > 0 ? (
-				<p className="py-2 text-[11px] text-neutral-500">
-					{(band.width * 100).toFixed(2)}% BAND ·{" "}
-					{band.covers
-						? `KEEPS ABOUT ${(band.keeps * 100).toFixed(2)}% A ROUND TRIP`
-						: "TOO NARROW: A ROUND TRIP COSTS ABOUT 0.6%"}
-				</p>
-			) : null}
-			{tooBig ? (
-				<p className="py-2 text-[11px] text-neutral-500">
-					AT MOST {mostPerBuy(form.float)} OF A {form.float} FLOAT
-				</p>
-			) : null}
+			<TypeRow label="NAME" value={form.name} onChange={set("name")} />
+			<TypeRow label="FLOAT" value={form.float} onChange={set("float")} suffix="USDC" />
+			<SliderRow
+				label="BUY SOL AT"
+				value={Number.isFinite(buy) ? buy : around}
+				min={around * 0.9}
+				max={around}
+				step={0.01}
+				shown={Number.isFinite(buy) ? two(buy) : "-"}
+				onChange={(value) => set("buyAt")(two(value))}
+			/>
+			<SliderRow
+				label="SELL SOL AT"
+				value={Number.isFinite(sell) ? sell : around}
+				min={Number.isFinite(buy) ? buy : around}
+				max={around * 1.1}
+				step={0.01}
+				shown={Number.isFinite(sell) ? two(sell) : "-"}
+				onChange={(value) => set("sellAt")(two(value))}
+			/>
+			<SliderRow
+				label="SPEND EACH BUY"
+				value={numberFrom(form.perBuy) || 0}
+				min={0}
+				max={Number.isFinite(most) && most > 0 ? most : 0}
+				step={0.01}
+				shown={numberFrom(form.perBuy) > 0 ? `${two(numberFrom(form.perBuy))} USDC` : "-"}
+				onChange={(value) => set("perBuy")(two(value))}
+			/>
+
+			<p className={`pt-2 ${LABEL}`}>
+				{band.width > 0
+					? band.covers
+						? `A ${(band.width * 100).toFixed(2)}% BAND · KEEPS ABOUT ${(band.keeps * 100).toFixed(2)}% A ROUND TRIP`
+						: `A ${(band.width * 100).toFixed(2)}% BAND · TOO NARROW: A ROUND TRIP COSTS ABOUT 0.6%`
+					: "SET A FLOAT, THEN DRAG THE BAND"}
+			</p>
+
+			<div className="h-48 pt-2">
+				<PriceChart
+					interval="15m"
+					history={120}
+					levels={
+						Number.isFinite(buy) && Number.isFinite(sell)
+							? [
+									{ price: sell, label: "SELL" },
+									{ price: buy, label: "BUY" },
+								]
+							: []
+					}
+				/>
+			</div>
+
 			{error ? (
-				<p role="alert" className="py-2 text-[11px] text-neutral-300">
+				<p role="alert" className="text-[11px] text-neutral-300">
 					{error}
 				</p>
 			) : null}
 			<button
 				type="submit"
 				disabled={!rangeReady(form) || creating}
-				className="mt-3 self-start border border-white/15 px-3 py-1.5 text-[11px] text-neutral-200 hover:bg-white/[0.06] disabled:opacity-40"
+				className="mt-2 h-10 border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
 			>
 				{creating ? "MAKING ITS WALLET" : "CREATE MACHINE"}
 			</button>
@@ -99,6 +135,11 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 	const { api } = useRouter().options.context;
 	const queryClient = useQueryClient();
 	const create = useCreateMachine(api, queryClient);
+	const price = useQuery({
+		queryKey: ["sol-price"],
+		queryFn: () => fetchPrice(),
+		refetchInterval: 5_000,
+	});
 	const [form, setForm] = useState<RangeForm>({
 		name: "",
 		buyAt: "",
@@ -106,10 +147,23 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 		perBuy: "",
 		float: "",
 	});
+
+	// The band starts from the price the first time one is known, and is the owner's to move after that.
+	const usd = price.data?.usd;
+	useEffect(() => {
+		if (usd === undefined) return;
+		setForm((was) => (was.buyAt || was.sellAt ? was : { ...was, ...startingBand(usd) }));
+	}, [usd]);
+
+	// Each buy follows the float: the most it can be with room left for the fee, until moved by hand.
+	const change = (next: RangeForm) =>
+		setForm(next.float !== form.float ? { ...next, perBuy: mostPerBuy(next.float) } : next);
+
 	return (
 		<NewMachineView
 			form={form}
-			onChange={setForm}
+			price={usd}
+			onChange={change}
 			creating={create.isPending}
 			error={create.error?.message}
 			// Built only when pressed, never while typing: a half typed price is not a request.
