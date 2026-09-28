@@ -94,6 +94,20 @@ describe("reading a following range's settings", () => {
 		["a floor of nothing", { floorBps: 0 }],
 		["a floor past half the price", { floorBps: 6000 }],
 		["a buy of nothing", { amountPerBuy: "0" }],
+		["a quote token that is not an address", { quoteMint: "dollars" }],
+		["a base token that is not an address", { baseMint: "sol" }],
+		["the same token on both sides", { baseMint: USDC }],
+		["decimals past eighteen", { baseDecimals: 19 }],
+		["decimals that are not whole", { baseDecimals: 1.5 }],
+		["no band at all", { bandBps: undefined }],
+		["a band wider than half the price", { bandBps: 6000 }],
+		["a buy that is not an amount", { amountPerBuy: 5 }],
+		["a buy below zero", { amountPerBuy: -5n }],
+		["a cool-off that is not whole", { cooldownMs: 1.5 }],
+		["dust that is not an amount", { minBase: "dust" }],
+		["slippage past everything", { slippageBps: 10_001 }],
+		["a hysteresis below zero", { hysteresisBps: -1 }],
+		["a gap that is not whole", { minGapMs: "soon" }],
 	])("refuses %s", (_what, over) => {
 		const settings = followingRange.readSettings({
 			quoteMint: USDC,
@@ -103,6 +117,22 @@ describe("reading a following range's settings", () => {
 			...over,
 		});
 		expect(settings.ok).toBe(false);
+	});
+
+	it("refuses settings that are not settings", () => {
+		expect(followingRange.readSettings(null).ok).toBe(false);
+	});
+
+	it("takes amounts written as whole numbers of the token's smallest unit", () => {
+		expect(read({ amountPerBuy: 27_750_000n, minBase: "1000" }).minBase).toBe(1000n);
+	});
+
+	it("counts its budget in what it spends", () => {
+		expect(followingRange.budgetMint?.(read())).toBe(USDC);
+	});
+
+	it("waits on nothing when it is not given its record", () => {
+		expect(followingRange.levels?.(read())).toEqual([]);
 	});
 
 	it("accepts a floor of three percent for an owner who wants it tighter", () => {
@@ -185,6 +215,39 @@ describe("after a sale", () => {
 			Number(usd(119.988)),
 			-3,
 		);
+	});
+});
+
+describe("working out where it stands", () => {
+	it("counts a paper trade the same as a real one", () => {
+		const paper = [
+			event(
+				"trade.intended",
+				{ runId: "r", tradeId: "p1", inputMint: USDC, outputMint: SOL, inputAmount: "27750000" },
+				T0,
+			),
+			event(
+				"trade.simulated",
+				{ runId: "r", tradeId: "p1", inputAmount: "27750000", quotedOutputAmount: "230000000" },
+				T0,
+			),
+		];
+		expect(followingState(paper, read())).toMatchObject({
+			position: 230_000_000n,
+			basis: 27_750_000n,
+		});
+	});
+
+	it("counts a trade once, however many times it is reported, and only trades it made", () => {
+		const once = bought("t1", 120, T0);
+		const stranger = trade("t2", USDC, "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", 1n, 1n, T0);
+		const orphan = event(
+			"trade.completed",
+			{ runId: "r", tradeId: "t3", inputAmount: "1", outputAmount: "1", feeLamports: "0" },
+			T0,
+		);
+		const events = [...once, ...once, ...stranger, orphan, event("run.started", {}, T0)];
+		expect(followingState(events, read()).position).toBe(followingState(once, read()).position);
 	});
 });
 
@@ -299,6 +362,25 @@ describe("deciding, once a level has woken it", () => {
 		expect(followingRange.decide(read(), short)).toMatchObject({
 			decide: "act",
 			action: { inputAmount: 229_000_000n },
+		});
+	});
+
+	it("waits for the money when the wallet cannot cover a buy", () => {
+		const empty = view({ wokeOn: "buy", balances: new Map([[USDC, baseUnitsOf(1_000_000n)]]) });
+		expect(followingRange.decide(read(), empty)).toMatchObject({
+			decide: "wait",
+			because: "balance_too_low",
+		});
+	});
+
+	it("does nothing on a level it does not act on, or with no level at all", () => {
+		expect(followingRange.decide(read(), view({ wokeOn: "follow" }))).toMatchObject({
+			decide: "wait",
+			because: "not_due",
+		});
+		expect(followingRange.decide(read(), view())).toMatchObject({
+			decide: "wait",
+			because: "not_due",
 		});
 	});
 
