@@ -29,6 +29,7 @@ const view = (
 		<NewMachineView
 			form={form}
 			price={119.7}
+			paper={false}
 			onChange={extra.onChange ?? vi.fn()}
 			onCreate={extra.onCreate ?? vi.fn()}
 			creating={false}

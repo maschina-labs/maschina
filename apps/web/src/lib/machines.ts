@@ -174,6 +174,8 @@ export function useWithdrawEverything(api: Api, queryClient: QueryClient, machin
 export type NewMachine = {
 	name: string;
 	kind: string;
+	/** A paper machine trades against real quotes and moves no money. */
+	paper?: boolean;
 	settings: Record<string, unknown>;
 	limits: {
 		budgetGranted: string;

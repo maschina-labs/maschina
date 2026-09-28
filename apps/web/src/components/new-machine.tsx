@@ -2,10 +2,13 @@ import { range } from "@maschina/runtime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { KIND_CARDS } from "../lib/kinds.ts";
 import { useCreateMachine } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { bandOf, mostPerBuy, numberFrom, rangeReady, rangeRequest } from "../lib/range-form.ts";
+import { KindPicker, PaperOrLive } from "./kind-picker.tsx";
 import { PriceChart } from "./price-chart.tsx";
+import { type FinderForm, RangeFinderForm } from "./range-finder-form.tsx";
 import { SliderRow, TypeRow } from "./slider-row.tsx";
 
 /**
@@ -38,8 +41,11 @@ export function NewMachineView({
 	onCreate,
 	creating,
 	error,
+	paper = true,
 }: {
 	form: RangeForm;
+	/** Paper machines are the free tutorial: real quotes, no money moves. */
+	paper?: boolean;
 	/** The live SOL price, which the sliders are ranged around. */
 	price: number | undefined;
 	onChange: (form: RangeForm) => void;
@@ -125,7 +131,7 @@ export function NewMachineView({
 				disabled={!rangeReady(form) || creating}
 				className="mt-2 h-10 border border-white/25 text-[11px] text-neutral-100 tracking-[0.14em] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
 			>
-				{creating ? "MAKING ITS WALLET" : "CREATE MACHINE"}
+				{creating ? "MAKING ITS WALLET" : paper ? "CREATE PAPER MACHINE" : "CREATE MACHINE"}
 			</button>
 		</form>
 	);
@@ -140,12 +146,22 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 		queryFn: () => fetchPrice(),
 		refetchInterval: 5_000,
 	});
+	const [kind, setKind] = useState("range");
+	// Paper first: the free tutorial is where a new machine should start.
+	const [paper, setPaper] = useState(true);
 	const [form, setForm] = useState<RangeForm>({
 		name: "",
 		buyAt: "",
 		sellAt: "",
 		perBuy: "",
 		float: "",
+	});
+	const [finder, setFinder] = useState<FinderForm>({
+		name: "",
+		float: "",
+		bandPct: 2,
+		floorPct: 5,
+		afterFloor: "carry_on",
 	});
 
 	// The band starts from the price the first time one is known, and is the owner's to move after that.
@@ -158,20 +174,35 @@ export function NewMachine({ onCreated }: { onCreated: (machineId: string) => vo
 	// Each buy follows the float: the most it can be with room left for the fee, until moved by hand.
 	const change = (next: RangeForm) =>
 		setForm(next.float !== form.float ? { ...next, perBuy: mostPerBuy(next.float) } : next);
+	const card = KIND_CARDS.find((each) => each.id === kind);
 
 	return (
-		<NewMachineView
-			form={form}
-			price={usd}
-			onChange={change}
-			creating={create.isPending}
-			error={create.error?.message}
-			// Built only when pressed, never while typing: a half typed price is not a request.
-			onCreate={() =>
-				create.mutate(rangeRequest({ ...form, kind: range.kind }), {
-					onSuccess: (made) => onCreated(made.machineId),
-				})
-			}
-		/>
+		<div className="flex flex-col gap-6">
+			<KindPicker chosen={kind} onChoose={setKind} />
+			<PaperOrLive paper={paper} onChange={setPaper} />
+			{kind === "range" ? (
+				<NewMachineView
+					form={form}
+					price={usd}
+					paper={paper}
+					onChange={change}
+					creating={create.isPending}
+					error={create.error?.message}
+					// Built only when pressed, never while typing: a half typed price is not a request.
+					onCreate={() =>
+						create.mutate(
+							{ ...rangeRequest({ ...form, kind: range.kind }), paper },
+							{ onSuccess: (made) => onCreated(made.machineId) },
+						)
+					}
+				/>
+			) : kind === "following_range" ? (
+				<RangeFinderForm form={finder} price={usd} onChange={setFinder} />
+			) : (
+				<p className="text-[11px] text-neutral-500 tracking-[0.1em]">
+					{card?.name} · {card?.earns} · ITS CONTROLS ARRIVE WHEN THE KIND IS BUILT
+				</p>
+			)}
+		</div>
 	);
 }
