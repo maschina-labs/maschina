@@ -54,4 +54,29 @@ describe("the globe", () => {
 
 		expect(grid()).not.toBe(before);
 	});
+
+	it("turns on its own only while it can be seen", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(JSON.stringify(topology))),
+		);
+		const shown: ((entries: { isIntersecting: boolean }[]) => void)[] = [];
+		vi.stubGlobal(
+			"IntersectionObserver",
+			class {
+				constructor(report: (entries: { isIntersecting: boolean }[]) => void) {
+					shown.push(report);
+				}
+				observe() {}
+				disconnect() {}
+			},
+		);
+		const frames = vi.spyOn(window, "requestAnimationFrame");
+		const cancelled = vi.spyOn(window, "cancelAnimationFrame");
+		render(<Globe />);
+		shown[0]?.([{ isIntersecting: true }]);
+		await waitFor(() => expect(frames).toHaveBeenCalled());
+		shown[0]?.([{ isIntersecting: false }]);
+		expect(cancelled).toHaveBeenCalled();
+	});
 });

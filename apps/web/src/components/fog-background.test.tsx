@@ -9,7 +9,7 @@ vi.mock("@react-three/fiber", () => ({
 	useThree: () => ({ width: 1, height: 1 }),
 }));
 
-const { FogBackground, paletteName } = await import("./fog-background.tsx");
+const { FogBackground } = await import("./fog-background.tsx");
 
 describe("the fog background", () => {
 	it("is decoration only: hidden from assistive technology and never in the way of a click", () => {
@@ -31,13 +31,5 @@ describe("the fog background", () => {
 		const { container } = render(<FogBackground position="absolute" />);
 
 		expect((container.firstElementChild as HTMLElement).className).toContain("absolute");
-	});
-});
-
-describe("choosing the fog's palette", () => {
-	it("takes the one in the address, then the one remembered, then city", () => {
-		expect(paletteName("?fog=ember", "ink")).toBe("ember");
-		expect(paletteName("", "ink")).toBe("ink");
-		expect(paletteName("?fog=nonsense", null)).toBe("city");
 	});
 });

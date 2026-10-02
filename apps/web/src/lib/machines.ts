@@ -40,6 +40,8 @@ export type MachineSummary = {
 	stateReason?: string;
 	walletAddress: string;
 	createdAt: string;
+	/** On paper: it trades against real prices, moves no money, and has nothing to fund. */
+	paper?: boolean;
 	budget: Budget;
 	result: MachineResult;
 };
@@ -93,7 +95,7 @@ const machinesQuery = (api: Api) =>
 	});
 
 /** One machine's detail, as a query others can compose, like the portfolio's list of orders. */
-export const machineQuery = (api: Api, machineId: string) =>
+const machineQuery = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId],
 		queryFn: async () =>
@@ -192,6 +194,19 @@ export function useWithdrawEverything(api: Api, queryClient: QueryClient, machin
 		mutationFn: async () =>
 			read<WithdrawnEverything>(
 				await api.v1.machines[":machineId"].withdraw.$post({ param: { machineId }, json: {} }),
+			),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["machines"] });
+		},
+	});
+}
+
+/** A new recipe for a paused machine. It keeps its wallet, its money and its record. */
+export function useRetune(api: Api, queryClient: QueryClient, machineId: string) {
+	return useMutation({
+		mutationFn: async (recipe: { kind: string; settings: Record<string, unknown> }) =>
+			read<{ definitionId: string }>(
+				await api.v1.machines[":machineId"].recipe.$post({ param: { machineId }, json: recipe }),
 			),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["machines"] });

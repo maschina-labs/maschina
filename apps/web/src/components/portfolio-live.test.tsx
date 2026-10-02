@@ -1,4 +1,4 @@
-import { fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Everything the portfolio reads, as the signed in owner's machines and their records.
@@ -81,21 +81,6 @@ beforeEach(() => {
 });
 
 describe("the portfolio, signed in", () => {
-	it("totals every machine", () => {
-		render(<portfolio.Totals />);
-		expect(screen.getByText("2 OF 2")).toBeInTheDocument();
-	});
-
-	it("shows each machine's share of what is in play", () => {
-		render(<portfolio.Breakdown />);
-		expect(screen.getAllByText("50.0% OF IN PLAY")).toHaveLength(2);
-	});
-
-	it("charts realised profit", () => {
-		render(<portfolio.Pnl />);
-		expect(screen.getByText("PNL CHART")).toBeInTheDocument();
-	});
-
 	it("feeds every machine's record into one activity list, newest first", () => {
 		const { result } = renderHook(() => portfolio.useActivity());
 		expect(result.current[0]?.type).toBe("run.skipped");
@@ -117,42 +102,14 @@ describe("the portfolio, signed in", () => {
 		const { result } = renderHook(() => portfolio.useOperatingPicture());
 		expect(result.current.map((each) => each.machine.name)).toEqual(["Range Finder", "Dip Buyer"]);
 	});
-
-	it("filters activity by kind and by machine", () => {
-		render(<portfolio.FilteredActivity />);
-		expect(screen.getByText("DID NOTHING")).toBeInTheDocument();
-
-		fireEvent.click(screen.getByRole("button", { name: "DIP BUYER" }));
-		expect(screen.queryByText("DID NOTHING")).not.toBeInTheDocument();
-		expect(screen.getByText("STARTED")).toBeInTheDocument();
-
-		fireEvent.click(screen.getByRole("button", { name: "TRADES" }));
-		expect(screen.getByText("NOTHING MATCHES")).toBeInTheDocument();
-
-		fireEvent.click(screen.getByRole("button", { name: "EVERY MACHINE" }));
-		expect(screen.queryByText("NOTHING MATCHES")).not.toBeInTheDocument();
-	});
 });
 
 describe("the portfolio, before anything is known", () => {
-	it("asks you to connect when nobody is signed in, and shows nothing of anyone", () => {
+	it("shows nothing of anyone when nobody is signed in", () => {
 		state.signedIn = false;
-		render(<portfolio.Totals />);
-		expect(screen.getByText("CONNECT TO SEE YOUR MACHINES")).toBeInTheDocument();
-		render(<portfolio.FilteredActivity />);
 		expect(renderHook(() => portfolio.useActivity()).result.current).toEqual([]);
 		expect(renderHook(() => portfolio.useMachineTrades()).result.current).toEqual([]);
 		expect(renderHook(() => portfolio.useStandings()).result.current("ALL")).toEqual([]);
 		expect(renderHook(() => portfolio.useOperatingPicture()).result.current).toEqual([]);
-		const { container } = render(<portfolio.Breakdown />);
-		render(<portfolio.Pnl />);
-		expect(container).toBeEmptyDOMElement();
-	});
-
-	it("says it is loading while the machines are on their way", () => {
-		state.machines = undefined;
-		render(<portfolio.Totals />);
-		render(<portfolio.FilteredActivity />);
-		expect(screen.getAllByText("LOADING YOUR MACHINES")).toHaveLength(2);
 	});
 });

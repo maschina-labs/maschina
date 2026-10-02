@@ -16,7 +16,7 @@ const emit = () => {
 
 export function toast(text: string, tone: Toast["tone"] = "done", lastsMs = 4_000): void {
 	const id = next++;
-	toasts = [...toasts, { id, text: text.toUpperCase(), tone }];
+	toasts = [...toasts, { id, text, tone }];
 	emit();
 	setTimeout(() => {
 		toasts = toasts.filter((each) => each.id !== id);

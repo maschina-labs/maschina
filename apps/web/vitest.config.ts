@@ -1,6 +1,7 @@
 import { vitestConfig } from "@maschina/config/vitest";
 import react from "@vitejs/plugin-react";
 import { mergeConfig } from "vitest/config";
+import { papers } from "./papers-plugin.ts";
 
 export default mergeConfig(
 	vitestConfig({
@@ -16,7 +17,14 @@ export default mergeConfig(
 			"src/lib/errors.ts",
 			"src/lib/env.ts",
 			"src/routes/**",
+			// The test harness itself.
+			"src/test/**",
+			// GPU drawing: the fog shader and the rain on the glass. A test browser has no WebGL to draw
+			// them with; they are checked by rendering them in a real browser (TECH_DEBT.md).
+			"src/components/fog-background.tsx",
+			"src/components/rain-glass.tsx",
 		],
 	}),
-	{ plugins: [react()] },
+	// The papers come from the master folder, as they do in the app.
+	{ plugins: [react(), papers("../../papers")] },
 );

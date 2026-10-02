@@ -65,4 +65,25 @@ describe("realised profit over time", () => {
 		const sell = trade(SOL, USDC, "100", "11000000", 5);
 		expect(realisedSteps([...buy, ...sell, sell[1] as never]).length).toBe(1);
 	});
+
+	it("counts a sale bigger than the holding only against what was held", () => {
+		const events = [
+			...trade(USDC, SOL, "40000000", "300000000", 10),
+			...trade(SOL, USDC, "600000000", "50000000", 20),
+		];
+		const last = realisedSteps(events).at(-1);
+		expect(last?.value).toBe(10_000_000n);
+	});
+
+	it("ignores a completion it has already counted, or one with no intent behind it", () => {
+		const events = [...trade(USDC, SOL, "40000000", "300000000", 10)];
+		const repeated = { ...events[1], id: "again" } as (typeof events)[number];
+		const orphan = {
+			id: "orphan",
+			type: "trade.completed",
+			occurredAt: at(12),
+			payload: { tradeId: "nobody", inputAmount: "1", outputAmount: "1" },
+		};
+		expect(realisedSteps([...events, repeated, orphan])).toEqual(realisedSteps(events));
+	});
 });

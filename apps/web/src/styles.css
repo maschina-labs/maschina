@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
-/* Hacker minimal: monospace, uppercase, widely spaced, over fog. Geist Mono for text, Söhne Breit for the wordmark. */
+/* Söhne for everything people read, Geist Mono for figures, Söhne Breit for the wordmark. */
 @font-face {
 	font-family: "Sohne Breit";
 	src: url("/fonts/SohneBreit-600.otf") format("opentype");
 	font-weight: 600;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-500.woff2") format("woff2");
+	font-weight: 500;
 	font-display: swap;
 }
 @font-face {
@@ -30,6 +42,9 @@
 html,
 body {
 	overscroll-behavior: none;
+	/* The screen is one fixed view, like a console's dashboard: nothing scrolls the page itself. */
+	overflow: hidden;
+	height: 100%;
 }
 
 /*
@@ -89,6 +104,58 @@ body {
 	}
 }
 
+/* Quiet and refined: Söhne in sentence case, the way the dashboard reads. Mono only for figures. */
 body {
-	@apply bg-black font-mono text-neutral-100 uppercase tracking-[0.08em] antialiased;
+	@apply bg-black font-display text-neutral-100 antialiased;
+}
+
+/* A tile loading: one soft band of light crossing it, slowly, then a pause. */
+@keyframes shimmer {
+	0% {
+		transform: translateX(0);
+	}
+	60%,
+	100% {
+		transform: translateX(300%);
+	}
+}
+
+/* Idle mode: the rest bar filling from nothing to the full width. */
+@keyframes rest {
+	from {
+		width: 0;
+	}
+	to {
+		width: 100%;
+	}
+}
+
+/* Sliders: a flat track exactly as tall as its square handle, like the tiles. No rounding anywhere. */
+input[type="range"].square {
+	appearance: none;
+	height: 14px;
+	background: transparent;
+	cursor: pointer;
+}
+input[type="range"].square::-webkit-slider-runnable-track {
+	height: 14px;
+	background: oklch(1 0 0 / 0.12);
+}
+input[type="range"].square::-moz-range-track {
+	height: 14px;
+	background: oklch(1 0 0 / 0.12);
+}
+input[type="range"].square::-webkit-slider-thumb {
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 0;
+	background: oklch(0.98 0 0);
+}
+input[type="range"].square::-moz-range-thumb {
+	width: 14px;
+	height: 14px;
+	border: 0;
+	border-radius: 0;
+	background: oklch(0.98 0 0);
 }

@@ -10,7 +10,7 @@ const STREAM = "wss://data-stream.binance.vision/ws";
 /** One message of the 24 hour ticker, or nothing if it is not one. */
 export function dayFromMessage(data: unknown): Day | undefined {
 	const t = data as Record<string, unknown> | null;
-	if (!t || t["e"] !== "24hrTicker") return undefined;
+	if (t?.["e"] !== "24hrTicker") return undefined;
 	const [last, changePct, high, low, volumeUsd] = [t["c"], t["P"], t["h"], t["l"], t["q"]].map(
 		Number,
 	);

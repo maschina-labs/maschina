@@ -42,3 +42,32 @@ export function finderRequest(form: FinderForm) {
 export function finderReady(form: FinderForm): boolean {
 	return form.name.trim().length > 0 && numberFrom(mostPerBuy(form.float) || "0") > 0;
 }
+
+/** A range finder's band and floor as the form shows them, from the settings it runs on. */
+export function finderTuning(
+	settings: Record<string, unknown>,
+): Pick<FinderForm, "bandPct" | "floorPct"> {
+	const floor = Number(settings["floorBps"]) / 100;
+	return {
+		bandPct: Number(settings["bandBps"]) / 100,
+		floorPct: floor === 3 || floor === 5 ? floor : 8,
+	};
+}
+
+/**
+ * A new band and floor for a paused range finder. Everything else it runs on stays as it was, its tokens
+ * and what it spends per buy among them, so retuning can never change what its budget is counted in.
+ */
+export function retuneRequest(
+	settings: Record<string, unknown>,
+	tuning: Pick<FinderForm, "bandPct" | "floorPct">,
+) {
+	return {
+		kind: followingRange.kind,
+		settings: {
+			...settings,
+			bandBps: Math.round(tuning.bandPct * 100),
+			floorBps: tuning.floorPct * 100,
+		},
+	};
+}

@@ -4,7 +4,7 @@ import { fetchPrice, type Price } from "../lib/price.ts";
 
 /** What the browser tab says: the live SOL price, then the name, so the tab is a ticker too. */
 export function tabTitle(price: Price | undefined): string {
-	return price ? `${price.usd.toFixed(2)} | Maschina` : "Maschina";
+	return price ? `${price.usd.toFixed(2)} • SOL • Maschina` : "Maschina";
 }
 
 export function TabTitle() {

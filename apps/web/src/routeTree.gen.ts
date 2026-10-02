@@ -11,22 +11,30 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActivityRouteImport } from './routes/activity'
+import { Route as DecisionsRouteImport } from './routes/decisions'
+import { Route as FeedRouteImport } from './routes/feed'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as FleetRouteImport } from './routes/fleet'
 import { Route as GetAWalletRouteImport } from './routes/get-a-wallet'
-import { Route as IntelRouteImport } from './routes/intel'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NewRouteImport } from './routes/new'
+import { Route as PapersRouteImport } from './routes/papers'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as ProfitRouteImport } from './routes/profit'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SwapRouteImport } from './routes/swap'
+import { Route as TradesRouteImport } from './routes/trades'
+import { Route as VaultRouteImport } from './routes/vault'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as MMachineIdRouteImport } from './routes/m.$machineId'
 import { Route as MachinesIndexRouteImport } from './routes/machines.index'
 import { Route as MachinesMachineIdRouteImport } from './routes/machines.$machineId'
+import { Route as MarketSolRouteImport } from './routes/market.sol'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
 import { Route as MarketplaceListingIdRouteImport } from './routes/marketplace.$listingId'
 import { Route as NetworkIndexRouteImport } from './routes/network.index'
@@ -51,9 +59,24 @@ const ActivityRoute = ActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DecisionsRoute = DecisionsRouteImport.update({
+  id: '/decisions',
+  path: '/decisions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedbackRoute = FeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FleetRoute = FleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GetAWalletRoute = GetAWalletRouteImport.update({
@@ -61,9 +84,9 @@ const GetAWalletRoute = GetAWalletRouteImport.update({
   path: '/get-a-wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IntelRoute = IntelRouteImport.update({
-  id: '/intel',
-  path: '/intel',
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteRoute = InviteRouteImport.update({
@@ -86,9 +109,19 @@ const NewRoute = NewRouteImport.update({
   path: '/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PapersRoute = PapersRouteImport.update({
+  id: '/papers',
+  path: '/papers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfitRoute = ProfitRouteImport.update({
+  id: '/profit',
+  path: '/profit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -99,6 +132,16 @@ const SignInRoute = SignInRouteImport.update({
 const SwapRoute = SwapRouteImport.update({
   id: '/swap',
   path: '/swap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TradesRoute = TradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaultRoute = VaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -129,6 +172,11 @@ const MachinesIndexRoute = MachinesIndexRouteImport.update({
 const MachinesMachineIdRoute = MachinesMachineIdRouteImport.update({
   id: '/machines/$machineId',
   path: '/machines/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketSolRoute = MarketSolRouteImport.update({
+  id: '/market/sol',
+  path: '/market/sol',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
@@ -200,21 +248,29 @@ const WalletStakeRoute = WalletStakeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/decisions': typeof DecisionsRoute
+  '/feed': typeof FeedRoute
   '/feedback': typeof FeedbackRoute
+  '/fleet': typeof FleetRoute
   '/get-a-wallet': typeof GetAWalletRoute
-  '/intel': typeof IntelRoute
+  '/insights': typeof InsightsRoute
   '/invite': typeof InviteRoute
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
+  '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/trades': typeof TradesRoute
+  '/vault': typeof VaultRoute
   '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/market/sol': typeof MarketSolRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
@@ -233,21 +289,29 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/decisions': typeof DecisionsRoute
+  '/feed': typeof FeedRoute
   '/feedback': typeof FeedbackRoute
+  '/fleet': typeof FleetRoute
   '/get-a-wallet': typeof GetAWalletRoute
-  '/intel': typeof IntelRoute
+  '/insights': typeof InsightsRoute
   '/invite': typeof InviteRoute
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
+  '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/trades': typeof TradesRoute
+  '/vault': typeof VaultRoute
   '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/market/sol': typeof MarketSolRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
@@ -267,21 +331,29 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
+  '/decisions': typeof DecisionsRoute
+  '/feed': typeof FeedRoute
   '/feedback': typeof FeedbackRoute
+  '/fleet': typeof FleetRoute
   '/get-a-wallet': typeof GetAWalletRoute
-  '/intel': typeof IntelRoute
+  '/insights': typeof InsightsRoute
   '/invite': typeof InviteRoute
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
+  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
+  '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
   '/swap': typeof SwapRoute
+  '/trades': typeof TradesRoute
+  '/vault': typeof VaultRoute
   '/welcome': typeof WelcomeRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/m/$machineId': typeof MMachineIdRoute
   '/machines/$machineId': typeof MachinesMachineIdRoute
+  '/market/sol': typeof MarketSolRoute
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
@@ -302,21 +374,29 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/decisions'
+    | '/feed'
     | '/feedback'
+    | '/fleet'
     | '/get-a-wallet'
-    | '/intel'
+    | '/insights'
     | '/invite'
     | '/maintenance'
     | '/manager'
     | '/new'
+    | '/papers'
     | '/portfolio'
+    | '/profit'
     | '/sign-in'
     | '/swap'
+    | '/trades'
+    | '/vault'
     | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
     | '/machines/$machineId'
+    | '/market/sol'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
@@ -335,21 +415,29 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/decisions'
+    | '/feed'
     | '/feedback'
+    | '/fleet'
     | '/get-a-wallet'
-    | '/intel'
+    | '/insights'
     | '/invite'
     | '/maintenance'
     | '/manager'
     | '/new'
+    | '/papers'
     | '/portfolio'
+    | '/profit'
     | '/sign-in'
     | '/swap'
+    | '/trades'
+    | '/vault'
     | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
     | '/machines/$machineId'
+    | '/market/sol'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
@@ -368,21 +456,29 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/activity'
+    | '/decisions'
+    | '/feed'
     | '/feedback'
+    | '/fleet'
     | '/get-a-wallet'
-    | '/intel'
+    | '/insights'
     | '/invite'
     | '/maintenance'
     | '/manager'
     | '/new'
+    | '/papers'
     | '/portfolio'
+    | '/profit'
     | '/sign-in'
     | '/swap'
+    | '/trades'
+    | '/vault'
     | '/welcome'
     | '/legal/privacy'
     | '/legal/terms'
     | '/m/$machineId'
     | '/machines/$machineId'
+    | '/market/sol'
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
@@ -402,21 +498,29 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
+  DecisionsRoute: typeof DecisionsRoute
+  FeedRoute: typeof FeedRoute
   FeedbackRoute: typeof FeedbackRoute
+  FleetRoute: typeof FleetRoute
   GetAWalletRoute: typeof GetAWalletRoute
-  IntelRoute: typeof IntelRoute
+  InsightsRoute: typeof InsightsRoute
   InviteRoute: typeof InviteRoute
   MaintenanceRoute: typeof MaintenanceRoute
   ManagerRoute: typeof ManagerRoute
   NewRoute: typeof NewRoute
+  PapersRoute: typeof PapersRoute
   PortfolioRoute: typeof PortfolioRoute
+  ProfitRoute: typeof ProfitRoute
   SignInRoute: typeof SignInRoute
   SwapRoute: typeof SwapRoute
+  TradesRoute: typeof TradesRoute
+  VaultRoute: typeof VaultRoute
   WelcomeRoute: typeof WelcomeRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   MMachineIdRoute: typeof MMachineIdRoute
   MachinesMachineIdRoute: typeof MachinesMachineIdRoute
+  MarketSolRoute: typeof MarketSolRoute
   MarketplaceListingIdRoute: typeof MarketplaceListingIdRoute
   NetworkNodeIdRoute: typeof NetworkNodeIdRoute
   NetworkJoinRoute: typeof NetworkJoinRoute
@@ -449,11 +553,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/decisions': {
+      id: '/decisions'
+      path: '/decisions'
+      fullPath: '/decisions'
+      preLoaderRoute: typeof DecisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/feedback': {
       id: '/feedback'
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fleet': {
+      id: '/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof FleetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/get-a-wallet': {
@@ -463,11 +588,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GetAWalletRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/intel': {
-      id: '/intel'
-      path: '/intel'
-      fullPath: '/intel'
-      preLoaderRoute: typeof IntelRouteImport
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite': {
@@ -498,11 +623,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/papers': {
+      id: '/papers'
+      path: '/papers'
+      fullPath: '/papers'
+      preLoaderRoute: typeof PapersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portfolio': {
       id: '/portfolio'
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profit': {
+      id: '/profit'
+      path: '/profit'
+      fullPath: '/profit'
+      preLoaderRoute: typeof ProfitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -517,6 +656,20 @@ declare module '@tanstack/react-router' {
       path: '/swap'
       fullPath: '/swap'
       preLoaderRoute: typeof SwapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trades': {
+      id: '/trades'
+      path: '/trades'
+      fullPath: '/trades'
+      preLoaderRoute: typeof TradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vault': {
+      id: '/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof VaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/welcome': {
@@ -559,6 +712,13 @@ declare module '@tanstack/react-router' {
       path: '/machines/$machineId'
       fullPath: '/machines/$machineId'
       preLoaderRoute: typeof MachinesMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market/sol': {
+      id: '/market/sol'
+      path: '/market/sol'
+      fullPath: '/market/sol'
+      preLoaderRoute: typeof MarketSolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketplace/': {
@@ -658,21 +818,29 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
+  DecisionsRoute: DecisionsRoute,
+  FeedRoute: FeedRoute,
   FeedbackRoute: FeedbackRoute,
+  FleetRoute: FleetRoute,
   GetAWalletRoute: GetAWalletRoute,
-  IntelRoute: IntelRoute,
+  InsightsRoute: InsightsRoute,
   InviteRoute: InviteRoute,
   MaintenanceRoute: MaintenanceRoute,
   ManagerRoute: ManagerRoute,
   NewRoute: NewRoute,
+  PapersRoute: PapersRoute,
   PortfolioRoute: PortfolioRoute,
+  ProfitRoute: ProfitRoute,
   SignInRoute: SignInRoute,
   SwapRoute: SwapRoute,
+  TradesRoute: TradesRoute,
+  VaultRoute: VaultRoute,
   WelcomeRoute: WelcomeRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   MMachineIdRoute: MMachineIdRoute,
   MachinesMachineIdRoute: MachinesMachineIdRoute,
+  MarketSolRoute: MarketSolRoute,
   MarketplaceListingIdRoute: MarketplaceListingIdRoute,
   NetworkNodeIdRoute: NetworkNodeIdRoute,
   NetworkJoinRoute: NetworkJoinRoute,

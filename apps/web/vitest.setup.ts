@@ -28,3 +28,38 @@ globalThis.ResizeObserver ??= class {
 	unobserve() {}
 	disconnect() {}
 } as unknown as typeof ResizeObserver;
+
+// Nor does it watch what is on screen. The globe asks, to turn only while it can be seen; here it is
+// simply never told, so it stays still.
+class IntersectionObserverStub {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+	takeRecords() {
+		return [];
+	}
+}
+Object.defineProperty(window, "IntersectionObserver", {
+	writable: true,
+	configurable: true,
+	value: IntersectionObserverStub,
+});
+
+// No test reaches the real market. A socket that opens nothing and says nothing, set here once so it stays
+// in place between tests: stubbed per test, it was restored to the real one afterwards, and real sockets to
+// the exchange collided with the test browser on CI.
+class QuietSocket {
+	onmessage: ((event: MessageEvent) => void) | null = null;
+	onopen: (() => void) | null = null;
+	onclose: (() => void) | null = null;
+	onerror: (() => void) | null = null;
+	addEventListener() {}
+	removeEventListener() {}
+	close() {}
+	send() {}
+}
+Object.defineProperty(globalThis, "WebSocket", {
+	writable: true,
+	configurable: true,
+	value: QuietSocket,
+});

@@ -239,6 +239,9 @@ importers:
       lightweight-charts:
         specifier: 5.2.1
         version: 5.2.1
+      raindrop-fx:
+        specifier: 1.0.8
+        version: 1.0.8
       react:
         specifier: 'catalog:'
         version: 19.3.0
@@ -3271,6 +3274,9 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@sardinefish/zogra-renderer@1.2.0':
+    resolution: {integrity: sha512-0wbAzhi5AAtbHMF6zzVx3ISFPsqLmaJLhkZfm3dFbnThXDqGf/6Gj71nmXBPtzcV0oQOWm8bFpu1a0S7/pGLQg==}
+
   '@scure/base@1.2.6':
     resolution: {integrity: sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg==}
 
@@ -5007,6 +5013,9 @@ packages:
     resolution: {integrity: sha512-X6fBC0pmImC70gvX2zm56go9hx0MyoGVdG0tUCkg/D+Xnh5TJsOZ7iDbOdI3PvmtrDxnu1YdDufpK2QJX1Meqw==}
     engines: {node: '>=20.20.0'}
 
+  gl-matrix@3.4.4:
+    resolution: {integrity: sha512-latSnyDNt/8zYUB6VIJ6PCh2jBjJX6gnDsoCZ7LyW7GkqrD51EWwa9qCoGixj8YqBtETQK/xY7OmpTF8xz1DdQ==}
+
   glimm@0.3.1:
     resolution: {integrity: sha512-7O+Ga+cqqP8FEFDa63X+BXCYKndlnZZEMjTl1DhMfQ3yWweDgl8nC+ImP/zLo351YEn/6WpnOL6jKfvFWmnyDg==}
     engines: {node: '>=18'}
@@ -5665,6 +5674,9 @@ packages:
       '@types/react-dom':
         optional: true
 
+  raindrop-fx@1.0.8:
+    resolution: {integrity: sha512-KcCeENGsFN70jVpdmRTxUJiU012oUhrHdR0n6XmMy2euJu95QcB2Uv5Om/mzzZGoyRcD650+H5yP/Q54mdi1Pw==}
+
   react-day-picker@10.0.1:
     resolution: {integrity: sha512-eNh6BlwcYInWaJtRv18mXQ06Ys/H6rdTZAnTaSdOYJuTpwP1JMCHNd1FDRadA+gbeinq+psdULN5Xnowy9mV8w==}
     engines: {node: '>=18'}
@@ -5788,6 +5800,9 @@ packages:
 
   redux@5.0.1:
     resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
+
+  reflect-metadata@0.1.14:
+    resolution: {integrity: sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==}
 
   reflect-metadata@0.2.2:
     resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
@@ -8370,6 +8385,11 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@sardinefish/zogra-renderer@1.2.0':
+    dependencies:
+      gl-matrix: 3.4.4
+      reflect-metadata: 0.1.14
+
   '@scure/base@1.2.6':
     optional: true
 
@@ -10048,6 +10068,8 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
+  gl-matrix@3.4.4: {}
+
   glimm@0.3.1(react@19.3.0):
     optionalDependencies:
       react: 19.3.0
@@ -10733,6 +10755,10 @@ snapshots:
       '@types/react': 19.3.0
       '@types/react-dom': 19.3.0(@types/react@19.3.0)
 
+  raindrop-fx@1.0.8:
+    dependencies:
+      '@sardinefish/zogra-renderer': 1.2.0
+
   react-day-picker@10.0.1(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       '@date-fns/tz': 1.5.0
@@ -10850,6 +10876,8 @@ snapshots:
       redux: 5.0.1
 
   redux@5.0.1: {}
+
+  reflect-metadata@0.1.14: {}
 
   reflect-metadata@0.2.2: {}
 

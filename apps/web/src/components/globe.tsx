@@ -36,6 +36,7 @@ export function Globe({
 	const [view, setView] = useState<[number, number]>([0, tilt]);
 	/** Where a drag started, and what the view was then. Empty when nobody is holding the globe. */
 	const drag = useRef<{ x: number; y: number; from: [number, number] } | undefined>(undefined);
+	const svg = useRef<SVGSVGElement>(null);
 
 	useEffect(() => {
 		let live = true;
@@ -48,17 +49,34 @@ export function Globe({
 	useEffect(() => {
 		// Reduced motion keeps the globe still, though it can still be turned by hand.
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		const element = svg.current;
+		if (!element) return;
 		let frame = 0;
 		let last = performance.now();
 		const tick = (now: number) => {
-			const seconds = (now - last) / 1000;
-			last = now;
-			// It stops while held, and carries on from wherever it was let go.
-			if (!drag.current) setView(([lon, lat]) => [lon + seconds * TURN, lat]);
+			// Thirty times a second is plenty for a slow turn, and half the redrawing of every frame.
+			if (now - last >= 1000 / 30) {
+				const seconds = Math.min((now - last) / 1000, 0.1);
+				last = now;
+				// It stops while held, and carries on from wherever it was let go.
+				if (!drag.current) setView(([lon, lat]) => [lon + seconds * TURN, lat]);
+			}
 			frame = requestAnimationFrame(tick);
 		};
-		frame = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(frame);
+		// Turning only while it can be seen: the page beside the one on screen is drawn too, so the next
+		// slide is ready, and a globe turning off screen would redraw a map nobody is looking at.
+		const watch = new IntersectionObserver(([entry]) => {
+			cancelAnimationFrame(frame);
+			if (entry?.isIntersecting) {
+				last = performance.now();
+				frame = requestAnimationFrame(tick);
+			}
+		});
+		watch.observe(element);
+		return () => {
+			watch.disconnect();
+			cancelAnimationFrame(frame);
+		};
 	}, []);
 
 	const grab = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -109,6 +127,7 @@ export function Globe({
 
 	return (
 		<svg
+			ref={svg}
 			viewBox={`0 0 ${SIZE} ${SIZE}`}
 			role="img"
 			aria-label="The network, on a turning globe"
