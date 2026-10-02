@@ -436,7 +436,7 @@ function HeaderPanel() {
 		const timer = setInterval(() => setNow(new Date()), 1000);
 		return () => clearInterval(timer);
 	}, []);
-	// The name on the left, the time on the right, centred on one line and as wide as the tiles below, so
+	// The name on the left, the time on the right, centered on one line and as wide as the tiles below, so
 	// both line up with the grid's edges.
 	return (
 		<div className="flex justify-center px-5 py-7 md:px-0">

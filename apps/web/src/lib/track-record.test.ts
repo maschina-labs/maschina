@@ -42,7 +42,7 @@ describe("a track record", () => {
 		expect(executionBps([])).toBeUndefined();
 	});
 
-	it("finds the largest fall from a high in realised profit", () => {
+	it("finds the largest fall from a high in realized profit", () => {
 		const record = [
 			...trade("a", USDC, SOL, "10000000", "100", "100", "2026-09-28T01:00:00Z"),
 			...trade("b", SOL, USDC, "100", "13000000", "13000000", "2026-09-28T02:00:00Z"),

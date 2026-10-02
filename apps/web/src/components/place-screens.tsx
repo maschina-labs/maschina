@@ -244,7 +244,7 @@ export function PublicMachineScreen() {
 			<Panel size="large" name={`${m.name} · ${m.result.simulated ? "paper" : "live"}`}>
 				<Rows
 					rows={[
-						["Realised", `${amount(m.result.realised)} USDC`],
+						["Realized", `${amount(m.result.realised)} USDC`],
 						["Trades", String(m.result.trades)],
 						["Won", winRate(m)],
 						["Largest drop", `${amount(largestDrop([...events].reverse()).toString())} USDC`],

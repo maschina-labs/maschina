@@ -20,8 +20,8 @@ import { candleTime, type Trade } from "../lib/trades.ts";
  * Candles floating straight on the fog: no background and no borders, a faint grid, the price dial on the
  * right and the time dial along the bottom. Drawn by TradingView's open source Lightweight Charts.
  *
- * Colours here are rgba rather than OKLCH on purpose: the library mixes colours itself on its canvas and
- * only reads rgb and hex. Each one is the sRGB twin of a neutral OKLCH grey.
+ * Colors here are rgba rather than OKLCH on purpose: the library mixes colors itself on its canvas and
+ * only reads rgb and hex. Each one is the sRGB twin of a neutral OKLCH gray.
  */
 
 // Monochrome on purpose: light for up, dim for down. Ash tried green and red and wants neither.
@@ -75,7 +75,7 @@ export function PriceChart({
 				textColor: DIAL,
 				fontFamily: '"Geist Mono", ui-monospace, monospace',
 				fontSize: 11,
-				// The library's licence asks for its mark to stay on the chart.
+				// The library's license asks for its mark to stay on the chart.
 				attributionLogo: true,
 			},
 			grid: { vertLines: { color: GRID }, horzLines: { color: GRID } },

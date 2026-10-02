@@ -1,6 +1,6 @@
 /**
  * What Cloudflare runs in front of the built app: it serves the licensed fonts from private storage and
- * everything else from the build. The fonts never sit in this repository; a licence covers serving
+ * everything else from the build. The fonts never sit in this repository; a license covers serving
  * them for this site, not handing the files to everyone who clones it.
  */
 

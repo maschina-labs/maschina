@@ -14,7 +14,7 @@ export function NetworkTiles() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
-	const [centre, setCentre] = useState({ lat: 18, lng: 0 });
+	const [center, setCenter] = useState({ lat: 18, lng: 0 });
 	const mine = session.data ? (machines.data ?? []) : undefined;
 
 	return (
@@ -22,10 +22,10 @@ export function NetworkTiles() {
 			<Tile size="hero" label="Globe">
 				{/* Dragging the globe turns it; it never swipes the page. */}
 				<div data-own-drag className="absolute inset-0">
-					<Globe onView={setCentre} />
+					<Globe onView={setCenter} />
 				</div>
 				<div className="pointer-events-none absolute top-4 right-4">
-					<Coordinates target={centre} />
+					<Coordinates target={center} />
 				</div>
 				<span className="pointer-events-none absolute bottom-4 left-4 text-[13px] text-neutral-500">
 					Network

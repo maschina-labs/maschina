@@ -217,7 +217,7 @@ export function useRetune(api: Api, queryClient: QueryClient, machineId: string)
 /**
  * Funding a machine from the owner's wallet, in one approval: the gateway builds the transaction for the
  * signed in wallet, the wallet shows it and sends it, and the machine's budget rises by the dollars sent.
- * The budget only moves once the wallet has sent, so a cancelled approval changes nothing.
+ * The budget only moves once the wallet has sent, so a canceled approval changes nothing.
  */
 export function useFund(
 	api: Api,

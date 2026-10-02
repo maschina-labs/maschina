@@ -2,7 +2,7 @@ import type { RecordEntry } from "./machines.ts";
 import { oldestFirst } from "./trades.ts";
 
 /**
- * Realised profit over time, from machines' own records: each sale's proceeds less what the sold part
+ * Realized profit over time, from machines' own records: each sale's proceeds less what the sold part
  * cost. Worked out the way the machines count it, from the trades that completed, so the chart and the
  * record can never disagree. Values are USDC base units.
  */
@@ -11,13 +11,13 @@ export type PnlPoint = { time: number; value: bigint };
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-/** One machine's realised result after each sale, in time order. */
-export function realisedSteps(events: RecordEntry[]): PnlPoint[] {
+/** One machine's realized result after each sale, in time order. */
+export function realizedSteps(events: RecordEntry[]): PnlPoint[] {
 	const intents = new Map<string, { input: string; output: string }>();
 	const done = new Set<string>();
 	let position = 0n;
 	let basis = 0n;
-	let realised = 0n;
+	let realized = 0n;
 	const steps: PnlPoint[] = [];
 	for (const event of oldestFirst(events)) {
 		const p = event.payload as Record<string, string>;
@@ -41,10 +41,10 @@ export function realisedSteps(events: RecordEntry[]): PnlPoint[] {
 		} else if (intent.output === USDC && position > 0n) {
 			const sold = spent > position ? position : spent;
 			const cost = (basis * sold) / position;
-			realised += got - cost;
+			realized += got - cost;
 			basis -= cost;
 			position -= sold;
-			steps.push({ time: Math.floor(Date.parse(event.occurredAt) / 1000), value: realised });
+			steps.push({ time: Math.floor(Date.parse(event.occurredAt) / 1000), value: realized });
 		}
 	}
 	return steps;
@@ -55,7 +55,7 @@ export function portfolioPnl(records: RecordEntry[][]): PnlPoint[] {
 	const changes: { time: number; delta: bigint }[] = [];
 	for (const events of records) {
 		let before = 0n;
-		for (const step of realisedSteps(events)) {
+		for (const step of realizedSteps(events)) {
 			changes.push({ time: step.time, delta: step.value - before });
 			before = step.value;
 		}

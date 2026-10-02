@@ -98,7 +98,7 @@ export function ProfitScreen() {
 					</Note>
 				)}
 			</Panel>
-			<Panel size="wide" name={totals?.simulated ? "Realised · includes paper" : "Realised"}>
+			<Panel size="wide" name={totals?.simulated ? "Realized · includes paper" : "Realized"}>
 				<Headline>{totals ? amount(totals.realised.toString()) : "0.00"} USDC</Headline>
 			</Panel>
 			<Panel size="wide" name="Round trips">

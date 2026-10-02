@@ -105,9 +105,9 @@ export function HomeTiles() {
 					<StartHere at={firstRun} />
 				</Tile>
 			) : (
-				<Tile size="large" to="/profit" label="Realised profit">
+				<Tile size="large" to="/profit" label="Realized profit">
 					{totals ? (
-						<Figure value={amount(totals.realised.toString())} note="USDC" name="Realised" />
+						<Figure value={amount(totals.realised.toString())} note="USDC" name="Realized" />
 					) : (
 						<TileLoading />
 					)}

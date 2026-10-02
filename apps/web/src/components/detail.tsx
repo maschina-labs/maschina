@@ -46,7 +46,7 @@ import { NotFound } from "./system.tsx";
  * The detail layer: anything opened from a section, a machine or settings or a new machine, grows out
  * of the tile it was opened from and fills the screen with glass, with the dashboard dimmed behind it
  * where you left it. Back or Escape fades it away. Opened from a link, it settles in
- * from the centre. It has its own address.
+ * from the center. It has its own address.
  *
  * Inside it is the same grid as every section, so a machine's detail is its own set of tiles.
  */
@@ -128,7 +128,7 @@ export function Detail({ back }: { back: string }) {
 		else void navigate({ to: back });
 	};
 	// Closing is a plain fade of the whole screen, quicker than the zoom in. Zooming back into the tile
-	// put two near colours against each other as it shrank, and looked wrong.
+	// put two near colors against each other as it shrank, and looked wrong.
 	const close = () => {
 		if (phase === "fading") return;
 		setPhase("fading");

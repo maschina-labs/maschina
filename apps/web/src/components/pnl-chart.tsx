@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 import type { PnlPoint } from "../lib/pnl.ts";
 
 /**
- * Realised profit over time: one thin line floating on the fog, a point for every sale, the zero line
- * dashed so a loss reads as below it. Colours are rgba because the chart library only reads rgb and hex.
+ * Realized profit over time: one thin line floating on the fog, a point for every sale, the zero line
+ * dashed so a loss reads as below it. Colors are rgba because the chart library only reads rgb and hex.
  */
 
 const LINE = "rgba(236, 236, 236, 0.9)"; // oklch(0.94 0 0)

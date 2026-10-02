@@ -1,6 +1,6 @@
 import { describeEvent } from "./describe.ts";
 import type { RecordEntry } from "./machines.ts";
-import { realisedSteps } from "./pnl.ts";
+import { realizedSteps } from "./pnl.ts";
 import { tradesFrom } from "./trades.ts";
 
 /**
@@ -25,11 +25,11 @@ export function executionBps(record: RecordEntry[]): number | undefined {
 	return gaps.length === 0 ? undefined : gaps.reduce((a, b) => a + b, 0) / gaps.length;
 }
 
-/** The largest fall in realised profit from a high to a later low, in USDC base units. */
+/** The largest fall in realized profit from a high to a later low, in USDC base units. */
 export function largestDrop(record: RecordEntry[]): bigint {
 	let peak = 0n;
 	let drop = 0n;
-	for (const step of realisedSteps(record)) {
+	for (const step of realizedSteps(record)) {
 		if (step.value > peak) peak = step.value;
 		if (peak - step.value > drop) drop = peak - step.value;
 	}

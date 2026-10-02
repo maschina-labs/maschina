@@ -37,7 +37,7 @@ describe("the leaderboard", () => {
 		...trade("b2", SOL, USDC, "100", "11000000", "2026-09-28T07:00:00Z"),
 	];
 
-	it("ranks machines by what they realised, best first", () => {
+	it("ranks machines by what they realized, best first", () => {
 		const board = standings(
 			[
 				{ machine: machine("a"), record: a },

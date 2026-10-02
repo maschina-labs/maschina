@@ -276,7 +276,7 @@ export function MachineScreen({ machineId }: { machineId: string }) {
 							<span className="font-display text-[22px] text-neutral-100">
 								{amount(detail.result.realised)}
 							</span>{" "}
-							USDC realised
+							USDC realized
 						</li>
 						<li>{amount(detail.result.position, 9)} SOL holding</li>
 						{balances.data?.vault ? (

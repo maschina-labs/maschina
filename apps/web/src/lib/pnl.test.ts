@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { portfolioPnl, realisedSteps } from "./pnl.ts";
+import { portfolioPnl, realizedSteps } from "./pnl.ts";
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOL = "So11111111111111111111111111111111111111112";
@@ -23,13 +23,13 @@ const trade = (from: string, to: string, spent: string, got: string, minute: num
 	];
 };
 
-describe("realised profit over time", () => {
+describe("realized profit over time", () => {
 	it("counts nothing for a buy, and the difference once it sells", () => {
 		const events = [
 			...trade(USDC, SOL, "40350000", "339698000", 22),
 			...trade(SOL, USDC, "339698000", "40980000", 50),
 		];
-		expect(realisedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
+		expect(realizedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
 	});
 
 	it("reads a record newest first, the way the API sends it", () => {
@@ -37,7 +37,7 @@ describe("realised profit over time", () => {
 			...trade(USDC, SOL, "40350000", "339698000", 22),
 			...trade(SOL, USDC, "339698000", "40980000", 50),
 		].reverse();
-		expect(realisedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
+		expect(realizedSteps(events)).toEqual([{ time: Date.parse(at(50)) / 1000, value: 630_000n }]);
 	});
 
 	it("counts a loss as a loss", () => {
@@ -45,7 +45,7 @@ describe("realised profit over time", () => {
 			...trade(USDC, SOL, "40000000", "340000000", 1),
 			...trade(SOL, USDC, "340000000", "38000000", 2),
 		];
-		expect(realisedSteps(events).at(-1)?.value).toBe(-2_000_000n);
+		expect(realizedSteps(events).at(-1)?.value).toBe(-2_000_000n);
 	});
 
 	it("adds every machine into one running total, in time order", () => {
@@ -63,7 +63,7 @@ describe("realised profit over time", () => {
 	it("counts a completed trade once, however often the record repeats it", () => {
 		const buy = trade(USDC, SOL, "10000000", "100", 1);
 		const sell = trade(SOL, USDC, "100", "11000000", 5);
-		expect(realisedSteps([...buy, ...sell, sell[1] as never]).length).toBe(1);
+		expect(realizedSteps([...buy, ...sell, sell[1] as never]).length).toBe(1);
 	});
 
 	it("counts a sale bigger than the holding only against what was held", () => {
@@ -71,7 +71,7 @@ describe("realised profit over time", () => {
 			...trade(USDC, SOL, "40000000", "300000000", 10),
 			...trade(SOL, USDC, "600000000", "50000000", 20),
 		];
-		const last = realisedSteps(events).at(-1);
+		const last = realizedSteps(events).at(-1);
 		expect(last?.value).toBe(10_000_000n);
 	});
 
@@ -84,6 +84,6 @@ describe("realised profit over time", () => {
 			occurredAt: at(12),
 			payload: { tradeId: "nobody", inputAmount: "1", outputAmount: "1" },
 		};
-		expect(realisedSteps([...events, repeated, orphan])).toEqual(realisedSteps(events));
+		expect(realizedSteps([...events, repeated, orphan])).toEqual(realizedSteps(events));
 	});
 });

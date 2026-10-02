@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
-/** Every section, in order. The one you are on is white; the rest are grey. */
+/** Every section, in order. The one you are on is white; the rest are gray. */
 export const SECTIONS = [
 	{ to: "/", label: "Home" },
 	{ to: "/insights", label: "Insights" },

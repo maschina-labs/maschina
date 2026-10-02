@@ -29,7 +29,7 @@ describe("themes", () => {
 		const sunset = skyAt(18.5);
 		expect(night.night.l).toBeLessThan(0.25);
 		expect(noon.night.l).toBeGreaterThan(0.85);
-		// Golden hour: the glow is strongly coloured and warm (orange sits near hue 55).
+		// Golden hour: the glow is strongly colored and warm (orange sits near hue 55).
 		expect(sunset.glow.c).toBeGreaterThan(0.1);
 		expect(Math.abs(sunset.glow.h - 55)).toBeLessThan(15);
 	});
