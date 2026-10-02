@@ -17,6 +17,12 @@ export default mergeConfig(
 			"src/lib/errors.ts",
 			"src/lib/env.ts",
 			"src/routes/**",
+			// The test harness itself.
+			"src/test/**",
+			// GPU drawing: the fog shader and the rain on the glass. A test browser has no WebGL to draw
+			// them with; they are checked by rendering them in a real browser (TECH_DEBT.md).
+			"src/components/fog-background.tsx",
+			"src/components/rain-glass.tsx",
 		],
 	}),
 	// The papers come from the master folder, as they do in the app.
