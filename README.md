@@ -84,8 +84,8 @@ as the product being finished:
   half guards against a node Maschina does not run, which cannot happen yet.
 - **The web app** has every screen laid out. What works against the live API: signing in, the terminal
   following a machine, each machine's page with its record and controls, making a Range Finder, a fixed
-  range or a price trigger, withdrawing, and the papers at `/whitepaper.pdf` and `/papers/`. Live
-  balances, the stream, chat with other people and the AI analyst are laid out and say so.
+  range or a price trigger, withdrawing, and the papers at `/papers`, served from the master files in
+  `papers/`. Live balances, the stream, chat with other people and the AI analyst are laid out and say so.
 
 ## How the limits actually hold
 

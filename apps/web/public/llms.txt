@@ -10,5 +10,4 @@ once and left to run. Paper machines are free and trade against real prices with
 - App: https://maschina.dev
 - Docs: https://docs.maschina.dev
 - Source: https://github.com/maschina-labs/maschina
-- Whitepaper: https://maschina.dev/whitepaper.pdf
-- Papers, fifteen of them, from the primer to the risk disclosures: https://maschina.dev/papers/index.pdf
+- The papers, from the primer to the risk disclosures, all listed at https://maschina.dev/papers and indexed in https://maschina.dev/papers/index.pdf
