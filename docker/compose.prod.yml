@@ -124,6 +124,21 @@ services:
     depends_on:
       - orchestrator
 
+  # Tells each owner what their machines did, on Telegram. It reads alerts from the orchestrator and
+  # holds no keys; with no TELEGRAM_BOT_TOKEN in the environment it tells nobody anything.
+  bots:
+    image: ghcr.io/maschina-labs/bots:${MASCHINA_VERSION:?the version to run is required}
+    container_name: maschina-bots
+    logging: *logging
+    restart: unless-stopped
+    env_file: /opt/maschina/.env
+    environment:
+      ORCHESTRATOR_URL: http://orchestrator:4100
+      GATEWAY_URL: http://gateway:4000
+    depends_on:
+      - orchestrator
+      - gateway
+
 volumes:
   postgres-data:
   daemon-identity:
