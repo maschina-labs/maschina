@@ -28,7 +28,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?the database password is required}
       POSTGRES_DB: maschina
     volumes:
-      - postgres-data:/var/lib/postgresql
+      # Mounted exactly where Postgres keeps its data. Mounted one level up, the image's own volume
+      # took the data instead, and a recreated container started empty (MISTAKES M42).
+      - postgres-data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U maschina_owner -d maschina"]
@@ -121,6 +123,21 @@ services:
       - daemon-identity:/home/node/.maschina
     depends_on:
       - orchestrator
+
+  # Tells each owner what their machines did, on Telegram. It reads alerts from the orchestrator and
+  # holds no keys; with no TELEGRAM_BOT_TOKEN in the environment it tells nobody anything.
+  bots:
+    image: ghcr.io/maschina-labs/bots:${MASCHINA_VERSION:?the version to run is required}
+    container_name: maschina-bots
+    logging: *logging
+    restart: unless-stopped
+    env_file: /opt/maschina/.env
+    environment:
+      ORCHESTRATOR_URL: http://orchestrator:4100
+      GATEWAY_URL: http://gateway:4000
+    depends_on:
+      - orchestrator
+      - gateway
 
 volumes:
   postgres-data:
