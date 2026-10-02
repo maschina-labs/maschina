@@ -8,7 +8,7 @@ describe("toasts", () => {
 		const { result } = renderHook(() => useToasts());
 
 		act(() => toast("paused · range finder"));
-		expect(result.current.map((each) => each.text)).toEqual(["PAUSED · RANGE FINDER"]);
+		expect(result.current.map((each) => each.text)).toEqual(["paused · range finder"]);
 
 		act(() => vi.advanceTimersByTime(4_000));
 		expect(result.current).toEqual([]);

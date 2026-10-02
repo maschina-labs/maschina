@@ -5,6 +5,11 @@ vi.mock("@tanstack/react-router", () => ({
 	Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
 		<a href={to}>{children}</a>
 	),
+	useRouterState: ({
+		select,
+	}: {
+		select: (state: { location: { pathname: string } }) => unknown;
+	}) => select({ location: { pathname: "/" } }),
 }));
 
 const { Sections } = await import("./sections.tsx");
@@ -15,8 +20,8 @@ describe("the header's sections", () => {
 
 		const links = screen.getAllByRole("link");
 		expect(links.map((link) => [link.textContent, link.getAttribute("href")])).toEqual([
-			["Terminal", "/"],
-			["Intel", "/intel"],
+			["Home", "/"],
+			["Insights", "/insights"],
 			["Portfolio", "/portfolio"],
 			["Machines", "/machines"],
 			["Activity", "/activity"],

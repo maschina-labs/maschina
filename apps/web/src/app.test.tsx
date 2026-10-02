@@ -12,6 +12,8 @@ vi.mock("@react-three/fiber", () => ({
 
 // No canvas either, so the price chart, which draws on one, is stood in for too. It has its own tests.
 vi.mock("./components/price-chart.tsx", () => ({ PriceChart: () => <div /> }));
+// The globe draws a world map fetched from a file the test browser cannot serve.
+vi.mock("./components/globe.tsx", () => ({ Globe: () => <div /> }));
 
 import { createApi } from "./lib/api.ts";
 import { createQueryClient } from "./lib/query.ts";
@@ -40,6 +42,6 @@ describe("the web app", () => {
 
 	it("shows a not-found page for unknown routes", async () => {
 		renderAt("/nowhere");
-		expect(await screen.findByText("NOTHING AT THIS ADDRESS")).toBeInTheDocument();
+		expect(await screen.findByText("There is nothing here")).toBeInTheDocument();
 	});
 });

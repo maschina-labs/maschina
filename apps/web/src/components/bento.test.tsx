@@ -9,7 +9,7 @@ describe("the tiles", () => {
 				<Tile label="SOL">120.00</Tile>
 				<Tile size="wide" label="Range Finder" />
 				<Tile size="large" />
-				<Tile size="full" />
+				<Tile size="hero" />
 			</Bento>,
 		);
 

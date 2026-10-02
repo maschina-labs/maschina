@@ -1,4 +1,3 @@
-import RaindropFX from "raindrop-fx";
 import { useEffect, useRef, useState } from "react";
 import type { Weather } from "../lib/weather.ts";
 import { fogCanvas } from "./fog-background.tsx";
@@ -70,51 +69,58 @@ export function RainGlass({ rain }: { rain: Rain }) {
 		const [width, height] = size();
 		element.width = width;
 		element.height = height;
-		const fx = new RaindropFX({
-			canvas: element,
-			background: city,
-			...STRENGTH[rain],
-			// The city behind is already out of focus, so the glass blurs it only a little more.
-			backgroundBlurSteps: 1,
-			mist: true,
-			mistColor: [0.02, 0.02, 0.025, 1],
-			mistTime: 12,
-			mistBlurStep: 3,
-			dropletSize: [8, 22],
-			smoothRaindrop: [0.95, 1.0],
-			refractBase: 0.4,
-			refractScale: 0.6,
-			raindropCompose: "smoother",
-			raindropLightPos: [-1, 1, 2, 0],
-			raindropDiffuseLight: [0.2, 0.2, 0.2],
-			raindropShadowOffset: 0.8,
-			raindropSpecularLight: [0, 0, 0],
-			raindropLightBump: 0.7,
-		});
 		let alive = true;
-		void fx.start();
-		// One copy at a time, and never of an empty canvas: a copy taken mid-resize, or a second one started
-		// before the first is done, leaves the glass with no picture and it draws black.
-		let copying = false;
-		const refresh = setInterval(() => {
-			if (!alive || copying || city.width === 0 || city.height === 0) return;
-			copying = true;
-			fx.setBackground(city).finally(() => {
-				copying = false;
+		let fx: InstanceType<typeof import("raindrop-fx")> | undefined;
+		let refresh: ReturnType<typeof setInterval> | undefined;
+		// Loaded only when it rains: most visits never need it, and it is the largest thing on the page.
+		void import("raindrop-fx").then(({ default: RaindropFX }) => {
+			if (!alive) return;
+			const glass = new RaindropFX({
+				canvas: element,
+				background: city,
+				...STRENGTH[rain],
+				// The city behind is already out of focus, so the glass blurs it only a little more.
+				backgroundBlurSteps: 1,
+				mist: true,
+				mistColor: [0.02, 0.02, 0.025, 1],
+				mistTime: 12,
+				mistBlurStep: 3,
+				dropletSize: [8, 22],
+				smoothRaindrop: [0.95, 1.0],
+				refractBase: 0.4,
+				refractScale: 0.6,
+				raindropCompose: "smoother",
+				raindropLightPos: [-1, 1, 2, 0],
+				raindropDiffuseLight: [0.2, 0.2, 0.2],
+				raindropShadowOffset: 0.8,
+				raindropSpecularLight: [0, 0, 0],
+				raindropLightBump: 0.7,
 			});
-		}, REFRESH_MS);
+			fx = glass;
+			void glass.start();
+			// One copy at a time, and never of an empty canvas: a copy taken mid-resize, or a second one
+			// started before the first is done, leaves the glass with no picture and it draws black.
+			let copying = false;
+			refresh = setInterval(() => {
+				if (!alive || copying || city.width === 0 || city.height === 0) return;
+				copying = true;
+				glass.setBackground(city).finally(() => {
+					copying = false;
+				});
+			}, REFRESH_MS);
+		});
 		const resize = () => {
 			const [w, h] = size();
 			element.width = w;
 			element.height = h;
-			fx.resize(w, h);
+			fx?.resize(w, h);
 		};
 		window.addEventListener("resize", resize);
 		return () => {
 			alive = false;
-			clearInterval(refresh);
+			if (refresh) clearInterval(refresh);
 			window.removeEventListener("resize", resize);
-			fx.stop();
+			fx?.stop();
 		};
 	}, [rain, city]);
 

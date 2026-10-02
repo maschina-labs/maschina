@@ -28,3 +28,18 @@ globalThis.ResizeObserver ??= class {
 	unobserve() {}
 	disconnect() {}
 } as unknown as typeof ResizeObserver;
+
+// Nor does it watch what is on screen. The globe asks, to turn only while it can be seen; here it is
+// simply never told, so it stays still.
+class IntersectionObserverStub {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+	takeRecords() {
+		return [];
+	}
+}
+Object.defineProperty(window, "IntersectionObserver", {
+	writable: true,
+	value: IntersectionObserverStub,
+});
