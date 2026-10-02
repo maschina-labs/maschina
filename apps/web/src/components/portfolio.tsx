@@ -126,7 +126,6 @@ export function BreakdownView({ machines }: { machines: MachineSummary[] }) {
 						</div>
 						<div className="flex h-4 gap-[3px]" aria-hidden="true">
 							{Array.from({ length: 40 }, (_, index) => (
-								// biome-ignore lint/suspicious/noArrayIndexKey: segments never reorder
 								<span
 									key={index}
 									className={`w-full ${index < lit ? "bg-neutral-100" : "bg-white/10"}`}

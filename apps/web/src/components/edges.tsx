@@ -13,14 +13,13 @@ import {
 	Sun,
 	User,
 } from "@phosphor-icons/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
-import { fetchPrice } from "../lib/price.ts";
 import { useSession, useSignOut } from "../lib/session.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { useActivity } from "./portfolio.tsx";
@@ -433,30 +432,16 @@ function HeaderPanel() {
 		const timer = setInterval(() => setNow(new Date()), 1000);
 		return () => clearInterval(timer);
 	}, []);
-	const price = useQuery({
-		queryKey: ["sol-price"],
-		queryFn: () => fetchPrice(),
-		refetchInterval: 5_000,
-	});
+	// The name on the left, the time on the right. The price is everywhere else already.
 	return (
 		<div className="mx-auto flex w-full max-w-[1160px] items-end justify-between gap-6 px-6 pt-7 pb-6">
-			<div className="flex flex-col gap-1">
-				<span className="font-display text-[40px] text-neutral-100 tabular-nums leading-none">
+			<img src="/brand/wordmark.svg" alt="Maschina" className="h-7 w-auto md:h-8" />
+			<div className="flex flex-col items-end gap-1">
+				<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none md:text-[34px]">
 					{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 				</span>
 				<span className="text-[14px] text-neutral-400">
 					{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
-				</span>
-			</div>
-			<div className="flex flex-col items-end gap-1">
-				<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
-					{price.data ? price.data.usd.toFixed(2) : "-"}
-				</span>
-				<span className="text-[14px] text-neutral-400">
-					SOL
-					{price.data
-						? ` · ${price.data.change24h >= 0 ? "+" : ""}${price.data.change24h.toFixed(2)}% today`
-						: ""}
 				</span>
 			</div>
 		</div>

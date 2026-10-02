@@ -9,7 +9,6 @@ export function Loading({ what }: { what: string }) {
 				{Array.from({ length: 12 }, (_, index) => (
 					<span
 						// The ticks never reorder, so their place is their identity.
-						// biome-ignore lint/suspicious/noArrayIndexKey: see above
 						key={index}
 						className="block h-3 w-px animate-[tick_1.2s_ease-in-out_infinite] bg-white/15"
 						style={{ animationDelay: `${index * 0.1}s` }}

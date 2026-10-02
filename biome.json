@@ -12,7 +12,8 @@
 			"!**/routeTree.gen.ts",
 			"!**/migrations/meta",
 			"!**/dist",
-			"!packages/ui/src/beautifui/css"
+			"!packages/ui/src/beautifui/css",
+			"!apps/web/public/**/*.svg"
 		]
 	},
 	"formatter": {
