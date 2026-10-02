@@ -107,7 +107,7 @@ export function HomeTiles() {
 			) : (
 				<Tile size="large" to="/profit" label="Realized profit">
 					{totals ? (
-						<Figure value={amount(totals.realised.toString())} note="USDC" name="Realized" />
+						<Figure value={amount(totals.realized.toString())} note="USDC" name="Realized" />
 					) : (
 						<TileLoading />
 					)}

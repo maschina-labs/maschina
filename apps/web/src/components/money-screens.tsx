@@ -12,7 +12,7 @@ import {
 } from "../lib/machines.ts";
 import { compactUsd } from "../lib/market.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
-import { type ActivityEntry, totalsOf } from "../lib/portfolio.ts";
+import { type ActivityEntry, onPaper, totalsOf } from "../lib/portfolio.ts";
 import { bandOf } from "../lib/status.ts";
 import { type Print, streamPrints } from "../lib/tape.ts";
 import { recordCsv } from "../lib/track-record.ts";
@@ -22,7 +22,7 @@ import { sentence, useSolDay } from "./home.tsx";
 import { BUTTON, Headline, Note, Panel, QUIET, Rows } from "./kit.tsx";
 import { winRate } from "./place-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
-import { useActivity, useOperatingPicture } from "./portfolio.tsx";
+import { useActivity, useLivePicture, useOperatingPicture } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
 
 /**
@@ -62,7 +62,11 @@ function MachineRow({ machine, value }: { machine: MachineSummary; value: string
 		>
 			<span className="truncate text-[15px] text-neutral-100">
 				{machine.name}
-				<span className="text-neutral-500"> · {machine.state}</span>
+				<span className="text-neutral-500">
+					{" "}
+					· {machine.state}
+					{onPaper(machine) ? " · paper" : ""}
+				</span>
 			</span>
 			<span className="shrink-0 font-display text-[15px] text-neutral-100 tabular-nums">
 				{value}
@@ -72,7 +76,7 @@ function MachineRow({ machine, value }: { machine: MachineSummary; value: string
 }
 
 export function ProfitScreen() {
-	const picture = useOperatingPicture();
+	const picture = useLivePicture();
 	const machines = picture.map((each) => each.machine);
 	const signedIn = machines.length > 0 || picture.length > 0;
 	const points = portfolioPnl(picture.map((each) => each.record));
@@ -98,8 +102,8 @@ export function ProfitScreen() {
 					</Note>
 				)}
 			</Panel>
-			<Panel size="wide" name={totals?.simulated ? "Realized · includes paper" : "Realized"}>
-				<Headline>{totals ? amount(totals.realised.toString()) : "0.00"} USDC</Headline>
+			<Panel size="wide" name="Realized">
+				<Headline>{totals ? amount(totals.realized.toString()) : "0.00"} USDC</Headline>
 			</Panel>
 			<Panel size="wide" name="Round trips">
 				<Rows
@@ -147,7 +151,7 @@ function VaultLine({ machine }: { machine: MachineSummary }) {
 }
 
 export function VaultScreen() {
-	const picture = useOperatingPicture();
+	const picture = useLivePicture();
 	const sweeps = picture
 		.flatMap(({ machine, record }) =>
 			record
@@ -188,7 +192,10 @@ export function FleetScreen() {
 	const picture = useOperatingPicture();
 	const machines = picture.map((each) => each.machine);
 	const totals = machines.length ? totalsOf(machines) : undefined;
-	const available = machines.reduce((sum, m) => sum + BigInt(m.budget.available), 0n);
+	// Unspent money counts live machines that can still act; paper is never money (D-096).
+	const available = machines
+		.filter((m) => !onPaper(m) && m.state !== "stopped")
+		.reduce((sum, m) => sum + BigInt(m.budget.available), 0n);
 	return (
 		<>
 			<Panel size="big" name={`Your machines · ${machines.length}`} scroll>
@@ -299,7 +306,7 @@ function OrdersLine({ machine }: { machine: MachineSummary }) {
 }
 
 export function TradesScreen() {
-	const picture = useOperatingPicture();
+	const picture = useLivePicture();
 	const trades = picture
 		.flatMap(({ machine, record }) => tradesFrom(record).map((trade) => ({ ...trade, machine })))
 		.sort((a, b) => b.at - a.at);
