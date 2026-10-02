@@ -81,3 +81,10 @@ test("runs the bots, which send each owner their alerts, reading from the orches
 	assert.match(bots, /ORCHESTRATOR_URL: http:\/\/orchestrator:4100/);
 	assert.match(bots, /GATEWAY_URL: http:\/\/gateway:4000/);
 });
+
+test("keeps the database in the named volume, exactly where Postgres writes it", () => {
+	// The postgres image declares /var/lib/postgresql/data a volume of its own. A named volume mounted
+	// anywhere else leaves the data in an anonymous volume, and recreating the container then starts on
+	// an empty one (MISTAKES M42: the 0.0.32 deploy did exactly this).
+	assert.match(file, /^\s*- postgres-data:\/var\/lib\/postgresql\/data$/m);
+});
