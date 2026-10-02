@@ -1,13 +1,21 @@
-// How Cloudflare serves the web app: a Worker with nothing in it but the built files. The deploy command
-// points at this file explicitly (`npx wrangler deploy --config apps/web/wrangler.jsonc`), because run
-// from the root of a monorepo, wrangler cannot tell which app it is meant to deploy.
+// How Cloudflare serves the web app. The deploy command points at this file explicitly
+// (`npx wrangler deploy --config apps/web/wrangler.jsonc`), because run from the root of a monorepo,
+// wrangler cannot tell which app it is meant to deploy.
+//
+// A small Worker sits in front of the built files for one reason: the licensed fonts live in a private
+// bucket rather than in the repository, and it serves them from there. Everything else is the build.
 {
 	"$schema": "../../node_modules/wrangler/config-schema.json",
 	"name": "maschina",
 	"compatibility_date": "2026-09-18",
+	"main": "./src/worker.ts",
 	"assets": {
 		"directory": "./dist",
+		"binding": "ASSETS",
 		// The app routes in the browser, so any path that is not a file is the app's job, not a 404.
-		"not_found_handling": "single-page-application"
-	}
+		"not_found_handling": "single-page-application",
+		// The fonts are not in the build, so the Worker has to see those requests before the files do.
+		"run_worker_first": ["/fonts/*"]
+	},
+	"r2_buckets": [{ "binding": "FONTS", "bucket_name": "maschina-fonts" }]
 }
