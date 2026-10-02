@@ -6,7 +6,7 @@ import type { Context } from "hono";
 import { cors } from "hono/cors";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
-import { systemRoutes } from "./routes/system.ts";
+import { type HaltReader, systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
 	version: string;
@@ -19,6 +19,8 @@ export type GatewayDeps = {
 	/** Signing in with a wallet, and the cookie a session travels in. */
 	auth: AuthPorts;
 	cookie: CookieSettings;
+	/** The stop switch, read on every status check. */
+	halt?: HaltReader | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -42,7 +44,10 @@ export function clientKey(c: Context): string {
 /** Every versioned route. */
 function v1(deps: GatewayDeps) {
 	return new OpenAPIHono()
-		.route("/", systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock }))
+		.route(
+			"/",
+			systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock, halt: deps.halt }),
+		)
 		.route("/", machineRoutes(deps.machines))
 		.route("/", authRoutes(deps.auth, deps.cookie));
 }

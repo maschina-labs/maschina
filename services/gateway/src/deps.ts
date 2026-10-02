@@ -8,6 +8,7 @@ import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
 	createDatabase,
+	haltInForce,
 	machineForOwner,
 	machinesOf,
 	readMachineEvents,
@@ -124,5 +125,11 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		...(config.GATEWAY_COOKIE_DOMAIN === undefined ? {} : { domain: config.GATEWAY_COOKIE_DOMAIN }),
 	};
 
-	return { ports, auth, cookie, close: database.close };
+	/** The stop switch, as the status route reports it. */
+	const halt = async () => {
+		const found = await haltInForce(database.db);
+		return found ? { reason: found.reason, since: found.engagedAt } : undefined;
+	};
+
+	return { ports, auth, cookie, halt, close: database.close };
 }
