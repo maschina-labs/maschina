@@ -201,6 +201,19 @@ export function useWithdrawEverything(api: Api, queryClient: QueryClient, machin
 	});
 }
 
+/** A new recipe for a paused machine. It keeps its wallet, its money and its record. */
+export function useRetune(api: Api, queryClient: QueryClient, machineId: string) {
+	return useMutation({
+		mutationFn: async (recipe: { kind: string; settings: Record<string, unknown> }) =>
+			read<{ definitionId: string }>(
+				await api.v1.machines[":machineId"].recipe.$post({ param: { machineId }, json: recipe }),
+			),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["machines"] });
+		},
+	});
+}
+
 /**
  * Funding a machine from the owner's wallet, in one approval: the gateway builds the transaction for the
  * signed in wallet, the wallet shows it and sends it, and the machine's budget rises by the dollars sent.

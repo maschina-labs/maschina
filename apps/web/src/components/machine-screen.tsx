@@ -1,7 +1,9 @@
+import { followingRange } from "@maschina/runtime";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
+import { finderTuning, retuneRequest } from "../lib/finder-form.ts";
 import {
 	ApiError,
 	amount,
@@ -12,6 +14,7 @@ import {
 	useMachine,
 	useMachineAction,
 	useRecord,
+	useRetune,
 	useWithdrawEverything,
 } from "../lib/machines.ts";
 import { numberFrom, sixDecimals } from "../lib/range-form.ts";
@@ -122,6 +125,67 @@ function Fund({
 			>
 				{walletAddress}
 			</button>
+		</div>
+	);
+}
+
+/** A paused range finder's band and floor, changed in place. It runs them from when it is resumed. */
+function Retune({ machineId, settings }: { machineId: string; settings: Record<string, unknown> }) {
+	const { api } = useRouter().options.context;
+	const queryClient = useQueryClient();
+	const retune = useRetune(api, queryClient, machineId);
+	const [tuning, setTuning] = useState(() => finderTuning(settings));
+	const changed = JSON.stringify(tuning) !== JSON.stringify(finderTuning(settings));
+	return (
+		<div className="flex h-full flex-col justify-between gap-3 p-4">
+			<div className="flex flex-col gap-2">
+				<label className="flex items-center justify-between gap-3 bg-white/[0.06] px-3 py-2">
+					<span className="text-[13px] text-neutral-500">Band</span>
+					<input
+						type="range"
+						min={1}
+						max={5}
+						step={0.1}
+						value={tuning.bandPct}
+						onChange={(event) => setTuning({ ...tuning, bandPct: Number(event.target.value) })}
+						aria-label="Band width"
+						className="square flex-1"
+					/>
+					<span className="w-12 text-right font-display text-[17px] text-neutral-100 tabular-nums">
+						{tuning.bandPct.toFixed(1)}%
+					</span>
+				</label>
+				<div className="flex items-center justify-between gap-3 bg-white/[0.06] px-3 py-2">
+					<span className="text-[13px] text-neutral-500">Floor</span>
+					<div className="flex gap-1">
+						{([3, 5, 8] as const).map((each) => (
+							<button
+								key={each}
+								type="button"
+								aria-pressed={tuning.floorPct === each}
+								onClick={() => setTuning({ ...tuning, floorPct: each })}
+								className={`px-2.5 py-1 font-display text-[14px] ${tuning.floorPct === each ? "bg-white text-neutral-950" : "bg-white/[0.08] text-neutral-200"}`}
+							>
+								{each}%
+							</button>
+						))}
+					</div>
+				</div>
+				<button
+					type="button"
+					disabled={!changed || retune.isPending}
+					onClick={() =>
+						retune.mutate(retuneRequest(settings, tuning), {
+							onSuccess: () => toast("Retuned. It runs the new band once resumed."),
+							onError: (error) => toast(error.message, "problem"),
+						})
+					}
+					className="bg-white px-4 py-2.5 font-display text-[15px] text-neutral-950 transition-opacity disabled:opacity-30"
+				>
+					{retune.isPending ? "Saving" : "Save the new band"}
+				</button>
+			</div>
+			<span className="text-[13px] text-neutral-500">Retune · while paused</span>
 		</div>
 	);
 }
@@ -264,6 +328,12 @@ export function MachineScreen({ machineId }: { machineId: string }) {
 					<TileEmpty>Nothing recorded yet.</TileEmpty>
 				)}
 			</Tile>
+
+			{detail.state === "paused" && detail.kind === followingRange.kind ? (
+				<Tile size="large" label="Retune">
+					<Retune machineId={detail.machineId} settings={detail.settings} />
+				</Tile>
+			) : null}
 
 			<Tile size="large" label="Controls">
 				<div className="flex h-full flex-col justify-between gap-3 p-4">

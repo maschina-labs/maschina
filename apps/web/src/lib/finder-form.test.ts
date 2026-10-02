@@ -1,6 +1,6 @@
 import { followingRange } from "@maschina/runtime";
 import { describe, expect, it } from "vitest";
-import { finderReady, finderRequest } from "./finder-form.ts";
+import { finderReady, finderRequest, finderTuning, retuneRequest } from "./finder-form.ts";
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOL = "So11111111111111111111111111111111111111112";
@@ -43,5 +43,27 @@ describe("when it can be sent", () => {
 		expect(finderReady({ ...form, name: " " })).toBe(false);
 		expect(finderReady({ ...form, float: "0.20" })).toBe(false);
 		expect(finderReady({ ...form, float: "lots" })).toBe(false);
+	});
+});
+
+describe("retuning a range finder", () => {
+	const settings = {
+		quoteMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+		baseMint: "So11111111111111111111111111111111111111112",
+		bandBps: 250,
+		floorBps: 800,
+		amountPerBuy: "40000000",
+		slippageBps: 50,
+	};
+
+	it("reads its band and floor back as the form shows them", () => {
+		expect(finderTuning(settings)).toEqual({ bandPct: 2.5, floorPct: 8 });
+	});
+
+	it("changes only the band and the floor, keeping everything else it runs on", () => {
+		expect(retuneRequest(settings, { bandPct: 3.2, floorPct: 5 })).toEqual({
+			kind: followingRange.kind,
+			settings: { ...settings, bandBps: 320, floorBps: 500 },
+		});
 	});
 });
