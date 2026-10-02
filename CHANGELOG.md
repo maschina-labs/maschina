@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.32](https://github.com/maschina-labs/maschina/compare/v0.0.31...v0.0.32) (2026-10-02)
+
+
+### Added
+
+* **gateway:** say whether a machine is on paper ([#723](https://github.com/maschina-labs/maschina/issues/723)) ([8f67ebd](https://github.com/maschina-labs/maschina/commit/8f67ebde043e424f12163b09b26822e25940d55d))
+* **web:** fund a machine from your wallet in one approval ([#721](https://github.com/maschina-labs/maschina/issues/721)) ([e144264](https://github.com/maschina-labs/maschina/commit/e1442644475496271be0ab992f89ff548b7a42be))
+* **web:** serve the licensed fonts from private storage ([#718](https://github.com/maschina-labs/maschina/issues/718)) ([cb04750](https://github.com/maschina-labs/maschina/commit/cb04750cf0135623da44829bee706ad213b9524c))
+* **web:** the new interface ([#725](https://github.com/maschina-labs/maschina/issues/725)) ([b5e6f3a](https://github.com/maschina-labs/maschina/commit/b5e6f3a2e4e576c1efb13b9547cf4c372455d6b1))
+
+
+### Fixed
+
+* **orchestrator:** quiet routine polls in the logs, cap container logs ([#727](https://github.com/maschina-labs/maschina/issues/727)) ([f27f7d7](https://github.com/maschina-labs/maschina/commit/f27f7d7268bbd8be18fe919ccde14b29f17e2b04))
+
 ## [0.0.31](https://github.com/maschina-labs/maschina/compare/v0.0.30...v0.0.31) (2026-10-02)
 
 
