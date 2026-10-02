@@ -12,8 +12,14 @@ const GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent(
 	'<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>',
 )}")`;
 
-export function FoggedGlass() {
-	return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-black/55" />;
+/** Smoke in the dark, frost in the light: the same window, laid over the field either way. */
+export function FoggedGlass({ mode = "dark" }: { mode?: "dark" | "light" }) {
+	return (
+		<div
+			aria-hidden="true"
+			className={`pointer-events-none fixed inset-0 z-0 ${mode === "light" ? "bg-white/40" : "bg-black/55"}`}
+		/>
+	);
 }
 
 export function Grain() {

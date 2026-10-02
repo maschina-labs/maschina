@@ -1,7 +1,8 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2, Vector3 } from "three";
+import { CLEAR, type Weather } from "../lib/weather.ts";
 
 /**
  * The field behind the terminal: city light through a fogged window, far out of focus. Dark olive at
@@ -18,61 +19,32 @@ type Oklch = { l: number; c: number; h: number };
 export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; glow: Oklch };
 
 /**
- * Palettes to try the app in. City is measured from Ash's Obsidian reference (2026-09-28), region by region;
- * the others keep its shape and change its light. Chosen with `?fog=name` on any address.
+ * City, measured from Ash's Obsidian reference (2026-09-28), region by region. The only palette for now;
+ * themes come back with a theme switcher (the Gen X Soft Club hues among them).
  */
-const PALETTES = {
-	city: {
-		night: { l: 0.16, c: 0.002, h: 286 },
-		top: { l: 0.246, c: 0.021, h: 136 },
-		upper: { l: 0.367, c: 0.021, h: 232 },
-		middle: { l: 0.405, c: 0.012, h: 72 },
-		glow: { l: 0.471, c: 0.047, h: 77 },
-	},
-	gunmetal: {
-		night: { l: 0.14, c: 0.003, h: 250 },
-		top: { l: 0.2, c: 0.01, h: 250 },
-		upper: { l: 0.3, c: 0.015, h: 245 },
-		middle: { l: 0.34, c: 0.008, h: 240 },
-		glow: { l: 0.42, c: 0.012, h: 235 },
-	},
-	ember: {
-		night: { l: 0.12, c: 0.004, h: 40 },
-		top: { l: 0.16, c: 0.01, h: 40 },
-		upper: { l: 0.22, c: 0.03, h: 45 },
-		middle: { l: 0.3, c: 0.04, h: 50 },
-		glow: { l: 0.5, c: 0.1, h: 55 },
-	},
-	lavender: {
-		night: { l: 0.13, c: 0.006, h: 290 },
-		top: { l: 0.2, c: 0.02, h: 295 },
-		upper: { l: 0.32, c: 0.04, h: 290 },
-		middle: { l: 0.36, c: 0.02, h: 300 },
-		glow: { l: 0.46, c: 0.06, h: 305 },
-	},
-	ink: {
-		night: { l: 0.1, c: 0, h: 0 },
-		top: { l: 0.15, c: 0, h: 0 },
-		upper: { l: 0.22, c: 0, h: 0 },
-		middle: { l: 0.28, c: 0, h: 0 },
-		glow: { l: 0.36, c: 0, h: 0 },
-	},
-	arctic: {
-		night: { l: 0.14, c: 0.006, h: 230 },
-		top: { l: 0.22, c: 0.015, h: 220 },
-		upper: { l: 0.38, c: 0.03, h: 225 },
-		middle: { l: 0.44, c: 0.015, h: 215 },
-		glow: { l: 0.56, c: 0.03, h: 210 },
-	},
-} satisfies Record<string, Palette>;
-export type PaletteName = keyof typeof PALETTES;
+export type Mode = "dark" | "light";
 
-/** The palette asked for in the address, or the one last chosen here, or city. */
-export function paletteName(search: string, remembered: string | null): PaletteName {
-	const asked = new URLSearchParams(search).get("fog");
-	for (const name of [asked, remembered]) if (name && name in PALETTES) return name as PaletteName;
-	return "city";
-}
+const CITY_DARK: Palette = {
+	night: { l: 0.16, c: 0.002, h: 286 },
+	top: { l: 0.246, c: 0.021, h: 136 },
+	upper: { l: 0.367, c: 0.021, h: 232 },
+	middle: { l: 0.405, c: 0.012, h: 72 },
+	glow: { l: 0.471, c: 0.047, h: 77 },
+};
+
+/**
+ * The same city in daylight: every region keeps its hue and its place, and the light is turned up, so
+ * the field reads as morning haze rather than night. Each theme has both.
+ */
+const CITY_LIGHT: Palette = {
+	night: { l: 0.93, c: 0.004, h: 286 },
+	top: { l: 0.87, c: 0.022, h: 136 },
+	upper: { l: 0.82, c: 0.022, h: 232 },
+	middle: { l: 0.89, c: 0.012, h: 72 },
+	glow: { l: 0.92, c: 0.05, h: 77 },
+};
+
+const CITY: Record<Mode, Palette> = { dark: CITY_DARK, light: CITY_LIGHT };
 
 /** OKLCH to OKLab, the form the shader mixes in. */
 const lab = ({ l, c, h }: Oklch) => {
@@ -104,6 +76,12 @@ const FRAGMENT = /* glsl */ `
 	uniform vec3 SLATE;
 	uniform vec3 FOG;
 	uniform vec3 AMBER;
+
+	// The weather, each eased toward the forecast on the CPU so a change rolls in rather than cuts.
+	uniform float uSnow;
+	uniform float uCloud;
+	uniform float uFog;
+	uniform float uFlash;
 
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
@@ -179,6 +157,43 @@ const FRAGMENT = /* glsl */ `
 		color = mix(color, FOG, atFog * smoothstep(0.3, 0.75, warm) * 0.9);
 		color = mix(color, AMBER, atAmber * smoothstep(0.3, 0.75, warm));
 
+		// Overcast: the glow dims and the colour drains, as a city does under low cloud.
+		color = mix(color, NIGHT, atAmber * smoothstep(0.3, 0.75, warm) * uCloud * 0.6);
+		color.yz *= 1.0 - 0.45 * uCloud;
+		color.x *= 1.0 - 0.12 * uCloud;
+
+		// Fog: everything goes further away, into one soft grey that still rolls.
+		float haze = 0.26 + 0.1 * cold + 0.5 * (NIGHT.x - 0.16);
+		color = mix(color, vec3(haze, 0.0, 0.0), uFog * 0.65 * (0.75 + 0.25 * warm));
+
+		// Lightning: the whole sky lit from up and to one side for a moment, cold and white, through the fog.
+		float strike = smoothstep(1.3, 0.0, length(vec2(p.x - aspect * 0.25, y))) * (0.6 + 0.4 * cold);
+		color.x += uFlash * 0.4 * strike;
+		color.z -= uFlash * 0.02 * strike;
+
+		// Snow, falling in the city beyond the glass: three depths, the near ones large and far out of
+		// focus, the far ones small and sharper, all drifting on a slow wind.
+		float flakes = 0.0;
+		for (int i = 0; i < 3; i++) {
+			float depth = float(i);
+			float scale = 6.0 + depth * 7.0;
+			float speed = 0.09 - depth * 0.022;
+			vec2 q = p * scale;
+			q.y -= uTime * speed * scale;
+			q.x += uTime * 0.02 * scale + sin(q.y * 0.35 + depth * 2.1 + uTime * 0.3) * 0.35;
+			vec2 cell = floor(q);
+			vec2 inCell = fract(q) - 0.5;
+			float seed = hash(vec3(cell, depth + 3.0));
+			vec2 offset = vec2(hash(vec3(cell, depth + 11.0)), hash(vec3(cell, depth + 19.0))) - 0.5;
+			float size = 0.16 - depth * 0.04;
+			float soft = 0.16 - depth * 0.05;
+			float flake = smoothstep(size, size - soft, length(inCell - offset * 0.6));
+			// How many cells hold a flake is how hard it is snowing.
+			flakes += flake * step(1.0 - uSnow * (0.55 - depth * 0.1), seed) * (0.55 - depth * 0.12);
+		}
+		color.x += flakes * 0.5;
+		color.yz *= 1.0 - min(flakes, 1.0) * 0.6;
+
 		// Dark at the edges, as an out of focus lens is.
 		vec2 centred = vUv - 0.5;
 		color.x *= mix(1.0, 0.72, smoothstep(0.25, 0.75, length(centred * vec2(1.1, 1.0))));
@@ -190,7 +205,7 @@ const FRAGMENT = /* glsl */ `
 	}
 `;
 
-function Fog({ still, palette }: { still: boolean; palette: Palette }) {
+function Fog({ still, palette, weather }: { still: boolean; palette: Palette; weather: Weather }) {
 	const material = useRef<ShaderMaterial>(null);
 	const size = useThree((state) => state.size);
 	// Made once: rebuilding uniforms would send the clock back to zero and make the field jump.
@@ -203,6 +218,10 @@ function Fog({ still, palette }: { still: boolean; palette: Palette }) {
 			SLATE: { value: new Vector3() },
 			FOG: { value: new Vector3() },
 			AMBER: { value: new Vector3() },
+			uSnow: { value: 0 },
+			uCloud: { value: 0 },
+			uFog: { value: 0 },
+			uFlash: { value: 0 },
 		}),
 		[],
 	);
@@ -219,16 +238,60 @@ function Fog({ still, palette }: { still: boolean; palette: Palette }) {
 		return () => clearInterval(timer);
 	}, [invalidate, still]);
 
-	useFrame(({ clock }) => {
+	// Lightning, in a storm: every twenty to sixty seconds, a strike and its echo. Never faster than
+	// three flashes a second, and never with reduced motion asked for.
+	const flash = useRef(0);
+	useEffect(() => {
+		if (!weather.lightning || still) return;
+		let timer: ReturnType<typeof setTimeout>;
+		const strike = () => {
+			const started = performance.now();
+			const pulse = (at: number, peak: number, fall: number) => {
+				const t = at < 0 ? 0 : at < 40 ? at / 40 : Math.exp(-(at - 40) / fall);
+				return peak * t;
+			};
+			const tick = () => {
+				const at = performance.now() - started;
+				flash.current = Math.max(pulse(at, 1, 120), pulse(at - 380, 0.7, 450));
+				if (at < 2500) requestAnimationFrame(tick);
+				else flash.current = 0;
+			};
+			tick();
+			timer = setTimeout(strike, 20_000 + Math.random() * 40_000);
+		};
+		timer = setTimeout(strike, 4_000 + Math.random() * 6_000);
+		return () => clearTimeout(timer);
+	}, [weather.lightning, still]);
+
+	// The time between frames, kept here: drawn on demand, the canvas's own frame time is always zero.
+	const lastFrame = useRef<number | undefined>(undefined);
+	// When the field started, for its clock. Kept here: drawn on demand, the canvas's own clock stands still.
+	const started = useRef(performance.now());
+	useFrame(() => {
 		if (!material.current) return;
+		// Written to the material's own inputs, not the object handed to it: the renderer copies plain
+		// numbers out of that object once, so changing them there afterwards never reached the screen,
+		// and the field sat frozen (MISTAKES M40). The colours only worked because they are shared objects.
+		const live = material.current.uniforms as typeof uniforms;
+		const now = performance.now();
+		const delta =
+			lastFrame.current === undefined ? Number.POSITIVE_INFINITY : (now - lastFrame.current) / 1000;
+		lastFrame.current = now;
+		// Weather eases in over about half a minute; lightning is instant. The first frame starts where
+		// the weather already is, so a page opened in snow opens snowing.
+		const ease = Math.min(1, delta / 8);
+		live.uSnow.value += (weather.snow - live.uSnow.value) * ease;
+		live.uCloud.value += (weather.cloud - live.uCloud.value) * ease;
+		live.uFog.value += (weather.fog - live.uFog.value) * ease;
+		live.uFlash.value = flash.current;
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
-		uniforms.uTime.value = still ? 0 : clock.getElapsedTime();
-		uniforms.uResolution.value.set(size.width, size.height);
-		uniforms.NIGHT.value.copy(vector(palette.night));
-		uniforms.OLIVE.value.copy(vector(palette.top));
-		uniforms.SLATE.value.copy(vector(palette.upper));
-		uniforms.FOG.value.copy(vector(palette.middle));
-		uniforms.AMBER.value.copy(vector(palette.glow));
+		live.uTime.value = still ? 0 : (now - started.current) / 1000;
+		live.uResolution.value.set(size.width, size.height);
+		live.NIGHT.value.copy(vector(palette.night));
+		live.OLIVE.value.copy(vector(palette.top));
+		live.SLATE.value.copy(vector(palette.upper));
+		live.FOG.value.copy(vector(palette.middle));
+		live.AMBER.value.copy(vector(palette.glow));
 	});
 
 	return (
@@ -245,20 +308,24 @@ function Fog({ still, palette }: { still: boolean; palette: Palette }) {
 	);
 }
 
+/** The canvas the city is drawn on, for the glass in front of it to refract. */
+export const fogCanvas: { current: HTMLCanvasElement | undefined } = { current: undefined };
+
 /** `fixed` fills the screen; `absolute` fills the nearest positioned parent, for a panel. */
-export function FogBackground({ position = "fixed" }: { position?: "fixed" | "absolute" } = {}) {
-	// Remembered in this browser for convenience only: it may be missing or blocked, and city is the default.
-	const [palette] = useState<Palette>(() => {
-		let remembered: string | null = null;
-		try {
-			remembered = localStorage.getItem("maschina.fog");
-		} catch {}
-		const name = paletteName(window.location.search, remembered);
-		try {
-			localStorage.setItem("maschina.fog", name);
-		} catch {}
-		return PALETTES[name];
-	});
+export function FogBackground({
+	position = "fixed",
+	mode = "dark",
+	sky,
+	weather = CLEAR,
+}: {
+	position?: "fixed" | "absolute";
+	mode?: Mode;
+	/** A palette to draw instead of the city's, for the dynamic theme's sky. */
+	sky?: Palette | undefined;
+	/** The weather in the city. Clear unless told otherwise. */
+	weather?: Weather;
+} = {}) {
+	const palette = sky ?? CITY[mode];
 	const still =
 		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -280,10 +347,14 @@ export function FogBackground({ position = "fixed" }: { position?: "fixed" | "ab
 				// resolution and sixty frames it kept a laptop's fans running flat out (2026-09-28).
 				dpr={0.5}
 				frameloop="demand"
-				gl={{ antialias: false, alpha: true }}
+				// Kept after each frame, so the rain on the glass can take the city as its background.
+				gl={{ antialias: false, alpha: true, preserveDrawingBuffer: true }}
+				onCreated={({ gl }) => {
+					fogCanvas.current = gl.domElement;
+				}}
 				style={{ width: "100%", height: "100%" }}
 			>
-				<Fog still={still} palette={palette} />
+				<Fog still={still} palette={palette} weather={weather} />
 			</Canvas>
 		</div>
 	);
