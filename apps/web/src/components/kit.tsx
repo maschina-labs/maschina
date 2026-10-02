@@ -34,7 +34,7 @@ export function Panel({
 			<div className="flex h-full flex-col justify-between gap-3 p-4">
 				<div
 					{...(scroll ? { "data-own-drag": true } : {})}
-					className={`flex min-h-0 flex-col gap-2 ${scroll ? "no-scrollbar overflow-y-auto" : ""}`}
+					className={`flex min-h-0 flex-1 flex-col gap-2 ${scroll ? "no-scrollbar overflow-y-auto" : ""}`}
 				>
 					{children}
 				</div>

@@ -2,13 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
-import {
-	amount,
-	type MachineSummary,
-	useMachine,
-	useMachines,
-	useRecord,
-} from "../lib/machines.ts";
+import { amount, useMachine, useMachines, useRecord } from "../lib/machines.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { useSession } from "../lib/session.ts";
 import { suggestionsFor } from "../lib/suggestions.ts";
@@ -23,7 +17,7 @@ import { Headline, Note, Onward, Panel, QUIET, Rows } from "./kit.tsx";
  */
 
 /** The share of finished round trips that made money, or nothing before the first one. */
-export function winRate(machine: Pick<MachineSummary, "result">): string {
+export function winRate(machine: { result: { wins: number; losses: number } }): string {
 	const done = machine.result.wins + machine.result.losses;
 	return done === 0 ? "-" : `${Math.round((machine.result.wins / done) * 100)}%`;
 }

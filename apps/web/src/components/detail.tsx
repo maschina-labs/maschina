@@ -16,6 +16,15 @@ import {
 } from "./account-screens.tsx";
 import { Bento, Tile } from "./bento.tsx";
 import { MachineScreen } from "./machine-screen.tsx";
+import {
+	DecisionsScreen,
+	FeedScreen,
+	FleetScreen,
+	ProfitScreen,
+	SolScreen,
+	TradesScreen,
+	VaultScreen,
+} from "./money-screens.tsx";
 import { NewMachineScreen } from "./new-machine-screen.tsx";
 import { PapersScreen } from "./papers-screen.tsx";
 import {
@@ -231,6 +240,13 @@ const SCREENS: Record<string, () => ReactNode> = {
 	"Run a node": () => <JoinScreen />,
 	Profile: () => <CreatorScreen />,
 	Maintenance: () => <MaintenanceScreen />,
+	Profit: () => <ProfitScreen />,
+	Vault: () => <VaultScreen />,
+	"Your machines": () => <FleetScreen />,
+	Decisions: () => <DecisionsScreen />,
+	Trades: () => <TradesScreen />,
+	Activity: () => <FeedScreen />,
+	SOL: () => <SolScreen />,
 };
 
 function DetailTiles({ path }: { path: string }) {
