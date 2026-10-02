@@ -44,3 +44,22 @@ Object.defineProperty(window, "IntersectionObserver", {
 	configurable: true,
 	value: IntersectionObserverStub,
 });
+
+// No test reaches the real market. A socket that opens nothing and says nothing, set here once so it stays
+// in place between tests: stubbed per test, it was restored to the real one afterwards, and real sockets to
+// the exchange collided with the test browser on CI.
+class QuietSocket {
+	onmessage: ((event: MessageEvent) => void) | null = null;
+	onopen: (() => void) | null = null;
+	onclose: (() => void) | null = null;
+	onerror: (() => void) | null = null;
+	addEventListener() {}
+	removeEventListener() {}
+	close() {}
+	send() {}
+}
+Object.defineProperty(globalThis, "WebSocket", {
+	writable: true,
+	configurable: true,
+	value: QuietSocket,
+});

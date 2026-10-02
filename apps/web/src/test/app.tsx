@@ -161,19 +161,6 @@ export function standIn({
 	return { requests };
 }
 
-/** No market streams in a test browser: a socket that opens nothing and says nothing. */
-class QuietSocket {
-	onmessage: ((event: MessageEvent) => void) | null = null;
-	onopen: (() => void) | null = null;
-	onclose: (() => void) | null = null;
-	onerror: (() => void) | null = null;
-	addEventListener() {}
-	removeEventListener() {}
-	close() {}
-	send() {}
-}
-vi.stubGlobal("WebSocket", QuietSocket);
-
 export function renderAt(path: string) {
 	const queryClient = createQueryClient();
 	const router = createAppRouter({
