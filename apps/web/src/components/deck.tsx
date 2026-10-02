@@ -1,8 +1,9 @@
 import { List } from "@phosphor-icons/react";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { IDLE_MS, onIdleNow, useIdleMode } from "../lib/idle.ts";
 import { preview } from "../lib/preview.ts";
+import { useSession } from "../lib/session.ts";
 import { Account } from "./account.tsx";
 import { Bento, Tile } from "./bento.tsx";
 import { openEdge } from "./edges.tsx";
@@ -68,6 +69,8 @@ export function Deck({ behind }: { behind?: string } = {}) {
 	if (preview("break") !== undefined) {
 		throw new Error("A test of the error screen: ?break is in the address.");
 	}
+	const { api } = useRouter().options.context;
+	const wallet = useSession(api).data?.walletAddress;
 	const current = useRouterState({ select: (state) => state.location.pathname });
 	const path = sectionIndex(current) >= 0 ? current : (behind ?? "/");
 	const navigate = useNavigate();
@@ -289,7 +292,7 @@ export function Deck({ behind }: { behind?: string } = {}) {
 			<div className="flex shrink-0 justify-center px-5 pt-[max(env(safe-area-inset-top),24px)] md:px-0 md:pt-[8vh]">
 				<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
 					<header className="flex items-center justify-between gap-6">
-						<Greeting />
+						<Greeting wallet={wallet} />
 						<Account />
 						{/* On a phone, every section is one tap away in the menu. */}
 						<button

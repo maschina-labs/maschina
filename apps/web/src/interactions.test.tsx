@@ -105,8 +105,8 @@ describe("closing a screen", () => {
 	it("a tile opens its screen", async () => {
 		const { router } = renderAt("/");
 		const page = await home();
-		fireEvent.click(await within(page).findByRole("button", { name: "SOL price" }));
-		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/market/sol"));
+		fireEvent.click(await within(page).findByRole("button", { name: "In the vault" }));
+		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/vault"));
 	});
 });
 

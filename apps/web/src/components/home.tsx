@@ -9,7 +9,6 @@ import { statusOf } from "../lib/status.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { bandOf, useMachineAtWork } from "./at-work.tsx";
 import { Tile, TileEmpty, TileLoading } from "./bento.tsx";
-import { useMachineTrades } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
 import { firstRunStep, StartHere } from "./start-here.tsx";
 
@@ -76,8 +75,6 @@ export function HomeTiles() {
 	const machines = useMachines(api);
 	const { machine, record } = useMachineAtWork();
 	const balances = useBalances(api, machine?.machineId ?? "");
-	const day = useSolDay();
-	const trades = useMachineTrades();
 	const mine = session.data ? machines.data : [];
 	const totals = mine ? totalsOf(mine) : undefined;
 	const latest = record[0];
@@ -87,9 +84,22 @@ export function HomeTiles() {
 	return (
 		<>
 			{/*
-			 * Six by three, filled exactly: your profit large on the left, the market large on the right,
-			 * your machine's story between them, and the small figures along the bottom.
+			 * Six by three, filled exactly: the market wide on the left, your profit beside it,
+			 * and along the bottom your machine, its latest decision, the vault and a new machine.
 			 */}
+			<Tile size="big" to="/market/sol" label="Chart">
+				{/* The chart pans and zooms itself; gestures on it never swipe the page. */}
+				<div data-own-drag className="absolute inset-x-2 top-2 bottom-10">
+					<PriceChart
+						interval="15m"
+						history={96}
+						levels={machine ? bandOf(machine, record) : []}
+						trades={tradesFrom(record)}
+					/>
+				</div>
+				{/* The chart keeps its own clicks; its name below opens the SOL screen. */}
+				<span className="absolute bottom-4 left-4 text-[13px] text-neutral-500">SOL</span>
+			</Tile>
 			{firstRun ? (
 				<Tile size="large" label="Start here">
 					<StartHere at={firstRun} />
@@ -118,19 +128,6 @@ export function HomeTiles() {
 					<TileLoading />
 				)}
 			</Tile>
-			<Tile size="large" to="/market/sol" label="Chart">
-				{/* The chart pans and zooms itself; gestures on it never swipe the page. */}
-				<div data-own-drag className="absolute inset-x-2 top-2 bottom-10">
-					<PriceChart
-						interval="15m"
-						history={96}
-						levels={machine ? bandOf(machine, record) : []}
-						trades={tradesFrom(record)}
-					/>
-				</div>
-				{/* The chart keeps its own clicks; its name below opens the SOL screen. */}
-				<span className="absolute bottom-4 left-4 text-[13px] text-neutral-500">SOL</span>
-			</Tile>
 			<Tile to="/decisions" size="wide" label="Latest decision">
 				{!session.data ? (
 					signedOut
@@ -156,46 +153,6 @@ export function HomeTiles() {
 					/>
 				) : balances.isError ? (
 					<TileEmpty>Not readable here.</TileEmpty>
-				) : (
-					<TileLoading />
-				)}
-			</Tile>
-			<Tile to="/market/sol" label="SOL price">
-				{day ? (
-					<Figure
-						value={day.last.toFixed(2)}
-						note={`${day.changePct >= 0 ? "▲" : "▼"} ${Math.abs(day.changePct).toFixed(2)}% today`}
-						name="SOL"
-					/>
-				) : (
-					<TileLoading />
-				)}
-			</Tile>
-			<Tile to="/trades" size="wide" label="Recent trades">
-				{!session.data ? (
-					signedOut
-				) : trades.length ? (
-					<Line name="Recent trades">
-						{trades[0]?.side === "buy" ? "Bought" : "Sold"} at {trades[0]?.price.toFixed(2)}
-						<span className="block text-[14px] text-neutral-400">
-							{sentence(trades[0]?.machine ?? "")},{" "}
-							{new Date(trades[0]?.at ?? 0).toLocaleString([], {
-								month: "short",
-								day: "numeric",
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</span>
-					</Line>
-				) : (
-					<TileEmpty>No trades yet.</TileEmpty>
-				)}
-			</Tile>
-			<Tile to="/fleet" label="Machines running">
-				{!session.data ? (
-					signedOut
-				) : totals ? (
-					<Figure value={totals.running} note={`of ${totals.machines}`} name="Running" />
 				) : (
 					<TileLoading />
 				)}

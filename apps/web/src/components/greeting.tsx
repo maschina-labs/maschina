@@ -34,15 +34,22 @@ export function greetingFor(hour: number, name: string, pick: number): string {
 	return name ? `${said}, ${name}` : said;
 }
 
+/** A name for each wallet, and which wallet was here last. Without a wallet yet, the plain key. */
 const NAME = "maschina.name";
+const LAST = "maschina.wallet";
+const keyFor = (wallet: string | undefined) => (wallet ? `${NAME}:${wallet}` : NAME);
 
 /** Chosen once, when the app opens, so it stays the same on every page until the next visit. */
 const ON_OPEN = Math.random();
 
-/** The name to greet, remembered in this browser only. Missing or blocked storage just means no name. */
-function rememberedName(): string {
+/**
+ * The name to greet, remembered in this browser only, for each wallet. Signed out, it is the last wallet's
+ * name, so the greeting still knows you. Missing or blocked storage just means no name.
+ */
+function rememberedName(wallet: string | undefined): string {
 	try {
-		return localStorage.getItem(NAME) ?? "";
+		const who = wallet ?? localStorage.getItem(LAST) ?? undefined;
+		return localStorage.getItem(keyFor(who)) ?? "";
 	} catch {
 		return "";
 	}
@@ -51,14 +58,25 @@ function rememberedName(): string {
 export function Greeting({
 	now = () => new Date(),
 	pick = ON_OPEN,
+	wallet,
 }: {
 	now?: () => Date;
 	/** Which greeting, chosen once each time the app opens. */
 	pick?: number;
+	/** The signed in wallet, whose name this is. */
+	wallet?: string | undefined;
 }) {
 	const [hour, setHour] = useState(() => now().getHours());
 	const [chosen] = useState(pick);
-	const [name, setName] = useState(rememberedName);
+	const [name, setName] = useState(() => rememberedName(wallet));
+	// A wallet signing in or out changes whose name it is.
+	useEffect(() => {
+		setName(rememberedName(wallet));
+		if (!wallet) return;
+		try {
+			localStorage.setItem(LAST, wallet);
+		} catch {}
+	}, [wallet]);
 	const [editing, setEditing] = useState(false);
 
 	// The hour moves on while the page is left open on a nightstand.
@@ -72,12 +90,21 @@ export function Greeting({
 		setName(trimmed);
 		setEditing(false);
 		try {
-			if (trimmed) localStorage.setItem(NAME, trimmed);
-			else localStorage.removeItem(NAME);
+			const key = keyFor(wallet ?? localStorage.getItem(LAST) ?? undefined);
+			if (trimmed) localStorage.setItem(key, trimmed);
+			else localStorage.removeItem(key);
 		} catch {}
 	};
 
 	const words = greetingFor(hour, name, chosen);
+	// A name belongs to a wallet, so it can only be given once one is connected.
+	if (!wallet) {
+		return (
+			<span className="block h-[1em] p-0 text-left font-display font-normal text-[22px] text-neutral-100 leading-none tracking-[-0.01em] md:text-[clamp(26px,2.9vw,42px)]">
+				{words}
+			</span>
+		);
+	}
 	if (editing) {
 		return (
 			<input
