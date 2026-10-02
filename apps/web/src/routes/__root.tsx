@@ -9,6 +9,7 @@ import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
 import { Search } from "../components/search.tsx";
 import { Broken, OfflineBanner } from "../components/system.tsx";
+import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
@@ -57,6 +58,7 @@ function Field() {
 			<Search />
 			<Toaster />
 			<OfflineBanner />
+			<TabTitle />
 			<Grain />
 		</div>
 	);

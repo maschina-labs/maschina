@@ -1,12 +1,20 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { byDay, filterActivity, KINDS, type Kind } from "../lib/activity-filter.ts";
 import { describeEvent } from "../lib/describe.ts";
-import { amount, holdingOf, type MachineSummary, useBalances } from "../lib/machines.ts";
+import {
+	amount,
+	holdingOf,
+	type MachineSummary,
+	useBalances,
+	useMachine,
+	useRecord,
+} from "../lib/machines.ts";
 import { compactUsd } from "../lib/market.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
 import { type ActivityEntry, totalsOf } from "../lib/portfolio.ts";
 import { bandOf } from "../lib/status.ts";
+import { type Print, streamPrints } from "../lib/tape.ts";
 import { recordCsv } from "../lib/track-record.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { useMachineAtWork } from "./at-work.tsx";
@@ -275,6 +283,21 @@ export function DecisionsScreen() {
 	);
 }
 
+/** What one machine is waiting to do: the prices it will act at next. */
+function OrdersLine({ machine }: { machine: MachineSummary }) {
+	const { api } = useRouter().options.context;
+	const detail = useMachine(api, machine.machineId);
+	const record = useRecord(api, machine.machineId);
+	const levels = detail.data ? bandOf(detail.data, record.data ?? []) : [];
+	const value =
+		machine.state !== "running"
+			? sentence(machine.state)
+			: levels.length
+				? levels.map((level) => `${sentence(level.label)} ${level.price.toFixed(2)}`).join(" · ")
+				: "-";
+	return <MachineRow machine={machine} value={value} />;
+}
+
 export function TradesScreen() {
 	const picture = useOperatingPicture();
 	const trades = picture
@@ -299,7 +322,14 @@ export function TradesScreen() {
 					<Note>No trades yet.</Note>
 				)}
 			</Panel>
-			<Panel size="large" name="Counted">
+			<Panel size="large" name="Waiting to" scroll>
+				{picture.length ? (
+					picture.map(({ machine }) => <OrdersLine key={machine.machineId} machine={machine} />)
+				) : (
+					<Note>Connect your wallet to see what your machines are waiting to do.</Note>
+				)}
+			</Panel>
+			<Panel size="wide" name="Counted">
 				<Rows
 					rows={[
 						["Buys", String(buys)],
@@ -377,6 +407,34 @@ export function FeedScreen() {
 
 const INTERVALS = ["15m", "1h", "4h", "1d"] as const;
 
+/** The last twenty trades in SOL on the market, streaming in. */
+function Tape() {
+	const [prints, setPrints] = useState<Print[]>([]);
+	useEffect(
+		() => streamPrints("SOLUSDT", (print) => setPrints((was) => [print, ...was].slice(0, 20))),
+		[],
+	);
+	if (prints.length === 0) return <Note>Listening to the market…</Note>;
+	return (
+		<ol className="flex flex-col">
+			{prints.map((print) => (
+				<li
+					key={print.id}
+					className="grid grid-cols-[auto_1fr_auto] gap-x-4 border-white/[0.06] border-b py-1.5 text-[14px] tabular-nums"
+				>
+					<span className="text-neutral-500">
+						{new Date(print.at).toLocaleTimeString([], { hour12: false })}
+					</span>
+					<span className={print.side === "buy" ? "text-neutral-100" : "text-neutral-400"}>
+						{print.side === "buy" ? "Bought" : "Sold"} at {print.price.toFixed(2)}
+					</span>
+					<span className="text-right text-neutral-500">{print.size.toFixed(2)} SOL</span>
+				</li>
+			))}
+		</ol>
+	);
+}
+
 export function SolScreen() {
 	const day = useSolDay();
 	const { machine, record } = useMachineAtWork();
@@ -408,6 +466,9 @@ export function SolScreen() {
 				) : (
 					<Note>Reading the market…</Note>
 				)}
+			</Panel>
+			<Panel size="wide" name="Trades on the market" scroll>
+				<Tape />
 			</Panel>
 			<Panel size="wide" name="Each candle">
 				<div className="grid grid-cols-4 gap-1">
