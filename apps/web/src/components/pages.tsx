@@ -52,7 +52,7 @@ export function PortfolioTiles() {
 
 	return (
 		<>
-			<Tile size="big" label="Profit over time">
+			<Tile size="big" label="Profit over time" to="/profit">
 				{!signedIn ? (
 					signedOut
 				) : points.length ? (
@@ -90,7 +90,7 @@ export function PortfolioTiles() {
 					/>
 				)}
 			</Tile>
-			<Tile size="wide" label="Holding">
+			<Tile size="wide" label="Holding" to="/fleet">
 				{!signedIn ? (
 					signedOut
 				) : (
@@ -101,7 +101,7 @@ export function PortfolioTiles() {
 					/>
 				)}
 			</Tile>
-			<Tile size="wide" label="Fees paid">
+			<Tile size="wide" label="Fees paid" to="/profit">
 				{!signedIn ? (
 					signedOut
 				) : (
@@ -141,7 +141,7 @@ export function MachinesTiles() {
 	const machines = useMachines(api);
 	if (!signedIn)
 		return (
-			<Tile size="wide" label="Your machines">
+			<Tile size="wide" label="Your machines" to="/fleet">
 				{signedOut}
 			</Tile>
 		);
@@ -202,7 +202,7 @@ export function ActivityTiles() {
 
 	if (!signedIn)
 		return (
-			<Tile size="large" label="Recent activity">
+			<Tile size="large" label="Recent activity" to="/feed">
 				{signedOut}
 			</Tile>
 		);
@@ -233,7 +233,7 @@ export function ActivityTiles() {
 			<Tile label="Trades this week" to="/trades">
 				<Figure value={count("trade.completed")} note="this week" name="Trades" />
 			</Tile>
-			<Tile size="wide" label="Busiest machine">
+			<Tile size="wide" label="Busiest machine" to="/feed">
 				{busiest ? (
 					<Line name="Busiest this week">
 						{busiest[0]}
@@ -249,7 +249,7 @@ export function ActivityTiles() {
 			<Tile label="Failures" to="/feed">
 				<Figure value={count("trade.failed")} note="this week" name="Failed" />
 			</Tile>
-			<Tile size="wide" label="Last heard">
+			<Tile size="wide" label="Last heard" to="/feed">
 				{latest ? (
 					<Line name="Last heard">
 						{when(latest.occurredAt)}
@@ -279,13 +279,13 @@ export function InsightsTiles() {
 	const day = useSolDay();
 	if (!signedIn)
 		return (
-			<Tile size="big" label="Notes">
+			<Tile size="big" label="Notes" to="/manager">
 				{signedOut}
 			</Tile>
 		);
 	if (!machine)
 		return (
-			<Tile size="big" label="Notes">
+			<Tile size="big" label="Notes" to="/manager">
 				<TileEmpty>Insights appear once you have a machine.</TileEmpty>
 			</Tile>
 		);
@@ -313,7 +313,7 @@ export function InsightsTiles() {
 					<span className="text-[13px] text-neutral-500">Notes on {machine.name}</span>
 				</div>
 			</Tile>
-			<Tile size="wide" label="Execution">
+			<Tile size="wide" label="Execution" to="/profit">
 				<Figure
 					value={
 						execution === undefined ? "-" : `${execution >= 0 ? "+" : ""}${execution.toFixed(1)}`
@@ -322,7 +322,7 @@ export function InsightsTiles() {
 					name="Execution"
 				/>
 			</Tile>
-			<Tile size="wide" label="Against holding">
+			<Tile size="wide" label="Against holding" to="/profit">
 				<Figure
 					value={
 						holding === undefined ? "-" : `${holding >= 0 ? "+" : ""}${(holding * 100).toFixed(2)}%`
@@ -331,21 +331,21 @@ export function InsightsTiles() {
 					name="Against holding"
 				/>
 			</Tile>
-			<Tile size="wide" label="Largest drop">
+			<Tile size="wide" label="Largest drop" to="/profit">
 				<Figure
 					value={amount(largestDrop(chronological).toString())}
 					note="USDC, from its best"
 					name="Largest drop"
 				/>
 			</Tile>
-			<Tile size="wide" label="Win rate">
+			<Tile size="wide" label="Win rate" to="/profit">
 				<Figure
 					value={rounds ? `${Math.round((machine.result.wins / rounds) * 100)}%` : "-"}
 					note={`${machine.result.wins} of ${rounds} round trips`}
 					name="Win rate"
 				/>
 			</Tile>
-			<Tile size="wide" label="Fees">
+			<Tile size="wide" label="Fees" to="/profit">
 				<Figure
 					value={(Number(machine.result.feesLamports) / 1e9).toFixed(4)}
 					note="SOL in network fees"
@@ -477,7 +477,7 @@ export function MarketplaceTiles() {
 					</Line>
 				</Tile>
 			))}
-			<Tile size="wide" label="Copy a machine">
+			<Tile size="wide" label="Copy a machine" to="/marketplace/copy">
 				<Line name="Coming">
 					Copy someone's machine
 					<span className="block text-[14px] text-neutral-400">

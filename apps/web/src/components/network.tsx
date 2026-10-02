@@ -32,7 +32,7 @@ export function NetworkTiles() {
 				</span>
 			</Tile>
 
-			<Tile size="wide" label="Nodes online">
+			<Tile size="wide" label="Nodes online" to="/network/join">
 				<TileEmpty>Nodes appear here once the network opens to other computers.</TileEmpty>
 			</Tile>
 
