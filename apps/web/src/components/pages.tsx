@@ -12,7 +12,7 @@ import { fetchQuote, type Token } from "../lib/quote.ts";
 import { useSession } from "../lib/session.ts";
 import { executionBps, holdingReturn, largestDrop } from "../lib/track-record.ts";
 import { useMachineAtWork } from "./at-work.tsx";
-import { Tile, TileEmpty, TileLoading } from "./bento.tsx";
+import { Tile, TileEmpty, TileLoading, type TileSize } from "./bento.tsx";
 import { Figure, Line, sentence, useSolDay } from "./home.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 import { useActivity, useOperatingPicture } from "./portfolio.tsx";
@@ -38,8 +38,35 @@ function useSignedIn() {
 	return Boolean(useSession(api).data);
 }
 
+/**
+ * Signed out, a personal section has nothing of yours to show, so it is a full grid of tiles asking you to
+ * connect: one of a few arrangements that fill the six by three exactly, picked once per visit.
+ */
+const SIGNED_OUT_LAYOUTS: TileSize[][] = [
+	["big", "wide", "wide", "wide", "wide", "wide"],
+	["large", "large", "large", "wide", "wide", "wide"],
+	["hero", "wide", "wide", "wide"],
+	["big", "large", "wide", "wide", "wide"],
+];
+const SIGNED_OUT_PICK = Math.random();
+
+export function SignedOutGrid({ pick = SIGNED_OUT_PICK }: { pick?: number }) {
+	const layout = SIGNED_OUT_LAYOUTS[Math.floor(pick * SIGNED_OUT_LAYOUTS.length)] ?? [];
+	return (
+		<>
+			{layout.map((size, index) => (
+				// The arrangement never changes while it is on screen, so a tile's place is its identity.
+				// biome-ignore lint/suspicious/noArrayIndexKey: see above
+				<Tile key={index} size={size} label="Connect to see your machines">
+					{signedOut}
+				</Tile>
+			))}
+		</>
+	);
+}
+
 /** Portfolio: your money, over time and right now. */
-export function PortfolioTiles() {
+function PortfolioTilesSignedIn() {
 	const signedIn = useSignedIn();
 	const picture = useOperatingPicture();
 	const machines = picture.map((each) => each.machine);
@@ -135,7 +162,7 @@ export function PortfolioTiles() {
 }
 
 /** Machines: one tile each, then a new one. */
-export function MachinesTiles() {
+function MachinesTilesSignedIn() {
 	const { api } = useRouter().options.context;
 	const signedIn = useSignedIn();
 	const machines = useMachines(api);
@@ -185,7 +212,7 @@ export function MachinesTiles() {
 }
 
 /** Activity: what your machines did, at a glance. The whole of it opens as its own screen. */
-export function ActivityTiles() {
+function ActivityTilesSignedIn() {
 	const signedIn = useSignedIn();
 	const feed = useActivity();
 	const now = Date.now();
@@ -273,7 +300,7 @@ export function ActivityTiles() {
 }
 
 /** Insights: how your machine is really doing, worked out from its own record. */
-export function InsightsTiles() {
+function InsightsTilesSignedIn() {
 	const signedIn = useSignedIn();
 	const { machine, record } = useMachineAtWork();
 	const day = useSolDay();
@@ -487,4 +514,24 @@ export function MarketplaceTiles() {
 			</Tile>
 		</>
 	);
+}
+
+/** Your own data once you are signed in; a grid asking you to connect until then. */
+export function PortfolioTiles() {
+	return useSignedIn() ? <PortfolioTilesSignedIn /> : <SignedOutGrid />;
+}
+
+/** Your own data once you are signed in; a grid asking you to connect until then. */
+export function MachinesTiles() {
+	return useSignedIn() ? <MachinesTilesSignedIn /> : <SignedOutGrid />;
+}
+
+/** Your own data once you are signed in; a grid asking you to connect until then. */
+export function ActivityTiles() {
+	return useSignedIn() ? <ActivityTilesSignedIn /> : <SignedOutGrid />;
+}
+
+/** Your own data once you are signed in; a grid asking you to connect until then. */
+export function InsightsTiles() {
+	return useSignedIn() ? <InsightsTilesSignedIn /> : <SignedOutGrid />;
 }
