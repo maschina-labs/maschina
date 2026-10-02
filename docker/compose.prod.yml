@@ -28,7 +28,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?the database password is required}
       POSTGRES_DB: maschina
     volumes:
-      - postgres-data:/var/lib/postgresql
+      # Mounted exactly where Postgres keeps its data. Mounted one level up, the image's own volume
+      # took the data instead, and a recreated container started empty (MISTAKES M42).
+      - postgres-data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U maschina_owner -d maschina"]
