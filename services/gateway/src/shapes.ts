@@ -15,6 +15,7 @@ export const asSummary = (machine: OwnedMachine) => ({
 	kind: machine.kind,
 	walletAddress: machine.walletAddress,
 	createdAt: machine.createdAt.toISOString(),
+	paper: machine.paper,
 	state: machine.state,
 	...(machine.stateReason === undefined ? {} : { stateReason: machine.stateReason }),
 	budget: {

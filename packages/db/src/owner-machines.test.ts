@@ -63,6 +63,7 @@ describe("machinesOf", () => {
 				kind: "price_trigger",
 				walletAddress: row.wallet_address,
 				createdAt: new Date(row.created_at),
+				paper: false,
 				state: "running",
 				budget: { granted: 1000n, reserved: 0n, settled: 0n, available: 1000n },
 				// A machine that has not traded has made nothing, which is not the same as having lost.
@@ -79,6 +80,11 @@ describe("machinesOf", () => {
 				},
 			},
 		]);
+	});
+
+	it("says when a machine is on paper, so nobody is asked to fund it", async () => {
+		const [machine] = await machinesOf(fakeDatabase([{ ...row, paper: true }], [funded]), ownerId);
+		expect(machine?.paper).toBe(true);
 	});
 
 	it("says why a machine is not running when its record says so", async () => {

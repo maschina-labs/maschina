@@ -11,6 +11,7 @@ const machine: OwnedMachineDetail = {
 	kind: "price_trigger",
 	walletAddress: SOL,
 	createdAt: new Date("2026-09-21T09:00:00Z"),
+	paper: false,
 	state: "running",
 	budget: { granted: 20_000_000n, reserved: 5_000n, settled: 1_000n, available: 19_994_000n },
 	result: {
@@ -36,6 +37,11 @@ describe("what the API says about a machine", () => {
 			createdAt: "2026-09-21T09:00:00.000Z",
 			budget: { granted: "20000000", available: "19994000" },
 		});
+	});
+
+	it("says whether a machine is on paper", () => {
+		expect(asSummary(machine).paper).toBe(false);
+		expect(asSummary({ ...machine, paper: true }).paper).toBe(true);
 	});
 
 	it("leaves out a limit nobody set, rather than calling it zero", () => {
