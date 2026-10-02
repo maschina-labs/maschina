@@ -123,6 +123,24 @@ describe("your account", () => {
 	});
 });
 
+describe("the stop switch", () => {
+	it("when it is on, says so across the top: why, and that money can still come home", async () => {
+		standIn({ halt: "upgrading the signer" });
+		renderAt("/");
+		const banner = await screen.findByRole("alert");
+		expect(banner).toHaveTextContent(/paused/i);
+		expect(banner).toHaveTextContent("upgrading the signer");
+		expect(banner).toHaveTextContent(/withdraw/i);
+	});
+
+	it("says nothing when it is off", async () => {
+		standIn();
+		renderAt("/");
+		await home();
+		expect(screen.queryByRole("alert")).toBeNull();
+	});
+});
+
 describe("when things go wrong", () => {
 	it("a broken screen says what broke, and offers to try again", () => {
 		const retry = vi.fn();

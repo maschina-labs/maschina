@@ -1,5 +1,6 @@
-import { ArrowClockwise, House, WifiSlash } from "@phosphor-icons/react";
-import { Link } from "@tanstack/react-router";
+import { ArrowClockwise, House, Pause, WifiSlash } from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 
 /**
@@ -125,6 +126,35 @@ export function OfflineBanner() {
 		>
 			<WifiSlash size={16} weight="light" />
 			Offline. Figures will catch up when the connection is back; your machines keep running.
+		</div>
+	);
+}
+
+/**
+ * The stop switch, when it is on: one line across the top, for everybody, saying machines are paused, why,
+ * and that taking money out still works. Checked every fifteen seconds, so it shows within moments of being
+ * thrown and clears the same way.
+ */
+export function HaltBanner() {
+	const { api } = useRouter().options.context;
+	const status = useQuery({
+		queryKey: ["status"],
+		queryFn: async () => {
+			const response = await api.v1.status.$get();
+			return response.ok ? response.json() : undefined;
+		},
+		refetchInterval: 15_000,
+		retry: false,
+	});
+	const halt = status.data?.halt;
+	if (!halt) return null;
+	return (
+		<div
+			role="alert"
+			className="fixed inset-x-0 top-0 z-[81] flex items-center justify-center gap-2.5 bg-[oklch(0.2_0.04_60)] px-4 py-2.5 text-center font-display text-[14px] text-neutral-100"
+		>
+			<Pause size={16} weight="light" />
+			Machines are paused while {halt.reason}. You can still withdraw.
 		</div>
 	);
 }
