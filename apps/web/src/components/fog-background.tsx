@@ -6,16 +6,16 @@ import { CLEAR, type Weather } from "../lib/weather.ts";
 
 /**
  * The field behind the terminal: city light through a fogged window, far out of focus. Dark olive at
- * the top, a slate blue haze across the upper middle, warm grey fog through the centre, amber glowing
+ * the top, a slate blue haze across the upper middle, warm gray fog through the center, amber glowing
  * on the right, near black at the bottom. Each patch is shaped by slow rolling noise, so it breathes.
  *
- * Colours are chosen in OKLCH and mixed in OKLab, where equal steps look equal, so the glows fade into
+ * Colors are chosen in OKLCH and mixed in OKLab, where equal steps look equal, so the glows fade into
  * the dark without the muddy rings plain RGB leaves around a soft light.
  */
 
 type Oklch = { l: number; c: number; h: number };
 
-/** The fog's five colours: the dark, the top, the upper haze, the middle fog, and the one glow. */
+/** The fog's five colors: the dark, the top, the upper haze, the middle fog, and the one glow. */
 export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; glow: Oklch };
 
 /**
@@ -157,12 +157,12 @@ const FRAGMENT = /* glsl */ `
 		color = mix(color, FOG, atFog * smoothstep(0.3, 0.75, warm) * 0.9);
 		color = mix(color, AMBER, atAmber * smoothstep(0.3, 0.75, warm));
 
-		// Overcast: the glow dims and the colour drains, as a city does under low cloud.
+		// Overcast: the glow dims and the color drains, as a city does under low cloud.
 		color = mix(color, NIGHT, atAmber * smoothstep(0.3, 0.75, warm) * uCloud * 0.6);
 		color.yz *= 1.0 - 0.45 * uCloud;
 		color.x *= 1.0 - 0.12 * uCloud;
 
-		// Fog: everything goes further away, into one soft grey that still rolls.
+		// Fog: everything goes further away, into one soft gray that still rolls.
 		float haze = 0.26 + 0.1 * cold + 0.5 * (NIGHT.x - 0.16);
 		color = mix(color, vec3(haze, 0.0, 0.0), uFog * 0.65 * (0.75 + 0.25 * warm));
 
@@ -195,8 +195,8 @@ const FRAGMENT = /* glsl */ `
 		color.yz *= 1.0 - min(flakes, 1.0) * 0.6;
 
 		// Dark at the edges, as an out of focus lens is.
-		vec2 centred = vUv - 0.5;
-		color.x *= mix(1.0, 0.72, smoothstep(0.25, 0.75, length(centred * vec2(1.1, 1.0))));
+		vec2 centered = vUv - 0.5;
+		color.x *= mix(1.0, 0.72, smoothstep(0.25, 0.75, length(centered * vec2(1.1, 1.0))));
 
 		// A whisper of dither, so the long dark fades never band on an 8-bit screen.
 		color.x += (hash(vec3(floor(gl_FragCoord.xy), mod(floor(uTime * 12.0), 16.0))) - 0.5) * 0.004;
@@ -271,7 +271,7 @@ function Fog({ still, palette, weather }: { still: boolean; palette: Palette; we
 		if (!material.current) return;
 		// Written to the material's own inputs, not the object handed to it: the renderer copies plain
 		// numbers out of that object once, so changing them there afterwards never reached the screen,
-		// and the field sat frozen (MISTAKES M40). The colours only worked because they are shared objects.
+		// and the field sat frozen (MISTAKES M40). The colors only worked because they are shared objects.
 		const live = material.current.uniforms as typeof uniforms;
 		const now = performance.now();
 		const delta =

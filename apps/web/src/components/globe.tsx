@@ -29,8 +29,8 @@ export function Globe({
 	onView,
 }: {
 	tilt?: number;
-	/** Told the point on Earth at the centre of the globe, whenever it turns. */
-	onView?: (centre: { lat: number; lng: number }) => void;
+	/** Told the point on Earth at the center of the globe, whenever it turns. */
+	onView?: (center: { lat: number; lng: number }) => void;
 }) {
 	const [countries, setCountries] = useState<Countries>();
 	const [view, setView] = useState<[number, number]>([0, tilt]);

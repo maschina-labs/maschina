@@ -24,7 +24,7 @@ import { SECTIONS, Sections } from "./sections.tsx";
  * Every section side by side on one strip, as on the Xbox 360 dashboard. Moving between them slides the
  * strip; the greeting, the account and the row of sections stay where they are.
  *
- * Only the page you are on and its neighbours are drawn. The rest are empty until you come near, so no
+ * Only the page you are on and its neighbors are drawn. The rest are empty until you come near, so no
  * matter how many sections there are, at most three are ever built.
  *
  * Each page still has its own address, so a link to a section is a link to that view.

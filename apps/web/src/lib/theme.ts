@@ -36,7 +36,7 @@ export function modeOf(
 }
 
 /**
- * The sky through the day, as fog palettes at set hours. Between two, every colour is mixed, so the
+ * The sky through the day, as fog palettes at set hours. Between two, every color is mixed, so the
  * change is continuous: no moment where the screen visibly switches. Night is the city palette itself.
  */
 const NIGHT: Palette = {

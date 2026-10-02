@@ -56,7 +56,7 @@ describe("a machine whose band follows the price", () => {
 		occurredAt: at(minute),
 		payload,
 	});
-	const centred = entry("machine.recentred", { price: "120000000", because: "started" }, 1);
+	const centered = entry("machine.recentred", { price: "120000000", because: "started" }, 1);
 	const bought = [
 		entry(
 			"trade.intended",
@@ -79,7 +79,7 @@ describe("a machine whose band follows the price", () => {
 
 	it("waits to buy half a band under where it sits, and draws both edges", () => {
 		// Newest first, the way the record arrives.
-		const record = [centred];
+		const record = [centered];
 		expect(statusOf(following(), record)).toBe("WAITING TO BUY AT 118.50");
 		expect(bandOf(following(), record)).toEqual([
 			{ price: 121.5, label: "FOLLOW" },
@@ -88,7 +88,7 @@ describe("a machine whose band follows the price", () => {
 	});
 
 	it("sells a band above what it paid, and shows its floor", () => {
-		const record = [...bought].reverse().concat(centred);
+		const record = [...bought].reverse().concat(centered);
 		expect(statusOf(following("339698787"), record)).toBe("HOLDING · SELLS AT 121.75");
 		expect(bandOf(following("339698787"), record).map((each) => each.label)).toEqual([
 			"SELL",

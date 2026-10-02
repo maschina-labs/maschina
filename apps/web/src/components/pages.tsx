@@ -96,14 +96,14 @@ function PortfolioTilesSignedIn() {
 					<TileEmpty>Profit shows here once a machine closes a trade.</TileEmpty>
 				)}
 			</Tile>
-			<Tile size="wide" label="Realised" to="/profit">
+			<Tile size="wide" label="Realized" to="/profit">
 				{!signedIn ? (
 					signedOut
 				) : (
 					<Figure
 						value={totals ? amount(totals.realised.toString()) : "0.00"}
-						note="USDC, realised"
-						name="Realised"
+						note="USDC, realized"
+						name="Realized"
 					/>
 				)}
 			</Tile>
@@ -151,7 +151,7 @@ function PortfolioTilesSignedIn() {
 					<Line name="Best machine">
 						{best.name}
 						<span className="block text-[14px] text-neutral-400">
-							{amount(best.result.realised)} USDC realised
+							{amount(best.result.realised)} USDC realized
 						</span>
 					</Line>
 				) : (

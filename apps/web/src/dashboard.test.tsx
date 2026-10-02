@@ -32,7 +32,7 @@ describe("the sections, signed in", () => {
 	it("home leads with what was made, once a machine is at work", async () => {
 		renderAt("/");
 		const home = await section("Home");
-		expect(await home.findByRole("button", { name: "Realised profit" })).toBeInTheDocument();
+		expect(await home.findByRole("button", { name: "Realized profit" })).toBeInTheDocument();
 	});
 
 	it.each([

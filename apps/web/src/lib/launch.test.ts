@@ -16,7 +16,7 @@ describe("launching a screen from a tile", () => {
 		expect(transform).toBe("translate3d(-400px, -200px, 0) scale(0.2, 0.2)");
 	});
 
-	it("settles in from the centre when there is no tile", () => {
+	it("settles in from the center when there is no tile", () => {
 		expect(tileTransform(undefined, { width: 1000, height: 500 })).toContain("scale(0.97)");
 	});
 });

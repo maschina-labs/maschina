@@ -1,5 +1,5 @@
 import type { MachineSummary, RecordEntry } from "./machines.ts";
-import { realisedSteps } from "./pnl.ts";
+import { realizedSteps } from "./pnl.ts";
 
 /** How far back the board looks. */
 const WINDOWS = {
@@ -18,7 +18,7 @@ export type Standing = {
 };
 
 /**
- * Machines ranked by what they realised within the window, best first: each sale's profit counted when it
+ * Machines ranked by what they realized within the window, best first: each sale's profit counted when it
  * happened. Paper and real money are kept apart by the caller, never mixed on one board.
  */
 export function standings(
@@ -31,7 +31,7 @@ export function standings(
 		.map(({ machine, record }) => {
 			let before = 0n;
 			let within = 0n;
-			for (const step of realisedSteps(record)) {
+			for (const step of realizedSteps(record)) {
 				if (step.time * 1000 >= since) within += step.value - before;
 				before = step.value;
 			}
