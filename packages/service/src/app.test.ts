@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createServiceApp } from "./app.ts";
 import { memoryLogger } from "./test-logger.ts";
 
-function setup(options: { maxBodyBytes?: number; timeoutMs?: number } = {}) {
+function setup(options: { maxBodyBytes?: number; timeoutMs?: number; quietPaths?: string[] } = {}) {
 	const { logger, lines } = memoryLogger();
 	const reporter = { enabled: true, capture: vi.fn(), flush: vi.fn(async () => {}) };
 	const app = createServiceApp({ service: "test", logger, reporter, ...options });
@@ -44,6 +44,24 @@ describe("createServiceApp", () => {
 			status: 200,
 			requestId: expect.any(String),
 		});
+	});
+
+	it("logs a routine poll quietly, at debug, but a failed one at info as usual", async () => {
+		const { app, lines } = setup({ quietPaths: ["/poll"] });
+		app.post("/poll", (c) => c.body(null, 204));
+		app.post("/broken", (c) => c.text("no", 500));
+		await app.request("/poll", { method: "POST" });
+		expect(lines.find((l) => l["msg"] === "request" && l["path"] === "/poll")?.["level"]).toBe(
+			"debug",
+		);
+		const failing = setup({ quietPaths: ["/poll"] });
+		failing.app.post("/poll", (c) => c.text("down", 503));
+		await failing.app.request("/poll", { method: "POST" });
+		expect(failing.lines.find((l) => l["msg"] === "request")?.["level"]).toBe("info");
+		await app.request("/broken", { method: "POST" });
+		expect(lines.find((l) => l["msg"] === "request" && l["path"] === "/broken")?.["level"]).toBe(
+			"info",
+		);
 	});
 
 	it("answers unknown routes with a structured 404", async () => {

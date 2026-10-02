@@ -29,12 +29,18 @@ export type ServiceOptions = {
 	maxBodyBytes?: number;
 	/** Requests taking longer than this are cut off. */
 	timeoutMs?: number;
+	/**
+	 * Paths polled many times a second, such as a daemon asking for work. A routine answer on one is
+	 * logged at debug, so the logs keep what matters; a failure is logged at info like any request.
+	 */
+	quietPaths?: string[];
 };
 
 const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
 
 export function createServiceApp(options: ServiceOptions): Hono<ServiceEnv> {
 	const { logger, reporter, maxBodyBytes = 1024 * 1024, timeoutMs = 30_000 } = options;
+	const quiet = new Set(options.quietPaths ?? []);
 	const app = new Hono<ServiceEnv>();
 
 	app.use(
@@ -51,15 +57,15 @@ export function createServiceApp(options: ServiceOptions): Hono<ServiceEnv> {
 		c.set("logger", logger.child({ requestId: c.get("requestId") }));
 		const started = performance.now();
 		await next();
-		c.get("logger").info(
-			{
-				method: c.req.method,
-				path: c.req.path,
-				status: c.res.status,
-				ms: Math.round(performance.now() - started),
-			},
-			"request",
-		);
+		const line = {
+			method: c.req.method,
+			path: c.req.path,
+			status: c.res.status,
+			ms: Math.round(performance.now() - started),
+		};
+		const routine = quiet.has(c.req.path) && c.res.status < 400;
+		if (routine) c.get("logger").debug(line, "request");
+		else c.get("logger").info(line, "request");
 	});
 	app.use(secureHeaders());
 	app.use(
