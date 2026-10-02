@@ -10,7 +10,7 @@ const STREAM = "wss://data-stream.binance.vision/ws";
 /** One aggregated trade message, or nothing if it is not one. Binance marks sells by the buyer being the maker. */
 export function printFromMessage(data: unknown): Print | undefined {
 	const t = data as Record<string, unknown> | null;
-	if (!t || t["e"] !== "aggTrade") return undefined;
+	if (t?.["e"] !== "aggTrade") return undefined;
 	const price = Number(t["p"]);
 	const size = Number(t["q"]);
 	const at = Number(t["T"]);

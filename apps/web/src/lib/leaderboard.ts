@@ -2,7 +2,7 @@ import type { MachineSummary, RecordEntry } from "./machines.ts";
 import { realisedSteps } from "./pnl.ts";
 
 /** How far back the board looks. */
-export const WINDOWS = {
+const WINDOWS = {
 	"1D": 86_400_000,
 	"1W": 604_800_000,
 	ALL: Number.POSITIVE_INFINITY,

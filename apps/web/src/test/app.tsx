@@ -12,9 +12,9 @@ import { createAppRouter } from "../router.tsx";
  * market's streams) answers nothing, as it would offline, so no test waits on the internet.
  */
 
-export const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-export const SOL = "So11111111111111111111111111111111111111112";
-export const OWNER = "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR";
+const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const SOL = "So11111111111111111111111111111111111111112";
+const OWNER = "8GTgV1mscEjSoNmTdmNLaPjV1LTCRbRVHn7eh1UCetpR";
 export const MACHINE_ID = "01a0e674-dbbf-75e0-a420-97aa2b709449";
 
 const result = {
@@ -41,7 +41,7 @@ export const machine = {
 	result,
 };
 
-export const detail = {
+const detail = {
 	...machine,
 	settings: {
 		quoteMint: USDC,
@@ -66,7 +66,7 @@ const event = (type: string, minutes: number, payload: Record<string, unknown> =
 });
 
 /** A day in the machine's life, newest first as the API sends it. */
-export const record = [
+const record = [
 	event("withdrawal.completed", 90, { mint: USDC, amount: "1000000" }),
 	event("sweep.completed", 80, { mint: USDC, amount: "1100000" }),
 	event("trade.completed", 70, {

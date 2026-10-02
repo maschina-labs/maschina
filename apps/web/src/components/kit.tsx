@@ -8,7 +8,7 @@ import { Tile, type TileSize } from "./bento.tsx";
  * button. Anything that is not built yet says so in a note; nothing pretends with a dead button.
  */
 
-export const LABEL = "text-[13px] text-neutral-500";
+const LABEL = "text-[13px] text-neutral-500";
 export const BUTTON =
 	"inline-flex items-center justify-center bg-white px-4 py-2.5 font-display text-[15px] text-neutral-950 transition-opacity disabled:opacity-30";
 export const QUIET =

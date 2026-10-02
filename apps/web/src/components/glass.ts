@@ -4,6 +4,3 @@
  * it green. No blur: the field is already soft, and blurring it again drew dark rims along the edges.
  */
 export const GLASS = "bg-[oklch(1_0_0/0.045)] backdrop-saturate-0";
-
-/** The same glass, a step brighter, for the bar you are on. */
-export const GLASS_ACTIVE = "bg-[oklch(1_0_0/0.09)] backdrop-saturate-0";

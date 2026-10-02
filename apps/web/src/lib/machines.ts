@@ -95,7 +95,7 @@ const machinesQuery = (api: Api) =>
 	});
 
 /** One machine's detail, as a query others can compose, like the portfolio's list of orders. */
-export const machineQuery = (api: Api, machineId: string) =>
+const machineQuery = (api: Api, machineId: string) =>
 	queryOptions({
 		queryKey: ["machines", machineId],
 		queryFn: async () =>

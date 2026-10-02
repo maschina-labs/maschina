@@ -7,7 +7,7 @@ import { preview } from "./preview.ts";
  * glass; snow, cloud, fog and lightning happen in the city behind it.
  */
 
-export type Rain = "none" | "drizzle" | "rain" | "heavy";
+type Rain = "none" | "drizzle" | "rain" | "heavy";
 
 export type Weather = {
 	rain: Rain;

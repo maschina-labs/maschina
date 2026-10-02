@@ -6,8 +6,7 @@
 			"entry": ["scripts/**/*.mjs"]
 		},
 		"apps/web": {
-			"entry": ["src/worker.ts"],
-			"ignoreDependencies": ["tailwindcss"]
+			"entry": ["src/worker.ts"]
 		},
 		"packages/integration-tests": {
 			"entry": ["test/**/*.test.ts"]

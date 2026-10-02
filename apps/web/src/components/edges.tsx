@@ -78,7 +78,7 @@ function useAlerts() {
 }
 
 /** Which panel is open right now. */
-export function useOpenEdge(): Edge | undefined {
+function useOpenEdge(): Edge | undefined {
 	return useSyncExternalStore(subscribe, () => current);
 }
 
