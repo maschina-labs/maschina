@@ -19,6 +19,15 @@ export const HealthResponse = z
 	.meta({ id: "HealthResponse" });
 export type HealthResponse = z.infer<typeof HealthResponse>;
 
+/**
+ * The API's own status, and the stop switch: while a halt is in force nothing is signed for any machine,
+ * though owners can still take their money out. Absent when no halt is in force.
+ */
+export const StatusResponse = HealthResponse.extend({
+	halt: z.object({ reason: z.string(), since: z.iso.datetime() }).optional(),
+}).meta({ id: "StatusResponse" });
+export type StatusResponse = z.infer<typeof StatusResponse>;
+
 export const ErrorBody = z
 	.object({
 		error: z.object({

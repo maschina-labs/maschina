@@ -39,7 +39,7 @@ const noAuth = {
 };
 const noCookie = { secure: false };
 
-const app = () =>
+const app = (extra: Partial<Parameters<typeof buildApp>[0]> = {}) =>
 	buildApp({
 		version: "1.2.3",
 		corsOrigins: ["http://localhost:3000"],
@@ -48,6 +48,7 @@ const app = () =>
 		machines: noMachines,
 		auth: noAuth,
 		cookie: noCookie,
+		...extra,
 	});
 
 describe("gateway", () => {
@@ -63,6 +64,19 @@ describe("gateway", () => {
 			service: "gateway",
 			version: "1.2.3",
 			time: "2026-09-16T12:00:00.000Z",
+		});
+	});
+
+	it("says when the stop switch is on, why, and since when", async () => {
+		const res = await app({
+			halt: async () => ({
+				reason: "upgrading the signer",
+				since: new Date("2026-10-02T21:00:00.000Z"),
+			}),
+		}).request("/v1/status");
+		expect(await res.json()).toMatchObject({
+			status: "ok",
+			halt: { reason: "upgrading the signer", since: "2026-10-02T21:00:00.000Z" },
 		});
 	});
 

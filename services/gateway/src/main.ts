@@ -28,6 +28,7 @@ startServer({
 		machines: gateway.ports,
 		auth: gateway.auth,
 		cookie: gateway.cookie,
+		halt: gateway.halt,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,
