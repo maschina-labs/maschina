@@ -25,7 +25,7 @@ const event = (id: string, at: string): RecordEntry => ({
 });
 
 describe("the portfolio", () => {
-	it("adds every machine up, losses included", () => {
+	it("counts budgets and holdings only for machines that can still act, and realized profit for all", () => {
 		const totals = totalsOf([
 			machine("a", "running", "40600000", "370000"),
 			machine("b", "stopped", "28000000", "-120000"),
@@ -34,16 +34,34 @@ describe("the portfolio", () => {
 		expect(totals).toEqual({
 			machines: 2,
 			running: 1,
-			granted: 68_600_000n,
-			realised: 250_000n,
-			holding: 2_000_000_000n,
+			// The stopped machine's 28 is history, not money at work.
+			granted: 40_600_000n,
+			realized: 250_000n,
+			holding: 1_000_000_000n,
 			trades: 4,
-			simulated: false,
 		});
 	});
 
-	it("says when any of it is paper", () => {
-		expect(totalsOf([machine("a", "running", "1", "0", true)]).simulated).toBe(true);
+	it("never adds paper to live: each side has its own totals", () => {
+		const all = [
+			machine("live", "running", "40600000", "370000"),
+			machine("sandbox", "running", "100000000", "900000", true),
+		];
+		const live = totalsOf(all);
+		const paper = totalsOf(all, "paper");
+
+		expect(live.machines).toBe(1);
+		expect(live.granted).toBe(40_600_000n);
+		expect(live.realized).toBe(370_000n);
+		expect(paper.machines).toBe(1);
+		expect(paper.granted).toBe(100_000_000n);
+		expect(paper.realized).toBe(900_000n);
+	});
+
+	it("takes a machine's own paper flag over anything in its result", () => {
+		const flagged = { ...machine("x", "running", "5", "0"), paper: true } as MachineSummary;
+		expect(totalsOf([flagged]).machines).toBe(0);
+		expect(totalsOf([flagged], "paper").machines).toBe(1);
 	});
 
 	it("is all zero with no machines", () => {

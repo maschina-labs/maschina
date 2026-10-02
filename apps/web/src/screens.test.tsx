@@ -133,6 +133,35 @@ describe("every screen a tile opens, signed in with a machine at work", () => {
 	});
 });
 
+describe("paper and live never mix (D-096)", () => {
+	const sandbox = {
+		...machine,
+		machineId: "01a0e674-0000-7000-8000-000000000001",
+		name: "Sandbox",
+		paper: true,
+		budget: { ...machine.budget, granted: "500000000" },
+		result: { ...machine.result, realised: "99000000", simulated: true },
+	};
+
+	it("profit counts the live machine only, however much paper made", async () => {
+		standIn({ machines: [machine, sandbox] });
+		renderAt("/profit");
+		const profit = await screenNamed("Profit");
+		expect((await profit.findAllByText("1.10 USDC")).length).toBeGreaterThan(0);
+		expect(profit.queryByText(/100\.10|99\.00/)).toBeNull();
+	});
+
+	it("the machine list shows both, and says which is paper", async () => {
+		standIn({ machines: [machine, sandbox] });
+		renderAt("/fleet");
+		const fleet = await screenNamed("Your machines");
+		expect(await fleet.findByText(/· paper/)).toBeInTheDocument();
+		// Given to trade is the live 40.00, never the paper 500.
+		expect(fleet.getAllByText("40.00 USDC").length).toBeGreaterThan(0);
+		expect(fleet.queryByText("540.00 USDC")).toBeNull();
+	});
+});
+
 describe("retuning a paused range finder", () => {
 	it("sends the new band and floor, keeping everything else it runs on", async () => {
 		const { requests } = standIn({ machines: [{ ...machine, state: "paused" }] });
