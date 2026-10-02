@@ -13,14 +13,13 @@ import {
 	Sun,
 	User,
 } from "@phosphor-icons/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
-import { fetchPrice } from "../lib/price.ts";
 import { useSession, useSignOut } from "../lib/session.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { useActivity } from "./portfolio.tsx";
@@ -433,33 +432,20 @@ function HeaderPanel() {
 		const timer = setInterval(() => setNow(new Date()), 1000);
 		return () => clearInterval(timer);
 	}, []);
-	const price = useQuery({
-		queryKey: ["sol-price"],
-		queryFn: () => fetchPrice(),
-		refetchInterval: 5_000,
-	});
-	// The time on the left, the name in the middle, SOL on the right, all on one line through the centre.
+	// The name on the left, the time on the right, centred on one line and as wide as the tiles below, so
+	// both line up with the grid's edges.
 	return (
-		<div className="mx-auto grid w-full max-w-[1160px] grid-cols-[1fr_auto_1fr] items-center gap-6 px-6 py-7">
-			<div className="flex flex-col gap-1">
-				<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
-					{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-				</span>
-				<span className="text-[14px] text-neutral-400">
-					{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
-				</span>
-			</div>
-			<img src="/brand/word.svg" alt="Maschina" className="h-6 w-auto md:h-7" />
-			<div className="flex flex-col items-end gap-1">
-				<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
-					{price.data ? price.data.usd.toFixed(2) : "-"}
-				</span>
-				<span className="text-[14px] text-neutral-400">
-					SOL
-					{price.data
-						? ` · ${price.data.change24h >= 0 ? "+" : ""}${price.data.change24h.toFixed(2)}% today`
-						: ""}
-				</span>
+		<div className="flex justify-center px-5 py-7 md:px-0">
+			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
+				<img src="/brand/word.svg" alt="Maschina" className="h-6 w-auto md:h-7" />
+				<div className="flex flex-col items-end gap-1">
+					<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
+						{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+					</span>
+					<span className="text-[14px] text-neutral-400">
+						{now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
+					</span>
+				</div>
 			</div>
 		</div>
 	);
