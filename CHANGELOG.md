@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.31](https://github.com/maschina-labs/maschina/compare/v0.0.30...v0.0.31) (2026-10-02)
+
+
+### Fixed
+
+* **runtime:** count only budget spending toward the daily cap ([#715](https://github.com/maschina-labs/maschina/issues/715)) ([2808588](https://github.com/maschina-labs/maschina/commit/2808588c4743a452d60aa2f833c87e3b5b5a7a7f))
+
 ## [0.0.30](https://github.com/maschina-labs/maschina/compare/v0.0.29...v0.0.30) (2026-09-28)
 
 
