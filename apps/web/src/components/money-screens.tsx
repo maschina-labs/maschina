@@ -408,7 +408,7 @@ export function FeedScreen() {
 const INTERVALS = ["15m", "1h", "4h", "1d"] as const;
 
 /** The last twenty trades in SOL on the market, streaming in. */
-function Tape() {
+export function Tape() {
 	const [prints, setPrints] = useState<Print[]>([]);
 	useEffect(
 		() => streamPrints("SOLUSDT", (print) => setPrints((was) => [print, ...was].slice(0, 20))),

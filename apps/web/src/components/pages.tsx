@@ -14,6 +14,7 @@ import { executionBps, holdingReturn, largestDrop } from "../lib/track-record.ts
 import { useMachineAtWork } from "./at-work.tsx";
 import { Tile, TileEmpty, TileLoading, type TileSize } from "./bento.tsx";
 import { Figure, Line, sentence, useSolDay } from "./home.tsx";
+import { Tape } from "./money-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 import { useActivity, useOperatingPicture } from "./portfolio.tsx";
 
@@ -485,6 +486,14 @@ export function SwapTiles() {
 				) : (
 					<TileLoading />
 				)}
+			</Tile>
+			<Tile size="wide" label="Trades on the market" to="/market/sol">
+				<div className="flex h-full flex-col justify-between gap-2 p-4">
+					<div data-own-drag className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+						<Tape />
+					</div>
+					<span className="text-[13px] text-neutral-500">Trades on the market</span>
+				</div>
 			</Tile>
 		</>
 	);
