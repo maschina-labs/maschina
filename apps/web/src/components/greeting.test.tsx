@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { Greeting, greetingFor, greetingsFor, partOfDay } from "./greeting.tsx";
+import { Greeting, greetingFor, greetingsFor, newcomerGreeting, partOfDay } from "./greeting.tsx";
 
 afterEach(() => localStorage.clear());
 
@@ -58,7 +58,7 @@ describe("the greeting", () => {
 		expect(localStorage.getItem("maschina.name:W")).toBeNull();
 	});
 
-	it("remembers a name for each wallet, and greets by the last wallet's name when signed out", () => {
+	it("remembers a name for each wallet, and a welcome stands in while signed out", () => {
 		const evening = () => new Date(2026, 9, 1, 19, 30);
 		const first = render(<Greeting now={evening} pick={0.3} wallet="WalletA" />);
 		fireEvent.click(screen.getByRole("button", { name: "Good evening" }));
@@ -68,20 +68,25 @@ describe("the greeting", () => {
 		first.unmount();
 
 		// Signed out: still Asher, because WalletA was the last wallet here.
-		// Signed out, it reads the name but cannot change it: a name needs a wallet.
+		// Signed out, a welcome stands in for the greeting.
 		const out = render(<Greeting now={evening} pick={0.3} />);
-		expect(screen.getByText("Good evening, Asher")).toBeInTheDocument();
-		expect(screen.queryByRole("button")).toBeNull();
+		expect(screen.getByText("Welcome to Maschina")).toBeInTheDocument();
 		out.unmount();
+
+		// Back with the same wallet, the name is still there.
+		const back = render(<Greeting now={evening} pick={0.3} wallet="WalletA" />);
+		expect(screen.getByRole("button", { name: "Good evening, Asher" })).toBeInTheDocument();
+		back.unmount();
 
 		// Another wallet has no name of its own yet.
 		render(<Greeting now={evening} pick={0.3} wallet="WalletB" />);
 		expect(screen.getByRole("button", { name: "Good evening" })).toBeInTheDocument();
 	});
 
-	it("with no wallet ever connected, greets without a name and offers none", () => {
-		render(<Greeting now={() => new Date(2026, 9, 1, 8)} pick={0} />);
-		expect(screen.getByText("Morning")).toBeInTheDocument();
-		expect(screen.queryByRole("button")).toBeNull();
+	it("signed out, welcomes a newcomer instead of naming a time of day", () => {
+		render(<Greeting now={() => new Date(2026, 9, 1, 8)} pick={0.5} />);
+		expect(screen.getByText("Glad you're here")).toBeInTheDocument();
+		expect(screen.queryByText("Morning")).toBeNull();
+		expect(newcomerGreeting(0.99)).toBe("Hello, newcomer");
 	});
 });

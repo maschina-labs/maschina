@@ -51,7 +51,7 @@ const SIGNED_OUT_LAYOUTS: TileSize[][] = [
 ];
 const SIGNED_OUT_PICK = Math.random();
 
-export function SignedOutGrid({ pick = SIGNED_OUT_PICK }: { pick?: number }) {
+function SignedOutGrid({ pick = SIGNED_OUT_PICK }: { pick?: number }) {
 	const layout = SIGNED_OUT_LAYOUTS[Math.floor(pick * SIGNED_OUT_LAYOUTS.length)] ?? [];
 	return (
 		<>

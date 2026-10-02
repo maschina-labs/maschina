@@ -28,6 +28,13 @@ export function greetingsFor(hour: number): string[] {
 }
 
 /** One greeting, chosen by `pick` (a number from 0 up to 1), with the name after it when there is one. */
+/** For someone who has not connected a wallet yet: a welcome, rather than a time of day. */
+const NEWCOMER = ["Welcome to Maschina", "Glad you're here", "Hello, newcomer"];
+
+export function newcomerGreeting(pick: number): string {
+	return NEWCOMER[Math.floor(pick * NEWCOMER.length)] ?? "Welcome to Maschina";
+}
+
 export function greetingFor(hour: number, name: string, pick: number): string {
 	const options = greetingsFor(hour);
 	const said = options[Math.min(Math.floor(pick * options.length), options.length - 1)] ?? "Hello";
@@ -97,11 +104,11 @@ export function Greeting({
 	};
 
 	const words = greetingFor(hour, name, chosen);
-	// A name belongs to a wallet, so it can only be given once one is connected.
+	// Signed out, a greeting for someone new, in the same type the signed in greeting uses.
 	if (!wallet) {
 		return (
 			<span className="block h-[1em] p-0 text-left font-display font-normal text-[22px] text-neutral-100 leading-none tracking-[-0.01em] md:text-[clamp(26px,2.9vw,42px)]">
-				{words}
+				{newcomerGreeting(chosen)}
 			</span>
 		);
 	}
