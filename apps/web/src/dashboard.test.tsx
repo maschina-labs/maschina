@@ -63,6 +63,23 @@ describe("the sections, signed in", () => {
 	});
 });
 
+describe("swapping", () => {
+	it("turns the pair around, and says so when no quote can be had", async () => {
+		standIn();
+		renderAt("/swap");
+		const swap = await section("Swap");
+		expect(swap.getByText("USDC")).toBeInTheDocument();
+		fireEvent.click(swap.getByRole("button", { name: "Turn it around" }));
+		expect(await swap.findByText(/^SOL$/)).toBeInTheDocument();
+		fireEvent.change(swap.getByRole("textbox", { name: "You pay" }), { target: { value: "2" } });
+		// Jupiter is offline in a test, so the quote fails, and the tile says why rather than showing nothing.
+		expect(await swap.findByText(/answered|quote|503/i, {}, { timeout: 3000 })).toBeInTheDocument();
+		fireEvent.change(swap.getByRole("textbox", { name: "You pay" }), {
+			target: { value: "nothing" },
+		});
+	});
+});
+
 describe("the sections, signed out", () => {
 	beforeEach(() => {
 		standIn({ signedIn: false });

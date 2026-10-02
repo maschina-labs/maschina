@@ -113,15 +113,27 @@ export function standIn({
 } = {}) {
 	const requests: { method: string; path: string; body?: unknown }[] = [];
 	const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-		const request = input instanceof Request ? input : new Request(String(input), init);
-		const url = new URL(request.url);
-		const body =
-			request.method === "GET"
-				? undefined
-				: await request
+		// Read the request without ever building a Request from the app's own: its abort signal belongs to
+		// the test browser, and Node's fetch rejects it when a test ends mid-request.
+		const href = input instanceof Request ? input.url : String(input);
+		const method = (input instanceof Request ? input.method : init?.method) ?? "GET";
+		const raw =
+			input instanceof Request
+				? await input
 						.clone()
-						.json()
-						.catch(() => undefined);
+						.text()
+						.catch(() => "")
+				: init?.body;
+		const url = new URL(href);
+		let body: unknown;
+		if (method !== "GET" && typeof raw === "string" && raw) {
+			try {
+				body = JSON.parse(raw);
+			} catch {
+				body = undefined;
+			}
+		}
+		const request = { method };
 		requests.push({ method: request.method, path: url.pathname, body });
 		if (url.host !== "localhost:4000") return new Response("offline", { status: 503 });
 		if (url.pathname === "/v1/auth/me")
