@@ -1,4 +1,5 @@
 import {
+	ArrowLeft,
 	BookOpen,
 	Clock,
 	Copy,
@@ -426,6 +427,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 	);
 }
 
+/** Maschina's front page: the welcome screen for now, its own site once it is built. */
+const FRONT_PAGE = "/welcome";
+
 function HeaderPanel() {
 	const [now, setNow] = useState(() => new Date());
 	useEffect(() => {
@@ -437,7 +441,19 @@ function HeaderPanel() {
 	return (
 		<div className="flex justify-center px-5 py-7 md:px-0">
 			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
-				<img src="/brand/word.svg" alt="Maschina" className="h-6 w-auto md:h-7" />
+				{/*
+				 * Back out to Maschina's front page. Until the front page is its own site, that is the welcome
+				 * screen here; once it is built, FRONT_PAGE becomes its address.
+				 */}
+				<div className="flex items-center gap-4">
+					<a
+						href={FRONT_PAGE}
+						aria-label="Back to the front page"
+						className="grid size-12 place-items-center bg-white/[0.11] text-neutral-100 transition-colors duration-300 hover:bg-white/[0.18]"
+					>
+						<ArrowLeft size={22} weight="light" />
+					</a>
+				</div>
 				<div className="flex flex-col items-end gap-1">
 					<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
 						{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
