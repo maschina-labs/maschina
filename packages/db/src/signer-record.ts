@@ -104,7 +104,7 @@ export function signerRecord(
 					approvedMints: limits.approvedMints,
 				},
 				availableBudget: budget.available,
-				spentToday: settledSince(events, startOfDayUtc(now())),
+				spentToday: settledSince(events, startOfDayUtc(now()), { budgetMint }),
 				dueAt: lease.dueAt,
 			};
 		},

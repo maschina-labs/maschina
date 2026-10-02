@@ -17,13 +17,17 @@ const limitChange = (
 	payload: { limit, from, to },
 });
 
-const completed = (inputAmount: string, occurredAt: Date): TimedEvent => ({
+const completed = (
+	inputAmount: string,
+	occurredAt: Date,
+	tradeId: string = newId<"trade">(),
+): TimedEvent => ({
 	machineId,
 	type: "trade.completed",
 	occurredAt,
 	payload: {
 		runId: newId<"run">(),
-		tradeId: newId<"trade">(),
+		tradeId,
 		signature:
 			"2gCEqMVor2LxnpCrgWjhrDMfYF7nfM73f947HkZotuzaMrmd1xff2Bq4eF8z6VPVsSzRse1mvDaTj2sdPZsFCY4X",
 		inputAmount,
@@ -139,5 +143,32 @@ describe("what has been spent today", () => {
 
 	it("counts a trade that happened exactly at the boundary", () => {
 		expect(settledSince([completed("5", midnight)], midnight)).toBe(5n);
+	});
+
+	it("counts only what spent the budget's token, so a sale never fills the daily cap", () => {
+		// 2026-09-30: a Range Finder bought 40.35 USDC of SOL, sold the 0.3397 SOL, and was then refused
+		// its next buy because the sale's lamports were added to the day's dollars as if they were dollars.
+		const trade = (tradeId: string, from: string, to: string, amount: string): TimedEvent[] => [
+			{
+				machineId,
+				type: "trade.intended",
+				occurredAt: morning,
+				payload: {
+					runId: newId<"run">(),
+					tradeId,
+					inputMint: from,
+					outputMint: to,
+					inputAmount: amount,
+					quotedOutputAmount: "1",
+					slippageBps: 50,
+				},
+			},
+			completed(amount, morning, tradeId),
+		];
+		const buy = newId<"trade">();
+		const sale = newId<"trade">();
+		const events = [...trade(buy, USDC, SOL, "40350000"), ...trade(sale, SOL, USDC, "339698787")];
+
+		expect(settledSince(events, midnight, { budgetMint: USDC })).toBe(40_350_000n);
 	});
 });
