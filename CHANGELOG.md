@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.33](https://github.com/maschina-labs/maschina/compare/v0.0.32...v0.0.33) (2026-10-02)
+
+
+### Added
+
+* **gateway:** say on the status route when the stop switch is on ([#729](https://github.com/maschina-labs/maschina/issues/729)) ([65fdb6d](https://github.com/maschina-labs/maschina/commit/65fdb6d2066b64bb6aed6a489b2d0b0cec9574e0))
+* **web:** a banner across the top while the stop switch is on ([#733](https://github.com/maschina-labs/maschina/issues/733)) ([1e99809](https://github.com/maschina-labs/maschina/commit/1e99809d4fa103bddf2c3aacd8f884a40c04746c))
+
+
+### Fixed
+
+* **docker:** keep the database where postgres writes it; run the bots ([#736](https://github.com/maschina-labs/maschina/issues/736)) ([3703830](https://github.com/maschina-labs/maschina/commit/3703830d8803951d407c5d16db1eaf6c85c09d0a))
+* **web:** american spelling everywhere people read ([#731](https://github.com/maschina-labs/maschina/issues/731)) ([1712fb2](https://github.com/maschina-labs/maschina/commit/1712fb274e56684ba378e37669c372e9b7c9df00))
+
 ## [0.0.32](https://github.com/maschina-labs/maschina/compare/v0.0.31...v0.0.32) (2026-10-02)
 
 
