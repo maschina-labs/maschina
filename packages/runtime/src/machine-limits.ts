@@ -87,13 +87,31 @@ export type TimedEvent = RecordedEvent & { occurredAt: Date };
  * that failed spent nothing. Reservations are the budget's job; this answers "how much has left the
  * wallet today", which is what a daily cap is about.
  */
-export function settledSince(events: Iterable<TimedEvent>, since: Date): BaseUnits {
+export function settledSince(
+	events: Iterable<TimedEvent>,
+	since: Date,
+	options: { budgetMint?: string | undefined } = {},
+): BaseUnits {
 	const from = since.getTime();
 	let total = 0n;
+	// Which token each trade spent, from its intent. A daily cap is counted in the budget's token, so a
+	// sale, which spends what a buy bought, is not spending at all (2026-09-30: lamports from a sale were
+	// added to dollars and refused the next buy).
+	const spentMint = new Map<string, string>();
 
 	for (const event of events) {
+		if (event.type === "trade.intended") {
+			spentMint.set(event.payload.tradeId, event.payload.inputMint);
+			continue;
+		}
 		if (event.type !== "trade.completed") continue;
 		if (event.occurredAt.getTime() < from) continue;
+		if (
+			options.budgetMint !== undefined &&
+			spentMint.get(event.payload.tradeId) !== options.budgetMint
+		) {
+			continue;
+		}
 		total += BigInt(event.payload.inputAmount);
 	}
 
