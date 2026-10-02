@@ -220,7 +220,9 @@ export function Deck({ behind }: { behind?: string } = {}) {
 	// The arrow keys move a page, unless something is being typed.
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
-			const typing = (event.target as HTMLElement | null)?.closest("input, textarea, select");
+			// A key pressed with nothing focused comes from the window itself, which is not typing anywhere.
+			const typing =
+				event.target instanceof Element && event.target.closest("input, textarea, select");
 			if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
 			if (event.key === "ArrowLeft") go(-1);
 			if (event.key === "ArrowRight") go(1);

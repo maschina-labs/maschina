@@ -84,6 +84,57 @@ describe("the sections, signed out", () => {
 	);
 });
 
+describe("connecting", () => {
+	it("with no wallet in the browser, shows where to get one", async () => {
+		standIn({ signedIn: false });
+		const { router } = renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		// Ready once the app knows nobody is signed in.
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/get-a-wallet"));
+	});
+
+	it("a wallet that refuses says why", async () => {
+		standIn({ signedIn: false });
+		Object.assign(window, {
+			solana: {
+				isPhantom: true,
+				connect: async () => Promise.reject(new Error("The user rejected the request")),
+			},
+		});
+		renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		// Ready once the app knows nobody is signed in.
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		expect(await screen.findByText(/rejected the request/)).toBeInTheDocument();
+		Object.assign(window, { solana: undefined });
+	});
+});
+
+describe("with paper machines, and with none", () => {
+	it("the sections say paper money is not money", async () => {
+		standIn({
+			machines: [{ ...machine, paper: true, result: { ...machine.result, simulated: true } }],
+		});
+		renderAt("/portfolio");
+		await section("Portfolio");
+		expect((await screen.findAllByText(/USDC/)).length).toBeGreaterThan(0);
+	});
+
+	it.each(["/", "/portfolio", "/machines", "/activity", "/insights"])(
+		"%s with no machines yet points to making one",
+		async (path) => {
+			standIn({ machines: [] });
+			renderAt(path);
+			expect((await screen.findAllByText(/machine/i)).length).toBeGreaterThan(0);
+		},
+	);
+});
+
 describe("search", () => {
 	beforeEach(() => {
 		standIn();
@@ -135,6 +186,39 @@ describe("the edges", () => {
 		renderAt("/marketplace");
 		const page = await section("Marketplace");
 		expect((await page.findAllByText(/Range finder|Fixed range/)).length).toBeGreaterThan(0);
+	});
+
+	it("on a phone, the sections menu goes to any section, or opens search", async () => {
+		const { router } = renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getByRole("button", { name: "Sections" }));
+		// The header's row has a Swap link too; the menu's is the last one drawn.
+		const swaps = await screen.findAllByRole("link", { name: "Swap" });
+		fireEvent.click(swaps.at(-1) as HTMLElement);
+		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/swap"));
+		fireEvent.click(screen.getByRole("button", { name: "Sections" }));
+		const searches = await screen.findAllByRole("button", { name: /^Search$/ });
+		fireEvent.click(searches[0] as HTMLElement);
+		expect(await screen.findByRole("textbox", { name: "Search" })).toBeInTheDocument();
+	});
+
+	it("the charms open search, and set the theme", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(await screen.findByRole("button", { name: "Dynamic" }));
+		expect(localStorage.getItem("maschina.theme")).toBe("dynamic");
+		fireEvent.click(screen.getAllByRole("button", { name: /^Search/ }).at(-1) as HTMLElement);
+		expect(await screen.findByRole("textbox", { name: "Search" })).toBeInTheDocument();
+	});
+
+	it("a panel closes from its close button", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
+		const closes = await screen.findAllByRole("button", { name: "Close" });
+		for (const close of closes) fireEvent.click(close);
+		expect(screen.getAllByRole("button", { name: "Your machines" }).length).toBeGreaterThan(0);
 	});
 
 	it("your machines, on the left", async () => {

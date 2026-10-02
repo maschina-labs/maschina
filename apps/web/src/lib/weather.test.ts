@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { CLEAR, roundedPlace, weatherFrom, weatherOf } from "./weather.ts";
+import { renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { CLEAR, roundedPlace, useWeather, weatherFrom, weatherOf } from "./weather.ts";
 
 describe("weather from the forecast's codes", () => {
 	it("clear and cloud", () => {
@@ -53,5 +54,44 @@ describe("weather from the forecast's codes", () => {
 
 	it("rounds a location to about ten kilometres before it leaves the browser", () => {
 		expect(roundedPlace(45.42153, -75.69719)).toEqual({ latitude: 45.4, longitude: -75.7 });
+	});
+});
+
+describe("the weather where you are", () => {
+	const at = (success: boolean) => ({
+		getCurrentPosition: (ok: (p: GeolocationPosition) => void, fail: () => void) =>
+			success
+				? ok({ coords: { latitude: 45.42153, longitude: -75.69719 } } as GeolocationPosition)
+				: fail(),
+	});
+
+	it("asks the forecast for a rounded place, and shows what it says", async () => {
+		Object.defineProperty(navigator, "geolocation", { configurable: true, value: at(true) });
+		const fetcher = vi.fn(
+			async (_url: string) => new Response(JSON.stringify({ current: { weather_code: 63 } })),
+		);
+		vi.stubGlobal("fetch", fetcher);
+		const { result } = renderHook(() => useWeather(true));
+		await vi.waitFor(() => expect(result.current.rain).toBe("rain"));
+		expect(String(fetcher.mock.calls[0]?.[0])).toContain("latitude=45.4&longitude=-75.7");
+	});
+
+	it("stays clear when the place is not given, or the forecast fails", async () => {
+		Object.defineProperty(navigator, "geolocation", { configurable: true, value: at(false) });
+		const { result } = renderHook(() => useWeather(true));
+		expect(result.current).toEqual(CLEAR);
+		Object.defineProperty(navigator, "geolocation", { configurable: true, value: at(true) });
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("down", { status: 503 })),
+		);
+		const failed = renderHook(() => useWeather(true));
+		await new Promise((done) => setTimeout(done, 20));
+		expect(failed.result.current).toEqual(CLEAR);
+	});
+
+	it("is clear when weather is not wanted", () => {
+		const { result } = renderHook(() => useWeather(false));
+		expect(result.current).toEqual(CLEAR);
 	});
 });
