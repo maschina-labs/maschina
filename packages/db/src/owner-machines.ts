@@ -32,6 +32,8 @@ export type OwnedMachine = {
 	kind: string;
 	walletAddress: string;
 	createdAt: Date;
+	/** On paper: priced and recorded, never signs, holds no money, so there is nothing to fund. */
+	paper: boolean;
 	state: MachineState;
 	stateReason?: string;
 	budget: { granted: bigint; reserved: bigint; settled: bigint; available: bigint };
@@ -64,6 +66,7 @@ type Row = {
 	settings: unknown;
 	wallet_address: string;
 	vault_address?: string | null;
+	paper?: boolean | null;
 	created_at: string | Date;
 };
 
@@ -82,6 +85,7 @@ async function summarise(db: Executor, row: Row): Promise<OwnedMachine> {
 		kind: row.kind,
 		walletAddress: row.wallet_address,
 		createdAt: asDate(row.created_at),
+		paper: row.paper === true,
 		state: status.state,
 		...(status.reason === undefined ? {} : { stateReason: status.reason }),
 		budget: {
@@ -100,7 +104,7 @@ async function summarise(db: Executor, row: Row): Promise<OwnedMachine> {
 export async function machinesOf(db: Executor, ownerId: string): Promise<OwnedMachine[]> {
 	const rows = await db.execute<Row>(sql`
 		select machines.id, machines.name, machine_definitions.kind, machine_definitions.settings,
-			machines.wallet_address, machines.created_at
+			machines.wallet_address, machines.paper, machines.created_at
 		from machines
 		join machine_definitions on machine_definitions.id = machines.definition_id
 		where machines.owner_id = ${ownerId}::uuid
@@ -119,7 +123,7 @@ export async function machineForOwner(
 ): Promise<OwnedMachineDetail | undefined> {
 	const rows = await db.execute<Row>(sql`
 		select machines.id, machines.name, machine_definitions.kind, machine_definitions.settings,
-			machines.wallet_address, machines.vault_address, machines.created_at
+			machines.wallet_address, machines.vault_address, machines.paper, machines.created_at
 		from machines
 		join machine_definitions on machine_definitions.id = machines.definition_id
 		where machines.id = ${machineId}::uuid and machines.owner_id = ${ownerId}::uuid`);

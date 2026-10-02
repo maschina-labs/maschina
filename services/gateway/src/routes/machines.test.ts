@@ -18,6 +18,7 @@ const summary = {
 	kind: "price_trigger",
 	walletAddress: WALLET,
 	createdAt: "2026-09-21T09:00:00.000Z",
+	paper: false,
 	state: "ready" as const,
 	budget: { granted: "20000000", reserved: "0", settled: "0", available: "20000000" },
 	result: {

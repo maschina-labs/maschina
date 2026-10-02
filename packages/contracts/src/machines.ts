@@ -51,6 +51,8 @@ export const MachineSummary = z
 		kind: z.string(),
 		walletAddress: address,
 		createdAt: z.iso.datetime(),
+		/** On paper: it trades against real prices, moves no money, and has nothing to fund. */
+		paper: z.boolean(),
 		state: z.enum(["draft", "ready", "running", "paused", "stopped"]),
 		stateReason: z.string().optional(),
 		budget: z.strictObject({
