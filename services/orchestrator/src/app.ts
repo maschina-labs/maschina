@@ -49,6 +49,8 @@ export function buildApp(deps: OrchestratorDeps) {
 		service: SERVICE,
 		logger: deps.logger,
 		reporter: deps.reporter,
+		// Daemons ask for work several times a second; a routine answer is not worth a log line each.
+		quietPaths: ["/internal/v1/runs/claim"],
 	});
 	registerHealth(app, { service: SERVICE, version: deps.version, checks: deps.checks });
 
