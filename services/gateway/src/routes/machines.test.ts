@@ -54,6 +54,7 @@ function app(ports: Partial<MachinePorts> = {}) {
 		],
 		act: async () => ({ state: "running" }),
 		retune: async () => ({ definitionId: "e".repeat(64) }),
+		funding: async () => ({ transaction: "AQID", lastValidBlockHeight: "429276872" }),
 		balances: async () => ({
 			wallet: {
 				address: WALLET,
@@ -217,6 +218,32 @@ describe("the machines API", () => {
 		expect(
 			(await app().request(`/v1/machines/${other}/balances`, { headers: signedIn })).status,
 		).toBe(404);
+	});
+
+	it("builds a funding transaction for the wallet that signed in, never one named in the request", async () => {
+		const asked: { ownerWallet: string; usdc: bigint }[] = [];
+		const res = await app({
+			funding: async (request) => {
+				asked.push(request);
+				return { transaction: "AQID", lastValidBlockHeight: "429276872" };
+			},
+		}).request(`/v1/machines/${machineId}/funding`, {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ usdc: "40350000", lamports: "12000000" }),
+		});
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ transaction: "AQID", lastValidBlockHeight: "429276872" });
+		expect(asked[0]).toMatchObject({ ownerWallet: OWNER, usdc: 40_350_000n });
+	});
+
+	it("refuses funding in anything but whole units", async () => {
+		const res = await app().request(`/v1/machines/${machineId}/funding`, {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ usdc: "40.35", lamports: "0" }),
+		});
+		expect(res.status).toBe(400);
 	});
 
 	it("refuses an action nobody has heard of", async () => {

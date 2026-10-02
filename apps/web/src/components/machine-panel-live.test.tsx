@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
 	record: [] as unknown[],
 	mutate: vi.fn(),
 	withdraw: vi.fn(),
+	fund: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -25,6 +26,7 @@ vi.mock("../lib/machines.ts", async (real) => ({
 	useMachine: () => state.machine,
 	useRecord: () => ({ data: state.record }),
 	useBalances: () => ({ data: undefined }),
+	useFund: () => ({ mutate: state.fund, isPending: false, error: null }),
 	useMachineAction: () => ({ mutate: state.mutate, isPending: false, error: null }),
 	useWithdrawEverything: () => ({ mutate: state.withdraw, isPending: false, error: null }),
 }));
@@ -109,5 +111,19 @@ describe("the machine page's panel", () => {
 		render(<MachinePanel machineId="m" />);
 
 		expect(screen.getByText("LOADING THE MACHINE")).toBeInTheDocument();
+	});
+});
+
+describe("funding from the machine page", () => {
+	it("asks the wallet with the budget the machine already has", () => {
+		render(<MachinePanel machineId="m" />);
+		fireEvent.click(screen.getByRole("button", { name: "FUND FROM MY WALLET" }));
+		expect(state.fund).toHaveBeenCalledWith(
+			{ usdc: "0", lamports: "12000000", granted: "40600000" },
+			expect.anything(),
+		);
+		const [, handlers] = state.fund.mock.calls[0] ?? [];
+		handlers.onSuccess();
+		handlers.onError(new Error("User rejected the request."));
 	});
 });

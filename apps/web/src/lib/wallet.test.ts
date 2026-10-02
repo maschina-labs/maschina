@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { connect, signMessage } from "./wallet.ts";
+import { connect, sendTransaction, signMessage } from "./wallet.ts";
 
 /** A stand-in for whatever the extension injects, which is all this module ever talks to. */
 function inject(overrides: Partial<Window["solana"]> = {}) {
@@ -61,5 +61,24 @@ describe("the wallet in the browser", () => {
 	it("takes the bytes whether the wallet wraps them or not", async () => {
 		inject({ signMessage: vi.fn(async () => new Uint8Array([1, 2, 3])) as never });
 		expect(await signMessage("hello")).toBe("Ldp");
+	});
+});
+
+describe("sending a transaction the owner approves", () => {
+	it("hands the wallet the transaction and returns the signature it sent", async () => {
+		const request = vi.fn(async () => ({ signature: "5sig" }));
+		inject({ request } as never);
+
+		expect(await sendTransaction("AQID")).toBe("5sig");
+		expect(request).toHaveBeenCalledWith({
+			method: "signAndSendTransaction",
+			// Base64 AQID is the bytes 1, 2, 3, which are "Ldp" in base58.
+			params: { message: "Ldp" },
+		});
+	});
+
+	it("says so when the wallet cannot send transactions", async () => {
+		inject();
+		await expect(sendTransaction("AQID")).rejects.toThrow(/cannot send/);
 	});
 });
