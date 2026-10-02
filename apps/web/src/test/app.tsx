@@ -107,9 +107,12 @@ const json = (body: unknown, status = 200) =>
 export function standIn({
 	signedIn = true,
 	machines = [machine],
+	halt,
 }: {
 	signedIn?: boolean;
 	machines?: (typeof machine)[];
+	/** The stop switch, on with this reason, or off when left out. */
+	halt?: string;
 } = {}) {
 	const requests: { method: string; path: string; body?: unknown }[] = [];
 	const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -136,6 +139,14 @@ export function standIn({
 		const request = { method };
 		requests.push({ method: request.method, path: url.pathname, body });
 		if (url.host !== "localhost:4000") return new Response("offline", { status: 503 });
+		if (url.pathname === "/v1/status")
+			return json({
+				status: "ok",
+				service: "gateway",
+				version: "test",
+				time: "2026-10-02T21:00:00.000Z",
+				...(halt ? { halt: { reason: halt, since: "2026-10-02T20:55:00.000Z" } } : {}),
+			});
 		if (url.pathname === "/v1/auth/me")
 			return signedIn
 				? json({ ownerId: "o", walletAddress: OWNER })
