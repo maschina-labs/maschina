@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { compactUsd, dayFromMessage } from "./market.ts";
+import { describe, expect, it, vi } from "vitest";
+import { compactUsd, dayFromMessage, streamDay } from "./market.ts";
 
 describe("the day's market", () => {
 	it("reads the 24 hour ticker", () => {
@@ -33,5 +33,49 @@ describe("the day's market", () => {
 		expect(compactUsd(1_420_000_000)).toBe("1.42B");
 		expect(compactUsd(4_200)).toBe("4.2K");
 		expect(compactUsd(12)).toBe("12");
+	});
+
+	it("ignores anything that is not the day's ticker, or has a number missing", () => {
+		expect(dayFromMessage(null)).toBeUndefined();
+		expect(dayFromMessage({ e: "aggTrade" })).toBeUndefined();
+		expect(
+			dayFromMessage({ e: "24hrTicker", c: "x", P: "1", h: "1", l: "1", q: "1" }),
+		).toBeUndefined();
+	});
+
+	it("streams the day, says when the stream is up and down, and stops when asked", () => {
+		const sockets: {
+			onopen?: () => void;
+			onclose?: () => void;
+			onmessage?: (event: { data: string }) => void;
+			close: () => void;
+		}[] = [];
+		vi.stubGlobal(
+			"WebSocket",
+			class {
+				close = vi.fn();
+				constructor() {
+					sockets.push(this);
+				}
+			},
+		);
+		const days: number[] = [];
+		const live: boolean[] = [];
+		const stop = streamDay(
+			"SOLUSDT",
+			(day) => days.push(day.last),
+			(up) => live.push(up),
+		);
+		const socket = sockets[0];
+		socket?.onopen?.();
+		socket?.onmessage?.({
+			data: JSON.stringify({ e: "24hrTicker", c: "118", P: "1", h: "120", l: "117", q: "9" }),
+		});
+		socket?.onmessage?.({ data: JSON.stringify({ e: "kline" }) });
+		socket?.onclose?.();
+		expect(days).toEqual([118]);
+		expect(live).toEqual([true, false]);
+		stop();
+		expect(socket?.close).toHaveBeenCalled();
 	});
 });
