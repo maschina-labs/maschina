@@ -40,6 +40,8 @@ export type MachineSummary = {
 	stateReason?: string;
 	walletAddress: string;
 	createdAt: string;
+	/** On paper: it trades against real prices, moves no money, and has nothing to fund. */
+	paper?: boolean;
 	budget: Budget;
 	result: MachineResult;
 };
