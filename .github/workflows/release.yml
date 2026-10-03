@@ -77,9 +77,11 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
           # By head branch, not by label: release-please applies the label a moment after opening the
-          # pull request, and this step would find nothing.
-          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open \
-            --head release-please--branches--main --json number --jq '.[0].number // empty')
+          # pull request, and this step would find nothing. Matched by prefix, because release-please
+          # adds the component to the branch name (`...--main--components--maschina`), and an exact match
+          # found nothing for a whole day of releases.
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json number,headRefName \
+            --jq '[.[] | select(.headRefName | startswith("release-please--branches--main"))][0].number // empty')
           if [ -n "$number" ]; then
             gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --squash --auto
             echo "Release pull request #$number will merge when its checks pass."
