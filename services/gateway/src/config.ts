@@ -33,6 +33,15 @@ export function loadConfig(source?: EnvSource) {
 			 * unset in development, where there is no shared parent and no https.
 			 */
 			GATEWAY_COOKIE_DOMAIN: z.string().min(1).optional(),
+			/**
+			 * The key owners' own secrets are sealed under, such as their AI key: 32 random bytes as base64
+			 * (`openssl rand -base64 32`). It lives only here, never in the database, and changing it makes
+			 * every stored secret unreadable. Unset, owners cannot give the manager a key.
+			 */
+			GATEWAY_SECRETS_KEY: z
+				.string()
+				.refine((value) => Buffer.from(value, "base64").length === 32, "must be 32 bytes as base64")
+				.optional(),
 		},
 		source,
 	);

@@ -4,23 +4,29 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
+import { hintFor, parseSealingKey, sealSecret } from "@maschina/auth/sealed";
 import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
+	clearOwnerSecret,
 	createDatabase,
 	haltInForce,
 	machineForOwner,
 	machinesOf,
 	readMachineEvents,
+	readOwnerSecret,
 	retuneMachine,
+	setOwnerSecret,
 } from "@maschina/db";
 import { rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
+import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
 import { fundingTransaction } from "./funding.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
 import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
+import type { ManagerPorts } from "./routes/manager.ts";
 import { walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
 
@@ -39,6 +45,7 @@ export type GatewayConfig = {
 	GATEWAY_DOMAIN: string;
 	GATEWAY_APP_URL: string;
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
+	GATEWAY_SECRETS_KEY?: string | undefined;
 };
 
 export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) {
@@ -131,5 +138,33 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		return found ? { reason: found.reason, since: found.engagedAt } : undefined;
 	};
 
-	return { ports, auth, cookie, halt, close: database.close };
+	const sealing =
+		config.GATEWAY_SECRETS_KEY === undefined
+			? undefined
+			: parseSealingKey(config.GATEWAY_SECRETS_KEY);
+	const manager: ManagerPorts = {
+		ownerOf: sessions.ownerOf,
+		keyStatus: async (ownerId) => {
+			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
+			return stored
+				? { set: true, hint: stored.hint, setAt: stored.setAt.toISOString() }
+				: { set: false };
+		},
+		setKey: async (ownerId, key) => {
+			if (!sealing) throw new MaschinaError("unavailable", "keys cannot be kept here yet");
+			await checkAnthropicKey(key);
+			await setOwnerSecret(database.db, {
+				ownerId,
+				kind: "anthropic",
+				sealed: sealSecret(sealing, key),
+				hint: hintFor(key),
+			});
+			return { set: true, hint: hintFor(key), setAt: new Date().toISOString() };
+		},
+		clearKey: async (ownerId) => {
+			await clearOwnerSecret(database.db, ownerId, "anthropic");
+		},
+	};
+
+	return { ports, auth, cookie, halt, manager, close: database.close };
 }

@@ -6,6 +6,7 @@ import type { Context } from "hono";
 import { cors } from "hono/cors";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
+import { type ManagerPorts, managerRoutes } from "./routes/manager.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
@@ -21,6 +22,8 @@ export type GatewayDeps = {
 	cookie: CookieSettings;
 	/** The stop switch, read on every status check. */
 	halt?: HaltReader | undefined;
+	/** The owner's own AI. Left out, its routes are not offered. */
+	manager?: ManagerPorts | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -43,13 +46,14 @@ export function clientKey(c: Context): string {
 
 /** Every versioned route. */
 function v1(deps: GatewayDeps) {
-	return new OpenAPIHono()
+	const routes = new OpenAPIHono()
 		.route(
 			"/",
 			systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock, halt: deps.halt }),
 		)
 		.route("/", machineRoutes(deps.machines))
 		.route("/", authRoutes(deps.auth, deps.cookie));
+	return deps.manager ? routes.route("/", managerRoutes(deps.manager)) : routes;
 }
 
 export function buildApp(deps: GatewayDeps) {

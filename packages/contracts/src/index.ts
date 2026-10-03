@@ -41,3 +41,4 @@ export type ErrorBody = z.infer<typeof ErrorBody>;
 export * from "./alerts.ts";
 export * from "./auth.ts";
 export * from "./machines.ts";
+export * from "./manager.ts";

@@ -29,6 +29,7 @@ startServer({
 		auth: gateway.auth,
 		cookie: gateway.cookie,
 		halt: gateway.halt,
+		manager: gateway.manager,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,

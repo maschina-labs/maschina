@@ -17,6 +17,15 @@ describe("gateway config", () => {
 		});
 	});
 
+	it("takes a sealing key only when it is 32 bytes", () => {
+		const key = Buffer.alloc(32, 7).toString("base64");
+		expect(loadConfig({ ...complete, GATEWAY_SECRETS_KEY: key }).GATEWAY_SECRETS_KEY).toBe(key);
+		expect(() =>
+			loadConfig({ ...complete, GATEWAY_SECRETS_KEY: Buffer.alloc(16).toString("base64") }),
+		).toThrow(/GATEWAY_SECRETS_KEY/);
+		expect(loadConfig(complete).GATEWAY_SECRETS_KEY).toBeUndefined();
+	});
+
 	it("needs the origins set", () => {
 		expect(() => loadConfig({})).toThrow(/GATEWAY_CORS_ORIGINS/);
 	});
