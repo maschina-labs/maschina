@@ -97,9 +97,9 @@ export function newTrader(input: {
 		values: {},
 		valuesAtThink: {},
 		think: {
-			everyMs: input.think?.everyMs ?? 60_000,
+			everyMs: input.think?.everyMs ?? 120_000,
 			wakeOnMovePct: input.think?.wakeOnMovePct ?? 8,
-			dailyCapUsd: input.think?.dailyCapUsd ?? 2,
+			dailyCapUsd: input.think?.dailyCapUsd ?? 3,
 			day: input.now.toISOString().slice(0, 10),
 			spentTodayUsd: 0,
 			spentUsd: 0,
