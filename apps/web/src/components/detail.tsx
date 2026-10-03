@@ -180,7 +180,7 @@ export function Detail({ back }: { back: string }) {
 				}}
 			>
 				<div className="flex justify-center px-5 pt-[max(env(safe-area-inset-top),24px)] pb-32 md:px-0 md:pt-[8vh] md:pb-10">
-					<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
+					<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
 						<header className="flex items-center gap-4">
 							<button
 								type="button"
