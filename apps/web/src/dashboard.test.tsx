@@ -249,6 +249,33 @@ describe("the edges", () => {
 		expect(screen.getAllByRole("button", { name: "Your machines" }).length).toBeGreaterThan(0);
 	});
 
+	it("the right handle closes whichever right sidebar is open, rather than opening another", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Account" })[0] as HTMLElement);
+		const account = (await screen.findByText(/^Showing (live|paper) money$/)).closest("aside");
+		await vi.waitFor(() => expect(account?.className).toContain("translate-x-0"));
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
+		await vi.waitFor(() => expect(account?.className).not.toContain("translate-x-0"));
+		// The tiles stayed shut: their buttons are hidden, as they are whenever the sidebar is closed.
+		expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
+	});
+
+	it("a click anywhere off an open sidebar closes it", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
+		const sidebar = (await screen.findByRole("button", { name: "Close sidebar" })).closest("aside");
+		await vi.waitFor(() => expect(sidebar?.className).toContain("translate-x-0"));
+		const off = screen
+			.getAllByRole("button", { name: "Close", hidden: true })
+			.find((each) => each.className.includes("inset-0"));
+		fireEvent.click(off as HTMLElement);
+		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
+	});
+
 	it("the left sidebar closes from the button beside the logo", async () => {
 		renderAt("/");
 		await section("Home");

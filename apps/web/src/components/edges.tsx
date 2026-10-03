@@ -279,6 +279,8 @@ export function Edges() {
 	const open = useOpenEdge();
 	const { fresh } = useAlerts();
 	const toggle = (edge: Edge) => setEdge(current === edge ? undefined : edge);
+	const rightOpen = open === "right" || open === "account" || open === "sections";
+	const onManager = useRouterState({ select: (state) => state.location.pathname }) === "/manager";
 	const close = () => setEdge(undefined);
 
 	useEffect(() => {
@@ -296,8 +298,11 @@ export function Edges() {
 
 	return (
 		<>
-			{/* Anywhere else on the screen closes the header. */}
-			{open === "top" ? (
+			{/*
+			 * Anywhere else on the screen closes whatever is open, header or sidebar. The one exception is the
+			 * manager's own page, where your machines sit beside the conversation while you type to it.
+			 */}
+			{open && !(open === "left" && onManager) ? (
 				<button
 					type="button"
 					aria-label="Close"
@@ -315,9 +320,11 @@ export function Edges() {
 			<Mark
 				edge="right"
 				label="Tiles"
-				onPress={() => toggle("right")}
+				// One right edge, three right sidebars: the handle closes whichever is open, and opens the tiles
+				// only when none is.
+				onPress={() => (rightOpen ? close() : setEdge("right"))}
 				news={fresh > 0}
-				attached={open === "right" || open === "account" || open === "sections"}
+				attached={rightOpen}
 			/>
 			<Dock open={open} onPress={toggle} news={fresh > 0} />
 
