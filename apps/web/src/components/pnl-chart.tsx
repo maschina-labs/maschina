@@ -1,51 +1,36 @@
-import { ColorType, createChart, LineSeries, LineStyle } from "lightweight-charts";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PnlPoint } from "../lib/pnl.ts";
+import { niceTicks, smoothPath } from "../lib/smooth-line.ts";
 
 /**
- * Realized profit over time: one thin line floating on the fog, a point for every sale, the zero line
- * dashed so a loss reads as below it. Colors are rgba because the chart library only reads rgb and hex.
+ * Realized profit over time: one smooth line, a point for every sale, the zero line dashed so a loss reads
+ * as below it. Drawn here rather than in a trading chart: profit is a running total, not prices, so it has
+ * no candles, no wicks and no reason for corners. Colors come from the theme, so it follows light and dark.
  */
 
-const LINE = "rgba(236, 236, 236, 0.9)"; // oklch(0.94 0 0)
-const DIAL = "rgba(163, 163, 163, 0.75)"; // oklch(0.72 0 0)
-const GRID = "rgba(255, 255, 255, 0.045)";
+const PAD = { top: 12, right: 56, bottom: 22, left: 4 };
+
+const dollars = (value: number) => `${value < 0 ? "-" : ""}$${Math.abs(value).toFixed(2)}`;
+const when = (seconds: number) =>
+	new Date(seconds * 1000).toLocaleString("en-US", {
+		month: "short",
+		day: "numeric",
+		hour: "numeric",
+		minute: "2-digit",
+	});
 
 export function PnlChartView({ points }: { points: PnlPoint[] }) {
 	const holder = useRef<HTMLDivElement>(null);
+	const [size, setSize] = useState({ width: 0, height: 0 });
 	useEffect(() => {
-		if (!holder.current || points.length === 0) return;
-		const chart = createChart(holder.current, {
-			autoSize: true,
-			layout: {
-				background: { type: ColorType.Solid, color: "transparent" },
-				textColor: DIAL,
-				fontFamily: '"Geist Mono", ui-monospace, monospace',
-				fontSize: 11,
-				attributionLogo: true,
-			},
-			grid: { vertLines: { color: GRID }, horzLines: { color: GRID } },
-			rightPriceScale: { borderVisible: false },
-			timeScale: { borderVisible: false, timeVisible: true, fixLeftEdge: true, fixRightEdge: true },
-		});
-		const line = chart.addSeries(LineSeries, {
-			color: LINE,
-			lineWidth: 1,
-			priceLineVisible: false,
-		});
-		line.createPriceLine({
-			price: 0,
-			color: GRID,
-			lineStyle: LineStyle.Dashed,
-			lineWidth: 1,
-			axisLabelVisible: false,
-		});
-		// Two sales in the same second would be one point to the chart, so the later one stands.
-		const byTime = new Map(points.map((point) => [point.time, Number(point.value) / 1_000_000]));
-		line.setData([...byTime].map(([time, value]) => ({ time, value })) as never);
-		chart.timeScale().fitContent();
-		return () => chart.remove();
-	}, [points]);
+		const element = holder.current;
+		if (!element) return;
+		const measure = () => setSize({ width: element.clientWidth, height: element.clientHeight });
+		measure();
+		const watch = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
+		watch?.observe(element);
+		return () => watch?.disconnect();
+	}, []);
 
 	if (points.length === 0) {
 		return (
@@ -54,5 +39,88 @@ export function PnlChartView({ points }: { points: PnlPoint[] }) {
 			</p>
 		);
 	}
-	return <div ref={holder} data-testid="pnl-chart" className="h-64 w-full" />;
+
+	// Two sales in the same second are one moment, so the later one stands.
+	const series = [
+		...new Map(points.map((point) => [point.time, Number(point.value) / 1_000_000])),
+	].map(([time, value]) => ({ time, value }));
+	const values = series.map((each) => each.value);
+	const low = Math.min(0, ...values);
+	const high = Math.max(0, ...values);
+	const room = high - low || 1;
+	const first = series[0]?.time ?? 0;
+	const last = series.at(-1)?.time ?? first;
+	const span = last - first || 1;
+	const { width, height } = size;
+	const plotW = Math.max(width - PAD.left - PAD.right, 1);
+	const plotH = Math.max(height - PAD.top - PAD.bottom, 1);
+	const x = (time: number) =>
+		PAD.left + (series.length === 1 ? plotW : ((time - first) / span) * plotW);
+	const y = (value: number) => PAD.top + (1 - (value - low) / room) * plotH;
+	const line = series.map((each) => ({ x: x(each.time), y: y(each.value) }));
+	const end = series.at(-1);
+
+	return (
+		<div ref={holder} data-testid="pnl-chart" className="relative h-64 w-full text-white">
+			{width > 0 ? (
+				<svg width={width} height={height} role="img" aria-label="Realized profit over time">
+					{niceTicks(low, high).map((tick) => (
+						<g key={tick}>
+							<line
+								x1={PAD.left}
+								x2={PAD.left + plotW}
+								y1={y(tick)}
+								y2={y(tick)}
+								stroke="currentColor"
+								strokeOpacity={0.05}
+							/>
+							<text
+								x={width - 4}
+								y={y(tick) + 3.5}
+								textAnchor="end"
+								className="fill-neutral-500 font-mono text-[10px]"
+							>
+								{dollars(tick)}
+							</text>
+						</g>
+					))}
+					<line
+						x1={PAD.left}
+						x2={PAD.left + plotW}
+						y1={y(0)}
+						y2={y(0)}
+						stroke="currentColor"
+						strokeOpacity={0.25}
+						strokeDasharray="3 4"
+					/>
+					<path
+						d={smoothPath(line)}
+						fill="none"
+						stroke="currentColor"
+						strokeOpacity={0.9}
+						strokeWidth={1.5}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					/>
+					{end ? <circle cx={x(end.time)} cy={y(end.value)} r={2.5} fill="currentColor" /> : null}
+					<text x={PAD.left} y={height - 4} className="fill-neutral-500 font-mono text-[10px]">
+						{when(first)}
+					</text>
+					<text
+						x={PAD.left + plotW}
+						y={height - 4}
+						textAnchor="end"
+						className="fill-neutral-500 font-mono text-[10px]"
+					>
+						{when(last)}
+					</text>
+				</svg>
+			) : null}
+			{end ? (
+				<span className="absolute top-0 left-1 font-mono text-[12px] text-neutral-100">
+					{dollars(end.value)}
+				</span>
+			) : null}
+		</div>
+	);
 }
