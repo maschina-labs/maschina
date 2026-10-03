@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.34](https://github.com/maschina-labs/maschina/compare/v0.0.33...v0.0.34) (2026-10-03)
+
+
+### Added
+
+* **gateway:** the manager, and a paper ai trader ([#749](https://github.com/maschina-labs/maschina/issues/749)) ([cde2082](https://github.com/maschina-labs/maschina/commit/cde20826a6bf982cd744aba3b0b00f3cf72366ea))
+* **rules:** screen a token, and read its facts ([#747](https://github.com/maschina-labs/maschina/issues/747)) ([a33420d](https://github.com/maschina-labs/maschina/commit/a33420d1fe36ffc4c546550c544c9733fdf8a521))
+* **web:** sidebars push the page, and their handles ride along ([#745](https://github.com/maschina-labs/maschina/issues/745)) ([91a7811](https://github.com/maschina-labs/maschina/commit/91a781104de42d4928571155e60ed4d718294fa3))
+* **web:** switch the money shown between live and paper ([#743](https://github.com/maschina-labs/maschina/issues/743)) ([777b3d3](https://github.com/maschina-labs/maschina/commit/777b3d3ba39312a4b383d72f35e32c80377524fe))
+
+
+### Fixed
+
+* **web:** paper and live never mix; totals count machines at work ([#740](https://github.com/maschina-labs/maschina/issues/740)) ([4dfae0e](https://github.com/maschina-labs/maschina/commit/4dfae0e34417016915244fa6c7a9ca88b2e6fec6))
+
 ## [0.0.33](https://github.com/maschina-labs/maschina/compare/v0.0.32...v0.0.33) (2026-10-02)
 
 
