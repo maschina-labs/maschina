@@ -10,6 +10,7 @@ import {
 	Play,
 	Plus,
 	Robot,
+	SidebarSimple,
 	SignOut,
 	Sparkle,
 	SquaresFour,
@@ -543,8 +544,19 @@ function MachinesPanel() {
 			data-scroll
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
-			{/* The name at the top of the left sidebar, where an app keeps its own. */}
-			<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto self-start" />
+			{/* The name at the top of the left sidebar, where an app keeps its own, and the way to close it. */}
+			<div className="flex items-center justify-between gap-3">
+				<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto" />
+				<button
+					type="button"
+					aria-label="Close sidebar"
+					title="Close sidebar"
+					onClick={() => setEdge(undefined)}
+					className="grid size-9 place-items-center text-neutral-400 transition-colors duration-300 hover:bg-white/[0.08] hover:text-neutral-100"
+				>
+					<SidebarSimple size={20} weight="light" />
+				</button>
+			</div>
 			<div className="flex flex-col gap-1.5">
 				<Link to="/manager" className={row}>
 					<Sparkle size={18} weight="light" />

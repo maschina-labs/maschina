@@ -249,6 +249,17 @@ describe("the edges", () => {
 		expect(screen.getAllByRole("button", { name: "Your machines" }).length).toBeGreaterThan(0);
 	});
 
+	it("the left sidebar closes from the button beside the logo", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
+		const close = await screen.findByRole("button", { name: "Close sidebar" });
+		const sidebar = close.closest("aside");
+		expect(sidebar?.className).toContain("translate-x-0");
+		fireEvent.click(close);
+		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
+	});
+
 	it("your machines, on the left", async () => {
 		renderAt("/");
 		await section("Home");
