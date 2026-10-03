@@ -10,6 +10,7 @@ import { statusOf } from "../lib/status.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { bandOf, useMachineAtWork } from "./at-work.tsx";
 import { Tile, TileEmpty, TileLoading } from "./bento.tsx";
+import { Odometer } from "./odometer.tsx";
 import { PriceChart } from "./price-chart.tsx";
 import { firstRunStep, StartHere } from "./start-here.tsx";
 
@@ -51,7 +52,8 @@ export function Figure({
 							: undefined
 					}
 				>
-					{value}
+					{/* Figures roll to their numbers, like an odometer. */}
+					{typeof value === "string" ? <Odometer value={value} /> : value}
 				</span>
 				{note ? <span className="text-[13px] text-neutral-400">{note}</span> : null}
 			</div>
