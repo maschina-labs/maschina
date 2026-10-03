@@ -171,7 +171,7 @@ export function PaperBanner() {
 		<div
 			role="status"
 			aria-label="Showing paper"
-			className="fixed inset-x-0 top-0 z-[79] flex items-center justify-center gap-3 bg-[oklch(0.22_0.02_250)] px-4 py-2 font-display text-[14px] text-neutral-100"
+			className="fixed inset-x-0 top-0 z-[25] flex items-center justify-center gap-3 bg-[oklch(0.22_0.02_250)] px-4 py-2 font-display text-[14px] text-neutral-100"
 		>
 			Showing paper: none of this is real money.
 			<button
