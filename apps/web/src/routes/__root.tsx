@@ -65,12 +65,14 @@ function Field() {
 			 * size themselves from the stage (cqw, cqh), and the transform keeps the detail layer inside it.
 			 */}
 			<div
-				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)] transition-[left,right,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
+				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)]"
 				style={{
 					left: pushedFrom === "left" ? "var(--side)" : 0,
 					right: pushedFrom === "right" ? "var(--side)" : 0,
-					// The app fades in as the logo fades out, the first time it opens on a visit.
+					// The app fades in over a second as the logo fades out, the first time it opens on a visit.
 					opacity: splash === "mark" ? 0 : 1,
+					transition:
+						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1), opacity 1000ms ease-out",
 				}}
 			>
 				<div className="relative h-full">

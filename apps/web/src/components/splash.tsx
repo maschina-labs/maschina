@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
  */
 
 const KEY = "maschina.splashed";
-/** How long the ring holds before it starts to go, and how long the hand-over takes. */
-export const HOLD_MS = 700;
-export const FADE_MS = 500;
+/** One second for the ring to arrive, one second held, one second fading out as the app fades in. */
+export const IN_MS = 1000;
+export const HOLD_MS = 1000;
+export const FADE_MS = 1000;
 
 export type SplashPhase = "mark" | "leaving" | "done";
 
@@ -26,7 +27,7 @@ export function useSplash(): SplashPhase {
 	useEffect(() => {
 		if (seenThisVisit()) return;
 		const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-		const leave = setTimeout(() => setPhase("leaving"), still ? 0 : HOLD_MS);
+		const leave = setTimeout(() => setPhase("leaving"), still ? 0 : IN_MS + HOLD_MS);
 		const done = setTimeout(
 			() => {
 				setPhase("done");
@@ -34,7 +35,7 @@ export function useSplash(): SplashPhase {
 					sessionStorage.setItem(KEY, "1");
 				} catch {}
 			},
-			(still ? 0 : HOLD_MS) + FADE_MS,
+			(still ? 0 : IN_MS + HOLD_MS) + FADE_MS,
 		);
 		return () => {
 			clearTimeout(leave);
@@ -55,7 +56,8 @@ export function Splash({ phase }: { phase: SplashPhase }) {
 			<img
 				src="/favicon.svg"
 				alt=""
-				className="size-16 animate-[splash_700ms_ease-out_both] md:size-20"
+				className="size-16 md:size-20"
+				style={{ animation: `splash ${IN_MS}ms ease-out both` }}
 			/>
 		</div>
 	);
