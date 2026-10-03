@@ -15,6 +15,7 @@ import {
 	usd,
 	worthNow,
 } from "./engine.ts";
+import { planFrom } from "./exits.ts";
 import { shortlist, sweep, type UniverseToken } from "./universe.ts";
 
 /** Whole dollars in, USDC's smallest unit out, refusing anything that is not a sensible amount. */
@@ -98,25 +99,59 @@ export function traderTools(held: { state: TraderState }, ports: EnginePorts): T
 		{
 			name: "buy",
 			description:
-				"Buy a dollar amount of a token, filled at a fresh quote. Checked against the limits first; a refusal says why. Give a one sentence reason, which is kept with the trade.",
+				"Buy a dollar amount of a token, filled at a fresh quote. Checked against the limits first; a refusal says why. Give a one sentence reason, kept with the trade, and an exit plan: the engine checks it every few seconds and sells the moment it says so.",
 			input_schema: {
 				type: "object",
 				properties: {
 					mint: { type: "string" },
 					usd: { type: "number" },
 					reason: { type: "string" },
+					takeProfitPct: { type: "number", description: "Sell once up this far, percent" },
+					stopPct: {
+						type: "number",
+						description: "Sell once down this far, percent; the owner's stop is the floor",
+					},
+					trailPct: {
+						type: "number",
+						description: "Once up this far, sell if it falls this far from its best, percent",
+					},
 				},
-				required: ["mint", "usd", "reason"],
+				required: ["mint", "usd", "reason", "takeProfitPct", "stopPct"],
 			},
 			run: async (input) => {
 				const done = await buyToken(held.state, ports, {
 					mint: String(input["mint"] ?? ""),
 					usdc: dollarsToUnits(input["usd"]),
 					reason: String(input["reason"] ?? "no reason given").slice(0, 300),
+					plan: planFrom(input),
 				});
 				held.state = done.state;
 				if (!done.done) throw new Error(`not bought: ${done.why}`);
 				return { bought: true, cashLeft: usd(held.state.book.cash) };
+			},
+		},
+		{
+			name: "set_exit",
+			description:
+				"Change how a holding gets out: its take profit, stop and trail, in percent. Only what you give is changed. The owner's stop stays the floor.",
+			input_schema: {
+				type: "object",
+				properties: {
+					mint: { type: "string" },
+					takeProfitPct: { type: "number" },
+					stopPct: { type: "number" },
+					trailPct: { type: "number" },
+				},
+				required: ["mint"],
+			},
+			run: async (input) => {
+				const mint = String(input["mint"] ?? "");
+				if (!held.state.book.holdings.some((each) => each.mint === mint))
+					throw new Error("nothing of that token is held");
+				const plans = held.state.plans ?? {};
+				const plan = { ...(plans[mint] ?? {}), ...planFrom(input) };
+				held.state = { ...held.state, plans: { ...plans, [mint]: plan } };
+				return { mint, plan };
 			},
 		},
 		{

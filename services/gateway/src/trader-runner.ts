@@ -26,11 +26,18 @@ import {
 	type TraderState,
 	tick,
 } from "@maschina/manager";
-import { jupiterMarket, jupiterPrices, jupiterRouter, parseAddress } from "@maschina/solana";
+import {
+	dexScreenerPrices,
+	jupiterMarket,
+	jupiterPrices,
+	jupiterRouter,
+	parseAddress,
+} from "@maschina/solana";
 import type { Logger } from "@maschina/telemetry";
 import { compactToken } from "./manager-brain.ts";
 
-const TICK_MS = 15_000;
+/** Every few seconds: often enough that an exit plan sells near where it said, rare enough for the free price feeds. */
+const TICK_MS = 5_000;
 
 export type TraderRunner = ReturnType<typeof traderRunner>;
 
@@ -43,6 +50,7 @@ export function traderRunner(options: {
 	const now = options.now ?? (() => new Date());
 	const router = jupiterRouter();
 	const prices = jupiterPrices();
+	const dex = dexScreenerPrices();
 	const market = jupiterMarket();
 	const symbols = new Map<string, { symbol: string; decimals: number }>();
 	const busy = new Set<string>();
@@ -71,9 +79,15 @@ export function traderRunner(options: {
 			});
 			return { outAmount: quoted.outputAmount, impactPct: quoted.priceImpactBps / 100 };
 		},
+		// DexScreener first, for its far larger allowance; Jupiter only for whatever it does not know.
 		prices: async (mints) => {
-			const found = await prices.usdPrices(mints.map(parseAddress));
-			return new Map([...found].map(([mint, price]) => [mint, Number(price.micros) / 1_000_000]));
+			const found = await dex(mints).catch(() => new Map<string, number>());
+			const missing = mints.filter((mint) => !found.has(mint));
+			if (missing.length) {
+				const more = await prices.usdPrices(missing.map(parseAddress));
+				for (const [mint, price] of more) found.set(mint, Number(price.micros) / 1_000_000);
+			}
+			return found;
 		},
 		scan: async (request) => (await market(request)).map(compactToken),
 		token: async (mint) => {

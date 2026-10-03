@@ -18,7 +18,8 @@
 import { type Claude, MODELS } from "../claude.ts";
 import { converse } from "../converse.ts";
 import { type Book, buy, type Holding, newBook, sell, worth } from "./book.ts";
-import { checkBuy, DEFAULT_LIMITS, drawdownHit, stopsHit, type TraderLimits } from "./limits.ts";
+import { type ExitPlan, exitFor, withPeak } from "./exits.ts";
+import { checkBuy, DEFAULT_LIMITS, drawdownHit, type TraderLimits } from "./limits.ts";
 import { traderTools } from "./tools.ts";
 
 export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -55,6 +56,8 @@ export type TraderState = {
 		spentUsd: number;
 		turns: number;
 	};
+	/** How each holding gets out, set by the AI and kept by the engine every tick. */
+	plans?: Record<string, ExitPlan>;
 	/** Symbols and decimals of tokens it has seen, so a buy knows what it is buying. */
 	tokens: Record<string, { symbol: string; decimals: number }>;
 	log: LogEntry[];
@@ -102,6 +105,7 @@ export function newTrader(input: {
 			spentUsd: 0,
 			turns: 0,
 		},
+		plans: {},
 		tokens: {},
 		log: [],
 		startedAt: input.now.toISOString(),
@@ -150,9 +154,13 @@ export async function sellHolding(
 	});
 	const fill = book.fills.at(-1);
 	const values = { ...state.values };
-	if (!book.holdings.some((each) => each.mint === request.mint)) delete values[request.mint];
+	const plans = { ...(state.plans ?? {}) };
+	if (!book.holdings.some((each) => each.mint === request.mint)) {
+		delete values[request.mint];
+		delete plans[request.mint];
+	}
 	return note(
-		{ ...state, book, values },
+		{ ...state, book, values, plans },
 		{
 			kind: request.kind,
 			text: `Sold ${held.symbol} for $${usd(quoted.outAmount)} (${signedUsd(fill?.realized ?? 0n)}): ${request.reason}`,
@@ -165,7 +173,7 @@ export async function sellHolding(
 export async function buyToken(
 	state: TraderState,
 	ports: EnginePorts,
-	request: { mint: string; usdc: bigint; reason: string },
+	request: { mint: string; usdc: bigint; reason: string; plan?: ExitPlan },
 ): Promise<{ state: TraderState; done: boolean; why?: string }> {
 	const now = ports.now();
 	const known = state.tokens[request.mint] ?? (await ports.token(request.mint));
@@ -234,6 +242,14 @@ export async function buyToken(
 				...state,
 				book,
 				tokens: { ...state.tokens, [request.mint]: known },
+				plans: {
+					...(state.plans ?? {}),
+					[request.mint]: {
+						...(state.plans?.[request.mint] ?? {}),
+						...(request.plan ?? {}),
+						peak: request.usdc.toString(),
+					},
+				},
 				// Worth what was paid for it until the next tick prices it, so a sharp move straight after a buy
 				// is still measured against something.
 				values: {
@@ -283,19 +299,30 @@ export async function tick(state: TraderState, ports: EnginePorts): Promise<Trad
 		}
 	}
 
-	// The stops, which the engine keeps and the AI cannot argue with.
+	// Each holding's best value so far, for its trailing stop.
+	const plans = { ...(next.plans ?? {}) };
+	for (const held of next.book.holdings) {
+		const kept = withPeak(plans[held.mint] ?? {}, known(next.values[held.mint]));
+		if (kept) plans[held.mint] = kept;
+	}
+	next = { ...next, plans };
+
+	// The exits, kept by the engine every tick: the AI's plan, under the owner's stop, which it cannot argue with.
 	let stopped = false;
-	for (const held of stopsHit(
-		next.book.holdings,
-		(each) => known(next.values[each.mint]),
-		next.limits,
-	)) {
+	for (const held of [...next.book.holdings]) {
+		const exit = exitFor(
+			held,
+			known(next.values[held.mint]),
+			next.plans?.[held.mint],
+			next.limits.stopLossPct,
+		);
+		if (!exit) continue;
 		try {
 			next = await sellHolding(next, ports, {
 				mint: held.mint,
 				amount: held.amount,
-				reason: `down ${next.limits.stopLossPct}% or more from what it cost`,
-				kind: "stop",
+				reason: exit.reason,
+				kind: exit.kind,
 			});
 			stopped = true;
 		} catch (error) {
@@ -332,7 +359,9 @@ function shouldThink(state: TraderState, now: Date, stopped: boolean): boolean {
 
 const SYSTEM = `You are an AI trader inside Maschina, trading Solana memecoins on PAPER: real prices and real quotes, pretend money. Your one goal is to grow the book's total worth, through quick trades in and out.
 
-You act only through your tools. Every buy is checked against limits you cannot change, and a refused buy tells you why. The engine sells any holding that falls past its stop without asking you, and pauses you if the whole book falls past its drawdown.
+You act only through your tools. Every buy is checked against limits you cannot change, and a refused buy tells you why.
+
+Speed comes from exit plans. Give every buy a take profit, a stop and a trail. The engine checks prices every few seconds and sells the moment a plan says so, without waiting for you, so a plan works while you are not looking. Change a plan with set_exit when the picture changes. The owner's stop is a floor you cannot loosen, and the whole book pauses if it falls past its drawdown.
 
 Each round trip costs real money in pool fees, price impact and network fees, often 1 to 2 percent. Only trade when you expect the move to beat that. Doing nothing is a valid choice, and churning is how a book bleeds to zero.
 
@@ -389,7 +418,17 @@ export function briefing(state: TraderState, now: Date): string {
 	const lines = book.holdings.map((held) => {
 		const value = known(state.values[held.mint]);
 		const change = value === undefined ? "unpriced" : `${pct(value, held.cost)} since bought`;
-		return `- ${held.symbol} (${held.mint}): cost $${usd(held.cost)}, now $${value === undefined ? "?" : usd(value)}, ${change}, held ${minutes(now, held.openedAt)} min`;
+		const plan = state.plans?.[held.mint];
+		const exits = plan
+			? [
+					plan.takeProfitPct === undefined ? "" : `take profit +${plan.takeProfitPct}%`,
+					plan.stopPct === undefined ? "" : `stop -${plan.stopPct}%`,
+					plan.trailPct === undefined ? "" : `trail ${plan.trailPct}%`,
+				]
+					.filter(Boolean)
+					.join(", ") || "no plan"
+			: "no plan";
+		return `- ${held.symbol} (${held.mint}): cost $${usd(held.cost)}, now $${value === undefined ? "?" : usd(value)}, ${change}, held ${minutes(now, held.openedAt)} min, exits: ${exits}`;
 	});
 	const total = worthNow(state);
 	return [
