@@ -85,7 +85,11 @@ as the product being finished:
 - **The web app** has every screen laid out. What works against the live API: signing in, the terminal
   following a machine, each machine's page with its record and controls, making a Range Finder, a fixed
   range or a price trigger, withdrawing, and the papers at `/papers`, served from the master files in
-  `papers/`. Live balances, the stream, chat with other people and the AI analyst are laid out and say so.
+  `papers/`, and the manager. Live balances, the stream and chat with other people are laid out and say so.
+- **The manager** is your own AI, on your own Anthropic key, set in Settings. The key is checked with
+  Anthropic, sealed under a key only the server holds, and never shown again. In conversation it can
+  look at your machines, their records and the most active tokens on Solana, and it can do nothing else:
+  it cannot trade or move money from a chat. Every answer says what it cost you.
 
 ## How the limits actually hold
 
