@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { niceTicks, smoothPath } from "./smooth-line.ts";
+import { niceTicks, smoothPath, softPath } from "./smooth-line.ts";
 
 const ys = (d: string) => [...d.matchAll(/[ ,]?(-?[\d.]+),(-?[\d.]+)/g)].map((m) => Number(m[2]));
 
@@ -45,5 +45,27 @@ describe("axis numbers", () => {
 		expect(niceTicks(-0.37, 0.63)).toEqual([-0.25, 0, 0.25, 0.5]);
 		expect(niceTicks(0, 100)).toEqual([0, 25, 50, 75, 100]);
 		expect(niceTicks(2, 2)).toEqual([2]);
+	});
+});
+
+describe("a soft line", () => {
+	it("is pinned to the first and last points, and never strays outside them", () => {
+		const d = softPath([
+			{ x: 0, y: 0 },
+			{ x: 10, y: 0 },
+			{ x: 11, y: 50 },
+			{ x: 30, y: 50 },
+			{ x: 40, y: 100 },
+		]);
+		expect(d.startsWith("M0,0")).toBe(true);
+		expect(d.endsWith(",100")).toBe(true);
+		for (const y of [...d.matchAll(/,(-?[\d.]+)/g)].map((m) => Number(m[1]))) {
+			expect(y).toBeGreaterThanOrEqual(0);
+			expect(y).toBeLessThanOrEqual(100);
+		}
+	});
+
+	it("falls back to the plain smooth line for one or two points", () => {
+		expect(softPath([{ x: 1, y: 2 }])).toBe("M1,2");
 	});
 });
