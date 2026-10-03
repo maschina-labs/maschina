@@ -34,6 +34,11 @@ export type ServiceOptions = {
 	 * logged at debug, so the logs keep what matters; a failure is logged at info like any request.
 	 */
 	quietPaths?: string[];
+	/**
+	 * Paths allowed longer than the usual cut off, and how long. For work that is slow by nature, like a
+	 * model thinking through a question, and nothing else.
+	 */
+	slowPaths?: Record<string, number>;
 };
 
 const SAFE_REQUEST_ID = /^[A-Za-z0-9-]{8,64}$/;
@@ -76,7 +81,12 @@ export function createServiceApp(options: ServiceOptions): Hono<ServiceEnv> {
 			},
 		}),
 	);
-	app.use(timeout(timeoutMs, () => new HTTPException(504, { message: "request timed out" })));
+	const cutOff = () => new HTTPException(504, { message: "request timed out" });
+	const usual = timeout(timeoutMs, cutOff);
+	const slow = new Map(
+		Object.entries(options.slowPaths ?? {}).map(([path, ms]) => [path, timeout(ms, cutOff)]),
+	);
+	app.use((c, next) => (slow.get(c.req.path) ?? usual)(c, next));
 
 	app.notFound((c) => c.json(errorBody("not_found", "no such route", c.get("requestId")), 404));
 

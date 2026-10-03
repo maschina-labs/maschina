@@ -8,8 +8,10 @@ import {
 	Moon,
 	Pause,
 	Play,
+	Plus,
 	Robot,
 	SignOut,
+	Sparkle,
 	SquaresFour,
 	Sun,
 	User,
@@ -21,6 +23,7 @@ import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
+import { onPaper } from "../lib/portfolio.ts";
 import { useSession, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
@@ -258,6 +261,7 @@ function Panel({
 }
 
 export function Edges() {
+	const router = useRouter();
 	const open = useOpenEdge();
 	const { fresh } = useAlerts();
 	const toggle = (edge: Edge) => setEdge(current === edge ? undefined : edge);
@@ -266,6 +270,11 @@ export function Edges() {
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") setEdge(undefined);
+			// Command J, or Control J, opens the manager from anywhere.
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") {
+				event.preventDefault();
+				void router.navigate({ to: "/manager" });
+			}
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
@@ -520,11 +529,17 @@ function HeaderPanel() {
 	);
 }
 
+/**
+ * The left sidebar: everything to do with machines and the AI. Ask the manager, make a machine, open any
+ * of yours, and pick up a conversation. Settings, preferences and alerts are on the right.
+ */
 function MachinesPanel() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
 	const list = session.data ? (machines.data ?? []) : [];
+	const row =
+		"flex items-center gap-3 bg-white/[0.06] px-4 py-3 text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
 	return (
 		<div
 			data-scroll
@@ -532,6 +547,17 @@ function MachinesPanel() {
 		>
 			{/* The name at the top of the left sidebar, where an app keeps its own. */}
 			<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto self-start" />
+			<div className="flex flex-col gap-1.5">
+				<Link to="/manager" className={row}>
+					<Sparkle size={18} weight="light" />
+					<span className="flex-1">Ask your manager</span>
+					<span className="text-[13px] text-neutral-500">⌘J</span>
+				</Link>
+				<Link to="/new" className={row}>
+					<Plus size={18} weight="light" />
+					<span className="flex-1">New machine</span>
+				</Link>
+			</div>
 			<Section title="Your machines">
 				{!session.data ? (
 					<p className="text-[15px] text-neutral-400">Connect to see your machines.</p>
@@ -540,20 +566,29 @@ function MachinesPanel() {
 				) : (
 					<ul className="flex flex-col gap-1.5">
 						{list.map((machine) => (
-							<li
-								key={machine.machineId}
-								className="flex items-center justify-between gap-4 bg-white/[0.06] px-4 py-3"
-							>
-								<span className="truncate text-[15px] text-neutral-100">{machine.name}</span>
-								<span
-									className={`shrink-0 text-[13px] ${machine.state === "running" ? "text-neutral-100" : "text-neutral-500"}`}
+							<li key={machine.machineId}>
+								<Link
+									to="/machines/$machineId"
+									params={{ machineId: machine.machineId }}
+									className="flex items-center justify-between gap-4 bg-white/[0.06] px-4 py-3 transition-colors hover:bg-white/[0.12]"
 								>
-									{machine.state}
-								</span>
+									<span className="truncate text-[15px] text-neutral-100">{machine.name}</span>
+									<span
+										className={`shrink-0 text-[13px] ${machine.state === "running" ? "text-neutral-100" : "text-neutral-500"}`}
+									>
+										{machine.state}
+										{onPaper(machine) ? " · paper" : ""}
+									</span>
+								</Link>
 							</li>
 						))}
 					</ul>
 				)}
+			</Section>
+			<Section title="Conversations">
+				<p className="text-[15px] text-neutral-400">
+					Your conversations with the manager will be kept here.
+				</p>
 			</Section>
 		</div>
 	);

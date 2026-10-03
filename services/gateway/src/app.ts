@@ -6,6 +6,7 @@ import type { Context } from "hono";
 import { cors } from "hono/cors";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
+import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
@@ -21,6 +22,8 @@ export type GatewayDeps = {
 	cookie: CookieSettings;
 	/** The stop switch, read on every status check. */
 	halt?: HaltReader | undefined;
+	/** The owner's own AI. Left out, its routes answer that it is not available here. */
+	manager?: ManagerPorts | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -49,7 +52,8 @@ function v1(deps: GatewayDeps) {
 			systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock, halt: deps.halt }),
 		)
 		.route("/", machineRoutes(deps.machines))
-		.route("/", authRoutes(deps.auth, deps.cookie));
+		.route("/", authRoutes(deps.auth, deps.cookie))
+		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)));
 }
 
 export function buildApp(deps: GatewayDeps) {
@@ -57,6 +61,8 @@ export function buildApp(deps: GatewayDeps) {
 		service: SERVICE,
 		logger: deps.logger,
 		reporter: deps.reporter,
+		// The manager may look several things up and think before it answers.
+		slowPaths: { "/v1/manager/messages": 120_000 },
 	});
 
 	app.use(

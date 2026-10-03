@@ -1,14 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { describeEvent } from "../lib/describe.ts";
-import { amount, useMachine, useMachines, useRecord } from "../lib/machines.ts";
-import { fetchPrice } from "../lib/price.ts";
-import { useSession } from "../lib/session.ts";
-import { suggestionsFor } from "../lib/suggestions.ts";
+import { amount, useMachine, useRecord } from "../lib/machines.ts";
 import { largestDrop } from "../lib/track-record.ts";
 import { sentence } from "./home.tsx";
-import { Headline, Note, Onward, Panel, QUIET, Rows } from "./kit.tsx";
+import { Headline, Note, Onward, Panel, Rows } from "./kit.tsx";
 
 /**
  * The manager, and the places beyond your own machines: teams, the marketplace, the network, creators,
@@ -32,75 +27,6 @@ const when = (at: string) =>
 
 /** The last part of the address: a team, listing, node, creator or machine's id. */
 const lastPart = (path: string) => path.split("/").filter(Boolean).at(-1) ?? "";
-
-export function ManagerScreen() {
-	const { api } = useRouter().options.context;
-	const session = useSession(api);
-	const machines = useMachines(api);
-	const price = useQuery({
-		queryKey: ["sol-price"],
-		queryFn: () => fetchPrice(),
-		refetchInterval: 5_000,
-	});
-	const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-	const mine = session.data ? (machines.data ?? []) : [];
-	const suggestions = suggestionsFor(mine, price.data?.usd).filter(
-		(each) => !dismissed.has(each.id),
-	);
-	return (
-		<>
-			<Panel size="big" name={`Worth a look · ${suggestions.length}`} scroll>
-				{!session.data ? (
-					<Note>Connect your wallet and the manager reads your machines for you.</Note>
-				) : suggestions.length === 0 ? (
-					<Note>Nothing needs you. Every machine is inside its band and none is stopped.</Note>
-				) : (
-					<ul className="flex flex-col gap-1.5">
-						{suggestions.map((each) => (
-							<li
-								key={each.id}
-								className="flex items-start justify-between gap-3 bg-white/[0.06] px-3 py-2.5"
-							>
-								<span className="flex flex-col gap-0.5">
-									<span className="text-[15px] text-neutral-100">
-										{sentence(each.machine)} · {sentence(each.title).toLowerCase()}
-									</span>
-									<span className="text-[13px] text-neutral-400">{sentence(each.detail)}</span>
-								</span>
-								<span className="flex shrink-0 gap-1">
-									<Link
-										to="/machines/$machineId"
-										params={{ machineId: each.machineId }}
-										className={QUIET}
-									>
-										Open
-									</Link>
-									<button
-										type="button"
-										onClick={() => setDismissed((was) => new Set([...was, each.id]))}
-										className={QUIET}
-									>
-										Dismiss
-									</button>
-								</span>
-							</li>
-						))}
-					</ul>
-				)}
-			</Panel>
-			<Panel size="large" name="What it watches">
-				<Rows
-					rows={[
-						["Price outside a band", "Retune, or switch"],
-						["Down on what it holds", "With no floor"],
-						["A stopped machine", "Withdraw, or retire"],
-					]}
-				/>
-				<Note>Talking to your machines arrives with the AI manager.</Note>
-			</Panel>
-		</>
-	);
-}
 
 export function TeamsScreen() {
 	return (

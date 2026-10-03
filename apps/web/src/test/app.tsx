@@ -103,17 +103,69 @@ const balances = {
 const json = (body: unknown, status = 200) =>
 	new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
+/** A paper trader part way through a run: one holding, one of each kind of log line. */
+export const TRADER_RUN = {
+	id: "r1",
+	mode: "paper",
+	status: "running" as "running" | "paused" | "stopped",
+	pausedBecause: undefined as string | undefined,
+	startedAt: "2026-10-03T12:00:00.000Z",
+	startingCash: "40.00",
+	cash: "29.99",
+	worth: "40.82",
+	realized: "0.31",
+	fees: "0.01",
+	trades: 3,
+	holdings: [
+		{
+			symbol: "WIF",
+			mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+			cost: "10.00",
+			worth: "10.52",
+		},
+		{
+			symbol: "NEW",
+			mint: "New1111111111111111111111111111111111111111",
+			cost: "5.00",
+			worth: null as string | null,
+		},
+	],
+	thinking: { spentUsd: 0.12, turns: 4, lastAt: "2026-10-03T12:04:00.000Z" },
+	log: [
+		{
+			at: "2026-10-03T12:04:00.000Z",
+			kind: "think",
+			text: "Holding WIF.",
+			costUsd: 0.031 as number | undefined,
+		},
+		{
+			at: "2026-10-03T12:03:00.000Z",
+			kind: "refused",
+			text: "Did not buy THIN: the trade would move the price 5%",
+			costUsd: undefined,
+		},
+	],
+};
+
 /** Answers the API as a signed in owner with one machine at work, or as nobody. */
 export function standIn({
 	signedIn = true,
 	machines = [machine],
 	halt,
+	aiKey,
+	trader,
 }: {
 	signedIn?: boolean;
 	machines?: (typeof machine)[];
 	/** The stop switch, on with this reason, or off when left out. */
 	halt?: string;
+	/** The last four of an AI key already set, or none set when left out. */
+	aiKey?: string;
+	/** A paper trader run already going, or none when left out. */
+	trader?: typeof TRADER_RUN;
 } = {}) {
+	let keyHint = aiKey;
+	let traderRun: typeof TRADER_RUN | null = trader ?? null;
 	const requests: { method: string; path: string; body?: unknown }[] = [];
 	const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 		// Read the request without ever building a Request from the app's own: its abort signal belongs to
@@ -163,6 +215,44 @@ export function standIn({
 			if (part === "/balances") return json(balances);
 			if (part === "/actions") return json({ state: "paused" });
 			if (part === "/recipe") return json({ definitionId: "d".repeat(64) });
+		}
+		if (url.pathname === "/v1/manager/trader/stop") {
+			if (traderRun) traderRun = { ...traderRun, status: "stopped" };
+			return json({ run: traderRun });
+		}
+		if (url.pathname === "/v1/manager/trader") {
+			if (request.method === "POST") {
+				const cash = (body as { cashUsd?: number } | undefined)?.cashUsd ?? 0;
+				traderRun = {
+					...TRADER_RUN,
+					startingCash: cash.toFixed(2),
+					cash: cash.toFixed(2),
+					worth: cash.toFixed(2),
+				};
+			}
+			return json({ run: traderRun });
+		}
+		if (url.pathname === "/v1/manager/messages") {
+			if (!keyHint)
+				return json({ error: { message: "add your Anthropic key in settings first" } }, 409);
+			const said = (body as { messages?: { text: string }[] } | undefined)?.messages ?? [];
+			if (said.at(-1)?.text.includes("broke"))
+				return json({ error: { message: "Your Anthropic credit has run out" } }, 429);
+			return json({
+				reply: `You asked: ${said.at(-1)?.text}`,
+				costUsd: 0.0123,
+				looked: [{ tool: "list_machines", ok: true }],
+			});
+		}
+		if (url.pathname === "/v1/manager/key") {
+			if (request.method === "PUT") {
+				const key = (body as { key?: string } | undefined)?.key ?? "";
+				if (key.includes("refused"))
+					return json({ error: { message: "Anthropic did not accept that key" } }, 400);
+				keyHint = key.slice(-4);
+			}
+			if (request.method === "DELETE") keyHint = undefined;
+			return json(keyHint ? { set: true, hint: keyHint } : { set: false });
 		}
 		if (url.pathname === "/v1/machines" && request.method === "POST")
 			return json({ machineId: "new", walletAddress: machine.walletAddress }, 201);

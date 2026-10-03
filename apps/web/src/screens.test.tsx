@@ -92,12 +92,6 @@ describe("every screen a tile opens, signed in with a machine at work", () => {
 		expect(it_.getByRole("button", { name: "Fund from my wallet" })).toBeEnabled();
 	});
 
-	it("the manager: what needs you", async () => {
-		renderAt("/manager");
-		const manager = await screenNamed("Manager");
-		expect(await manager.findByText("What it watches")).toBeInTheDocument();
-	});
-
 	it("settings: your wallet, more settings, fees and the theme", async () => {
 		renderAt("/settings");
 		const settings = await screenNamed("Settings");
@@ -203,7 +197,6 @@ describe("signed out", () => {
 		["/profit", "Profit"],
 		["/fleet", "Your machines"],
 		["/vault", "Vault"],
-		["/manager", "Manager"],
 	])("%s asks you to connect rather than showing nothing", async (path, title) => {
 		renderAt(path);
 		const page = await screenNamed(title);

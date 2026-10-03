@@ -4,25 +4,36 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
+import { hintFor, openSecret, parseSealingKey, sealSecret } from "@maschina/auth/sealed";
 import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
+	clearOwnerSecret,
 	createDatabase,
 	haltInForce,
 	machineForOwner,
 	machinesOf,
 	readMachineEvents,
+	readOwnerSecret,
 	retuneMachine,
+	setOwnerSecret,
 } from "@maschina/db";
-import { rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
+import { CHOICES, claude, converse, type Message } from "@maschina/manager";
+import { jupiterMarket, rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
+import type { Logger } from "@maschina/telemetry";
+import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
 import { fundingTransaction } from "./funding.ts";
+import { brainTools, SYSTEM } from "./manager-brain.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
 import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
+import type { ManagerPorts } from "./routes/manager.ts";
 import { walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
+import { traderRunner } from "./trader-runner.ts";
+import { traderView } from "./trader-view.ts";
 
 /** A session lasts a week, and a sentence waiting to be signed lasts five minutes. */
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -39,9 +50,10 @@ export type GatewayConfig = {
 	GATEWAY_DOMAIN: string;
 	GATEWAY_APP_URL: string;
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
+	GATEWAY_SECRETS_KEY?: string | undefined;
 };
 
-export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) {
+export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, logger?: Logger) {
 	const database = createDatabase({ url: config.DATABASE_URL, applicationName: "gateway" });
 	const provisioner = provisionerClient({
 		url: config.PROVISIONER_URL,
@@ -131,5 +143,98 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		return found ? { reason: found.reason, since: found.engagedAt } : undefined;
 	};
 
-	return { ports, auth, cookie, halt, close: database.close };
+	const market = jupiterMarket();
+	const sealing =
+		config.GATEWAY_SECRETS_KEY === undefined
+			? undefined
+			: parseSealingKey(config.GATEWAY_SECRETS_KEY);
+	const runner = logger ? traderRunner({ db: database.db, sealing, logger }) : undefined;
+	const noRunner = () => {
+		throw new MaschinaError("unavailable", "the trader is not running here");
+	};
+	const asStatus = (run: { id: string; state: Parameters<typeof traderView>[1] } | undefined) => ({
+		run: run ? traderView(run.id, run.state) : null,
+	});
+	const manager: ManagerPorts = {
+		trader: async (ownerId) => asStatus(await (runner ?? noRunner()).latest(ownerId)),
+		startTrader: async (ownerId, cashUsd) => {
+			if (!(await readOwnerSecret(database.db, ownerId, "anthropic")))
+				throw new MaschinaError("conflict", "add your Anthropic key in settings first");
+			return asStatus(
+				await (runner ?? noRunner()).begin(ownerId, BigInt(Math.round(cashUsd * 1_000_000))),
+			);
+		},
+		stopTrader: async (ownerId) => asStatus(await (runner ?? noRunner()).end(ownerId)),
+		ownerOf: sessions.ownerOf,
+		keyStatus: async (ownerId) => {
+			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
+			return stored
+				? { set: true, hint: stored.hint, setAt: stored.setAt.toISOString() }
+				: { set: false };
+		},
+		setKey: async (ownerId, key) => {
+			if (!sealing) throw new MaschinaError("unavailable", "keys cannot be kept here yet");
+			await checkAnthropicKey(key);
+			await setOwnerSecret(database.db, {
+				ownerId,
+				kind: "anthropic",
+				sealed: sealSecret(sealing, key),
+				hint: hintFor(key),
+			});
+			return { set: true, hint: hintFor(key), setAt: new Date().toISOString() };
+		},
+		clearKey: async (ownerId) => {
+			await clearOwnerSecret(database.db, ownerId, "anthropic");
+		},
+		ask: async (ownerId, said, choice) => {
+			const started = Date.now();
+			const model = CHOICES[choice.model];
+			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
+			if (!stored || !sealing)
+				throw new MaschinaError("conflict", "add your Anthropic key in settings first");
+			const key = openSecret(sealing, stored.sealed);
+			const tools = brainTools({
+				machines: async () => (await machinesOf(database.db, ownerId)).map(asSummary),
+				record: async (machineId) => {
+					const machine = await machineForOwner(database.db, ownerId, machineId);
+					if (!machine) return undefined;
+					return asRecord(await readMachineEvents(database.db, machineId), 25);
+				},
+				scan: (request) => market(request),
+			});
+			const messages: Message[] = said.map((each) => ({
+				role: each.role === "you" ? "user" : "assistant",
+				content: each.text,
+			}));
+			const turn = await converse({
+				claude: claude(key),
+				model: model.id,
+				system: SYSTEM,
+				messages,
+				tools,
+				effort: choice.effort,
+			});
+			return {
+				reply: turn.reply,
+				costUsd: turn.costUsd,
+				model: model.name,
+				seconds: Math.round((Date.now() - started) / 100) / 10,
+				looked: turn.calls.map((call) => ({ tool: call.name, ok: call.ok })),
+				steps: turn.steps,
+			};
+		},
+	};
+
+	return {
+		ports,
+		auth,
+		cookie,
+		halt,
+		manager,
+		runner,
+		close: async () => {
+			runner?.stop();
+			await database.close();
+		},
+	};
 }

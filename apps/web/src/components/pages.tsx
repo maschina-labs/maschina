@@ -57,8 +57,6 @@ function SignedOutGrid({ pick = SIGNED_OUT_PICK }: { pick?: number }) {
 	return (
 		<>
 			{layout.map((size, index) => (
-				// The arrangement never changes while it is on screen, so a tile's place is its identity.
-				// biome-ignore lint/suspicious/noArrayIndexKey: see above
 				<Tile key={index} size={size} label="Connect to see your machines">
 					{signedOut}
 				</Tile>
