@@ -17,7 +17,7 @@ export function FoggedGlass({ mode = "dark" }: { mode?: "dark" | "light" }) {
 	return (
 		<div
 			aria-hidden="true"
-			className={`pointer-events-none fixed inset-0 z-0 ${mode === "light" ? "bg-white/40" : "bg-black/55"}`}
+			className={`pointer-events-none fixed inset-0 z-0 ${mode === "light" ? "bg-[oklch(1_0_0/0.4)]" : "bg-[oklch(0_0_0/0.55)]"}`}
 		/>
 	);
 }

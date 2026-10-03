@@ -135,7 +135,7 @@ function SearchBox({ onClose }: { onClose: () => void }) {
 				onClick={onClose}
 				className="absolute inset-0 cursor-default"
 			/>
-			<div className="relative flex h-fit max-h-[62vh] w-full max-w-[600px] flex-col bg-[oklch(0.15_0_0)]">
+			<div className="relative flex h-fit max-h-[62vh] w-full max-w-[600px] flex-col bg-(--surface-sheet)">
 				<label className="flex items-center gap-3 px-5">
 					<MagnifyingGlass size={20} weight="light" className="shrink-0 text-neutral-400" />
 					<input

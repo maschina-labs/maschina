@@ -169,3 +169,56 @@ input[type="range"].square::-moz-range-thumb {
 		opacity: 1;
 	}
 }
+
+/*
+ * The surfaces things sit on: the sheet a tile opens into, the sidebars, bars, toasts and banners. Named
+ * once here so light mode can turn each over with the rest of the palette.
+ */
+:root {
+	--surface-sheet: oklch(15% 0 0);
+	--surface-panel: oklch(13% 0 0 / 0.82);
+	--surface-bar: oklch(13% 0 0 / 0.78);
+	--surface-chip: oklch(24% 0 0 / 0.78);
+	--surface-raised: oklch(17% 0 0);
+	--surface-banner: oklch(18% 0 0);
+	--surface-alert: oklch(20% 0.04 60);
+}
+
+/*
+ * Light mode. Every color in the app is one of these variables, so light mode is the scale turned over:
+ * what was white is near black, the lightest grays become the darkest, and black becomes white. Every
+ * screen follows without a light version of its own, and nothing can be forgotten.
+ */
+:root[data-mode="light"] {
+	--surface-sheet: oklch(96.5% 0 0);
+	--surface-panel: oklch(97% 0 0 / 0.86);
+	--surface-bar: oklch(97% 0 0 / 0.82);
+	--surface-chip: oklch(90% 0 0 / 0.82);
+	--surface-raised: oklch(95% 0 0);
+	--surface-banner: oklch(92% 0 0);
+	--surface-alert: oklch(92% 0.05 70);
+	--color-white: oklch(18% 0 0);
+	--color-black: #fff;
+	--color-neutral-50: oklch(14.5% 0 0);
+	--color-neutral-100: oklch(20.5% 0 0);
+	--color-neutral-200: oklch(26.9% 0 0);
+	--color-neutral-300: oklch(37.1% 0 0);
+	--color-neutral-400: oklch(38% 0 0);
+	--color-neutral-500: oklch(44% 0 0);
+	--color-neutral-600: oklch(52% 0 0);
+	--color-neutral-700: oklch(70% 0 0);
+	--color-neutral-800: oklch(92.2% 0 0);
+	--color-neutral-900: oklch(97% 0 0);
+	--color-neutral-950: oklch(98.5% 0 0);
+	color-scheme: light;
+}
+
+/* The logo files are white; on a light page they are drawn dark. */
+:root[data-mode="light"] img[src^="/brand/"] {
+	filter: invert(1);
+}
+
+/* The charts paint their own colors on a canvas. They are grayscale, so turning them over is exact. */
+:root[data-mode="light"] .tv-lightweight-charts {
+	filter: invert(1);
+}

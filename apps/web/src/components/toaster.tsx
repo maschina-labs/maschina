@@ -47,7 +47,7 @@ function Line({ toast: line }: { toast: Toast }) {
 	const Icon = line.tone === "problem" ? WarningCircle : CheckCircle;
 	return (
 		<p
-			className={`flex w-full items-center gap-3 bg-[oklch(0.17_0_0)] px-4 py-3 font-display text-[15px] text-neutral-100 transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+			className={`flex w-full items-center gap-3 bg-(--surface-raised) px-4 py-3 font-display text-[15px] text-neutral-100 transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
 		>
 			<Icon
 				size={18}

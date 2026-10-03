@@ -130,6 +130,9 @@ const hourNow = () => {
 };
 
 function readTheme(): Theme {
+	// ?theme=light and the like, while developing, to look at a theme without changing the saved one.
+	const asked = preview("theme");
+	if (asked) return themeFrom(asked);
 	try {
 		return themeFrom(localStorage.getItem(KEY));
 	} catch {

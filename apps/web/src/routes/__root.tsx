@@ -44,6 +44,10 @@ function Field() {
 				? "right"
 				: undefined;
 	const splash = useSplash();
+	// The page's whole palette follows the mode, from one attribute: see the light mode block in styles.css.
+	useEffect(() => {
+		document.documentElement.dataset["mode"] = mode;
+	}, [mode]);
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.

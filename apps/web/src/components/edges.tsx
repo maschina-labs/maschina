@@ -106,7 +106,7 @@ export function SideRail() {
 			key={edge}
 			aria-label={label}
 			aria-hidden={open !== edge}
-			className={`fixed inset-y-0 z-40 flex flex-col bg-[oklch(0.13_0_0/0.82)] backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
+			className={`fixed inset-y-0 z-40 flex flex-col bg-(--surface-panel) backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
 				from === "left"
 					? `left-0 ${open === edge ? "translate-x-0" : "-translate-x-full"}`
 					: `right-0 ${open === edge ? "translate-x-0" : "translate-x-full"}`
@@ -156,7 +156,7 @@ export function openEdge(edge: Edge) {
 }
 
 const PANEL =
-	"fixed z-40 bg-[oklch(0.13_0_0/0.78)] backdrop-blur-2xl transition-[translate,transform,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]";
+	"fixed z-40 bg-(--surface-bar) backdrop-blur-2xl transition-[translate,transform,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]";
 
 /** How far a panel has to be dragged towards its edge before letting go closes it. */
 const DISMISS = 90;
@@ -424,9 +424,7 @@ function Dock({
 					onClick={() => onPress(edge)}
 					// Square glass, the same as the account tile.
 					className={`relative grid size-[58px] place-items-center backdrop-blur-xl transition-colors duration-300 ${
-						open === edge
-							? "bg-white text-neutral-950"
-							: "bg-[oklch(0.24_0_0/0.78)] text-neutral-100"
+						open === edge ? "bg-white text-neutral-950" : "bg-(--surface-chip) text-neutral-100"
 					}`}
 				>
 					<Icon size={26} weight="light" />

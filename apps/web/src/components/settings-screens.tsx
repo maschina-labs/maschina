@@ -82,9 +82,6 @@ export function SettingsScreen() {
 					your account and personal data, arrive with accounts.
 				</Note>
 			</Panel>
-			<Panel size="small" name="Your AI key">
-				<Note>Bring your own key for the AI manager, when it arrives.</Note>
-			</Panel>
 		</>
 	);
 }
