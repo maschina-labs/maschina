@@ -67,3 +67,22 @@ export function portfolioPnl(records: RecordEntry[][]): PnlPoint[] {
 		return { time: change.time, value: total };
 	});
 }
+
+/**
+ * Profit history as a tile shows it: the running total, in dollars, over the last stretch of time, and
+ * how much it moved in that stretch. Starts from where it stood when the stretch began, so a quiet week
+ * shows as flat rather than as nothing.
+ */
+export function recent(
+	points: PnlPoint[],
+	days: number,
+	now = Date.now(),
+): { series: number[]; change: number } {
+	const since = now / 1000 - days * 86_400;
+	const before = [...points].reverse().find((point) => point.time < since);
+	const inside = points.filter((point) => point.time >= since);
+	const series = [...(before ? [before] : [{ time: since, value: 0n }]), ...inside].map(
+		(point) => Number(point.value) / 1_000_000,
+	);
+	return { series, change: (series.at(-1) ?? 0) - (series[0] ?? 0) };
+}

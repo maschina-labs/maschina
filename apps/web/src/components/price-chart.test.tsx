@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { candleTime } from "../lib/trades.ts";
 
 // No canvas in a test browser, so the chart library is stood in for. What is tested is the wiring:
 // history first, then the live stream, and everything torn down when the chart leaves the screen.
@@ -112,13 +113,33 @@ describe("the price chart", () => {
 		expect(removePriceLine).toHaveBeenCalledTimes(2);
 	});
 
-	it("pins the machine's trades on the candles they happened in", () => {
-		fetchCandles.mockResolvedValue([]);
+	it("pins the machine's trades on the candles they happened in, and leaves off any from before", async () => {
 		const at = Date.parse("2026-09-28T06:22:39Z");
-		render(<PriceChart interval="15m" trades={[{ at, side: "buy", price: 118.78 }]} />);
-
-		expect(setMarkers).toHaveBeenLastCalledWith([
-			expect.objectContaining({ position: "belowBar", shape: "arrowUp", text: "BUY 118.78" }),
+		// One candle from an hour before the trade: the chart starts there.
+		fetchCandles.mockResolvedValue([
+			// In local time, as the candles the app loads are.
+			{
+				time: candleTime(at - 3_600_000, "15m", new Date().getTimezoneOffset()),
+				open: 1,
+				high: 1,
+				low: 1,
+				close: 1,
+				volume: 1,
+			},
 		]);
+		render(
+			<PriceChart
+				interval="15m"
+				trades={[
+					{ at, side: "buy", price: 118.78 },
+					{ at: at - 86_400_000, side: "sell", price: 120 },
+				]}
+			/>,
+		);
+		await vi.waitFor(() =>
+			expect(setMarkers).toHaveBeenLastCalledWith([
+				expect.objectContaining({ position: "belowBar", shape: "arrowUp", text: "BUY 118.78" }),
+			]),
+		);
 	});
 });

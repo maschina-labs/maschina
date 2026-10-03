@@ -44,7 +44,9 @@ export function Odometer({ value }: { value: string }) {
 							className="relative inline-block h-[1em] overflow-hidden leading-none"
 						>
 							<span
-								className="flex flex-col transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+								// Centered in their column: in a font whose digits differ in width, a narrow one would
+								// otherwise sit left of a gap.
+								className="flex flex-col items-center transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
 								style={{ transform: `translateY(-${Number(character)}em)` }}
 							>
 								{[...DIGITS].map((digit) => (

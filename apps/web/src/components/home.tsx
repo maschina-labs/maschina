@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import { amount, holdingOf, useBalances, useMachines } from "../lib/machines.ts";
 import { type Day, streamDay } from "../lib/market.ts";
+import { portfolioPnl, recent } from "../lib/pnl.ts";
 import { totalsOf } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
 import { useSide } from "../lib/side.ts";
@@ -11,8 +12,10 @@ import { tradesFrom } from "../lib/trades.ts";
 import { bandOf, useMachineAtWork } from "./at-work.tsx";
 import { Tile, TileEmpty, TileLoading } from "./bento.tsx";
 import { Odometer } from "./odometer.tsx";
+import { useSidePicture } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
 import { firstRunStep, StartHere } from "./start-here.tsx";
+import { deltaOf, Stat } from "./stat.tsx";
 
 /**
  * Home: one tile, one job. Each shows a single figure or a single line, quiet, with its name small
@@ -94,6 +97,8 @@ export function HomeTiles() {
 	const mine = session.data ? machines.data : [];
 	const side = useSide();
 	const totals = mine ? totalsOf(mine, side) : undefined;
+	// The last week of realized profit, for the big tile's sparkline and its change.
+	const week = recent(portfolioPnl(useSidePicture().map((each) => each.record)), 7);
 	const latest = record[0];
 	// Until a machine has started, the big tile on the left walks you through getting one going.
 	const firstRun = firstRunStep({ signedIn: Boolean(session.data), machines: mine });
@@ -124,7 +129,13 @@ export function HomeTiles() {
 			) : (
 				<Tile size="large" to="/profit" label="Realized profit">
 					{totals ? (
-						<Figure value={amount(totals.realized.toString())} note="USDC" name="Realized" />
+						<Stat
+							label="Realized profit"
+							value={amount(totals.realized.toString())}
+							unit="USDC"
+							series={week.series}
+							delta={deltaOf(week.series, (value) => `$${value.toFixed(2)}`, "7D")}
+						/>
 					) : (
 						<TileLoading />
 					)}

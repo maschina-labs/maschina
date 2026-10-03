@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { portfolioPnl, realizedSteps } from "./pnl.ts";
+import { portfolioPnl, realizedSteps, recent } from "./pnl.ts";
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SOL = "So11111111111111111111111111111111111111112";
@@ -85,5 +85,26 @@ describe("realized profit over time", () => {
 			payload: { tradeId: "nobody", inputAmount: "1", outputAmount: "1" },
 		};
 		expect(realizedSteps([...events, repeated, orphan])).toEqual(realizedSteps(events));
+	});
+});
+
+describe("recent profit, for a tile", () => {
+	const day = 86_400;
+	const now = 100 * day * 1000;
+	const points = [
+		{ time: 80 * day, value: 1_000_000n },
+		{ time: 95 * day, value: 3_000_000n },
+		{ time: 99 * day, value: 4_500_000n },
+	];
+
+	it("starts from where it stood a week ago, and says how far it moved since", () => {
+		expect(recent(points, 7, now)).toEqual({ series: [1, 3, 4.5], change: 3.5 });
+	});
+
+	it("starts at zero when nothing came before the stretch", () => {
+		expect(recent([{ time: 99 * day, value: 2_000_000n }], 7, now)).toEqual({
+			series: [0, 2],
+			change: 2,
+		});
 	});
 });
