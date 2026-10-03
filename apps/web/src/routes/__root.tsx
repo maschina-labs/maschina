@@ -8,6 +8,7 @@ import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
 import { Search } from "../components/search.tsx";
+import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
 import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
@@ -42,6 +43,7 @@ function Field() {
 			: edge === "right" || edge === "account" || edge === "sections"
 				? "right"
 				: undefined;
+	const splash = useSplash();
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.
@@ -63,10 +65,12 @@ function Field() {
 			 * size themselves from the stage (cqw, cqh), and the transform keeps the detail layer inside it.
 			 */}
 			<div
-				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)] transition-[left,right] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
+				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)] transition-[left,right,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
 				style={{
 					left: pushedFrom === "left" ? "var(--side)" : 0,
 					right: pushedFrom === "right" ? "var(--side)" : 0,
+					// The app fades in as the logo fades out, the first time it opens on a visit.
+					opacity: splash === "mark" ? 0 : 1,
 				}}
 			>
 				<div className="relative h-full">
@@ -82,6 +86,7 @@ function Field() {
 			<HaltBanner />
 			<PaperBanner />
 			<TabTitle />
+			<Splash phase={splash} />
 			<Grain />
 		</div>
 	);
