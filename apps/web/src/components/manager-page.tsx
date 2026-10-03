@@ -128,8 +128,6 @@ export function ManagerPage() {
 					) : (
 						messages.map((message, index) => (
 							<div
-								// A conversation only grows, so each message's place is its identity.
-								// biome-ignore lint/suspicious/noArrayIndexKey: see above
 								key={index}
 								className={`max-w-[75%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : message.failed ? "self-start border border-white/20 text-neutral-300" : "self-start bg-white/[0.08] text-neutral-100"}`}
 							>

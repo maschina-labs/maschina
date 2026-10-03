@@ -39,8 +39,6 @@ import { compactToken } from "./manager-brain.ts";
 /** Every few seconds: often enough that an exit plan sells near where it said, rare enough for the free price feeds. */
 const TICK_MS = 5_000;
 
-export type TraderRunner = ReturnType<typeof traderRunner>;
-
 export function traderRunner(options: {
 	db: Database;
 	sealing: SealingKey | undefined;

@@ -180,8 +180,6 @@ export function TraderPanel({ api }: { api: Api }) {
 					>
 						{run.log.map((entry, index) => (
 							<li
-								// The log only grows, newest first, so place is identity within one refresh.
-								// biome-ignore lint/suspicious/noArrayIndexKey: see above
 								key={`${entry.at}-${index}`}
 								className="whitespace-pre-wrap text-[13px] leading-snug text-neutral-300"
 							>

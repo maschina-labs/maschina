@@ -7,7 +7,7 @@
 
 import { MaschinaError } from "@maschina/core";
 
-export const ANTHROPIC_API = "https://api.anthropic.com";
+const ANTHROPIC_API = "https://api.anthropic.com";
 
 export async function checkAnthropicKey(
 	key: string,
