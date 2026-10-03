@@ -22,6 +22,7 @@ import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession, useSignOut } from "../lib/session.ts";
+import { setSide, useSide } from "../lib/side.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { useActivity } from "./portfolio.tsx";
 import { openSearch } from "./search.tsx";
@@ -593,6 +594,7 @@ function AlertsSection() {
 function CharmsPanel() {
 	const idle = useIdleMode();
 	const { theme } = useTheme();
+	const side = useSide();
 	const charm =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
 	return (
@@ -652,6 +654,23 @@ function CharmsPanel() {
 								className={`py-2 text-[13px] transition-colors ${theme === each.id ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
 							>
 								{each.name}
+							</button>
+						))}
+					</div>
+				</div>
+				{/* Which money is shown, live or paper: one at a time, never the two in one number. */}
+				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
+					<span className="text-[15px] text-neutral-100">Money shown</span>
+					<div className="grid grid-cols-2 gap-1">
+						{(["live", "paper"] as const).map((each) => (
+							<button
+								key={each}
+								type="button"
+								aria-pressed={side === each}
+								onClick={() => setSide(each)}
+								className={`py-2 text-[13px] transition-colors ${side === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+							>
+								{each === "live" ? "Live" : "Paper"}
 							</button>
 						))}
 					</div>

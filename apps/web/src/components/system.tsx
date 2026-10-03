@@ -2,6 +2,7 @@ import { ArrowClockwise, House, Pause, WifiSlash } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
+import { setSide, useSide } from "../lib/side.ts";
 
 /**
  * The screens nobody wants to see, made quiet: a page that does not exist, something that broke, a
@@ -155,6 +156,31 @@ export function HaltBanner() {
 		>
 			<Pause size={16} weight="light" />
 			Machines are paused while {halt.reason}. You can still withdraw.
+		</div>
+	);
+}
+
+/**
+ * While paper is shown, a line across the top says so, so a paper number can never be read as money, with
+ * the way back to live one press away.
+ */
+export function PaperBanner() {
+	const side = useSide();
+	if (side !== "paper") return null;
+	return (
+		<div
+			role="status"
+			aria-label="Showing paper"
+			className="fixed inset-x-0 top-0 z-[79] flex items-center justify-center gap-3 bg-[oklch(0.22_0.02_250)] px-4 py-2 font-display text-[14px] text-neutral-100"
+		>
+			Showing paper: none of this is real money.
+			<button
+				type="button"
+				onClick={() => setSide("live")}
+				className="bg-white/[0.14] px-3 py-1 text-[13px] hover:bg-white/[0.22]"
+			>
+				Back to live
+			</button>
 		</div>
 	);
 }

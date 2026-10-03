@@ -13,6 +13,7 @@ import {
 import { compactUsd } from "../lib/market.ts";
 import { portfolioPnl } from "../lib/pnl.ts";
 import { type ActivityEntry, onPaper, totalsOf } from "../lib/portfolio.ts";
+import { useSide } from "../lib/side.ts";
 import { bandOf } from "../lib/status.ts";
 import { type Print, streamPrints } from "../lib/tape.ts";
 import { recordCsv } from "../lib/track-record.ts";
@@ -22,7 +23,7 @@ import { sentence, useSolDay } from "./home.tsx";
 import { BUTTON, Headline, Note, Panel, QUIET, Rows } from "./kit.tsx";
 import { winRate } from "./place-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
-import { useActivity, useLivePicture, useOperatingPicture } from "./portfolio.tsx";
+import { useActivity, useOperatingPicture, useSidePicture } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
 
 /**
@@ -76,11 +77,12 @@ function MachineRow({ machine, value }: { machine: MachineSummary; value: string
 }
 
 export function ProfitScreen() {
-	const picture = useLivePicture();
+	const picture = useSidePicture();
+	const side = useSide();
 	const machines = picture.map((each) => each.machine);
 	const signedIn = machines.length > 0 || picture.length > 0;
 	const points = portfolioPnl(picture.map((each) => each.record));
-	const totals = machines.length ? totalsOf(machines) : undefined;
+	const totals = machines.length ? totalsOf(machines, side) : undefined;
 	const wins = machines.reduce((sum, m) => sum + m.result.wins, 0);
 	const losses = machines.reduce((sum, m) => sum + m.result.losses, 0);
 	const fees = machines.reduce((sum, m) => sum + BigInt(m.result.feesLamports), 0n);
@@ -151,7 +153,7 @@ function VaultLine({ machine }: { machine: MachineSummary }) {
 }
 
 export function VaultScreen() {
-	const picture = useLivePicture();
+	const picture = useSidePicture();
 	const sweeps = picture
 		.flatMap(({ machine, record }) =>
 			record
@@ -189,12 +191,13 @@ export function VaultScreen() {
 }
 
 export function FleetScreen() {
+	const side = useSide();
 	const picture = useOperatingPicture();
 	const machines = picture.map((each) => each.machine);
-	const totals = machines.length ? totalsOf(machines) : undefined;
-	// Unspent money counts live machines that can still act; paper is never money (D-096).
+	const totals = machines.length ? totalsOf(machines, side) : undefined;
+	// Unspent money counts machines on the side shown that can still act; the sides never mix (D-096).
 	const available = machines
-		.filter((m) => !onPaper(m) && m.state !== "stopped")
+		.filter((m) => onPaper(m) === (side === "paper") && m.state !== "stopped")
 		.reduce((sum, m) => sum + BigInt(m.budget.available), 0n);
 	return (
 		<>
@@ -306,7 +309,7 @@ function OrdersLine({ machine }: { machine: MachineSummary }) {
 }
 
 export function TradesScreen() {
-	const picture = useLivePicture();
+	const picture = useSidePicture();
 	const trades = picture
 		.flatMap(({ machine, record }) => tradesFrom(record).map((trade) => ({ ...trade, machine })))
 		.sort((a, b) => b.at - a.at);

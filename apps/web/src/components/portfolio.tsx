@@ -4,6 +4,7 @@ import { standings, type Window } from "../lib/leaderboard.ts";
 import { recordQueryFor, useMachines } from "../lib/machines.ts";
 import { activityOf, onPaper } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
+import { useSide } from "../lib/side.ts";
 import { tradesFrom } from "../lib/trades.ts";
 
 /** The signed in owner's machines and every record, read once for whichever half a page shows. */
@@ -68,9 +69,10 @@ export function useOperatingPicture() {
 }
 
 /**
- * Live machines only, for every number that is money. Paper is a sandbox on live markets, and its figures
- * never reach a live total (D-096).
+ * The machines on the side being shown, live by default, for every number that is money. Paper is a
+ * sandbox on live markets: its figures never reach a live total, and live ones never reach paper (D-096).
  */
-export function useLivePicture() {
-	return useOperatingPicture().filter(({ machine }) => !onPaper(machine));
+export function useSidePicture() {
+	const side = useSide();
+	return useOperatingPicture().filter(({ machine }) => onPaper(machine) === (side === "paper"));
 }

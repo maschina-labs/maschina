@@ -5,7 +5,7 @@ import { describeEvent } from "../lib/describe.ts";
 import { useSession, useSignIn } from "../lib/session.ts";
 import { toast } from "../lib/toasts.ts";
 import { Away, BUTTON, Headline, Note, Onward, Panel, Rows } from "./kit.tsx";
-import { useLivePicture } from "./portfolio.tsx";
+import { useSidePicture } from "./portfolio.tsx";
 
 /**
  * Your wallet and getting in: the wallet screen and staking, signing in, the welcome, what to do with no
@@ -39,7 +39,7 @@ function useConnect() {
 }
 
 export function WalletScreen() {
-	const picture = useLivePicture();
+	const picture = useSidePicture();
 	const home = picture
 		.flatMap(({ machine, record }) =>
 			record
