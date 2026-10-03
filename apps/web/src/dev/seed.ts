@@ -318,10 +318,37 @@ export function seedRequested(): boolean {
 	}
 }
 
+/** Stand-in wallets, so the wallet picker can be looked at in a browser with none installed. */
+function standInWallets() {
+	const icon = (letter: string, color: string) =>
+		`data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="${color}"/><text x="16" y="21" font-family="sans-serif" font-size="15" fill="white" text-anchor="middle">${letter}</text></svg>`)}`;
+	const wallet = (name: string, letter: string, color: string) => ({
+		name,
+		icon: icon(letter, color),
+		chains: ["solana:mainnet"],
+		features: {
+			"standard:connect": { connect: async () => ({ accounts: [{ address: OWNER }] }) },
+			"solana:signMessage": { signMessage: async () => [{ signature: new Uint8Array(64) }] },
+		},
+	});
+	const wallets = [
+		wallet("Solflare", "S", "#fc7227"),
+		wallet("Jupiter", "J", "#1d2a3a"),
+		wallet("Backpack", "B", "#e33e3f"),
+	];
+	// As real wallets do: announce now, and answer the app when it says it is ready, whichever comes first.
+	const register = (api: { register(...all: unknown[]): void }) => api.register(...wallets);
+	window.addEventListener("wallet-standard:app-ready", (event) =>
+		register((event as CustomEvent<{ register(...all: unknown[]): void }>).detail),
+	);
+	window.dispatchEvent(new CustomEvent("wallet-standard:register-wallet", { detail: register }));
+}
+
 /** Answers the app's own API from the made-up data above; anything else goes out as usual. */
 export function installSeed(gateway: string) {
 	const host = new URL(gateway).host;
 	const real = window.fetch.bind(window);
+	standInWallets();
 	window.fetch = async (input, init) => {
 		const href = input instanceof Request ? input.url : String(input);
 		const method = (input instanceof Request ? input.method : init?.method) ?? "GET";

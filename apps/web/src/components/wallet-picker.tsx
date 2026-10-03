@@ -1,4 +1,4 @@
-import { Star, X } from "@phosphor-icons/react";
+import { PushPinSimple, X } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { preview } from "../lib/preview.ts";
 import {
@@ -64,11 +64,11 @@ export function WalletPicker() {
 				onClick={dismissPicker}
 				className="absolute inset-0 cursor-default bg-black/45 backdrop-blur-[2px]"
 			/>
-			<div className="relative flex w-full max-w-[400px] flex-col gap-4 bg-(--surface-sheet) p-6 shadow-[0_32px_64px_-16px_oklch(0_0_0/0.5)]">
+			<div className="relative flex w-full max-w-[380px] flex-col gap-5 bg-(--surface-sheet) p-6 shadow-[0_32px_64px_-16px_oklch(0_0_0/0.5)]">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex flex-col gap-1">
 						<h2 className="font-display text-[22px] text-neutral-100 leading-none">
-							Choose a wallet
+							Connect a wallet
 						</h2>
 						<p className="text-[13px] text-neutral-500">It signs you in. Nothing is spent.</p>
 					</div>
@@ -83,23 +83,29 @@ export function WalletPicker() {
 				</div>
 
 				{wallets.length ? (
-					<ul aria-label="Installed wallets" className="flex flex-col gap-1.5">
+					<ul aria-label="Installed wallets" className="flex flex-col gap-1">
 						{wallets.map((wallet) => {
 							const isDefault = chosenDefault === wallet.name;
 							return (
-								<li key={wallet.name} className="flex gap-1.5">
+								// One row: the wallet, and its pin inside the same surface rather than in a box of its own.
+								<li
+									key={wallet.name}
+									className="group relative flex items-center bg-white/[0.05] transition-colors hover:bg-white/[0.1]"
+								>
 									<button
 										type="button"
 										onClick={() => choose(wallet.name)}
-										className="flex flex-1 items-center gap-3 bg-white/[0.06] px-4 py-3 text-left transition-colors hover:bg-white/[0.12]"
+										className="flex flex-1 items-center gap-3.5 py-3.5 pr-14 pl-4 text-left"
 									>
-										<img src={wallet.icon} alt="" className="size-7 shrink-0 rounded-[6px]" />
-										<span className="flex-1 font-display text-[16px] text-neutral-100">
-											{wallet.name}
+										<img src={wallet.icon} alt="" className="size-8 shrink-0 rounded-[8px]" />
+										<span className="flex flex-col">
+											<span className="font-display text-[16px] text-neutral-100 leading-tight">
+												{wallet.name}
+											</span>
+											<span className="text-[12px] text-neutral-500">
+												{isDefault ? "Your default" : "Installed"}
+											</span>
 										</span>
-										{isDefault ? (
-											<span className="text-[12px] text-neutral-500">Default</span>
-										) : null}
 									</button>
 									<button
 										type="button"
@@ -111,9 +117,9 @@ export function WalletPicker() {
 										aria-pressed={isDefault}
 										title={isDefault ? "Your default" : "Make this your default"}
 										onClick={() => toggleDefault(wallet.name)}
-										className={`grid w-12 place-items-center transition-colors ${isDefault ? "bg-white/[0.14] text-neutral-100" : "bg-white/[0.06] text-neutral-500 hover:bg-white/[0.12] hover:text-neutral-100"}`}
+										className={`absolute right-2 grid size-9 place-items-center transition-opacity ${isDefault ? "text-neutral-100 opacity-100" : "text-neutral-500 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-neutral-100"}`}
 									>
-										<Star size={16} weight={isDefault ? "fill" : "light"} />
+										<PushPinSimple size={16} weight={isDefault ? "fill" : "light"} />
 									</button>
 								</li>
 							);

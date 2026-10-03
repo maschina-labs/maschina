@@ -143,8 +143,8 @@ describe("connecting", () => {
 		expect(
 			[...icons].map((icon) => icon.getAttribute("src")?.startsWith("data:image/svg+xml")),
 		).toEqual([true, true]);
-		expect(picker.queryByText("Default")).toBeNull();
-		fireEvent.click(listed.getByRole("button", { name: "Solflare" }));
+		expect(picker.queryByText("Your default")).toBeNull();
+		fireEvent.click(listed.getByRole("button", { name: /^Solflare/ }));
 		expect(await screen.findByText(/rejected the request/)).toBeInTheDocument();
 	});
 
@@ -164,7 +164,7 @@ describe("connecting", () => {
 			.getAllByRole("button")
 			.map((each) => each.textContent ?? "");
 		expect(names[0]).toContain("Solflare");
-		expect(picker.getByText("Default")).toBeInTheDocument();
+		expect(picker.getByText("Your default")).toBeInTheDocument();
 		fireEvent.keyDown(window, { key: "Escape" });
 	});
 });
