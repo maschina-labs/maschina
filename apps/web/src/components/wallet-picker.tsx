@@ -146,8 +146,7 @@ export function WalletPicker() {
 					</div>
 				)}
 				<p className="text-[12px] text-neutral-500">
-					The star makes a wallet your default: it is listed first, and nothing else is ever chosen
-					for you.
+					Pin one to make it your default. Nothing is chosen for you otherwise.
 				</p>
 			</div>
 		</div>
