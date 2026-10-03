@@ -94,9 +94,9 @@ export function newTrader(input: {
 		values: {},
 		valuesAtThink: {},
 		think: {
-			everyMs: input.think?.everyMs ?? 5 * 60_000,
+			everyMs: input.think?.everyMs ?? 60_000,
 			wakeOnMovePct: input.think?.wakeOnMovePct ?? 8,
-			dailyCapUsd: input.think?.dailyCapUsd ?? 1,
+			dailyCapUsd: input.think?.dailyCapUsd ?? 2,
 			day: input.now.toISOString().slice(0, 10),
 			spentTodayUsd: 0,
 			spentUsd: 0,
@@ -346,7 +346,8 @@ async function think(state: TraderState, ports: EnginePorts): Promise<TraderStat
 	try {
 		const turn = await converse({
 			claude: ports.claude,
-			model: MODELS.think,
+			// Fast and cheap, so it can look every minute without eating the owner's credit.
+			model: MODELS.glance,
 			system: SYSTEM,
 			messages: [{ role: "user", content: briefing(state, now) }],
 			tools,
@@ -355,6 +356,7 @@ async function think(state: TraderState, ports: EnginePorts): Promise<TraderStat
 			effort: "low",
 		});
 		const after = held.state;
+		const done = ports.now();
 		return note(
 			{
 				...after,
@@ -368,7 +370,8 @@ async function think(state: TraderState, ports: EnginePorts): Promise<TraderStat
 				},
 			},
 			{ kind: "think", text: turn.reply, costUsd: turn.costUsd },
-			now,
+			// Stamped when the look ends, so it reads after the trades it made.
+			done,
 		);
 	} catch (error) {
 		// A failed thought still counts as having looked, so a broken key is not retried every tick.

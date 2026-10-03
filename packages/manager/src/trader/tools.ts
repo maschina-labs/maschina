@@ -51,7 +51,7 @@ export function traderTools(held: { state: TraderState }, ports: EnginePorts): T
 						type: "integer",
 						minimum: 5,
 						maximum: 60,
-						description: "How many to show, default 30",
+						description: "How many to show, default 15",
 					},
 					skip: {
 						type: "integer",
@@ -65,7 +65,7 @@ export function traderTools(held: { state: TraderState }, ports: EnginePorts): T
 				if (!swept || now - swept.at > 60_000) swept = { at: now, tokens: await sweep(ports.scan) };
 				held.state = remember(held.state, swept.tokens);
 				const count =
-					typeof input["count"] === "number" ? Math.min(Math.max(input["count"], 5), 60) : 30;
+					typeof input["count"] === "number" ? Math.min(Math.max(input["count"], 5), 60) : 15;
 				const skip = typeof input["skip"] === "number" ? Math.max(input["skip"], 0) : 0;
 				const ranked = shortlist(swept.tokens, skip + count).slice(skip);
 				return {

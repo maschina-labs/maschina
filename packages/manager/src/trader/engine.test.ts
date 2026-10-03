@@ -81,11 +81,11 @@ async function holdingWif(state: TraderState) {
 }
 
 describe("a new paper trader", () => {
-	it("starts running with only cash, default limits, and a dollar a day to think with", () => {
+	it("starts running with only cash, default limits, and two dollars a day to think with", () => {
 		const trader = fresh();
 		expect(trader).toMatchObject({ status: "running", mode: "paper", values: {}, log: [] });
 		expect(trader.book.cash).toBe(40_000_000n);
-		expect(trader.think).toMatchObject({ everyMs: 300_000, dailyCapUsd: 1, spentUsd: 0 });
+		expect(trader.think).toMatchObject({ everyMs: 60_000, dailyCapUsd: 2, spentUsd: 0 });
 		expect(trader.limits.maxPerTrade).toBe(10_000_000n);
 	});
 });
@@ -105,7 +105,7 @@ describe("a tick", () => {
 
 	it("does not think again until it is time, or something moves", async () => {
 		const { after, setup } = await holdingWif(fresh());
-		setup.later(60_000);
+		setup.later(30_000);
 		await tick(after, setup.port);
 		expect(setup.claude).toHaveBeenCalledTimes(2);
 		// The price jumps 10%, past the 8% that wakes it.
@@ -263,7 +263,7 @@ describe("what the AI is told", () => {
 		expect(told).toContain("WIF");
 		expect(told).toContain("+9.9% since bought");
 		expect(told).toContain("at most $10.00 per buy");
-		expect(told).toContain("of a $1.00 cap");
+		expect(told).toContain("of a $2.00 cap");
 	});
 
 	it("values a holding at a price per whole token", () => {
