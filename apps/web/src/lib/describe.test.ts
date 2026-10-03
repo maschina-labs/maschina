@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeEvent } from "./describe.ts";
+import { describeEvent, withTradeMints } from "./describe.ts";
 
 const entry = (type: string, payload: Record<string, unknown> = {}) => ({
 	id: "e",
@@ -69,5 +69,54 @@ describe("saying what a machine did", () => {
 
 	it("still says something for a kind of entry it has no words for", () => {
 		expect(describeEvent(entry("authority.used")).title).toBe("AUTHORITY USED");
+	});
+});
+
+describe("a trade, told the right way round", () => {
+	const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+	const SOL = "So11111111111111111111111111111111111111112";
+	const entry = (type: string, payload: Record<string, unknown>, at: string) => ({
+		id: `${type}${at}`,
+		type,
+		occurredAt: at,
+		payload,
+	});
+
+	it("a sale says what it sold and what came back, each in its own token", () => {
+		const [sold] = withTradeMints([
+			entry(
+				"trade.completed",
+				{ tradeId: "s", inputAmount: "331230470", outputAmount: "40350000" },
+				"2026-10-02T10:01:00Z",
+			),
+			entry(
+				"trade.intended",
+				{ tradeId: "s", inputMint: SOL, outputMint: USDC },
+				"2026-10-02T10:00:00Z",
+			),
+		]);
+		expect(describeEvent(sold as never)).toEqual({
+			title: "SOLD",
+			detail: "0.3312 SOL · GOT 40.35 USDC",
+		});
+	});
+
+	it("a buy says what it spent and what it got", () => {
+		const [bought] = withTradeMints([
+			entry(
+				"trade.completed",
+				{ tradeId: "b", inputAmount: "40350000", outputAmount: "331230470" },
+				"2026-10-02T10:01:00Z",
+			),
+			entry(
+				"trade.intended",
+				{ tradeId: "b", inputMint: USDC, outputMint: SOL },
+				"2026-10-02T10:00:00Z",
+			),
+		]);
+		expect(describeEvent(bought as never)).toEqual({
+			title: "BOUGHT",
+			detail: "40.35 USDC · GOT 0.3312 SOL",
+		});
 	});
 });

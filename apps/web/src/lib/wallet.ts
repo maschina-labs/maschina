@@ -125,7 +125,7 @@ const pickerChanged = () => {
 	for (const watch of pickers) watch();
 };
 
-export class NoWalletChosen extends Error {
+class NoWalletChosen extends Error {
 	constructor() {
 		super("No wallet was chosen.");
 		this.name = "NoWalletChosen";

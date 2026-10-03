@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Deck, sectionIndex } from "../components/deck.tsx";
 import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
-import { FogBackground } from "../components/fog-background.tsx";
+import { cityTint, FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { PebbledGlassFilter } from "../components/pebbled-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
@@ -50,6 +50,12 @@ function Field() {
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
 	}, [mode]);
+	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
+	useEffect(() => {
+		const { cool, warm } = cityTint(mode, sky);
+		document.documentElement.style.setProperty("--tint-cool", cool);
+		document.documentElement.style.setProperty("--tint-warm", warm);
+	}, [mode, sky]);
 	// The glass the city is seen through, the same way: one attribute, so undoing it is one press.
 	const glass = useGlass();
 	useEffect(() => {

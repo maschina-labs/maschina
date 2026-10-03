@@ -54,6 +54,15 @@ const lab = ({ l, c, h }: Oklch) => {
 const vector = (color: Oklch) => new Vector3(...lab(color));
 const css = ({ l, c, h }: Oklch) => `oklch(${l} ${c} ${h})`;
 
+/**
+ * The city's own hue, for what sits in front of it: the sidebars take it on so they belong to the theme
+ * chosen, rather than being flat black or flat white. The slate and the glow, the two that carry color.
+ */
+export function cityTint(mode: Mode, sky?: Palette): { cool: string; warm: string } {
+	const palette = sky ?? CITY[mode];
+	return { cool: css(palette.upper), warm: css(palette.glow) };
+}
+
 const VERTEX = /* glsl */ `
 	varying vec2 vUv;
 	void main() {

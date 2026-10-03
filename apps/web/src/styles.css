@@ -176,8 +176,18 @@ input[type="range"].square::-moz-range-thumb {
  */
 :root {
 	--surface-sheet: oklch(15% 0 0);
-	--surface-panel: oklch(13% 0 0 / 0.82);
-	--surface-bar: oklch(13% 0 0 / 0.78);
+	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
+	   bottom, opaque enough to read on. */
+	--surface-panel: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--tint-cool, oklch(30% 0.02 232)) 22%, oklch(12% 0 0 / 0.9)),
+		color-mix(in oklab, var(--tint-warm, oklch(45% 0.05 77)) 14%, oklch(12% 0 0 / 0.9))
+	);
+	--surface-bar: color-mix(
+		in oklab,
+		var(--tint-cool, oklch(30% 0.02 232)) 20%,
+		oklch(12% 0 0 / 0.86)
+	);
 	--surface-chip: oklch(24% 0 0 / 0.78);
 	--surface-raised: oklch(17% 0 0);
 	--surface-banner: oklch(18% 0 0);
@@ -191,8 +201,16 @@ input[type="range"].square::-moz-range-thumb {
  */
 :root[data-mode="light"] {
 	--surface-sheet: oklch(96.5% 0 0);
-	--surface-panel: oklch(97% 0 0 / 0.86);
-	--surface-bar: oklch(97% 0 0 / 0.82);
+	--surface-panel: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--tint-cool, oklch(80% 0.02 232)) 18%, oklch(97% 0 0 / 0.9)),
+		color-mix(in oklab, var(--tint-warm, oklch(85% 0.04 77)) 14%, oklch(97% 0 0 / 0.9))
+	);
+	--surface-bar: color-mix(
+		in oklab,
+		var(--tint-cool, oklch(80% 0.02 232)) 16%,
+		oklch(97% 0 0 / 0.86)
+	);
 	--surface-chip: oklch(90% 0 0 / 0.82);
 	--surface-raised: oklch(95% 0 0);
 	--surface-banner: oklch(92% 0 0);

@@ -126,7 +126,7 @@ export function SideRail() {
 			key={edge}
 			aria-label={label}
 			aria-hidden={open !== edge}
-			className={`fixed inset-y-0 z-40 flex flex-col bg-(--surface-panel) backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
+			className={`fixed inset-y-0 z-40 flex flex-col [background:var(--surface-panel)] backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
 				from === "left"
 					? `left-0 ${open === edge ? "translate-x-0" : "-translate-x-full"}`
 					: `right-0 ${open === edge ? "translate-x-0" : "translate-x-full"}`
@@ -181,8 +181,13 @@ export function openEdge(edge: Edge) {
 	setEdge(edge);
 }
 
+/** Opens a sidebar, or closes it when it is the one already open: one button, both ways. */
+export function toggleEdge(edge: Edge) {
+	setEdge(current === edge ? undefined : edge);
+}
+
 /** Search lives in the header: open it, and put the cursor in the field once it is there. */
-export function openSearch() {
+function openSearch() {
 	setEdge("top");
 	requestAnimationFrame(() => focusSearch());
 }

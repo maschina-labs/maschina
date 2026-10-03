@@ -195,6 +195,20 @@ describe("the account sidebar", () => {
 		await vi.waitFor(() => expect(account.queryByText("3KnH…bEQF")).not.toBeInTheDocument());
 	});
 
+	it("opens and closes from the same account button", async () => {
+		renderAt("/");
+		await home();
+		fireEvent.keyDown(window, { key: "Escape" });
+		const button = (
+			await screen.findAllByRole("button", { name: "Your account" })
+		)[0] as HTMLElement;
+		fireEvent.click(button);
+		const panel = (await screen.findByText(/^Showing (live|paper) money$/)).closest("aside");
+		await vi.waitFor(() => expect(panel?.className).toContain("translate-x-0"));
+		fireEvent.click(button);
+		await vi.waitFor(() => expect(panel?.className).not.toContain("translate-x-0"));
+	});
+
 	it("takes you to settings, alerts and the papers", async () => {
 		const account = await openAccount();
 		fireEvent.click(account.getByRole("button", { name: "Alerts" }));

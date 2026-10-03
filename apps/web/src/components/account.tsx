@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useSession, useSignIn } from "../lib/session.ts";
 import { toast } from "../lib/toasts.ts";
-import { openEdge } from "./edges.tsx";
+import { toggleEdge } from "./edges.tsx";
 
 /**
  * The corner: the wallet you signed in with, at a glance, and a tile that opens your account in its own
@@ -31,7 +31,7 @@ export function Account() {
 				<button
 					type="button"
 					aria-label="Your account"
-					onClick={() => openEdge("account")}
+					onClick={() => toggleEdge("account")}
 					className={TILE}
 				>
 					<User size={24} weight="light" />
