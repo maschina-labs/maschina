@@ -193,9 +193,10 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 				tools,
 			});
 			return {
-				reply: turn.reply || "I had nothing to add.",
+				reply: turn.reply,
 				costUsd: turn.costUsd,
 				looked: turn.calls.map((call) => ({ tool: call.name, ok: call.ok })),
+				steps: turn.steps,
 			};
 		},
 	};

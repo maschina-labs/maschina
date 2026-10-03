@@ -25,6 +25,8 @@ export type Turn = {
 	calls: ToolCall[];
 	usage: Usage;
 	costUsd: number;
+	/** How each step ended and what kinds of block it held, for the logs. Never the words themselves. */
+	steps: { stopReason: string; blocks: string[] }[];
 };
 
 const MAX_STEPS = 8;
@@ -41,6 +43,10 @@ export async function converse(request: {
 }): Promise<Turn> {
 	const messages = [...request.messages];
 	const calls: ToolCall[] = [];
+	const steps: Turn["steps"] = [];
+	// Everything Claude wrote this turn. It often answers in the same step as its last look, so the final
+	// step alone can be empty while the answer sits one step earlier.
+	const written: string[] = [];
 	let usage = NO_USAGE;
 	const specs = request.tools.map(({ name, description, input_schema }) => ({
 		name,
@@ -55,20 +61,27 @@ export async function converse(request: {
 			// A copy: what was sent stays what was sent, whatever is added after.
 			messages: [...messages],
 			tools: specs,
-			maxTokens: request.maxTokens ?? 2_000,
+			maxTokens: request.maxTokens ?? 4_000,
 		});
 		usage = addUsage(usage, answer.usage);
 		messages.push({ role: "assistant", content: answer.content });
+		steps.push({
+			stopReason: answer.stopReason,
+			blocks: answer.content.map((block) => block.type),
+		});
+		const text = textOf(answer.content);
+		if (text) written.push(text);
 
 		const uses = answer.content.filter(
 			(block): block is Extract<ContentBlock, { type: "tool_use" }> => block.type === "tool_use",
 		);
 		if (answer.stopReason !== "tool_use" || uses.length === 0) {
 			return {
-				reply: textOf(answer.content),
+				reply: replyFrom(text, written, answer.stopReason),
 				messages,
 				calls,
 				usage,
+				steps,
 				costUsd: costOf(request.model, usage),
 			};
 		}
@@ -97,8 +110,18 @@ export async function converse(request: {
 		messages,
 		calls,
 		usage,
+		steps,
 		costUsd: costOf(request.model, usage),
 	};
+}
+
+/** The answer to show: this step's words, or the turn's if this step said nothing, and why it stopped. */
+function replyFrom(last: string, written: string[], stopReason: string): string {
+	const said = last || written.join("\n\n");
+	if (stopReason === "max_tokens")
+		return `${said}\n\n[I ran out of room for this answer. Ask me to go on.]`.trim();
+	if (said) return said;
+	return `I looked, then wrote nothing back (Claude stopped with "${stopReason}"). That is a fault on Maschina's side, not yours. Ask again.`;
 }
 
 const textOf = (content: ContentBlock[]) =>

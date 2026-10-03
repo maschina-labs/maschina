@@ -28,7 +28,7 @@ export type ManagerPorts = {
 	ask(
 		ownerId: string,
 		messages: ManagerMessageRequest["messages"],
-	): Promise<ManagerMessageResponse>;
+	): Promise<ManagerMessageResponse & { steps?: { stopReason: string; blocks: string[] }[] }>;
 };
 
 /** A gateway with nowhere to keep keys: signed in owners are told so, rather than shown nothing. */
@@ -153,6 +153,10 @@ export function managerRoutes(ports: ManagerPorts) {
 		.openapi(ask, async (c) => {
 			const who = await owner(c);
 			const { messages } = c.req.valid("json");
-			return c.json(ManagerMessageResponse.parse(await ports.ask(who.ownerId, messages)), 200);
+			const { steps, ...answer } = await ports.ask(who.ownerId, messages);
+			// How each step ended and what it held, never what was said: enough to tell why an answer
+			// came back empty or cut short.
+			if (steps) c.get("logger").info({ steps, costUsd: answer.costUsd }, "manager turn");
+			return c.json(ManagerMessageResponse.parse(answer), 200);
 		});
 }

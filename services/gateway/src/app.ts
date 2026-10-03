@@ -61,6 +61,8 @@ export function buildApp(deps: GatewayDeps) {
 		service: SERVICE,
 		logger: deps.logger,
 		reporter: deps.reporter,
+		// The manager may look several things up and think before it answers.
+		slowPaths: { "/v1/manager/messages": 120_000 },
 	});
 
 	app.use(

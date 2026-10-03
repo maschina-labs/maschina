@@ -1,18 +1,15 @@
 import { ArrowUp } from "@phosphor-icons/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ApiError, useMachines } from "../lib/machines.ts";
+import { ApiError } from "../lib/machines.ts";
 import { useManagerKey } from "../lib/manager-key.ts";
-import { fetchPrice } from "../lib/price.ts";
 import { useSession } from "../lib/session.ts";
-import { suggestionsFor } from "../lib/suggestions.ts";
 import { openEdge } from "./edges.tsx";
-import { sentence } from "./home.tsx";
 
 /**
  * The manager: a conversation in the main area, with the left sidebar of machines and conversations open
- * beside it. It thinks on the owner's own key, set in settings, and each answer says what it cost. The
+ * beside it, and nothing else on the page. It thinks on the owner's own key, set in settings, and each answer says what it cost. The
  * conversation lives only in this page: the gateway keeps nothing between turns.
  */
 
@@ -54,13 +51,6 @@ const STARTERS = [
 export function ManagerPage() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
-	const machines = useMachines(api);
-	const price = useQuery({
-		queryKey: ["sol-price"],
-		queryFn: () => fetchPrice(),
-		refetchInterval: 5_000,
-	});
-	const notes = suggestionsFor(session.data ? (machines.data ?? []) : [], price.data?.usd);
 	const key = useManagerKey(api, Boolean(session.data));
 	const [messages, setMessages] = useState<Message[]>([]);
 	const thinking = useMutation({
@@ -153,24 +143,6 @@ export function ManagerPage() {
 				{thinking.isPending ? (
 					<div role="status" className="self-start px-4 py-3 text-[15px] text-neutral-500">
 						Thinking
-					</div>
-				) : null}
-				{notes.length ? (
-					<div className="flex flex-col gap-1.5 pt-2">
-						<span className="text-[13px] text-neutral-500">Worth a look</span>
-						{notes.map((note) => (
-							<Link
-								key={note.id}
-								to="/machines/$machineId"
-								params={{ machineId: note.machineId }}
-								className="flex flex-col gap-0.5 bg-white/[0.06] px-4 py-3 transition-colors hover:bg-white/[0.12]"
-							>
-								<span className="text-[15px] text-neutral-100">
-									{sentence(note.machine)} · {sentence(note.title).toLowerCase()}
-								</span>
-								<span className="text-[13px] text-neutral-400">{sentence(note.detail)}</span>
-							</Link>
-						))}
 					</div>
 				) : null}
 				<div ref={end} />

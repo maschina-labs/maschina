@@ -100,6 +100,57 @@ describe("a turn of conversation", () => {
 		]);
 	});
 
+	it("keeps an answer written alongside the last look, when the last step says nothing", async () => {
+		const looked: ClaudeReply = {
+			content: [
+				{ type: "text", text: "Here are the 15." },
+				{ type: "tool_use", id: "t1", name: "list_machines", input: {} },
+			],
+			stopReason: "tool_use",
+			usage,
+		};
+		const silent: ClaudeReply = { content: [], stopReason: "end_turn", usage };
+		const turn = await converse({
+			...base,
+			claude: scripted(looked, silent),
+			messages: [{ role: "user", content: "?" }],
+		});
+		expect(turn.reply).toBe("Here are the 15.");
+		expect(turn.steps).toEqual([
+			{ stopReason: "tool_use", blocks: ["text", "tool_use"] },
+			{ stopReason: "end_turn", blocks: [] },
+		]);
+	});
+
+	it("says so when it ran out of room, or wrote nothing at all", async () => {
+		const cut: ClaudeReply = {
+			content: [{ type: "text", text: "The first five" }],
+			stopReason: "max_tokens",
+			usage,
+		};
+		const long = await converse({
+			...base,
+			claude: scripted(cut),
+			messages: [{ role: "user", content: "?" }],
+		});
+		expect(long.reply).toBe(
+			"The first five\n\n[I ran out of room for this answer. Ask me to go on.]",
+		);
+		const nothing: ClaudeReply = { content: [], stopReason: "refusal", usage };
+		const empty = await converse({
+			...base,
+			claude: scripted(nothing),
+			messages: [{ role: "user", content: "?" }],
+		});
+		expect(empty.reply).toContain('stopped with "refusal"');
+	});
+
+	it("gives Claude room to answer at length", async () => {
+		const claude = scripted(say("ok"));
+		await converse({ ...base, claude, messages: [{ role: "user", content: "?" }] });
+		expect(claude.mock.calls[0]?.[0].maxTokens).toBe(4_000);
+	});
+
 	it("cuts a huge tool answer so it cannot eat the credit", async () => {
 		const huge: Tool = { ...machines, run: async () => "x".repeat(50_000) };
 		const claude = scripted(use("list_machines"), say("ok"));

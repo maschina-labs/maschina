@@ -4,7 +4,14 @@ import { describe, expect, it, vi } from "vitest";
 import { createServiceApp } from "./app.ts";
 import { memoryLogger } from "./test-logger.ts";
 
-function setup(options: { maxBodyBytes?: number; timeoutMs?: number; quietPaths?: string[] } = {}) {
+function setup(
+	options: {
+		maxBodyBytes?: number;
+		timeoutMs?: number;
+		quietPaths?: string[];
+		slowPaths?: Record<string, number>;
+	} = {},
+) {
 	const { logger, lines } = memoryLogger();
 	const reporter = { enabled: true, capture: vi.fn(), flush: vi.fn(async () => {}) };
 	const app = createServiceApp({ service: "test", logger, reporter, ...options });
@@ -148,5 +155,17 @@ describe("createServiceApp", () => {
 		const res = await app.request("/slow");
 		expect(res.status).toBe(504);
 		expect(await res.json()).toMatchObject({ error: { code: "unavailable" } });
+	});
+
+	it("gives a named slow path longer, and only that path", async () => {
+		const { app } = setup({ timeoutMs: 20, slowPaths: { "/thinking": 1_000 } });
+		const late = async (c: { text: (body: string) => Response }) => {
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			return c.text("late");
+		};
+		app.get("/thinking", late);
+		app.get("/other", late);
+		expect((await app.request("/thinking")).status).toBe(200);
+		expect((await app.request("/other")).status).toBe(504);
 	});
 });
