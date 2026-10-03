@@ -172,7 +172,7 @@ export function Detail({ back }: { back: string }) {
 			/>
 			{/* The screen itself, faded in once the card has landed and out before it flips back. */}
 			<div
-				className="no-scrollbar relative h-full overflow-y-auto md:overflow-hidden"
+				className="no-scrollbar relative h-full overflow-y-auto"
 				style={{
 					opacity: showing ? 1 : 0,
 					transition: `opacity ${leaving ? CLOSE_MS : FADE_MS}ms ease-out`,

@@ -86,6 +86,7 @@ export function ProfitScreen() {
 	const wins = machines.reduce((sum, m) => sum + m.result.wins, 0);
 	const losses = machines.reduce((sum, m) => sum + m.result.losses, 0);
 	const fees = machines.reduce((sum, m) => sum + BigInt(m.result.feesLamports), 0n);
+	const roundTrips = machines.reduce((sum, m) => sum + m.result.roundTrips, 0);
 	const ranked = [...machines].sort((a, b) =>
 		Number(BigInt(b.result.realised) - BigInt(a.result.realised)),
 	);
@@ -108,15 +109,16 @@ export function ProfitScreen() {
 				<Headline>{totals ? amount(totals.realized.toString()) : "0.00"} USDC</Headline>
 			</Panel>
 			<Panel size="wide" name="Round trips">
-				<Rows
-					rows={[
-						["Won", String(wins)],
-						["Lost", String(losses)],
-						["Win rate", wins + losses ? `${Math.round((wins / (wins + losses)) * 100)}%` : "-"],
-					]}
-				/>
+				<Headline>
+					{wins} won, {losses} lost
+				</Headline>
+				<Note>
+					{wins + losses
+						? `Win rate ${Math.round((wins / (wins + losses)) * 100)}%`
+						: "None closed yet."}
+				</Note>
 			</Panel>
-			<Panel size="large" name="By machine" scroll>
+			<Panel size="wide" name="By machine" scroll>
 				{ranked.length
 					? ranked.map((m) => (
 							<MachineRow
@@ -134,6 +136,19 @@ export function ProfitScreen() {
 						["Trades", String(totals?.trades ?? 0)],
 					]}
 				/>
+			</Panel>
+			{/* What a round trip earns on average: the number a fee or a bad fill is measured against. */}
+			<Panel size="wide" name="Per round trip">
+				<Headline>
+					{totals && roundTrips
+						? `${amount((totals.realized / BigInt(roundTrips)).toString())} USDC`
+						: "-"}
+				</Headline>
+				<Note>
+					{roundTrips
+						? `Across ${roundTrips} round trip${roundTrips === 1 ? "" : "s"}.`
+						: "None closed yet."}
+				</Note>
 			</Panel>
 		</>
 	);

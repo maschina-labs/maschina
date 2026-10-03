@@ -30,8 +30,11 @@ describe("every screen a tile opens, signed in with a machine at work", () => {
 	it("profit: what was made, the round trips and each machine", async () => {
 		renderAt("/profit");
 		const profit = await screenNamed("Profit");
-		expect((await profit.findAllByText("1.10 USDC")).length).toBe(2);
-		expect(profit.getByText("Win rate")).toBeInTheDocument();
+		// Realized, the machine's own row, and the average per round trip, which is all of it after one.
+		expect((await profit.findAllByText("1.10 USDC")).length).toBe(3);
+		expect(profit.getByText("1 won, 0 lost")).toBeInTheDocument();
+		expect(profit.getByText("Win rate 100%")).toBeInTheDocument();
+		expect(profit.getByText("Across 1 round trip.")).toBeInTheDocument();
 		expect(await profit.findByText("Range Finder")).toBeInTheDocument();
 	});
 
