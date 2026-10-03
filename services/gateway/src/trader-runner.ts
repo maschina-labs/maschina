@@ -110,6 +110,8 @@ export function traderRunner(options: {
 	let timer: ReturnType<typeof setInterval> | undefined;
 
 	return {
+		/** The real prices, quotes and key one owner's run would tick with. */
+		portsFor: async (ownerId: string) => portsFor(await keyFor(ownerId)),
 		/** Ticks every running run, every few seconds, until stopped. */
 		start() {
 			const round = async () => {

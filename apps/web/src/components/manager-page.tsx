@@ -6,6 +6,7 @@ import { ApiError } from "../lib/machines.ts";
 import { useManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
 import { openEdge } from "./edges.tsx";
+import { TraderPanel } from "./trader-panel.tsx";
 
 /**
  * The manager: a conversation in the main area, with the left sidebar of machines and conversations open
@@ -86,103 +87,106 @@ export function ManagerPage() {
 	const ready = Boolean(session.data && key.data?.set);
 
 	return (
-		<div className="flex h-[calc(66cqh+20px)] flex-col gap-4">
-			<div
-				data-own-drag
-				className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto"
-			>
-				{!session.data ? (
-					<p className="pt-2 text-[15px] text-neutral-400">Connect to talk to your manager.</p>
-				) : key.isSuccess && !key.data.set ? (
-					<div className="flex flex-col gap-3 pt-2">
-						<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
-							Your manager thinks with your own Anthropic key.
-						</p>
-						<Link
-							to="/settings"
-							className="self-start bg-white px-4 py-2 text-[14px] text-neutral-950"
-						>
-							Add it in settings
-						</Link>
-					</div>
-				) : messages.length === 0 ? (
-					<div className="flex flex-col gap-5 pt-2">
-						<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
-							Ask about your machines, the market, or what to do next.
-						</p>
-						<div className="flex flex-wrap gap-1.5">
-							{STARTERS.map((each) => (
-								<button
-									key={each}
-									type="button"
-									onClick={() => ask(each)}
-									className="bg-white/[0.08] px-3 py-2 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.14]"
-								>
-									{each}
-								</button>
-							))}
-						</div>
-					</div>
-				) : (
-					messages.map((message, index) => (
-						<div
-							// A conversation only grows, so each message's place is its identity.
-							// biome-ignore lint/suspicious/noArrayIndexKey: see above
-							key={index}
-							className={`max-w-[75%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : message.failed ? "self-start border border-white/20 text-neutral-300" : "self-start bg-white/[0.08] text-neutral-100"}`}
-						>
-							{message.text}
-							{message.costUsd !== undefined ? (
-								<span className="mt-1.5 block text-[12px] text-neutral-500">
-									{cents(message.costUsd)}
-								</span>
-							) : null}
-						</div>
-					))
-				)}
-				{thinking.isPending ? (
-					<div role="status" className="self-start px-4 py-3 text-[15px] text-neutral-500">
-						Thinking
-					</div>
-				) : null}
-				<div ref={end} />
-			</div>
-			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					ask(draft);
-				}}
-				className="flex items-end gap-2 bg-white/[0.08] p-2"
-			>
-				<textarea
-					value={draft}
-					onChange={(event) => setDraft(event.target.value)}
-					onKeyDown={(event) => {
-						if (event.key === "Enter" && !event.shiftKey) {
-							event.preventDefault();
-							ask(draft);
-						}
-					}}
-					rows={2}
-					disabled={!ready}
-					aria-label="Ask your manager"
-					placeholder="Ask your manager"
-					className="min-h-0 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] text-neutral-100 outline-none placeholder:text-neutral-500"
-				/>
-				<button
-					type="submit"
-					aria-label="Send"
-					disabled={!ready || !draft.trim() || thinking.isPending}
-					className="grid size-10 place-items-center bg-white text-neutral-950 transition-opacity disabled:opacity-30"
+		<div className="grid h-[calc(66cqh+20px)] gap-4 md:grid-cols-[3fr_2fr]">
+			<div className="flex min-h-0 flex-col gap-4">
+				<div
+					data-own-drag
+					className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto"
 				>
-					<ArrowUp size={18} weight="bold" />
-				</button>
-			</form>
-			{spent > 0 ? (
-				<p className="-mt-2 text-right text-[12px] text-neutral-500">
-					This conversation: {cents(spent)}
-				</p>
-			) : null}
+					{!session.data ? (
+						<p className="pt-2 text-[15px] text-neutral-400">Connect to talk to your manager.</p>
+					) : key.isSuccess && !key.data.set ? (
+						<div className="flex flex-col gap-3 pt-2">
+							<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
+								Your manager thinks with your own Anthropic key.
+							</p>
+							<Link
+								to="/settings"
+								className="self-start bg-white px-4 py-2 text-[14px] text-neutral-950"
+							>
+								Add it in settings
+							</Link>
+						</div>
+					) : messages.length === 0 ? (
+						<div className="flex flex-col gap-5 pt-2">
+							<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
+								Ask about your machines, the market, or what to do next.
+							</p>
+							<div className="flex flex-wrap gap-1.5">
+								{STARTERS.map((each) => (
+									<button
+										key={each}
+										type="button"
+										onClick={() => ask(each)}
+										className="bg-white/[0.08] px-3 py-2 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.14]"
+									>
+										{each}
+									</button>
+								))}
+							</div>
+						</div>
+					) : (
+						messages.map((message, index) => (
+							<div
+								// A conversation only grows, so each message's place is its identity.
+								// biome-ignore lint/suspicious/noArrayIndexKey: see above
+								key={index}
+								className={`max-w-[75%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : message.failed ? "self-start border border-white/20 text-neutral-300" : "self-start bg-white/[0.08] text-neutral-100"}`}
+							>
+								{message.text}
+								{message.costUsd !== undefined ? (
+									<span className="mt-1.5 block text-[12px] text-neutral-500">
+										{cents(message.costUsd)}
+									</span>
+								) : null}
+							</div>
+						))
+					)}
+					{thinking.isPending ? (
+						<div role="status" className="self-start px-4 py-3 text-[15px] text-neutral-500">
+							Thinking
+						</div>
+					) : null}
+					<div ref={end} />
+				</div>
+				<form
+					onSubmit={(event) => {
+						event.preventDefault();
+						ask(draft);
+					}}
+					className="flex items-end gap-2 bg-white/[0.08] p-2"
+				>
+					<textarea
+						value={draft}
+						onChange={(event) => setDraft(event.target.value)}
+						onKeyDown={(event) => {
+							if (event.key === "Enter" && !event.shiftKey) {
+								event.preventDefault();
+								ask(draft);
+							}
+						}}
+						rows={2}
+						disabled={!ready}
+						aria-label="Ask your manager"
+						placeholder="Ask your manager"
+						className="min-h-0 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] text-neutral-100 outline-none placeholder:text-neutral-500"
+					/>
+					<button
+						type="submit"
+						aria-label="Send"
+						disabled={!ready || !draft.trim() || thinking.isPending}
+						className="grid size-10 place-items-center bg-white text-neutral-950 transition-opacity disabled:opacity-30"
+					>
+						<ArrowUp size={18} weight="bold" />
+					</button>
+				</form>
+				{spent > 0 ? (
+					<p className="-mt-2 text-right text-[12px] text-neutral-500">
+						This conversation: {cents(spent)}
+					</p>
+				) : null}
+			</div>
+			{ready ? <TraderPanel api={api} /> : null}
 		</div>
 	);
 }

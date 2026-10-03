@@ -168,6 +168,7 @@ export function standIn({
 			if (part === "/actions") return json({ state: "paused" });
 			if (part === "/recipe") return json({ definitionId: "d".repeat(64) });
 		}
+		if (url.pathname === "/v1/manager/trader") return json({ run: null });
 		if (url.pathname === "/v1/manager/messages") {
 			if (!keyHint)
 				return json({ error: { message: "add your Anthropic key in settings first" } }, 409);
