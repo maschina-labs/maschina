@@ -49,16 +49,14 @@ export function SettingsScreen() {
 			<Panel size="large" name="Fees and plan">
 				<Rows
 					rows={[
-						["Paper machines", "Free, as many as you like"],
-						["Live machines", "As many as you like"],
-						["Each running live machine", "A small monthly fee"],
-						["Each trade", "A small share, inside the swap"],
-						["Never charged", "Signing up, paper, stopped machines"],
+						["Paper machines", "Free, any number"],
+						["Live machines", "Any number"],
+						["Running live", "Small monthly fee"],
+						["Each trade", "Small share of the swap"],
+						["Never charged", "Sign up, paper, stopped"],
 					]}
 				/>
-				<Note>
-					The exact numbers are set when billing is built, and shown here before anyone pays.
-				</Note>
+				<Note>Exact numbers are shown here before anyone pays.</Note>
 			</Panel>
 			<Panel size="wide" name="Theme">
 				<div className="grid grid-cols-4 gap-1">
@@ -189,7 +187,9 @@ function AiKeyPanel() {
 		<Panel size="wide" name="AI key">
 			{set ? (
 				<>
-					<Headline>Anthropic key ending {status.data?.hint}</Headline>
+					<p className="font-display text-[19px] text-neutral-100 leading-tight">
+						Anthropic key ending <span className="font-mono">{status.data?.hint}</span>
+					</p>
 					<div className="flex gap-1">
 						<button
 							type="button"
@@ -207,7 +207,7 @@ function AiKeyPanel() {
 							Remove
 						</button>
 					</div>
-					<Note>The manager thinks with this key. It is kept sealed and never shown again.</Note>
+					<Note>Kept sealed, never shown again.</Note>
 				</>
 			) : (
 				<form
@@ -247,10 +247,7 @@ function AiKeyPanel() {
 							{save.error.message}
 						</p>
 					) : null}
-					<Note>
-						From console.anthropic.com. It is checked with Anthropic, kept sealed, and never shown
-						again. Set a spend limit there so the manager can never cost more than you chose.
-					</Note>
+					<Note>From console.anthropic.com. Checked, sealed, never shown again.</Note>
 				</form>
 			)}
 		</Panel>

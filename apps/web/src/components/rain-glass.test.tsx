@@ -24,7 +24,7 @@ describe("rain on the glass", () => {
 	it("follows the city to a new canvas when the theme makes one, never holding the old", async () => {
 		const first = document.body.appendChild(document.createElement("canvas"));
 		fogCanvas.current = first;
-		render(<RainGlass rain="light" />);
+		render(<RainGlass rain="drizzle" />);
 		await vi.waitFor(() => expect(made.at(-1)?.background).toBe(first));
 		// Switching themes builds the city again, on a new canvas, and takes the old one away.
 		first.remove();
