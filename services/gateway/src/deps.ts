@@ -4,7 +4,7 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
-import { hintFor, parseSealingKey, sealSecret } from "@maschina/auth/sealed";
+import { hintFor, openSecret, parseSealingKey, sealSecret } from "@maschina/auth/sealed";
 import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
 	actOnMachine,
@@ -18,10 +18,12 @@ import {
 	retuneMachine,
 	setOwnerSecret,
 } from "@maschina/db";
-import { rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
+import { claude, converse, type Message, MODELS } from "@maschina/manager";
+import { jupiterMarket, rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
 import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
 import { fundingTransaction } from "./funding.ts";
+import { brainTools, SYSTEM } from "./manager-brain.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
 import type { AuthPorts } from "./routes/auth.ts";
@@ -138,6 +140,7 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		return found ? { reason: found.reason, since: found.engagedAt } : undefined;
 	};
 
+	const market = jupiterMarket();
 	const sealing =
 		config.GATEWAY_SECRETS_KEY === undefined
 			? undefined
@@ -163,6 +166,37 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		},
 		clearKey: async (ownerId) => {
 			await clearOwnerSecret(database.db, ownerId, "anthropic");
+		},
+		ask: async (ownerId, said) => {
+			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
+			if (!stored || !sealing)
+				throw new MaschinaError("conflict", "add your Anthropic key in settings first");
+			const key = openSecret(sealing, stored.sealed);
+			const tools = brainTools({
+				machines: async () => (await machinesOf(database.db, ownerId)).map(asSummary),
+				record: async (machineId) => {
+					const machine = await machineForOwner(database.db, ownerId, machineId);
+					if (!machine) return undefined;
+					return asRecord(await readMachineEvents(database.db, machineId), 25);
+				},
+				scan: (request) => market(request),
+			});
+			const messages: Message[] = said.map((each) => ({
+				role: each.role === "you" ? "user" : "assistant",
+				content: each.text,
+			}));
+			const turn = await converse({
+				claude: claude(key),
+				model: MODELS.think,
+				system: SYSTEM,
+				messages,
+				tools,
+			});
+			return {
+				reply: turn.reply || "I had nothing to add.",
+				costUsd: turn.costUsd,
+				looked: turn.calls.map((call) => ({ tool: call.name, ok: call.ok })),
+			};
 		},
 	};
 

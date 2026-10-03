@@ -1,8 +1,9 @@
 import { ArrowUp } from "@phosphor-icons/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useMachines } from "../lib/machines.ts";
+import { ApiError, useMachines } from "../lib/machines.ts";
+import { useManagerKey } from "../lib/manager-key.ts";
 import { fetchPrice } from "../lib/price.ts";
 import { useSession } from "../lib/session.ts";
 import { suggestionsFor } from "../lib/suggestions.ts";
@@ -11,11 +12,36 @@ import { sentence } from "./home.tsx";
 
 /**
  * The manager: a conversation in the main area, with the left sidebar of machines and conversations open
- * beside it. Until the manager has its key it says so plainly when asked, and shows what it can already
- * see without one: the rule-based notes on your machines.
+ * beside it. It thinks on the owner's own key, set in settings, and each answer says what it cost. The
+ * conversation lives only in this page: the gateway keeps nothing between turns.
  */
 
-type Message = { from: "you" | "manager"; text: string };
+type Message = { from: "you" | "manager"; text: string; costUsd?: number; failed?: boolean };
+
+type Answer = { reply: string; costUsd: number; looked: { tool: string; ok: boolean }[] };
+
+async function askManager(
+	api: ReturnType<typeof useRouter>["options"]["context"]["api"],
+	messages: Message[],
+) {
+	const response = await api.v1.manager.messages.$post({
+		json: {
+			messages: messages
+				.filter((each) => !each.failed)
+				.map((each) => ({ role: each.from, text: each.text })),
+		},
+	});
+	if (response.ok) return (await response.json()) as Answer;
+	const body = (await response.json().catch(() => undefined)) as
+		| { error?: { message?: string } }
+		| undefined;
+	throw new ApiError(
+		body?.error?.message ?? `The API answered ${response.status}.`,
+		response.status,
+	);
+}
+
+const cents = (dollars: number) => (dollars < 0.01 ? "under 1¢" : `${(dollars * 100).toFixed(1)}¢`);
 
 /** What to ask, for someone who has not asked anything yet. */
 const STARTERS = [
@@ -35,7 +61,19 @@ export function ManagerPage() {
 		refetchInterval: 5_000,
 	});
 	const notes = suggestionsFor(session.data ? (machines.data ?? []) : [], price.data?.usd);
+	const key = useManagerKey(api, Boolean(session.data));
 	const [messages, setMessages] = useState<Message[]>([]);
+	const thinking = useMutation({
+		mutationFn: (conversation: Message[]) => askManager(api, conversation),
+		onSuccess: (answer) =>
+			setMessages((was) => [
+				...was,
+				{ from: "manager", text: answer.reply, costUsd: answer.costUsd },
+			]),
+		onError: (error) =>
+			setMessages((was) => [...was, { from: "manager", text: error.message, failed: true }]),
+	});
+	const spent = messages.reduce((sum, each) => sum + (each.costUsd ?? 0), 0);
 	const [draft, setDraft] = useState("");
 	const end = useRef<HTMLDivElement>(null);
 
@@ -49,17 +87,13 @@ export function ManagerPage() {
 
 	const ask = (text: string) => {
 		const question = text.trim();
-		if (!question) return;
+		if (!question || thinking.isPending) return;
 		setDraft("");
-		setMessages((was) => [
-			...was,
-			{ from: "you", text: question },
-			{
-				from: "manager",
-				text: "I can't answer yet: I start thinking once my key is set up. Until then, the notes on your machines below are what I can see.",
-			},
-		]);
+		const conversation = [...messages, { from: "you" as const, text: question }];
+		setMessages(conversation);
+		thinking.mutate(conversation);
 	};
+	const ready = Boolean(session.data && key.data?.set);
 
 	return (
 		<div className="flex h-[calc(66cqh+20px)] flex-col gap-4">
@@ -67,7 +101,21 @@ export function ManagerPage() {
 				data-own-drag
 				className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto"
 			>
-				{messages.length === 0 ? (
+				{!session.data ? (
+					<p className="pt-2 text-[15px] text-neutral-400">Connect to talk to your manager.</p>
+				) : key.isSuccess && !key.data.set ? (
+					<div className="flex flex-col gap-3 pt-2">
+						<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
+							Your manager thinks with your own Anthropic key.
+						</p>
+						<Link
+							to="/settings"
+							className="self-start bg-white px-4 py-2 text-[14px] text-neutral-950"
+						>
+							Add it in settings
+						</Link>
+					</div>
+				) : messages.length === 0 ? (
 					<div className="flex flex-col gap-5 pt-2">
 						<p className="font-display text-[clamp(20px,2vw,28px)] text-neutral-100 leading-tight">
 							Ask about your machines, the market, or what to do next.
@@ -91,12 +139,22 @@ export function ManagerPage() {
 							// A conversation only grows, so each message's place is its identity.
 							// biome-ignore lint/suspicious/noArrayIndexKey: see above
 							key={index}
-							className={`max-w-[75%] px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : "self-start bg-white/[0.08] text-neutral-100"}`}
+							className={`max-w-[75%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : message.failed ? "self-start border border-white/20 text-neutral-300" : "self-start bg-white/[0.08] text-neutral-100"}`}
 						>
 							{message.text}
+							{message.costUsd !== undefined ? (
+								<span className="mt-1.5 block text-[12px] text-neutral-500">
+									{cents(message.costUsd)}
+								</span>
+							) : null}
 						</div>
 					))
 				)}
+				{thinking.isPending ? (
+					<div role="status" className="self-start px-4 py-3 text-[15px] text-neutral-500">
+						Thinking
+					</div>
+				) : null}
 				{notes.length ? (
 					<div className="flex flex-col gap-1.5 pt-2">
 						<span className="text-[13px] text-neutral-500">Worth a look</span>
@@ -134,6 +192,7 @@ export function ManagerPage() {
 						}
 					}}
 					rows={2}
+					disabled={!ready}
 					aria-label="Ask your manager"
 					placeholder="Ask your manager"
 					className="min-h-0 flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] text-neutral-100 outline-none placeholder:text-neutral-500"
@@ -141,12 +200,17 @@ export function ManagerPage() {
 				<button
 					type="submit"
 					aria-label="Send"
-					disabled={!draft.trim()}
+					disabled={!ready || !draft.trim() || thinking.isPending}
 					className="grid size-10 place-items-center bg-white text-neutral-950 transition-opacity disabled:opacity-30"
 				>
 					<ArrowUp size={18} weight="bold" />
 				</button>
 			</form>
+			{spent > 0 ? (
+				<p className="-mt-2 text-right text-[12px] text-neutral-500">
+					This conversation: {cents(spent)}
+				</p>
+			) : null}
 		</div>
 	);
 }

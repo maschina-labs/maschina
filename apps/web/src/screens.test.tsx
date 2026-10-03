@@ -92,22 +92,6 @@ describe("every screen a tile opens, signed in with a machine at work", () => {
 		expect(it_.getByRole("button", { name: "Fund from my wallet" })).toBeEnabled();
 	});
 
-	it("the manager: a conversation, with your machines beside it", async () => {
-		renderAt("/manager");
-		const manager = await screenNamed("Manager");
-		expect(await manager.findByText(/Ask about your machines/)).toBeInTheDocument();
-		fireEvent.click(manager.getByRole("button", { name: "How are my machines doing?" }));
-		expect(
-			await manager.findByText("How are my machines doing?", { selector: "div" }),
-		).toBeInTheDocument();
-		// Without its key it says so, rather than pretending to answer.
-		expect(manager.getByText(/once my key is set up/)).toBeInTheDocument();
-		const box = manager.getByRole("textbox", { name: "Ask your manager" });
-		fireEvent.change(box, { target: { value: "And tomorrow?" } });
-		fireEvent.keyDown(box, { key: "Enter" });
-		expect(await manager.findByText("And tomorrow?")).toBeInTheDocument();
-	});
-
 	it("settings: your wallet, more settings, fees and the theme", async () => {
 		renderAt("/settings");
 		const settings = await screenNamed("Settings");

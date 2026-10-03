@@ -7,7 +7,13 @@
  */
 
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { ErrorBody, ManagerKeyStatus, SetManagerKeyRequest } from "@maschina/contracts";
+import {
+	ErrorBody,
+	ManagerKeyStatus,
+	ManagerMessageRequest,
+	ManagerMessageResponse,
+	SetManagerKeyRequest,
+} from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
 import type { Owner } from "./machines.ts";
@@ -18,6 +24,11 @@ export type ManagerPorts = {
 	/** Checks the key with Anthropic, then keeps it. Throws when Anthropic will not take it. */
 	setKey(ownerId: string, key: string): Promise<ManagerKeyStatus>;
 	clearKey(ownerId: string): Promise<void>;
+	/** One turn of conversation, thought through on the owner's own key. */
+	ask(
+		ownerId: string,
+		messages: ManagerMessageRequest["messages"],
+	): Promise<ManagerMessageResponse>;
 };
 
 /** A gateway with nowhere to keep keys: signed in owners are told so, rather than shown nothing. */
@@ -25,7 +36,13 @@ export function noManager(ownerOf: ManagerPorts["ownerOf"]): ManagerPorts {
 	const unavailable = async (): Promise<never> => {
 		throw new MaschinaError("unavailable", "the manager is not available here yet");
 	};
-	return { ownerOf, keyStatus: unavailable, setKey: unavailable, clearKey: unavailable };
+	return {
+		ownerOf,
+		keyStatus: unavailable,
+		setKey: unavailable,
+		clearKey: unavailable,
+		ask: unavailable,
+	};
 }
 
 const problem = {
@@ -82,6 +99,35 @@ const clear = createRoute({
 	},
 });
 
+const ask = createRoute({
+	method: "post",
+	path: "/manager/messages",
+	tags: ["Manager"],
+	summary: "Ask your manager",
+	description:
+		"The whole conversation goes in each time and nothing is kept between turns. It runs on your own key, and the answer says what it cost.",
+	request: { body: { content: { "application/json": { schema: ManagerMessageRequest } } } },
+	responses: {
+		200: {
+			description: "Its answer",
+			content: { "application/json": { schema: ManagerMessageResponse } },
+		},
+		...problem,
+		409: {
+			description: "No AI key is set",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		429: {
+			description: "Your Anthropic credit ran out, or the key is being limited",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+		503: {
+			description: "Claude could not be reached",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+	},
+});
+
 export function managerRoutes(ports: ManagerPorts) {
 	const owner = async (c: { req: { raw: Request } }) => {
 		const who = await ports.ownerOf(c.req.raw.headers);
@@ -103,5 +149,10 @@ export function managerRoutes(ports: ManagerPorts) {
 			const who = await owner(c);
 			await ports.clearKey(who.ownerId);
 			return c.json(ManagerKeyStatus.parse({ set: false }), 200);
+		})
+		.openapi(ask, async (c) => {
+			const who = await owner(c);
+			const { messages } = c.req.valid("json");
+			return c.json(ManagerMessageResponse.parse(await ports.ask(who.ownerId, messages)), 200);
 		});
 }

@@ -22,6 +22,11 @@ function app(ports: Partial<ManagerPorts> = {}, offered = true) {
 			setAt: "2026-10-03T01:00:00.000Z",
 		}),
 		clearKey: async () => undefined,
+		ask: async () => ({
+			reply: "Range Finder is running.",
+			costUsd: 0.0123,
+			looked: [{ tool: "list_machines", ok: true }],
+		}),
 		...ports,
 	};
 	const unused = async () => {
@@ -134,5 +139,62 @@ describe("a gateway with nowhere to keep keys", () => {
 		const res = await app({}, false).request("/v1/manager/key", { headers: signedIn });
 		expect(res.status).toBe(503);
 		expect(await res.text()).toContain("not available here yet");
+	});
+});
+
+describe("asking the manager", () => {
+	const ask = (body: unknown, ports: Partial<ManagerPorts> = {}) =>
+		app(ports).request("/v1/manager/messages", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify(body),
+		});
+
+	it("answers with what it cost and what it looked at", async () => {
+		const asked = vi.fn(async () => ({ reply: "Fine.", costUsd: 0.01, looked: [] }));
+		const res = await ask({ messages: [{ role: "you", text: " how are they? " }] }, { ask: asked });
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ reply: "Fine.", costUsd: 0.01, looked: [] });
+		expect(asked).toHaveBeenCalledWith(ownerId, [{ role: "you", text: "how are they?" }]);
+	});
+
+	it("needs the last word to be yours", async () => {
+		const res = await ask({ messages: [{ role: "manager", text: "hello" }] });
+		expect(res.status).toBe(400);
+	});
+
+	it("refuses an empty or endless conversation", async () => {
+		expect((await ask({ messages: [] })).status).toBe(400);
+		const long = Array.from({ length: 61 }, () => ({ role: "you", text: "again" }));
+		expect((await ask({ messages: long })).status).toBe(400);
+	});
+
+	it("says plainly when there is no key, or the credit ran out", async () => {
+		const noKey = await ask(
+			{ messages: [{ role: "you", text: "hi" }] },
+			{
+				ask: async () =>
+					Promise.reject(new MaschinaError("conflict", "add your Anthropic key in settings first")),
+			},
+		);
+		expect(noKey.status).toBe(409);
+		const broke = await ask(
+			{ messages: [{ role: "you", text: "hi" }] },
+			{
+				ask: async () =>
+					Promise.reject(new MaschinaError("limit_exceeded", "Your Anthropic credit has run out")),
+			},
+		);
+		expect(broke.status).toBe(429);
+		expect(await broke.text()).toContain("credit has run out");
+	});
+
+	it("is only for a signed in owner", async () => {
+		const res = await app().request("/v1/manager/messages", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ messages: [{ role: "you", text: "hi" }] }),
+		});
+		expect(res.status).toBe(401);
 	});
 });

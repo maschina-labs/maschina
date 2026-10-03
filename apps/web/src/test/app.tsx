@@ -168,6 +168,18 @@ export function standIn({
 			if (part === "/actions") return json({ state: "paused" });
 			if (part === "/recipe") return json({ definitionId: "d".repeat(64) });
 		}
+		if (url.pathname === "/v1/manager/messages") {
+			if (!keyHint)
+				return json({ error: { message: "add your Anthropic key in settings first" } }, 409);
+			const said = (body as { messages?: { text: string }[] } | undefined)?.messages ?? [];
+			if (said.at(-1)?.text.includes("broke"))
+				return json({ error: { message: "Your Anthropic credit has run out" } }, 429);
+			return json({
+				reply: `You asked: ${said.at(-1)?.text}`,
+				costUsd: 0.0123,
+				looked: [{ tool: "list_machines", ok: true }],
+			});
+		}
 		if (url.pathname === "/v1/manager/key") {
 			if (request.method === "PUT") {
 				const key = (body as { key?: string } | undefined)?.key ?? "";
