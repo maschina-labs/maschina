@@ -50,6 +50,10 @@ function Field() {
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
 	}, [mode]);
+	// Which theme, for the few things one theme does differently: Club's orange and its frosted glass.
+	useEffect(() => {
+		document.documentElement.dataset["theme"] = theme;
+	}, [theme]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
 		const { cool, warm } = cityTint(mode, sky);

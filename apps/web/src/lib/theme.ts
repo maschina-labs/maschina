@@ -8,7 +8,7 @@ import { preview } from "./preview.ts";
  * turns light by day and dark by night with it. Remembered in this browser only.
  */
 
-export type Theme = "dark" | "light" | "system" | "dynamic";
+export type Theme = "dark" | "light" | "system" | "dynamic" | "club";
 export type Mode = "dark" | "light";
 
 export const THEMES: { id: Theme; name: string }[] = [
@@ -16,6 +16,8 @@ export const THEMES: { id: Theme; name: string }[] = [
 	{ id: "light", name: "Light" },
 	{ id: "system", name: "System" },
 	{ id: "dynamic", name: "Dynamic" },
+	// Black, graphite and one orange glow behind frosted glass: after a soft club advertisement Ash loves.
+	{ id: "club", name: "Club" },
 ];
 
 const KEY = "maschina.theme";
@@ -25,6 +27,15 @@ export function themeFrom(saved: string | null): Theme {
 	return THEMES.some((each) => each.id === saved) ? (saved as Theme) : "dark";
 }
 
+/** Club: near black and graphite, warmed by a single orange glow, like light through frosted glass. */
+const CLUB: Palette = {
+	night: { l: 0.1, c: 0.002, h: 60 },
+	top: { l: 0.15, c: 0.006, h: 55 },
+	upper: { l: 0.21, c: 0.006, h: 55 },
+	middle: { l: 0.27, c: 0.04, h: 50 },
+	glow: { l: 0.64, c: 0.19, h: 45 },
+};
+
 /** Light or dark, for a theme, given the computer's setting and the hour (0 to 24, fractional). */
 export function modeOf(
 	theme: Theme,
@@ -32,6 +43,7 @@ export function modeOf(
 ): Mode {
 	if (theme === "system") return systemDark ? "dark" : "light";
 	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
+	if (theme === "club") return "dark";
 	return theme;
 }
 
@@ -168,5 +180,9 @@ export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefine
 		};
 	}, []);
 	const mode = modeOf(theme, { systemDark, hour });
-	return { theme, mode, sky: theme === "dynamic" ? skyAt(hour) : undefined };
+	return {
+		theme,
+		mode,
+		sky: theme === "dynamic" ? skyAt(hour) : theme === "club" ? CLUB : undefined,
+	};
 }

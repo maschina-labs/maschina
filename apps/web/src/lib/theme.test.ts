@@ -48,3 +48,10 @@ describe("themes", () => {
 		expect(skyAt(23.99).night.l).toBeCloseTo(skyAt(0).night.l, 2);
 	});
 });
+
+describe("the club theme", () => {
+	it("is a dark theme of its own, with its own warm sky", () => {
+		expect(modeOf("club", { systemDark: false, hour: 12 })).toBe("dark");
+		expect(themeFrom("club")).toBe("club");
+	});
+});

@@ -256,3 +256,20 @@ input[type="range"].square::-moz-range-thumb {
 	   outside it. */
 	inset: -56px;
 }
+
+/*
+ * Club: the glass is always frosted, and whatever is chosen or pressed glows orange instead of white, the
+ * one warm color in a black and graphite room.
+ */
+:root[data-theme="club"] {
+	--club-orange: oklch(70% 0.19 45);
+}
+:root[data-theme="club"] .fog-field {
+	filter: url(#pebbled);
+	inset: -56px;
+}
+:root[data-theme="club"] [aria-pressed="true"].bg-white,
+:root[data-theme="club"] button.bg-white:not(:disabled) {
+	background-color: var(--club-orange);
+	color: oklch(14% 0.01 45);
+}
