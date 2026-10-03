@@ -24,6 +24,23 @@ describe("checking an AI key with Anthropic", () => {
 		});
 	});
 
+	it("passes on Anthropic's own reason", async () => {
+		const fetch = vi.fn(
+			async () =>
+				new Response(
+					JSON.stringify({
+						error: { message: "Your credit balance is too low to access the Anthropic API." },
+					}),
+					{ status: 400 },
+				),
+		);
+		await expect(checkAnthropicKey("sk-ant-x", { fetch })).rejects.toMatchObject({
+			code: "invalid_input",
+			message:
+				"Anthropic refused that key: Your credit balance is too low to access the Anthropic API.",
+		});
+	});
+
 	it("tells a refused key apart from Anthropic being down", async () => {
 		await expect(checkAnthropicKey("sk-ant-x", { fetch: answer(529) })).rejects.toMatchObject({
 			code: "unavailable",

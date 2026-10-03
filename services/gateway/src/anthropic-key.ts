@@ -24,10 +24,18 @@ export async function checkAnthropicKey(
 		throw new MaschinaError("unavailable", "Anthropic could not be reached to check the key");
 	}
 	if (response.ok) return;
+	// Anthropic says why in its body, and its reason is the one worth showing: a key with no credit, a
+	// disabled organization or the wrong kind of key all look alike otherwise.
+	const body = (await response.json().catch(() => undefined)) as
+		| { error?: { message?: unknown } }
+		| undefined;
+	const why = typeof body?.error?.message === "string" ? `: ${body.error.message}` : "";
 	if (response.status === 401 || response.status === 403)
-		throw new MaschinaError("invalid_input", "Anthropic did not accept that key");
+		throw new MaschinaError("invalid_input", `Anthropic did not accept that key${why}`);
+	if (response.status === 400)
+		throw new MaschinaError("invalid_input", `Anthropic refused that key${why}`);
 	throw new MaschinaError(
 		"unavailable",
-		`Anthropic answered ${response.status} while checking the key`,
+		`Anthropic answered ${response.status} while checking the key${why}`,
 	);
 }
