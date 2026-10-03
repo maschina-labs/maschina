@@ -34,7 +34,7 @@ export function Bento({ children, label }: { children: ReactNode; label: string 
 			// Phone: two squares across the width, and the page scrolls. Wider: six squares across at most 86% of
 			// the width and three down at most 66% of the height, the smaller winning, so the whole grid fits
 			// and nothing scrolls.
-			className="grid grid-flow-row-dense grid-cols-[repeat(2,var(--u))] [--u:calc((100vw-50px)/2)] md:grid-cols-[repeat(6,var(--u))] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]"
+			className="grid grid-flow-row-dense grid-cols-[repeat(2,var(--u))] [--u:calc((100vw-50px)/2)] md:grid-cols-[repeat(6,var(--u))] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]"
 			style={{ gridAutoRows: "var(--u)", gap: `${GAP}px` }}
 		>
 			{children}

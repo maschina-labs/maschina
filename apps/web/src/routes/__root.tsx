@@ -3,7 +3,7 @@ import { createRootRouteWithContext, useRouterState } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { Deck, sectionIndex } from "../components/deck.tsx";
 import { Detail } from "../components/detail.tsx";
-import { Edges, SideRail } from "../components/edges.tsx";
+import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
@@ -34,6 +34,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function Field() {
 	const { theme, mode, sky } = useTheme();
+	// Which side an open sidebar pushes the page from, on a desktop only. One at a time.
+	const edge = useOpenEdge();
+	const pushedFrom =
+		edge === "left" || edge === "sections"
+			? "left"
+			: edge === "right" || edge === "account"
+				? "right"
+				: undefined;
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.
@@ -45,15 +53,28 @@ function Field() {
 		if (section) setBehind(path);
 	}, [section, path]);
 	return (
-		<div className="fixed inset-0 overflow-hidden">
+		<div className="fixed inset-0 overflow-hidden [--side:0px] md:[--side:340px]">
 			<FogBackground mode={mode} sky={sky} weather={weather} />
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />
-			<div className="relative z-10 h-full">
-				<Deck behind={behind} />
+			{/*
+			 * The stage: the page, and anything opened over it. On a desktop an open sidebar takes its room
+			 * from here, so the tiles shrink and recentre in what is left rather than being covered. Tiles
+			 * size themselves from the stage (cqw, cqh), and the transform keeps the detail layer inside it.
+			 */}
+			<div
+				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)] transition-[left,right] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
+				style={{
+					left: pushedFrom === "left" ? "var(--side)" : 0,
+					right: pushedFrom === "right" ? "var(--side)" : 0,
+				}}
+			>
+				<div className="relative h-full">
+					<Deck behind={behind} />
+				</div>
+				{section ? null : <Detail back={behind} />}
 			</div>
 			<SideRail />
-			{section ? null : <Detail back={behind} />}
 			<Edges />
 			<Search />
 			<Toaster />

@@ -290,7 +290,7 @@ export function Deck({ behind }: { behind?: string } = {}) {
 			ref={surface}
 		>
 			<div className="flex shrink-0 justify-center px-5 pt-[max(env(safe-area-inset-top),24px)] md:px-0 md:pt-[8vh]">
-				<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
+				<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
 					<header className="flex items-center justify-between gap-6">
 						<Greeting wallet={wallet} />
 						<Account />

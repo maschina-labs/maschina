@@ -79,7 +79,7 @@ function useAlerts() {
 }
 
 /** Which panel is open right now. */
-function useOpenEdge(): Edge | undefined {
+export function useOpenEdge(): Edge | undefined {
 	return useSyncExternalStore(subscribe, () => current);
 }
 
@@ -126,13 +126,13 @@ export function SideRail() {
 	);
 	return (
 		<>
-			{/* The page dims a little behind an open sidebar; a tap on it closes the sidebar. */}
+			{/* On a phone the page dims behind an open sidebar and a tap closes it; on a desktop the sidebar pushes the page aside instead. */}
 			<button
 				type="button"
 				aria-label="Close"
 				tabIndex={-1}
 				onClick={() => setEdge(undefined)}
-				className={`fixed inset-0 z-30 cursor-default bg-black/30 transition-opacity duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${open && open !== "top" ? "opacity-100" : "pointer-events-none opacity-0"}`}
+				className={`fixed inset-0 z-30 cursor-default bg-black/30 transition-opacity md:hidden duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${open && open !== "top" ? "opacity-100" : "pointer-events-none opacity-0"}`}
 			/>
 			{side("left", "left", "Your machines", <MachinesPanel />)}
 			{side("account", "right", "Account", <AccountPanel />)}
@@ -441,7 +441,7 @@ function HeaderPanel() {
 	// both line up with the grid's edges.
 	return (
 		<div className="flex justify-center px-5 py-7 md:px-0">
-			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]">
+			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
 				{/*
 				 * Back out to Maschina's front page. Until the front page is its own site, that is the welcome
 				 * screen here; once it is built, FRONT_PAGE becomes its address.
