@@ -109,7 +109,8 @@ function build(plan: Plan, index: number) {
 	const step = (now - start - DAY) / plan.trips;
 	for (let trip = 0; trip < plan.trips; trip += 1) {
 		const spend = Math.max(5, plan.budget * 0.6) * 1_000_000;
-		const bought = Math.round((spend / price) * 1e9);
+		// Micro dollars in, lamports out: dollars over the price is SOL, a billion lamports to each.
+		const bought = Math.round((spend / 1_000_000 / price) * 1e9);
 		const buyAt = start + DAY / 2 + trip * step;
 		const move = plan.edge + (next() - 0.5) * 0.03;
 		price = price * (1 + (next() - 0.5) * 0.02);

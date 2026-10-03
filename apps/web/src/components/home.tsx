@@ -40,7 +40,17 @@ export function Figure({
 	return (
 		<div className="flex h-full flex-col justify-between p-4">
 			<div className="flex flex-col gap-1">
-				<span className="font-display text-[clamp(22px,15cqw,44px)] text-neutral-100 tabular-nums leading-none">
+				<span
+					className="font-display text-[clamp(22px,15cqw,44px)] text-neutral-100 tabular-nums leading-none whitespace-nowrap"
+					// A long figure shrinks to fit its tile rather than running out of it.
+					style={
+						typeof value === "string" && value.length > 7
+							? {
+									fontSize: `min(clamp(22px, 15cqw, 44px), calc((100cqw - 32px) / ${value.length * 0.58}))`,
+								}
+							: undefined
+					}
+				>
 					{value}
 				</span>
 				{note ? <span className="text-[13px] text-neutral-400">{note}</span> : null}

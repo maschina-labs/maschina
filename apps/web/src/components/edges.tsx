@@ -43,6 +43,7 @@ import { preview } from "../lib/preview.ts";
 import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
+import { toast } from "../lib/toasts.ts";
 import { useActivity } from "./portfolio.tsx";
 import { focusSearch, SearchField } from "./search.tsx";
 import { SECTIONS } from "./sections.tsx";
@@ -688,9 +689,14 @@ function AccountPanel() {
 	const others = known.filter((each) => each.address !== address);
 	const row =
 		"flex items-center gap-3 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
-	const switchWallet = async () => {
-		await signOut.mutateAsync();
-		signIn.mutate();
+	// Switching asks first: the picker opens, and only a wallet chosen and approved replaces this one,
+	// whose session the new sign in takes over. Closing the picker leaves you exactly as you were.
+	const switchWallet = () => {
+		signIn.mutate(undefined, {
+			onError: (error) => {
+				if (error.name !== "NoWalletChosen") toast(error.message, "problem");
+			},
+		});
 	};
 	const go = (to: string) => () => {
 		setEdge(undefined);
@@ -760,7 +766,7 @@ function AccountPanel() {
 					<div key={each.address} className="flex gap-1.5">
 						<button
 							type="button"
-							onClick={() => void switchWallet()}
+							onClick={switchWallet}
 							title="Sign out, then pick this account in your wallet"
 							className={`${row} flex-1`}
 						>
@@ -781,7 +787,7 @@ function AccountPanel() {
 				<button
 					type="button"
 					disabled={signOut.isPending || signIn.isPending}
-					onClick={() => void switchWallet()}
+					onClick={switchWallet}
 					className={`${row} disabled:opacity-50`}
 				>
 					<ArrowsLeftRight size={18} weight="light" />

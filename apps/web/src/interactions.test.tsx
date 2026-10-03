@@ -180,9 +180,16 @@ describe("the account sidebar", () => {
 		const account = await openAccount();
 		expect(account.getByText("3KnH…bEQF")).toBeInTheDocument();
 		fireEvent.click(account.getByRole("button", { name: "Switch wallet" }));
+		// It asks first, and nothing is signed out while it asks.
+		const picker = await screen.findByRole("dialog", { name: "Choose a wallet" });
+		expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(false);
+		// Closing it leaves you signed in as you were.
+		fireEvent.click(within(picker).getByRole("button", { name: "Close wallets" }));
 		await vi.waitFor(() =>
-			expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(true),
+			expect(screen.queryByRole("dialog", { name: "Choose a wallet" })).toBeNull(),
 		);
+		expect(account.getByText("Showing live money")).toBeInTheDocument();
+		expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(false);
 	});
 
 	it("forgets a wallet it no longer needs", async () => {

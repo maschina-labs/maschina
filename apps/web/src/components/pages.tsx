@@ -352,9 +352,7 @@ function InsightsTilesSignedIn() {
 			</Tile>
 			<Tile size="wide" label="Against holding" to="/profit">
 				<Figure
-					value={
-						holding === undefined ? "-" : `${holding >= 0 ? "+" : ""}${(holding * 100).toFixed(2)}%`
-					}
+					value={holding === undefined ? "-" : percent(holding)}
 					note="had it just held since its first buy"
 					name="Against holding"
 				/>
@@ -543,4 +541,13 @@ export function ActivityTiles() {
 /** Your own data once you are signed in; a grid asking you to connect until then. */
 export function InsightsTiles() {
 	return useSignedIn() ? <InsightsTilesSignedIn /> : <SignedOutGrid />;
+}
+
+/** A change as a percent, compact once it is large: +12.34%, +1,234%, +1.2M%. */
+export function percent(ratio: number): string {
+	const value = ratio * 100;
+	const sign = value >= 0 ? "+" : "";
+	if (Math.abs(value) < 1000) return `${sign}${value.toFixed(2)}%`;
+	if (Math.abs(value) < 100_000) return `${sign}${Math.round(value).toLocaleString("en-US")}%`;
+	return `${sign}${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value)}%`;
 }
