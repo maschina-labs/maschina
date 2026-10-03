@@ -171,9 +171,11 @@ export function PaperBanner() {
 		<div
 			role="status"
 			aria-label="Showing paper"
-			className="fixed inset-x-0 top-0 z-[25] flex items-center justify-center gap-3 bg-[oklch(0.22_0.02_250)] px-4 py-2 font-display text-[14px] text-neutral-100"
+			// A dark gray, to sit in the theme, one color throughout.
+			className="fixed inset-x-0 top-0 z-[25] flex items-center justify-center gap-3 bg-[oklch(0.18_0_0)] px-4 py-2 font-display text-[14px] text-neutral-100"
 		>
-			Showing paper: none of this is real money.
+			<span className="font-medium">Paper</span>
+			None of this is real money.
 			<button
 				type="button"
 				onClick={() => setSide("live")}

@@ -159,7 +159,7 @@ describe("paper and live never mix (D-096)", () => {
 		expect((await profit.findAllByText("99.00 USDC")).length).toBeGreaterThan(0);
 		expect(profit.queryByText("1.10 USDC")).toBeNull();
 		const banner = await screen.findByRole("status", { name: "Showing paper" });
-		expect(banner).toHaveTextContent(/none of this is real money/i);
+		expect(banner).toHaveTextContent(/paper.*none of this is real money/i);
 		fireEvent.click(within(banner).getByRole("button", { name: "Back to live" }));
 		expect((await profit.findAllByText("1.10 USDC")).length).toBeGreaterThan(0);
 		expect(localStorage.getItem("maschina.side")).toBe("live");
