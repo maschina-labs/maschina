@@ -32,11 +32,15 @@ const solana = vi.hoisted(() => ({
 			new Map(mints.filter((mint) => mint !== "J").map((mint) => [mint, 1.5])),
 	),
 	market: vi.fn(async () => [] as unknown[]),
+	made: [] as unknown[],
 }));
 
 vi.mock("@maschina/solana", () => ({
 	parseAddress: (value: string) => value,
-	jupiterRouter: () => ({ quote: solana.quote }),
+	jupiterRouter: (options: unknown) => {
+		solana.made.push(options);
+		return { quote: solana.quote };
+	},
 	jupiterPrices: () => ({ usdPrices: solana.jupiter }),
 	dexScreenerPrices: () => solana.dex,
 	jupiterMarket: () => solana.market,
@@ -133,6 +137,18 @@ describe("the paper trader runner", () => {
 });
 
 describe("the prices, quotes and tokens a run trades on", () => {
+	it("uses a Jupiter key when one is given, and the free tier when not", () => {
+		solana.made = [];
+		traderRunner({
+			db: {} as never,
+			sealing: undefined,
+			logger: logger as never,
+			jupiterApiKey: "jup-key",
+		});
+		make();
+		expect(solana.made).toEqual([{ apiKey: "jup-key" }, {}]);
+	});
+
 	it("prices from DexScreener first and asks Jupiter only for what it missed", async () => {
 		const ports = await make().portsFor("owner");
 		const prices = await ports.prices(["A", "J"]);

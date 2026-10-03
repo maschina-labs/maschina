@@ -44,12 +44,15 @@ export function traderRunner(options: {
 	sealing: SealingKey | undefined;
 	logger: Logger;
 	now?: () => Date;
+	/** Jupiter's own allowance for this key, rather than the free one shared by the server's address. */
+	jupiterApiKey?: string;
 }) {
 	const now = options.now ?? (() => new Date());
-	const router = jupiterRouter();
-	const prices = jupiterPrices();
+	const jupiter = options.jupiterApiKey ? { apiKey: options.jupiterApiKey } : {};
+	const router = jupiterRouter(jupiter);
+	const prices = jupiterPrices(jupiter);
 	const dex = dexScreenerPrices();
-	const market = jupiterMarket();
+	const market = jupiterMarket(jupiter);
 	const symbols = new Map<string, { symbol: string; decimals: number }>();
 	const busy = new Set<string>();
 	// Runs stopped while a tick was in flight: that tick's save must not bring them back to life.
