@@ -170,6 +170,12 @@ export function SideRail() {
 }
 
 /** Opens a panel from anywhere, such as the account tile opening its own. */
+/** What counts as something on the page: a click on any of these never closes a sidebar. */
+const SOMETHING =
+	"a, button, input, textarea, select, label, article, aside, nav, search, svg, canvas, img, [role='button'], [role='tab'], [data-own-drag]";
+/** Words are something too, even outside a tile. */
+const TEXT = new Set(["P", "SPAN", "H1", "H2", "H3", "H4", "LI", "STRONG", "EM", "KBD", "TIME"]);
+
 export function openEdge(edge: Edge) {
 	setEdge(edge);
 }
@@ -292,6 +298,24 @@ export function Edges() {
 	const toggle = (edge: Edge) => setEdge(current === edge ? undefined : edge);
 	const rightOpen = open === "right" || open === "account" || open === "sections";
 	const onManager = useRouterState({ select: (state) => state.location.pathname }) === "/manager";
+	/*
+	 * A click on bare space closes whatever is open, header or sidebar: the background, the gutters, the
+	 * gap between tiles. A click on anything with something in it (a tile, a link, a button, a field, a
+	 * section, words, a chart) does what it does and leaves the sidebar open, so you can work with it
+	 * there. The manager's own page keeps your machines beside the conversation.
+	 */
+	useEffect(() => {
+		if (!open || (open === "left" && onManager)) return;
+		const onDown = (event: PointerEvent) => {
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+			if (target.closest(SOMETHING)) return;
+			if (TEXT.has(target.tagName)) return;
+			setEdge(undefined);
+		};
+		document.addEventListener("pointerdown", onDown);
+		return () => document.removeEventListener("pointerdown", onDown);
+	}, [open, onManager]);
 	const close = () => setEdge(undefined);
 
 	useEffect(() => {
@@ -315,19 +339,6 @@ export function Edges() {
 
 	return (
 		<>
-			{/*
-			 * Anywhere else on the screen closes whatever is open, header or sidebar. The one exception is the
-			 * manager's own page, where your machines sit beside the conversation while you type to it.
-			 */}
-			{open && !(open === "left" && onManager) ? (
-				<button
-					type="button"
-					aria-label="Close"
-					tabIndex={-1}
-					onClick={close}
-					className="fixed inset-0 z-30 cursor-default"
-				/>
-			) : null}
 			<Mark
 				edge="left"
 				label="Your machines"

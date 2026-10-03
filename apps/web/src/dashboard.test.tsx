@@ -262,17 +262,20 @@ describe("the edges", () => {
 		expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
 	});
 
-	it("a click anywhere off an open sidebar closes it", async () => {
+	it("a click on bare space closes an open sidebar; a click on a tile leaves it open", async () => {
 		renderAt("/");
 		await section("Home");
+		const page = screen.getByRole("region", { name: "Home" });
 		fireEvent.keyDown(window, { key: "Escape" });
 		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
 		const sidebar = (await screen.findByRole("button", { name: "Close sidebar" })).closest("aside");
 		await vi.waitFor(() => expect(sidebar?.className).toContain("translate-x-0"));
-		const off = screen
-			.getAllByRole("button", { name: "Close", hidden: true })
-			.find((each) => each.className.includes("inset-0"));
-		fireEvent.click(off as HTMLElement);
+		// A tile is something: the sidebar stays.
+		const tile = page.querySelector("article, a, button") as HTMLElement;
+		fireEvent.pointerDown(tile);
+		expect(sidebar?.className).toContain("translate-x-0");
+		// The bare page behind the tiles is nothing: the sidebar goes.
+		fireEvent.pointerDown(document.body);
 		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
 	});
 
