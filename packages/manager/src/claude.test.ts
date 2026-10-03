@@ -41,7 +41,12 @@ describe("asking Claude", () => {
 		expect(sent.system[0].cache_control).toEqual({ type: "ephemeral" });
 		expect(sent.tools[0].cache_control).toBeUndefined();
 		expect(sent.tools[1].cache_control).toEqual({ type: "ephemeral" });
-		expect(sent).toMatchObject({ model: "claude-sonnet-5", max_tokens: 500 });
+		expect(sent).toMatchObject({
+			model: "claude-sonnet-5",
+			max_tokens: 500,
+			thinking: { type: "adaptive" },
+			output_config: { effort: "medium" },
+		});
 	});
 
 	it("sends no tools field when there are none", async () => {

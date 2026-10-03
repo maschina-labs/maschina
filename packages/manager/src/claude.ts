@@ -18,7 +18,10 @@ export type ToolSpec = { name: string; description: string; input_schema: Record
 export type ContentBlock =
 	| { type: "text"; text: string }
 	| { type: "tool_use"; id: string; name: string; input: Record<string, unknown> }
-	| { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean };
+	| { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean }
+	// Its thinking, signed. Handed back exactly as it came while a turn uses tools, which the API requires.
+	| { type: "thinking"; thinking: string; signature: string }
+	| { type: "redacted_thinking"; data: string };
 
 export type Message = { role: "user" | "assistant"; content: string | ContentBlock[] };
 
@@ -36,8 +39,17 @@ export type ClaudeRequest = {
 	system: string;
 	messages: Message[];
 	tools: ToolSpec[];
+	/**
+	 * The most it may write, thinking included. Thinking counts against this, so it must be roomy: a
+	 * tight ceiling spends the whole allowance on thinking and leaves nothing for the answer. Only what is
+	 * used is paid for.
+	 */
 	maxTokens: number;
+	/** How hard it thinks before answering. Higher is better and dearer; the API's own default is high. */
+	effort?: Effort;
 };
+
+export type Effort = "low" | "medium" | "high";
 
 export type Claude = (request: ClaudeRequest) => Promise<ClaudeReply>;
 
@@ -64,6 +76,9 @@ export function claude(
 				body: JSON.stringify({
 					model: request.model,
 					max_tokens: request.maxTokens,
+					// It decides how much to think, within the effort asked for.
+					thinking: { type: "adaptive" },
+					output_config: { effort: request.effort ?? "medium" },
 					system: [{ type: "text", text: request.system, cache_control: { type: "ephemeral" } }],
 					messages: request.messages,
 					...(tools.length ? { tools } : {}),

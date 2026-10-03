@@ -9,7 +9,7 @@
  * There is a ceiling on steps so a confused model cannot loop on the owner's credit.
  */
 
-import type { Claude, ContentBlock, Message, ToolSpec, Usage } from "./claude.ts";
+import type { Claude, ContentBlock, Effort, Message, ToolSpec, Usage } from "./claude.ts";
 import { addUsage, costOf, NO_USAGE } from "./cost.ts";
 
 export type Tool = ToolSpec & {
@@ -40,6 +40,7 @@ export async function converse(request: {
 	messages: Message[];
 	tools: Tool[];
 	maxTokens?: number;
+	effort?: Effort;
 }): Promise<Turn> {
 	const messages = [...request.messages];
 	const calls: ToolCall[] = [];
@@ -61,7 +62,8 @@ export async function converse(request: {
 			// A copy: what was sent stays what was sent, whatever is added after.
 			messages: [...messages],
 			tools: specs,
-			maxTokens: request.maxTokens ?? 4_000,
+			maxTokens: request.maxTokens ?? 16_000,
+			effort: request.effort ?? "medium",
 		});
 		usage = addUsage(usage, answer.usage);
 		messages.push({ role: "assistant", content: answer.content });

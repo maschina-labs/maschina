@@ -148,7 +148,7 @@ describe("a turn of conversation", () => {
 	it("gives Claude room to answer at length", async () => {
 		const claude = scripted(say("ok"));
 		await converse({ ...base, claude, messages: [{ role: "user", content: "?" }] });
-		expect(claude.mock.calls[0]?.[0].maxTokens).toBe(4_000);
+		expect(claude.mock.calls[0]?.[0]).toMatchObject({ maxTokens: 16_000, effort: "medium" });
 	});
 
 	it("cuts a huge tool answer so it cannot eat the credit", async () => {
