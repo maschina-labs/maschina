@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { alertsFrom } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
+import { EXPLORERS, type Explorer, setExplorer, useExplorer } from "../lib/explorer.ts";
 import { useClearManagerKey, useManagerKey, useSetManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
@@ -74,6 +75,7 @@ export function SettingsScreen() {
 				</div>
 				<Note>Dynamic follows the time of day and the weather where you are.</Note>
 			</Panel>
+			<ExplorerPanel />
 			<Panel size="wide" name="Your data">
 				<Note>
 					Each machine's record exports from its screen. Exporting everything at once, and deleting
@@ -250,6 +252,29 @@ function AiKeyPanel() {
 					<Note>From console.anthropic.com. Checked, sealed, never shown again.</Note>
 				</form>
 			)}
+		</Panel>
+	);
+}
+
+/** Where a transaction opens when you want to check it happened: your explorer, kept in this browser. */
+function ExplorerPanel() {
+	const explorer = useExplorer();
+	return (
+		<Panel size="wide" name="Explorer">
+			<div className="grid grid-cols-3 gap-1">
+				{(Object.keys(EXPLORERS) as Explorer[]).map((each) => (
+					<button
+						key={each}
+						type="button"
+						aria-pressed={explorer === each}
+						onClick={() => setExplorer(each)}
+						className={`py-2 text-[13px] transition-colors ${explorer === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+					>
+						{EXPLORERS[each].name}
+					</button>
+				))}
+			</div>
+			<Note>Every trade on chain links here, so you can see it happened.</Note>
 		</Panel>
 	);
 }

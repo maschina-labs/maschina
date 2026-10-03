@@ -24,6 +24,7 @@ import { sendTransaction } from "../lib/wallet.ts";
 import { Tile, TileEmpty, TileLoading, TileProblem } from "./bento.tsx";
 import { openEdge } from "./edges.tsx";
 import { Line, sentence } from "./home.tsx";
+import { RecordRow } from "./record-row.tsx";
 import { SessionEnded } from "./system.tsx";
 
 /**
@@ -294,29 +295,15 @@ export function MachineScreen({ machineId }: { machineId: string }) {
 						<ol data-own-drag className="no-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
 							{events.map((entry) => {
 								const said = describeEvent(entry);
+								const signature = (entry.payload as Record<string, unknown>)["signature"];
 								return (
-									<li
+									<RecordRow
 										key={entry.id}
-										className="grid grid-cols-[auto_1fr] gap-x-5 border-white/[0.06] border-b py-2.5"
-									>
-										<time
-											className="text-[13px] text-neutral-500 tabular-nums"
-											dateTime={entry.occurredAt}
-										>
-											{new Date(entry.occurredAt).toLocaleString([], {
-												month: "short",
-												day: "numeric",
-												hour: "2-digit",
-												minute: "2-digit",
-											})}
-										</time>
-										<span className="truncate text-[15px] text-neutral-100">
-											{sentence(said.title)}
-											{said.detail ? (
-												<span className="text-neutral-500"> · {sentence(said.detail)}</span>
-											) : null}
-										</span>
-									</li>
+										at={entry.occurredAt}
+										title={sentence(said.title)}
+										detail={said.detail ? sentence(said.detail) : undefined}
+										signature={typeof signature === "string" ? signature : undefined}
+									/>
 								);
 							})}
 						</ol>

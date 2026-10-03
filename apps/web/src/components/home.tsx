@@ -77,8 +77,11 @@ export function Line({ children, name }: { children: ReactNode; name: string }) 
 const signedOut = <TileEmpty>Connect to see your machines.</TileEmpty>;
 
 /** A line in sentence case: a capital at the start and nowhere else that shouts. */
+/** Words that stay as they are written in a sentence: token symbols and the like. */
+const KEPT = /\b(sol|usdc|usdt|ai|api|csv|pnl)\b/g;
+
 export const sentence = (text: string) => {
-	const lower = text.toLowerCase();
+	const lower = text.toLowerCase().replace(KEPT, (word) => word.toUpperCase());
 	return lower.charAt(0).toUpperCase() + lower.slice(1);
 };
 

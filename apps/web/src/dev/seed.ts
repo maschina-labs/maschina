@@ -79,6 +79,11 @@ const PLANS: Plan[] = [
 	},
 ];
 
+/** A made-up transaction signature, shaped like a real one: 88 base58 characters. */
+const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const signature = (next: () => number) =>
+	Array.from({ length: 88 }, () => B58[Math.floor(next() * 58)]).join("");
+
 const now = Date.now();
 const DAY = 86_400_000;
 let counter = 0;
@@ -132,6 +137,7 @@ function build(plan: Plan, index: number) {
 					tradeId: buyId,
 					inputAmount: String(Math.round(spend)),
 					outputAmount: String(bought),
+					...(plan.paper ? {} : { signature: signature(next) }),
 				},
 			},
 		);
@@ -154,7 +160,12 @@ function build(plan: Plan, index: number) {
 				id: id("e"),
 				type: "trade.completed",
 				occurredAt: at(sellAt + 4_000),
-				payload: { tradeId: sellId, inputAmount: String(bought), outputAmount: String(back) },
+				payload: {
+					tradeId: sellId,
+					inputAmount: String(bought),
+					outputAmount: String(back),
+					...(plan.paper ? {} : { signature: signature(next) }),
+				},
 			},
 		);
 		realized += back - spend;

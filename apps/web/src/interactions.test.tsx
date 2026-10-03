@@ -147,6 +147,24 @@ describe("closing a screen", () => {
 	});
 });
 
+describe("checking a trade on chain", () => {
+	it("links each trade to the explorer the owner chose, Solscan unless they chose another", async () => {
+		localStorage.removeItem("maschina.explorer");
+		renderAt(`/machines/${MACHINE_ID}`);
+		const link = await screen.findByRole("link", { name: "View on Solscan" });
+		expect(link).toHaveAttribute(
+			"href",
+			"https://solscan.io/tx/5sigTwoxRealLookingButMadeUpForTheTestsOnly",
+		);
+		localStorage.setItem("maschina.explorer", "solana");
+		window.dispatchEvent(new Event("maschina:explorer"));
+		expect(await screen.findByRole("link", { name: "View on Solana Explorer" })).toHaveAttribute(
+			"href",
+			"https://explorer.solana.com/tx/5sigTwoxRealLookingButMadeUpForTheTestsOnly",
+		);
+	});
+});
+
 describe("the account sidebar", () => {
 	const OTHER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 	const openAccount = async () => {

@@ -71,6 +71,7 @@ const record = [
 	event("sweep.completed", 80, { mint: USDC, amount: "1100000" }),
 	event("trade.completed", 70, {
 		tradeId: "t2",
+		signature: "5sigTwoxRealLookingButMadeUpForTheTestsOnly",
 		inputAmount: "330000000",
 		outputAmount: "41000000",
 	}),
