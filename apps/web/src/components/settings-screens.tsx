@@ -139,7 +139,7 @@ export function AlertsScreen() {
 					))}
 				</ul>
 				<Note>
-					Shown here and in quick settings now. Sent to Telegram once you can link it from here.
+					Shown here and in the tiles sidebar now. Sent to Telegram once you can link it from here.
 				</Note>
 			</Panel>
 		</>

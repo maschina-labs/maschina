@@ -222,3 +222,11 @@ input[type="range"].square::-moz-range-thumb {
 :root[data-mode="light"] .tv-lightweight-charts {
 	filter: invert(1);
 }
+
+/*
+ * White on dark glows and reads larger; black on light reads thinner, and the ring looks smaller than the
+ * word beside it. A hairline of shadow gives the dark logo back the weight the light one has.
+ */
+:root[data-mode="light"] img.brand-mark {
+	filter: invert(1) drop-shadow(0 0 0.45px #000) drop-shadow(0 0 0.25px #000);
+}

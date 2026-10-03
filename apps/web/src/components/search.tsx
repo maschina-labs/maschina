@@ -8,7 +8,7 @@ import { useTheme } from "../lib/theme.ts";
 import { SECTIONS } from "./sections.tsx";
 
 /**
- * Search: ⌘K (or Ctrl K) from anywhere, or Search in quick settings. One opaque bar near the top, the dashboard
+ * Search: ⌘K (or Ctrl K) from anywhere, or Search in the tiles. One opaque bar near the top, the dashboard
  * dimmed behind it. Type to narrow, the arrow keys to move, Enter to go, Escape to close.
  *
  * It finds the pages, your machines by name, and the things you do anywhere.
@@ -39,7 +39,7 @@ function setShown(next: boolean) {
 	for (const listener of listeners) listener();
 }
 
-/** Opens search from anywhere, such as quick settings. */
+/** Opens search from anywhere, such as the tiles. */
 export function openSearch() {
 	setShown(true);
 }

@@ -52,7 +52,7 @@ import { SECTIONS } from "./sections.tsx";
  *
  *   top    the header: the time, the date, the price of SOL
  *   left   your machines
- *   right  alerts, then quick settings: search, idle mode, light or dark, settings. A dot on this edge, the one
+ *   right  alerts, then tiles: search, idle mode, light or dark, settings. A dot on this edge, the one
  *          thing that shows without the pointer there, says there are alerts you have not seen.
 
  * Your account has its own panel on the right too, opened from the account tile rather than an edge.
@@ -79,7 +79,7 @@ const subscribe = (listener: () => void) => {
 
 /**
  * Alerts: what your machines did that is worth knowing, and how many arrived since you last opened the
- * quick settings. Opening them is looking at them.
+ * tiles. Opening them is looking at them.
  */
 function useAlerts() {
 	const feed = useActivity();
@@ -159,7 +159,7 @@ export function SideRail() {
 				"Section menu",
 				<SectionsPanel onChoose={() => setEdge(undefined)} />,
 			)}
-			{side("right", "right", "Quick settings", <QuickPanel />)}
+			{side("right", "right", "Tiles", <TilesPanel />)}
 		</>
 	);
 }
@@ -314,7 +314,7 @@ export function Edges() {
 			/>
 			<Mark
 				edge="right"
-				label="Quick settings"
+				label="Tiles"
 				onPress={() => toggle("right")}
 				news={fresh > 0}
 				attached={open === "right" || open === "account" || open === "sections"}
@@ -420,7 +420,7 @@ function Dock({
 	const keys = [
 		{ edge: "left", label: "Your machines", Icon: Robot },
 		{ edge: "top", label: "Now", Icon: Clock },
-		{ edge: "right", label: "Quick settings", Icon: SquaresFour },
+		{ edge: "right", label: "Tiles", Icon: SquaresFour },
 		{ edge: "account", label: "Account", Icon: User },
 	] as const;
 	return (
@@ -565,7 +565,7 @@ function MachinesPanel() {
 					aria-label="Close sidebar"
 					title="Close sidebar"
 					onClick={() => setEdge(undefined)}
-					className="grid size-9 place-items-center text-neutral-400 transition-colors duration-300 hover:bg-white/[0.08] hover:text-neutral-100"
+					className="grid size-10 place-items-center bg-white/[0.11] text-neutral-100 transition-colors duration-300 hover:bg-white/[0.18]"
 				>
 					<SidebarSimple size={20} weight="light" />
 				</button>
@@ -659,7 +659,12 @@ function AccountPanel() {
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
 			<div className="flex items-center gap-3">
-				<img src="/brand/avatar.svg" alt="" className="size-11" />
+				<span
+					aria-hidden="true"
+					className="grid size-11 shrink-0 place-items-center bg-white/[0.11] text-neutral-100"
+				>
+					<User size={22} weight="light" />
+				</span>
 				<div className="flex min-w-0 flex-col">
 					<span className="font-mono text-[15px] text-neutral-100">{shortAddress(address)}</span>
 					<span className="text-[13px] text-neutral-500">
@@ -782,7 +787,7 @@ function AccountPanel() {
 	);
 }
 
-/** The latest alerts, in plain words, at the top of quick settings. */
+/** The latest alerts, in plain words, at the top of the tiles. */
 function AlertsSection() {
 	const { alerts } = useAlerts();
 	return (
@@ -822,11 +827,11 @@ function AlertsSection() {
 	);
 }
 
-function QuickPanel() {
+function TilesPanel() {
 	const idle = useIdleMode();
 	const { theme } = useTheme();
 	const side = useSide();
-	const quick =
+	const tile =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
 	return (
 		<div
@@ -834,14 +839,14 @@ function QuickPanel() {
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
 			<AlertsSection />
-			<Section title="Quick settings">
+			<Section title="Tiles">
 				<button
 					type="button"
 					onClick={() => {
 						setEdge(undefined);
 						openSearch();
 					}}
-					className={quick}
+					className={tile}
 				>
 					<MagnifyingGlass size={20} weight="light" />
 					<span className="flex-1">Search</span>
@@ -860,7 +865,7 @@ function QuickPanel() {
 						// After the switch has reached the dashboard, so the drift it starts is the one that runs.
 						setTimeout(playIdleNow, 50);
 					}}
-					className={quick}
+					className={tile}
 				>
 					{idle ? <Pause size={20} weight="light" /> : <Play size={20} weight="light" />}
 					<span className="flex-1">Idle mode</span>
@@ -906,11 +911,11 @@ function QuickPanel() {
 						))}
 					</div>
 				</div>
-				<Link to="/papers" className={quick}>
+				<Link to="/papers" className={tile}>
 					<BookOpen size={20} weight="light" />
 					<span className="flex-1">Papers</span>
 				</Link>
-				<Link to="/settings" className={quick}>
+				<Link to="/settings" className={tile}>
 					<GearSix size={20} weight="light" />
 					<span className="flex-1">Settings</span>
 				</Link>
