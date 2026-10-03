@@ -28,9 +28,9 @@ describe("the opening moment", () => {
 		expect(result.current).toBe("done");
 	});
 
-	it("draws the ring until it is done, and nothing after", () => {
+	it("draws the whole logo, ring and name, until it is done, and nothing after", () => {
 		const { container, rerender } = render(<Splash phase="mark" />);
-		expect(container.querySelector("img")).not.toBeNull();
+		expect(container.querySelector("img")?.getAttribute("src")).toBe("/brand/word.svg");
 		rerender(<Splash phase="done" />);
 		expect(container.querySelector("img")).toBeNull();
 		expect(screen.queryByRole("img")).toBeNull();

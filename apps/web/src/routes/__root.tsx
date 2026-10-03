@@ -84,9 +84,15 @@ function Field() {
 			<Edges />
 			<Search />
 			<Toaster />
-			<OfflineBanner />
-			<HaltBanner />
-			<PaperBanner />
+			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
+			<div
+				className="transition-opacity duration-1000 ease-out"
+				style={{ opacity: splash === "mark" ? 0 : 1 }}
+			>
+				<OfflineBanner />
+				<HaltBanner />
+				<PaperBanner />
+			</div>
 			<TabTitle />
 			<Splash phase={splash} />
 			<Grain />
