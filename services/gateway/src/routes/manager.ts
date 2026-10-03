@@ -20,6 +20,14 @@ export type ManagerPorts = {
 	clearKey(ownerId: string): Promise<void>;
 };
 
+/** A gateway with nowhere to keep keys: signed in owners are told so, rather than shown nothing. */
+export function noManager(ownerOf: ManagerPorts["ownerOf"]): ManagerPorts {
+	const unavailable = async (): Promise<never> => {
+		throw new MaschinaError("unavailable", "the manager is not available here yet");
+	};
+	return { ownerOf, keyStatus: unavailable, setKey: unavailable, clearKey: unavailable };
+}
+
 const problem = {
 	400: {
 		description: "The request is not valid",

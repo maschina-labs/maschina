@@ -1,6 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { alertsFrom } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
+import { useClearManagerKey, useManagerKey, useSetManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { toast } from "../lib/toasts.ts";
@@ -37,6 +40,7 @@ export function SettingsScreen() {
 				)}
 				<Note>Signing in with email as well, and more than one wallet, arrive with accounts.</Note>
 			</Panel>
+			<AiKeyPanel />
 			<Panel size="large" name="More">
 				<Onward to="/settings/alerts">Alerts</Onward>
 				<Onward to="/settings/keys">API keys</Onward>
@@ -159,5 +163,99 @@ export function KeysScreen() {
 				<Note>API keys arrive with the developer SDK.</Note>
 			</Panel>
 		</>
+	);
+}
+
+/**
+ * Your own Anthropic key, which the manager thinks with. Pasted once, checked with Anthropic, kept sealed,
+ * and never shown again: only its last four characters are.
+ */
+function AiKeyPanel() {
+	const { api } = useRouter().options.context;
+	const queryClient = useQueryClient();
+	const session = useSession(api);
+	const status = useManagerKey(api, Boolean(session.data));
+	const save = useSetManagerKey(api, queryClient);
+	const clear = useClearManagerKey(api, queryClient);
+	const [draft, setDraft] = useState("");
+	const [replacing, setReplacing] = useState(false);
+
+	if (!session.data)
+		return (
+			<Panel size="wide" name="AI key">
+				<Note>Connect to give the manager your Anthropic key.</Note>
+			</Panel>
+		);
+
+	const set = status.data?.set && !replacing;
+	return (
+		<Panel size="wide" name="AI key">
+			{set ? (
+				<>
+					<Headline>Anthropic key ending {status.data?.hint}</Headline>
+					<div className="flex gap-1">
+						<button
+							type="button"
+							onClick={() => setReplacing(true)}
+							className="bg-white/[0.06] px-3 py-2 text-[14px] text-neutral-200 hover:bg-white/[0.12]"
+						>
+							Replace
+						</button>
+						<button
+							type="button"
+							disabled={clear.isPending}
+							onClick={() => clear.mutate(undefined, { onSuccess: () => toast("AI key removed") })}
+							className="bg-white/[0.06] px-3 py-2 text-[14px] text-neutral-200 hover:bg-white/[0.12] disabled:opacity-40"
+						>
+							Remove
+						</button>
+					</div>
+					<Note>The manager thinks with this key. It is kept sealed and never shown again.</Note>
+				</>
+			) : (
+				<form
+					onSubmit={(event) => {
+						event.preventDefault();
+						save.mutate(draft, {
+							onSuccess: () => {
+								setDraft("");
+								setReplacing(false);
+								toast("AI key saved");
+							},
+						});
+					}}
+					className="flex flex-col gap-2"
+				>
+					<div className="flex gap-1">
+						<input
+							type="password"
+							autoComplete="off"
+							spellCheck={false}
+							aria-label="Anthropic key"
+							placeholder="sk-ant-..."
+							value={draft}
+							onChange={(event) => setDraft(event.target.value)}
+							className="min-w-0 flex-1 bg-white/[0.06] px-3 py-2 font-mono text-[14px] text-neutral-100 outline-none placeholder:text-neutral-500 focus:bg-white/[0.1]"
+						/>
+						<button
+							type="submit"
+							disabled={!draft.trim() || save.isPending}
+							className="bg-white px-4 py-2 text-[14px] text-neutral-950 disabled:opacity-30"
+						>
+							{save.isPending ? "Checking" : "Save"}
+						</button>
+					</div>
+					{save.error ? (
+						<p role="alert" className="text-[14px] text-neutral-100">
+							{save.error.message}
+						</p>
+					) : null}
+					<Note>
+						From console.anthropic.com. It is checked with Anthropic, kept sealed, and never shown
+						again. Set a spend limit there so the manager can never cost more than you chose.
+					</Note>
+				</form>
+			)}
+		</Panel>
 	);
 }

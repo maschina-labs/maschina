@@ -8,7 +8,7 @@ const logger = createLogger({ service: "test", level: "silent" });
 const ownerId = newId<"owner">();
 const KEY = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123";
 
-function app(ports: Partial<ManagerPorts> = {}) {
+function app(ports: Partial<ManagerPorts> = {}, offered = true) {
 	const ownerOf = async (headers: Headers) =>
 		headers.get("authorization") === "Bearer signed-in"
 			? { ownerId, walletAddress: "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF" }
@@ -50,7 +50,7 @@ function app(ports: Partial<ManagerPorts> = {}) {
 			signOut: async () => undefined,
 		},
 		cookie: { secure: false },
-		manager,
+		...(offered ? { manager } : {}),
 	});
 }
 
@@ -126,5 +126,13 @@ describe("the manager's key", () => {
 			});
 			expect(res.status).toBe(401);
 		}
+	});
+});
+
+describe("a gateway with nowhere to keep keys", () => {
+	it("tells a signed in owner the manager is not available", async () => {
+		const res = await app({}, false).request("/v1/manager/key", { headers: signedIn });
+		expect(res.status).toBe(503);
+		expect(await res.text()).toContain("not available here yet");
 	});
 });

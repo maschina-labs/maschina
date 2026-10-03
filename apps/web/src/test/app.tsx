@@ -108,12 +108,16 @@ export function standIn({
 	signedIn = true,
 	machines = [machine],
 	halt,
+	aiKey,
 }: {
 	signedIn?: boolean;
 	machines?: (typeof machine)[];
 	/** The stop switch, on with this reason, or off when left out. */
 	halt?: string;
+	/** The last four of an AI key already set, or none set when left out. */
+	aiKey?: string;
 } = {}) {
+	let keyHint = aiKey;
 	const requests: { method: string; path: string; body?: unknown }[] = [];
 	const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 		// Read the request without ever building a Request from the app's own: its abort signal belongs to
@@ -163,6 +167,16 @@ export function standIn({
 			if (part === "/balances") return json(balances);
 			if (part === "/actions") return json({ state: "paused" });
 			if (part === "/recipe") return json({ definitionId: "d".repeat(64) });
+		}
+		if (url.pathname === "/v1/manager/key") {
+			if (request.method === "PUT") {
+				const key = (body as { key?: string } | undefined)?.key ?? "";
+				if (key.includes("refused"))
+					return json({ error: { message: "Anthropic did not accept that key" } }, 400);
+				keyHint = key.slice(-4);
+			}
+			if (request.method === "DELETE") keyHint = undefined;
+			return json(keyHint ? { set: true, hint: keyHint } : { set: false });
 		}
 		if (url.pathname === "/v1/machines" && request.method === "POST")
 			return json({ machineId: "new", walletAddress: machine.walletAddress }, 201);
