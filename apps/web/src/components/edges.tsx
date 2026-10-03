@@ -28,6 +28,7 @@ import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
+import { setGlass, useGlass } from "../lib/glass.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import {
 	forgetWallet,
@@ -866,6 +867,7 @@ function AlertsSection() {
 }
 
 function TilesPanel() {
+	const glass = useGlass();
 	const idle = useIdleMode();
 	const { theme } = useTheme();
 	const side = useSide();
@@ -945,6 +947,23 @@ function TilesPanel() {
 								className={`py-2 text-[13px] transition-colors ${side === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
 							>
 								{each === "live" ? "Live" : "Paper"}
+							</button>
+						))}
+					</div>
+				</div>
+				{/* The glass the city is seen through: a look to try, and one press to undo. */}
+				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
+					<span className="text-[15px] text-neutral-100">Glass</span>
+					<div className="grid grid-cols-2 gap-1">
+						{(["clear", "pebbled"] as const).map((each) => (
+							<button
+								key={each}
+								type="button"
+								aria-pressed={glass === each}
+								onClick={() => setGlass(each)}
+								className={`py-2 text-[13px] transition-colors ${glass === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+							>
+								{each === "clear" ? "Clear" : "Pebbled"}
 							</button>
 						))}
 					</div>

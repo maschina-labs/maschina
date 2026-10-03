@@ -316,6 +316,20 @@ describe("the edges", () => {
 		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
 	});
 
+	it("the glass can be pebbled from the tiles, and cleared again with one press", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
+		fireEvent.click(await screen.findByRole("button", { name: "Pebbled" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["glass"]).toBe("pebbled"));
+		expect(localStorage.getItem("maschina.glass")).toBe("pebbled");
+		fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["glass"]).toBe("clear"));
+		expect(localStorage.getItem("maschina.glass")).toBeNull();
+		fireEvent.keyDown(window, { key: "Escape" });
+	});
+
 	it("the left sidebar closes from the button beside the logo", async () => {
 		renderAt("/");
 		await section("Home");

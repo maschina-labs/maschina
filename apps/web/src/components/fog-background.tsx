@@ -333,7 +333,7 @@ export function FogBackground({
 		<div
 			aria-hidden="true"
 			// z-0, not negative: with no stacking context above it, a negative one hides behind the body.
-			className={`pointer-events-none ${position} inset-0 z-0`}
+			className={`fog-field pointer-events-none ${position} inset-0 z-0`}
 			// The same light in CSS, holding the screen while WebGL starts and standing in without it.
 			style={{
 				background: `radial-gradient(ellipse at 90% 55%, ${css(palette.glow)} 0%, transparent 40%), linear-gradient(in oklab to bottom, ${css(palette.top)} 0%, ${css(palette.upper)} 33%, ${css(palette.middle)} 50%, ${css(palette.night)} 85%)`,

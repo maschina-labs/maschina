@@ -6,6 +6,7 @@ import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
+import { PebbledGlassFilter } from "../components/pebbled-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
 import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
@@ -14,6 +15,7 @@ import { Toaster } from "../components/toaster.tsx";
 import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
+import { useGlass } from "../lib/glass.ts";
 import { useTheme } from "../lib/theme.ts";
 import { useWeather } from "../lib/weather.ts";
 
@@ -48,6 +50,11 @@ function Field() {
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
 	}, [mode]);
+	// The glass the city is seen through, the same way: one attribute, so undoing it is one press.
+	const glass = useGlass();
+	useEffect(() => {
+		document.documentElement.dataset["glass"] = glass;
+	}, [glass]);
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.
@@ -89,6 +96,7 @@ function Field() {
 			<Edges />
 			<Toaster />
 			<WalletPicker />
+			<PebbledGlassFilter />
 			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
 			<div
 				className="transition-opacity duration-1000 ease-in-out"
