@@ -5,6 +5,7 @@ import { amount, holdingOf, useBalances, useMachines } from "../lib/machines.ts"
 import { type Day, streamDay } from "../lib/market.ts";
 import { totalsOf } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
+import { useSide } from "../lib/side.ts";
 import { statusOf } from "../lib/status.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { bandOf, useMachineAtWork } from "./at-work.tsx";
@@ -76,7 +77,8 @@ export function HomeTiles() {
 	const { machine, record } = useMachineAtWork();
 	const balances = useBalances(api, machine?.machineId ?? "");
 	const mine = session.data ? machines.data : [];
-	const totals = mine ? totalsOf(mine) : undefined;
+	const side = useSide();
+	const totals = mine ? totalsOf(mine, side) : undefined;
 	const latest = record[0];
 	// Until a machine has started, the big tile on the left walks you through getting one going.
 	const firstRun = firstRunStep({ signedIn: Boolean(session.data), machines: mine });

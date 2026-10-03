@@ -229,6 +229,17 @@ describe("the edges", () => {
 		expect(await screen.findByRole("textbox", { name: "Search" })).toBeInTheDocument();
 	});
 
+	it("the charms switch what money is shown between live and paper", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(await screen.findByRole("button", { name: "Paper" }));
+		expect(localStorage.getItem("maschina.side")).toBe("paper");
+		expect(screen.getByRole("button", { name: "Paper" })).toHaveAttribute("aria-pressed", "true");
+		fireEvent.click(screen.getByRole("button", { name: "Live" }));
+		expect(localStorage.getItem("maschina.side")).toBe("live");
+	});
+
 	it("a panel closes from its close button", async () => {
 		renderAt("/");
 		await section("Home");
