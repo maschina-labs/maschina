@@ -15,10 +15,10 @@ export function PebbledGlassFilter() {
 				height="108%"
 				colorInterpolationFilters="sRGB"
 			>
-				{/* The grain: fine, a couple of pixels across. */}
+				{/* The grain: a few pixels across, close enough to see each bead. */}
 				<feTurbulence
 					type="fractalNoise"
-					baseFrequency="0.85"
+					baseFrequency="0.42"
 					numOctaves="2"
 					seed="11"
 					result="grain"
@@ -28,7 +28,7 @@ export function PebbledGlassFilter() {
 				<feDisplacementMap
 					in="frosted"
 					in2="grain"
-					scale="9"
+					scale="16"
 					xChannelSelector="R"
 					yChannelSelector="G"
 					result="bent"
