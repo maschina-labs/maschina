@@ -25,6 +25,8 @@ function app(ports: Partial<ManagerPorts> = {}, offered = true) {
 		ask: async () => ({
 			reply: "Range Finder is running.",
 			costUsd: 0.0123,
+			model: "Sonnet 5",
+			seconds: 4.2,
 			looked: [{ tool: "list_machines", ok: true }],
 		}),
 		...ports,
@@ -151,11 +153,47 @@ describe("asking the manager", () => {
 		});
 
 	it("answers with what it cost and what it looked at", async () => {
-		const asked = vi.fn(async () => ({ reply: "Fine.", costUsd: 0.01, looked: [] }));
+		const asked = vi.fn(async () => ({
+			reply: "Fine.",
+			costUsd: 0.01,
+			model: "Sonnet 5",
+			seconds: 3,
+			looked: [],
+		}));
 		const res = await ask({ messages: [{ role: "you", text: " how are they? " }] }, { ask: asked });
 		expect(res.status).toBe(200);
-		expect(await res.json()).toEqual({ reply: "Fine.", costUsd: 0.01, looked: [] });
-		expect(asked).toHaveBeenCalledWith(ownerId, [{ role: "you", text: "how are they?" }]);
+		expect(await res.json()).toEqual({
+			reply: "Fine.",
+			costUsd: 0.01,
+			model: "Sonnet 5",
+			seconds: 3,
+			looked: [],
+		});
+		// Sonnet at medium effort unless asked otherwise.
+		expect(asked).toHaveBeenCalledWith(ownerId, [{ role: "you", text: "how are they?" }], {
+			model: "sonnet",
+			effort: "medium",
+		});
+	});
+
+	it("takes the model and effort asked for, and nothing else", async () => {
+		const asked = vi.fn(async () => ({
+			reply: "ok",
+			costUsd: 0,
+			model: "Opus 5.5",
+			seconds: 1,
+			looked: [],
+		}));
+		const res = await ask(
+			{ messages: [{ role: "you", text: "hi" }], model: "opus", effort: "high" },
+			{ ask: asked },
+		);
+		expect(res.status).toBe(200);
+		expect(asked).toHaveBeenCalledWith(ownerId, expect.anything(), {
+			model: "opus",
+			effort: "high",
+		});
+		expect((await ask({ messages: [{ role: "you", text: "hi" }], model: "gpt" })).status).toBe(400);
 	});
 
 	it("needs the last word to be yours", async () => {

@@ -18,7 +18,7 @@ import {
 	retuneMachine,
 	setOwnerSecret,
 } from "@maschina/db";
-import { claude, converse, type Message, MODELS } from "@maschina/manager";
+import { CHOICES, claude, converse, type Message } from "@maschina/manager";
 import { jupiterMarket, rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
 import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
@@ -167,7 +167,9 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		clearKey: async (ownerId) => {
 			await clearOwnerSecret(database.db, ownerId, "anthropic");
 		},
-		ask: async (ownerId, said) => {
+		ask: async (ownerId, said, choice) => {
+			const started = Date.now();
+			const model = CHOICES[choice.model];
 			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
 			if (!stored || !sealing)
 				throw new MaschinaError("conflict", "add your Anthropic key in settings first");
@@ -187,14 +189,17 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 			}));
 			const turn = await converse({
 				claude: claude(key),
-				model: MODELS.think,
+				model: model.id,
 				system: SYSTEM,
 				messages,
 				tools,
+				effort: choice.effort,
 			});
 			return {
 				reply: turn.reply,
 				costUsd: turn.costUsd,
+				model: model.name,
+				seconds: Math.round((Date.now() - started) / 100) / 10,
 				looked: turn.calls.map((call) => ({ tool: call.name, ok: call.ok })),
 				steps: turn.steps,
 			};

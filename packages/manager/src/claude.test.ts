@@ -49,6 +49,22 @@ describe("asking Claude", () => {
 		});
 	});
 
+	it("asks an older model for no effort, which it would refuse", async () => {
+		const fetch = answering(200, {});
+		await claude("k", { fetch })({ ...request, model: "claude-haiku-4-5-20251001" });
+		const sent = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body));
+		expect(sent.thinking).toBeUndefined();
+		expect(sent.output_config).toBeUndefined();
+	});
+
+	it("passes the effort asked for", async () => {
+		const fetch = answering(200, {});
+		await claude("k", { fetch })({ ...request, model: "claude-opus-5-5", effort: "high" });
+		expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)).output_config).toEqual({
+			effort: "high",
+		});
+	});
+
 	it("sends no tools field when there are none", async () => {
 		const fetch = answering(200, {});
 		const reply = await claude("k", { fetch })({ ...request, tools: [] });

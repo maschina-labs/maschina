@@ -122,6 +122,10 @@ export function Deck({ behind }: { behind?: string } = {}) {
 	const [rest, setRest] = useState(0);
 	const step = useRef(go);
 	step.current = go;
+	// Only the dashboard's own pages drift. A screen open over them, like the manager mid conversation or
+	// a form half filled in, is being used even when nothing moves.
+	const onDeck = useRef(true);
+	onDeck.current = sectionIndex(current) >= 0;
 	useEffect(() => {
 		// Switched off: whatever was drifting stops.
 		if (!idle) setDrifting(false);
@@ -162,7 +166,7 @@ export function Deck({ behind }: { behind?: string } = {}) {
 		const timer = setInterval(() => {
 			const now = Date.now();
 			if (!on) {
-				if (idle && now - last >= IDLE_MS) begin();
+				if (idle && onDeck.current && now - last >= IDLE_MS) begin();
 				return;
 			}
 			if (now - restStart < DWELL_MS) return;

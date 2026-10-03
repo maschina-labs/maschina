@@ -13,6 +13,21 @@ export const ANTHROPIC_API = "https://api.anthropic.com";
 /** The model the manager thinks with, and a cheaper one for routine looks. */
 export const MODELS = { think: "claude-sonnet-5", glance: "claude-haiku-4-5-20251001" } as const;
 
+/**
+ * The models an owner may pick from. Haiku is the fastest and cheapest and does not take an effort;
+ * Sonnet is the default; Opus is the strongest and the dearest.
+ */
+export const CHOICES = {
+	haiku: { id: "claude-haiku-4-5-20251001", name: "Haiku 4.5", adaptive: false },
+	sonnet: { id: "claude-sonnet-5", name: "Sonnet 5", adaptive: true },
+	opus: { id: "claude-opus-5-5", name: "Opus 5.5", adaptive: true },
+} as const;
+export type Choice = keyof typeof CHOICES;
+
+/** Whether a model thinks adaptively, and so takes an effort. Older models refuse the setting. */
+const adaptive = (model: string) =>
+	Object.values(CHOICES).find((each) => each.id === model)?.adaptive ?? true;
+
 export type ToolSpec = { name: string; description: string; input_schema: Record<string, unknown> };
 
 export type ContentBlock =
@@ -77,8 +92,12 @@ export function claude(
 					model: request.model,
 					max_tokens: request.maxTokens,
 					// It decides how much to think, within the effort asked for.
-					thinking: { type: "adaptive" },
-					output_config: { effort: request.effort ?? "medium" },
+					...(adaptive(request.model)
+						? {
+								thinking: { type: "adaptive" },
+								output_config: { effort: request.effort ?? "medium" },
+							}
+						: {}),
 					system: [{ type: "text", text: request.system, cache_control: { type: "ephemeral" } }],
 					messages: request.messages,
 					...(tools.length ? { tools } : {}),

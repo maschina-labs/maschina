@@ -43,6 +43,10 @@ export const ManagerMessageRequest = z
 			.min(1)
 			.max(60)
 			.refine((messages) => messages.at(-1)?.role === "you", "the last message must be yours"),
+		/** Which model thinks: Haiku is fastest and cheapest, Sonnet the default, Opus the strongest. */
+		model: z.enum(["haiku", "sonnet", "opus"]).default("sonnet"),
+		/** How hard it thinks. Haiku ignores this. */
+		effort: z.enum(["low", "medium", "high"]).default("medium"),
 	})
 	.meta({ id: "ManagerMessageRequest" });
 export type ManagerMessageRequest = z.infer<typeof ManagerMessageRequest>;
@@ -52,6 +56,9 @@ export const ManagerMessageResponse = z
 		reply: z.string(),
 		/** What this answer cost on your key, in dollars. */
 		costUsd: z.number().nonnegative(),
+		/** Which model answered, by name, and how long it took. */
+		model: z.string(),
+		seconds: z.number().nonnegative(),
 		/** What it looked at to answer, so you can see how it got there. */
 		looked: z.array(z.strictObject({ tool: z.string(), ok: z.boolean() })),
 	})

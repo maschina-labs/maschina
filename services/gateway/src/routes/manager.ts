@@ -28,6 +28,7 @@ export type ManagerPorts = {
 	ask(
 		ownerId: string,
 		messages: ManagerMessageRequest["messages"],
+		choice: { model: ManagerMessageRequest["model"]; effort: ManagerMessageRequest["effort"] },
 	): Promise<ManagerMessageResponse & { steps?: { stopReason: string; blocks: string[] }[] }>;
 };
 
@@ -152,8 +153,8 @@ export function managerRoutes(ports: ManagerPorts) {
 		})
 		.openapi(ask, async (c) => {
 			const who = await owner(c);
-			const { messages } = c.req.valid("json");
-			const { steps, ...answer } = await ports.ask(who.ownerId, messages);
+			const { messages, model, effort } = c.req.valid("json");
+			const { steps, ...answer } = await ports.ask(who.ownerId, messages, { model, effort });
 			// How each step ended and what it held, never what was said: enough to tell why an answer
 			// came back empty or cut short.
 			if (steps) c.get("logger").info({ steps, costUsd: answer.costUsd }, "manager turn");
