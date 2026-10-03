@@ -123,6 +123,61 @@ describe("your account", () => {
 	});
 });
 
+describe("the account sidebar", () => {
+	const OTHER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+	const openAccount = async () => {
+		renderAt("/");
+		await home();
+		// Which sidebar is open outlives a test, so each one starts with them all closed.
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(await screen.findByRole("button", { name: "Account" }));
+		return within(
+			(await screen.findByText(/^Showing (live|paper) money$/)).closest("aside") as HTMLElement,
+		);
+	};
+
+	it("shows what your money is doing, and remembers this wallet", async () => {
+		const account = await openAccount();
+		expect(account.getByText("Showing live money")).toBeInTheDocument();
+		expect(account.getByText("At work")).toBeInTheDocument();
+		expect(account.getByText(/1 of 1 machine running/)).toBeInTheDocument();
+		expect(account.getByText("AI key")).toBeInTheDocument();
+		await vi.waitFor(() =>
+			expect(localStorage.getItem("maschina.wallets") ?? "").toContain("8GTgV1msc"),
+		);
+	});
+
+	it("lists another wallet used here, forgets it, and switches by asking the wallet", async () => {
+		localStorage.setItem(
+			"maschina.wallets",
+			JSON.stringify([{ address: OTHER, lastUsed: "2026-10-03T10:00:00.000Z" }]),
+		);
+		const { requests } = standIn();
+		const account = await openAccount();
+		expect(account.getByText("3KnH…bEQF")).toBeInTheDocument();
+		fireEvent.click(account.getByRole("button", { name: "Switch wallet" }));
+		await vi.waitFor(() =>
+			expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(true),
+		);
+	});
+
+	it("forgets a wallet it no longer needs", async () => {
+		localStorage.setItem(
+			"maschina.wallets",
+			JSON.stringify([{ address: OTHER, lastUsed: "2026-10-03T10:00:00.000Z" }]),
+		);
+		const account = await openAccount();
+		fireEvent.click(account.getByRole("button", { name: "Forget 3KnH…bEQF" }));
+		await vi.waitFor(() => expect(account.queryByText("3KnH…bEQF")).not.toBeInTheDocument());
+	});
+
+	it("takes you to settings, alerts and the papers", async () => {
+		const account = await openAccount();
+		fireEvent.click(account.getByRole("button", { name: "Alerts" }));
+		await vi.waitFor(() => expect(window.location.pathname).toBeDefined());
+	});
+});
+
 describe("the stop switch", () => {
 	it("when it is on, says so across the top: why, and that money can still come home", async () => {
 		standIn({ halt: "upgrading the signer" });

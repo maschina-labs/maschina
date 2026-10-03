@@ -1,8 +1,12 @@
 import {
 	ArrowLeft,
+	ArrowsLeftRight,
+	Bell,
 	BookOpen,
+	Check,
 	Clock,
 	Copy,
+	FileText,
 	GearSix,
 	MagnifyingGlass,
 	Moon,
@@ -16,6 +20,8 @@ import {
 	SquaresFour,
 	Sun,
 	User,
+	Wallet,
+	X,
 } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
@@ -23,9 +29,16 @@ import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } fro
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
-import { useMachines } from "../lib/machines.ts";
-import { onPaper } from "../lib/portfolio.ts";
-import { useSession, useSignOut } from "../lib/session.ts";
+import {
+	forgetWallet,
+	rememberWallet,
+	shortAddress,
+	useKnownWallets,
+} from "../lib/known-wallets.ts";
+import { amount, useMachines } from "../lib/machines.ts";
+import { useManagerKey } from "../lib/manager-key.ts";
+import { onPaper, totalsOf } from "../lib/portfolio.ts";
+import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { useActivity } from "./portfolio.tsx";
@@ -604,48 +617,167 @@ function MachinesPanel() {
 	);
 }
 
+/**
+ * The account sidebar: who is signed in, what their money is doing, the wallets this browser knows, and
+ * the way out. Switching wallets signs out and asks the wallet to connect again: the wallet app decides
+ * which account answers, so the switcher can only ever ask, never choose for it.
+ */
 function AccountPanel() {
-	const { api } = useRouter().options.context;
+	const router = useRouter();
+	const { api } = router.options.context;
 	const queryClient = useQueryClient();
 	const session = useSession(api);
+	const machines = useMachines(api);
+	const side = useSide();
 	const signOut = useSignOut(api, queryClient);
+	const signIn = useSignIn(api, queryClient);
+	const known = useKnownWallets();
+	const key = useManagerKey(api, Boolean(session.data));
 	const [copied, setCopied] = useState(false);
 	const address = session.data?.walletAddress;
+	useEffect(() => {
+		if (address) rememberWallet(address);
+	}, [address]);
 	if (!address) return null;
+
+	const totals = totalsOf(machines.data ?? [], side);
+	const others = known.filter((each) => each.address !== address);
+	const row =
+		"flex items-center gap-3 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
+	const switchWallet = async () => {
+		await signOut.mutateAsync();
+		signIn.mutate();
+	};
+	const go = (to: string) => () => {
+		setEdge(undefined);
+		void router.navigate({ to });
+	};
+
 	return (
 		<div
 			data-scroll
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
-			<Section title="Account">
-				<div className="flex flex-col gap-1 bg-white/[0.06] px-4 py-3.5">
-					<span className="text-[13px] text-neutral-500">Signed in with</span>
-					<span className="break-all font-mono text-[13px] text-neutral-100">{address}</span>
+			<div className="flex items-center gap-3">
+				<img src="/brand/avatar.svg" alt="" className="size-11" />
+				<div className="flex min-w-0 flex-col">
+					<span className="font-mono text-[15px] text-neutral-100">{shortAddress(address)}</span>
+					<span className="text-[13px] text-neutral-500">
+						Showing {side === "paper" ? "paper" : "live"} money
+					</span>
 				</div>
-				<div className="flex gap-1.5">
-					<button
-						type="button"
-						onClick={() => {
-							void navigator.clipboard?.writeText(address);
-							setCopied(true);
-							setTimeout(() => setCopied(false), 1500);
-						}}
-						className="flex flex-1 items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12]"
-					>
-						<Copy size={16} weight="light" />
-						{copied ? "Copied" : "Copy"}
+				<button
+					type="button"
+					aria-label={copied ? "Copied" : "Copy address"}
+					title="Copy address"
+					onClick={() => {
+						void navigator.clipboard?.writeText(address);
+						setCopied(true);
+						setTimeout(() => setCopied(false), 1500);
+					}}
+					className="ml-auto grid size-9 place-items-center text-neutral-400 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
+				>
+					{copied ? <Check size={18} weight="light" /> : <Copy size={18} weight="light" />}
+				</button>
+			</div>
+
+			<Section title={side === "paper" ? "Your money · paper" : "Your money"}>
+				<div className="grid grid-cols-2 gap-1.5">
+					<div className="flex flex-col gap-0.5 bg-white/[0.06] px-4 py-3">
+						<span className="text-[12px] text-neutral-500">At work</span>
+						<span className="text-[16px] text-neutral-100">
+							${amount(totals.granted.toString())}
+						</span>
+					</div>
+					<div className="flex flex-col gap-0.5 bg-white/[0.06] px-4 py-3">
+						<span className="text-[12px] text-neutral-500">Realized</span>
+						<span className="text-[16px] text-neutral-100">
+							${amount(totals.realized.toString())}
+						</span>
+					</div>
+				</div>
+				<p className="text-[13px] text-neutral-500">
+					{totals.running} of {totals.machines} machine{totals.machines === 1 ? "" : "s"} running
+				</p>
+			</Section>
+
+			<Section title="Wallets">
+				<div className={`${row} cursor-default hover:bg-white/[0.06]`}>
+					<Wallet size={18} weight="light" />
+					<span className="flex-1 font-mono">{shortAddress(address)}</span>
+					<span className="text-[12px] text-neutral-500">Signed in</span>
+				</div>
+				{others.map((each) => (
+					<div key={each.address} className="flex gap-1.5">
+						<button
+							type="button"
+							onClick={() => void switchWallet()}
+							title="Sign out, then pick this account in your wallet"
+							className={`${row} flex-1`}
+						>
+							<Wallet size={18} weight="light" className="text-neutral-500" />
+							<span className="flex-1 text-left font-mono">{shortAddress(each.address)}</span>
+							<span className="text-[12px] text-neutral-500">Switch</span>
+						</button>
+						<button
+							type="button"
+							aria-label={`Forget ${shortAddress(each.address)}`}
+							onClick={() => forgetWallet(each.address)}
+							className="grid w-11 place-items-center bg-white/[0.06] text-neutral-500 transition-colors hover:bg-white/[0.12] hover:text-neutral-100"
+						>
+							<X size={14} weight="light" />
+						</button>
+					</div>
+				))}
+				<button
+					type="button"
+					disabled={signOut.isPending || signIn.isPending}
+					onClick={() => void switchWallet()}
+					className={`${row} disabled:opacity-50`}
+				>
+					<ArrowsLeftRight size={18} weight="light" />
+					<span className="flex-1 text-left">
+						{signIn.isPending ? "Waiting for your wallet" : "Switch wallet"}
+					</span>
+				</button>
+				<p className="text-[12px] text-neutral-500">
+					Your wallet decides which account connects: pick the one you want in its window.
+				</p>
+			</Section>
+
+			<Section title="Shortcuts">
+				<div className="flex flex-col gap-1.5">
+					<button type="button" onClick={go("/settings")} className={row}>
+						<GearSix size={18} weight="light" />
+						<span className="flex-1 text-left">Settings</span>
 					</button>
-					<button
-						type="button"
-						disabled={signOut.isPending}
-						onClick={() => signOut.mutate()}
-						className="flex flex-1 items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-50"
-					>
-						<SignOut size={16} weight="light" />
-						Disconnect
+					<button type="button" onClick={go("/settings/alerts")} className={row}>
+						<Bell size={18} weight="light" />
+						<span className="flex-1 text-left">Alerts</span>
+					</button>
+					<button type="button" onClick={go("/settings")} className={row}>
+						<Sparkle size={18} weight="light" />
+						<span className="flex-1 text-left">AI key</span>
+						<span className="text-[12px] text-neutral-500">
+							{key.data?.set ? `ending ${key.data.hint}` : "not set"}
+						</span>
+					</button>
+					<button type="button" onClick={go("/papers")} className={row}>
+						<FileText size={18} weight="light" />
+						<span className="flex-1 text-left">Papers</span>
 					</button>
 				</div>
 			</Section>
+
+			<button
+				type="button"
+				disabled={signOut.isPending}
+				onClick={() => signOut.mutate()}
+				className="mt-auto flex items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-50"
+			>
+				<SignOut size={16} weight="light" />
+				Disconnect
+			</button>
 		</div>
 	);
 }
