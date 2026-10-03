@@ -92,13 +92,14 @@ export function screenToken(
 			`it is ${Math.round(facts.ageHours)} hours old, younger than ${limits.minAgeHours} hours`,
 		);
 
-	const worst = Math.max(facts.buyImpactPct ?? Number.NaN, facts.sellImpactPct ?? Number.NaN);
-	if (facts.buyImpactPct === undefined || facts.sellImpactPct === undefined)
+	const buy = facts.buyImpactPct;
+	const sale = facts.sellImpactPct;
+	if (buy === undefined || sale === undefined)
 		reasons.push("what a trade would cost in price impact is unknown");
-	else if (worst > limits.maxImpactPct) {
-		const side = (facts.sellImpactPct ?? 0) >= (facts.buyImpactPct ?? 0) ? "selling" : "buying";
-		reasons.push(`${side} would move the price ${worst}%, above the ${limits.maxImpactPct}% limit`);
-	}
+	else if (Math.max(buy, sale) > limits.maxImpactPct)
+		reasons.push(
+			`${sale >= buy ? "selling" : "buying"} would move the price ${Math.max(buy, sale)}%, above the ${limits.maxImpactPct}% limit`,
+		);
 
 	return { passed: reasons.length === 0, reasons };
 }

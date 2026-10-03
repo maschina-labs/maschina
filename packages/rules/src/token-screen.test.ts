@@ -46,6 +46,37 @@ describe("the token screen", () => {
 		expect(verdict.reasons).toEqual(["its liquidity is unknown", "who holds it is unknown"]);
 	});
 
+	it("names every fact it could not read", () => {
+		const blind = screenToken({
+			mint: sound.mint,
+			mintAuthority: undefined,
+			freezeAuthority: undefined,
+			topHoldersShare: undefined,
+			holders: undefined,
+			liquidityUsd: undefined,
+			ageHours: undefined,
+			buyImpactPct: undefined,
+			sellImpactPct: 1,
+			sellRoute: undefined,
+		});
+		expect(blind.reasons).toEqual([
+			"whether more can be minted is unknown",
+			"whether holders can be frozen is unknown",
+			"whether it can be sold is unknown",
+			"its liquidity is unknown",
+			"who holds it is unknown",
+			"how many hold it is unknown",
+			"its age is unknown",
+			"what a trade would cost in price impact is unknown",
+		]);
+	});
+
+	it("says which side moves the price too far", () => {
+		expect(screenToken({ ...sound, buyImpactPct: 6, sellImpactPct: 1 }).reasons).toEqual([
+			"buying would move the price 6%, above the 3% limit",
+		]);
+	});
+
 	it("takes stricter or looser limits when an owner sets them", () => {
 		const strict = { ...DEFAULT_SCREEN, minLiquidityUsd: 1_000_000 };
 		expect(screenToken(sound, strict).passed).toBe(false);
