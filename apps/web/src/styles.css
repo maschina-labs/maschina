@@ -273,3 +273,23 @@ input[type="range"].square::-moz-range-thumb {
 	background-color: var(--club-orange);
 	color: oklch(14% 0.01 45);
 }
+
+/*
+ * Frost: pebbled glass with light falling across it from the top left, deepening toward the bottom
+ * right, in greys only. A light theme. Always pebbled: the glass is the whole of it.
+ */
+.frost-field {
+	/* Grey only: no city colors. Pale where the light comes in, deepening across to the far corner. */
+	background: linear-gradient(
+		135deg,
+		oklch(95% 0 0) 0%,
+		oklch(88% 0 0) 25%,
+		oklch(76% 0 0) 50%,
+		oklch(58% 0 0) 75%,
+		oklch(34% 0 0) 100%
+	);
+}
+:root[data-theme="frost"] .fog-field {
+	filter: url(#pebbled);
+	inset: -56px;
+}

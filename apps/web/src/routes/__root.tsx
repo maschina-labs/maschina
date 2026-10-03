@@ -77,7 +77,15 @@ function Field() {
 	}, [section, path]);
 	return (
 		<div className="fixed inset-0 overflow-hidden [--side:0px] md:[--side:340px]">
-			<FogBackground mode={mode} sky={sky} weather={weather} />
+			{theme === "frost" ? (
+				// Frost: no city, only light falling across the glass from the top left into black.
+				<div
+					aria-hidden="true"
+					className="fog-field frost-field pointer-events-none fixed inset-0 z-0"
+				/>
+			) : (
+				<FogBackground mode={mode} sky={sky} weather={weather} />
+			)}
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />
 			{/*

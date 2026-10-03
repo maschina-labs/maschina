@@ -8,7 +8,7 @@ import { preview } from "./preview.ts";
  * turns light by day and dark by night with it. Remembered in this browser only.
  */
 
-export type Theme = "dark" | "light" | "system" | "dynamic" | "club";
+export type Theme = "dark" | "light" | "system" | "dynamic" | "club" | "frost";
 export type Mode = "dark" | "light";
 
 export const THEMES: { id: Theme; name: string }[] = [
@@ -18,6 +18,8 @@ export const THEMES: { id: Theme; name: string }[] = [
 	{ id: "dynamic", name: "Dynamic" },
 	// Black, graphite and one orange glow behind frosted glass: after a soft club advertisement Ash loves.
 	{ id: "club", name: "Club" },
+	// Pebbled glass over light falling from the top left into black, after Ash's reference.
+	{ id: "frost", name: "Frost" },
 ];
 
 const KEY = "maschina.theme";
@@ -44,6 +46,7 @@ export function modeOf(
 	if (theme === "system") return systemDark ? "dark" : "light";
 	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
 	if (theme === "club") return "dark";
+	if (theme === "frost") return "light";
 	return theme;
 }
 
