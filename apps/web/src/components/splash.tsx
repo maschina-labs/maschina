@@ -54,14 +54,14 @@ export function Splash({ phase }: { phase: SplashPhase }) {
 	return (
 		<div
 			aria-hidden="true"
-			className="pointer-events-none fixed inset-0 z-[95] grid place-items-center transition-opacity ease-out"
+			className="pointer-events-none fixed inset-0 z-[95] grid place-items-center transition-opacity ease-in-out"
 			style={{ opacity: phase === "mark" ? 1 : 0, transitionDuration: `${FADE_MS}ms` }}
 		>
 			<img
 				src="/brand/word.svg"
 				alt=""
-				className="brand-mark h-auto w-[min(64vw,340px)] md:w-[420px]"
-				style={{ animation: `splash ${IN_MS}ms ease-out both` }}
+				className="brand-mark h-auto w-[132px] md:w-[164px]"
+				style={{ animation: `splash ${IN_MS}ms ease-in-out both` }}
 			/>
 		</div>
 	);

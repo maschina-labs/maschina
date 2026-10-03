@@ -69,10 +69,10 @@ function Field() {
 				style={{
 					left: pushedFrom === "left" ? "var(--side)" : 0,
 					right: pushedFrom === "right" ? "var(--side)" : 0,
-					// The app fades in over a second as the logo fades out, the first time it opens on a visit.
-					opacity: splash === "mark" ? 0 : 1,
+					// The app waits for the logo to fade out completely, then fades in over a second.
+					opacity: splash === "done" ? 1 : 0,
 					transition:
-						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1), opacity 1000ms ease-out",
+						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1), opacity 1000ms ease-in-out",
 				}}
 			>
 				<div className="relative h-full">
@@ -86,8 +86,8 @@ function Field() {
 			<Toaster />
 			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
 			<div
-				className="transition-opacity duration-1000 ease-out"
-				style={{ opacity: splash === "mark" ? 0 : 1 }}
+				className="transition-opacity duration-1000 ease-in-out"
+				style={{ opacity: splash === "done" ? 1 : 0 }}
 			>
 				<OfflineBanner />
 				<HaltBanner />
