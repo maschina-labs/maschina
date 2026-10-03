@@ -189,7 +189,7 @@ describe("the edges", () => {
 	it("the charms switch idle mode off and on again", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Quick settings" })[0] as HTMLElement);
 		const idle = await screen.findByRole("button", { name: /Idle mode/ });
 		// On to begin with, so the first press switches it off, and the next plays it.
 		fireEvent.click(idle);
@@ -222,7 +222,7 @@ describe("the edges", () => {
 	it("the charms open search, and set the theme", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Quick settings" })[0] as HTMLElement);
 		fireEvent.click(await screen.findByRole("button", { name: "Dynamic" }));
 		expect(localStorage.getItem("maschina.theme")).toBe("dynamic");
 		fireEvent.click(screen.getAllByRole("button", { name: /^Search/ }).at(-1) as HTMLElement);
@@ -232,7 +232,7 @@ describe("the edges", () => {
 	it("the charms switch what money is shown between live and paper", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Quick settings" })[0] as HTMLElement);
 		fireEvent.click(await screen.findByRole("button", { name: "Paper" }));
 		expect(localStorage.getItem("maschina.side")).toBe("paper");
 		expect(screen.getByRole("button", { name: "Paper" })).toHaveAttribute("aria-pressed", "true");

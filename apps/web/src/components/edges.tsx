@@ -46,13 +46,13 @@ import { openSearch } from "./search.tsx";
 import { SECTIONS } from "./sections.tsx";
 
 /**
- * The edges, after the Windows 8 charms: a mark at the top, the left and the right, unseen until the
+ * The edges: a mark at the top, the left and the right, unseen until the
  * pointer comes to it, and no words.
  * Click one and its panel slides in and stays; click anywhere else, or press Escape, and it slides out.
  *
  *   top    the header: the time, the date, the price of SOL
  *   left   your machines
- *   right  alerts, then charms: search, idle mode, light or dark, settings. A dot on this edge, the one
+ *   right  alerts, then quick settings: search, idle mode, light or dark, settings. A dot on this edge, the one
  *          thing that shows without the pointer there, says there are alerts you have not seen.
 
  * Your account has its own panel on the right too, opened from the account tile rather than an edge.
@@ -79,7 +79,7 @@ const subscribe = (listener: () => void) => {
 
 /**
  * Alerts: what your machines did that is worth knowing, and how many arrived since you last opened the
- * charms. Opening the charms is looking at them.
+ * quick settings. Opening them is looking at them.
  */
 function useAlerts() {
 	const feed = useActivity();
@@ -159,7 +159,7 @@ export function SideRail() {
 				"Section menu",
 				<SectionsPanel onChoose={() => setEdge(undefined)} />,
 			)}
-			{side("right", "right", "Charms", <CharmsPanel />)}
+			{side("right", "right", "Quick settings", <QuickPanel />)}
 		</>
 	);
 }
@@ -314,7 +314,7 @@ export function Edges() {
 			/>
 			<Mark
 				edge="right"
-				label="Charms"
+				label="Quick settings"
 				onPress={() => toggle("right")}
 				news={fresh > 0}
 				attached={open === "right" || open === "account" || open === "sections"}
@@ -420,7 +420,7 @@ function Dock({
 	const keys = [
 		{ edge: "left", label: "Your machines", Icon: Robot },
 		{ edge: "top", label: "Now", Icon: Clock },
-		{ edge: "right", label: "Charms", Icon: SquaresFour },
+		{ edge: "right", label: "Quick settings", Icon: SquaresFour },
 		{ edge: "account", label: "Account", Icon: User },
 	] as const;
 	return (
@@ -782,7 +782,7 @@ function AccountPanel() {
 	);
 }
 
-/** The latest alerts, in plain words, at the top of the charms. */
+/** The latest alerts, in plain words, at the top of quick settings. */
 function AlertsSection() {
 	const { alerts } = useAlerts();
 	return (
@@ -822,11 +822,11 @@ function AlertsSection() {
 	);
 }
 
-function CharmsPanel() {
+function QuickPanel() {
 	const idle = useIdleMode();
 	const { theme } = useTheme();
 	const side = useSide();
-	const charm =
+	const quick =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
 	return (
 		<div
@@ -834,14 +834,14 @@ function CharmsPanel() {
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
 			<AlertsSection />
-			<Section title="Charms">
+			<Section title="Quick settings">
 				<button
 					type="button"
 					onClick={() => {
 						setEdge(undefined);
 						openSearch();
 					}}
-					className={charm}
+					className={quick}
 				>
 					<MagnifyingGlass size={20} weight="light" />
 					<span className="flex-1">Search</span>
@@ -860,7 +860,7 @@ function CharmsPanel() {
 						// After the switch has reached the dashboard, so the drift it starts is the one that runs.
 						setTimeout(playIdleNow, 50);
 					}}
-					className={charm}
+					className={quick}
 				>
 					{idle ? <Pause size={20} weight="light" /> : <Play size={20} weight="light" />}
 					<span className="flex-1">Idle mode</span>
@@ -906,11 +906,11 @@ function CharmsPanel() {
 						))}
 					</div>
 				</div>
-				<Link to="/papers" className={charm}>
+				<Link to="/papers" className={quick}>
 					<BookOpen size={20} weight="light" />
 					<span className="flex-1">Papers</span>
 				</Link>
-				<Link to="/settings" className={charm}>
+				<Link to="/settings" className={quick}>
 					<GearSix size={20} weight="light" />
 					<span className="flex-1">Settings</span>
 				</Link>
