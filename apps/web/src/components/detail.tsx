@@ -16,6 +16,7 @@ import {
 } from "./account-screens.tsx";
 import { Bento, Tile } from "./bento.tsx";
 import { MachineScreen } from "./machine-screen.tsx";
+import { ManagerPage } from "./manager-page.tsx";
 import {
 	DecisionsScreen,
 	FeedScreen,
@@ -32,7 +33,6 @@ import {
 	JoinScreen,
 	ListingScreen,
 	MaintenanceScreen,
-	ManagerScreen,
 	NodeScreen,
 	PublicMachineScreen,
 	TeamScreen,
@@ -202,9 +202,14 @@ export function Detail({ back }: { back: string }) {
 						<div aria-hidden="true" className="invisible mt-9 mb-5 md:mt-[5vh] md:mb-3">
 							<Sections />
 						</div>
-						<Bento label={titleFor(path)}>
-							<DetailTiles path={path} />
-						</Bento>
+						{/* The manager is a conversation, not tiles: it takes the whole of the grid's room. */}
+						{titleFor(path) === "Manager" ? (
+							<ManagerPage />
+						) : (
+							<Bento label={titleFor(path)}>
+								<DetailTiles path={path} />
+							</Bento>
+						)}
 					</div>
 				</div>
 			</div>
@@ -232,7 +237,6 @@ const SCREENS: Record<string, () => ReactNode> = {
 	Feedback: () => <FeedbackScreen />,
 	Terms: () => <TermsScreen />,
 	Privacy: () => <PrivacyScreen />,
-	Manager: () => <ManagerScreen />,
 	Teams: () => <TeamsScreen />,
 	Team: () => <TeamScreen />,
 	Listing: () => <ListingScreen />,
