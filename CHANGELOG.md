@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.35](https://github.com/maschina-labs/maschina/compare/v0.0.34...v0.0.35) (2026-10-03)
+
+
+### Fixed
+
+* **manager:** back off when a feed refuses; take a jupiter key ([#753](https://github.com/maschina-labs/maschina/issues/753)) ([089ba3b](https://github.com/maschina-labs/maschina/commit/089ba3b0e1c2fbd2e86da2407504203c5a324079))
+
 ## [0.0.34](https://github.com/maschina-labs/maschina/compare/v0.0.33...v0.0.34) (2026-10-03)
 
 
