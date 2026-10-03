@@ -26,6 +26,13 @@ describe("gateway config", () => {
 		expect(loadConfig(complete).GATEWAY_SECRETS_KEY).toBeUndefined();
 	});
 
+	it("takes a Jupiter key when one is set", () => {
+		expect(loadConfig({ ...complete, JUPITER_API_KEY: "jup-key-123" }).JUPITER_API_KEY).toBe(
+			"jup-key-123",
+		);
+		expect(loadConfig(complete).JUPITER_API_KEY).toBeUndefined();
+	});
+
 	it("needs the origins set", () => {
 		expect(() => loadConfig({})).toThrow(/GATEWAY_CORS_ORIGINS/);
 	});

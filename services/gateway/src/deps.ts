@@ -51,6 +51,7 @@ export type GatewayConfig = {
 	GATEWAY_APP_URL: string;
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
 	GATEWAY_SECRETS_KEY?: string | undefined;
+	JUPITER_API_KEY?: string | undefined;
 };
 
 export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, logger?: Logger) {
@@ -148,7 +149,14 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 		config.GATEWAY_SECRETS_KEY === undefined
 			? undefined
 			: parseSealingKey(config.GATEWAY_SECRETS_KEY);
-	const runner = logger ? traderRunner({ db: database.db, sealing, logger }) : undefined;
+	const runner = logger
+		? traderRunner({
+				db: database.db,
+				sealing,
+				logger,
+				...(config.JUPITER_API_KEY ? { jupiterApiKey: config.JUPITER_API_KEY } : {}),
+			})
+		: undefined;
 	const noRunner = () => {
 		throw new MaschinaError("unavailable", "the trader is not running here");
 	};

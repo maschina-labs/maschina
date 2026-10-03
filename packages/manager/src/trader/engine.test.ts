@@ -198,6 +198,57 @@ describe("a tick", () => {
 	});
 });
 
+describe("when a feed says slow down", () => {
+	const limited = () => {
+		const setup = ports();
+		setup.port.prices = vi.fn(async () => {
+			throw new Error("rate limit from the price API");
+		});
+		return setup;
+	};
+
+	it("does not think while blocked, so no credit is spent on a market it cannot see", async () => {
+		const { after, setup } = await holdingWif(fresh());
+		const blocked = limited();
+		blocked.later(400_000);
+		const next = await tick(after, blocked.port);
+		expect(blocked.claude).not.toHaveBeenCalled();
+		expect(next.backoff?.level).toBe(1);
+		expect(setup.claude).toHaveBeenCalledTimes(2);
+	});
+
+	it("waits longer each time it is refused, then asks nothing until the wait is over", async () => {
+		const { after } = await holdingWif(fresh());
+		const blocked = limited();
+		let next = await tick(after, blocked.port);
+		const firstWait = Date.parse(next.backoff?.until ?? "") - blocked.port.now().getTime();
+		blocked.later(firstWait + 1);
+		next = await tick(next, blocked.port);
+		const secondWait = Date.parse(next.backoff?.until ?? "") - blocked.port.now().getTime();
+		expect(secondWait).toBe(firstWait * 2);
+		const calls = (blocked.port.prices as ReturnType<typeof vi.fn>).mock.calls.length;
+		await tick(next, blocked.port);
+		expect((blocked.port.prices as ReturnType<typeof vi.fn>).mock.calls.length).toBe(calls);
+	});
+
+	it("never waits more than five minutes, and forgets the wait once a tick goes through", async () => {
+		const { after } = await holdingWif(fresh());
+		const blocked = limited();
+		const long = await tick(
+			{ ...after, backoff: { level: 12, until: new Date(0).toISOString() } },
+			blocked.port,
+		);
+		expect(Date.parse(long.backoff?.until ?? "") - blocked.port.now().getTime()).toBe(300_000);
+		const clear = ports();
+		clear.later(400_000);
+		const back = await tick(
+			{ ...after, backoff: { level: 3, until: new Date(0).toISOString() } },
+			clear.port,
+		);
+		expect(back.backoff).toBeUndefined();
+	});
+});
+
 describe("the AI's other tools", () => {
 	it("sells part of a holding, and reads the book", async () => {
 		const { after } = await holdingWif(fresh());

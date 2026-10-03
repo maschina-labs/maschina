@@ -38,6 +38,11 @@ export function loadConfig(source?: EnvSource) {
 			 * (`openssl rand -base64 32`). It lives only here, never in the database, and changing it makes
 			 * every stored secret unreadable. Unset, owners cannot give the manager a key.
 			 */
+			/**
+			 * A Jupiter API key, for the paper trader's quotes and prices. Unset, it uses Jupiter's free
+			 * tier, shared by everything on the server's address.
+			 */
+			JUPITER_API_KEY: env.optional(z.string().min(8)),
 			GATEWAY_SECRETS_KEY: z
 				.string()
 				.refine((value) => Buffer.from(value, "base64").length === 32, "must be 32 bytes as base64")

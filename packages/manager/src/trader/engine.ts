@@ -56,6 +56,11 @@ export type TraderState = {
 		spentUsd: number;
 		turns: number;
 	};
+	/**
+	 * Set while a feed is refusing for asking too often: nothing is asked of any feed until `until`, and
+	 * each refusal in a row doubles the wait.
+	 */
+	backoff?: { level: number; until: string };
 	/** How each holding gets out, set by the AI and kept by the engine every tick. */
 	plans?: Record<string, ExitPlan>;
 	/** Symbols and decimals of tokens it has seen, so a buy knows what it is buying. */
@@ -272,9 +277,18 @@ const pause = (state: TraderState, why: string, now: Date): TraderState =>
 	);
 
 /** One tick: price, enforce the stops and the drawdown, and think if it is time. */
+/** The first wait after a refusal, and the longest any wait grows to. */
+const BACKOFF_MS = 10_000;
+const BACKOFF_MAX_MS = 300_000;
+
+const RATE_LIMITED = /rate limit|429|too many requests/i;
+
 export async function tick(state: TraderState, ports: EnginePorts): Promise<TraderState> {
 	if (state.status !== "running") return state;
 	const now = ports.now();
+	// Asking a feed that is refusing only makes it refuse longer, and every tick spent asking is wasted.
+	if (state.backoff && now.getTime() < Date.parse(state.backoff.until)) return state;
+	const loggedBefore = state.log.length;
 	let next = rollDay(state, now);
 
 	// Price what it holds.
@@ -341,6 +355,18 @@ export async function tick(state: TraderState, ports: EnginePorts): Promise<Trad
 			now,
 		);
 
+	// A feed refused this tick: wait before asking again, and do not think. The AI cannot act on a market
+	// it cannot see, so a look now would only spend the owner's credit.
+	const refused = next.log.slice(loggedBefore).some((entry) => RATE_LIMITED.test(entry.text));
+	if (refused) {
+		const level = (state.backoff?.level ?? 0) + 1;
+		const wait = Math.min(BACKOFF_MS * 2 ** (level - 1), BACKOFF_MAX_MS);
+		return { ...next, backoff: { level, until: new Date(now.getTime() + wait).toISOString() } };
+	}
+	if (next.backoff) {
+		const { backoff: _cleared, ...rest } = next;
+		next = rest;
+	}
 	return shouldThink(next, now, stopped) ? think(next, ports) : next;
 }
 
