@@ -204,7 +204,6 @@ function Panel({
 	return (
 		<aside
 			aria-label={label}
-			aria-hidden={!open}
 			className={`${PANEL} flex flex-col ${place} ${pulled ? "duration-0" : ""}`}
 			style={
 				pulled
@@ -249,7 +248,10 @@ function Panel({
 				setPulled(0);
 			}}
 		>
-			{children}
+			{/* Hidden while closed, all but the handle, which is how it opens. */}
+			<div aria-hidden={!open} className="contents">
+				{children}
+			</div>
 			{handle}
 		</aside>
 	);
@@ -310,7 +312,7 @@ export function Edges() {
 						className="group absolute inset-x-0 top-full hidden h-5 items-start justify-center pt-1.5 md:flex"
 					>
 						<span
-							className={`block h-[3px] w-14 bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 ${open === "top" ? "opacity-60" : "opacity-0"}`}
+							className={`block h-[3px] w-14 bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 opacity-0`}
 						/>
 					</button>
 				}
@@ -365,9 +367,9 @@ function Mark({
 			style={edge === "top" ? undefined : { [side]: "var(--side)" }}
 		>
 			<span
-				// Unseen until the pointer comes to the edge, then a quiet mark that something is there. Riding
-				// an open sidebar, it stays in sight: it is how that sidebar closes.
-				className={`block ${bar} bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 ${attached ? "opacity-60" : "opacity-0"}`}
+				// Unseen until the pointer comes to it, open or closed, then a quiet mark that something is
+				// there. Riding an open sidebar, it is how that sidebar closes.
+				className={`block ${bar} bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 opacity-0`}
 			/>
 			{news ? (
 				<span
