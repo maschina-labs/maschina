@@ -1,7 +1,15 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// No WebGL or canvas in a test browser: the background, the charts and the globe are stood in for.
+vi.mock("@react-three/fiber", () => ({
+	Canvas: () => <canvas />,
+	useFrame: () => undefined,
+	useThree: () => ({ width: 1, height: 1 }),
+}));
 vi.mock("./components/globe.tsx", () => ({ Globe: () => <div /> }));
+vi.mock("./components/price-chart.tsx", () => ({ PriceChart: () => <div>price chart</div> }));
+vi.mock("./components/pnl-chart.tsx", () => ({ PnlChartView: () => <div>profit chart</div> }));
 
 const { renderAt, standIn } = await import("./test/app.tsx");
 
