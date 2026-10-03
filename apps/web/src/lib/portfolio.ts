@@ -1,41 +1,50 @@
 import type { MachineSummary, RecordEntry } from "./machines.ts";
 
-/** Everything across an owner's machines, in base units so nothing is lost to rounding on the way. */
+/** Live money, or paper: a sandbox on live markets whose numbers are never money (D-096). */
+export type Side = "live" | "paper";
+
+/** Whether a machine is on paper: its own flag, or, from an older API, its result saying so. */
+export const onPaper = (machine: MachineSummary) => machine.paper ?? machine.result.simulated;
+
+/**
+ * One side's machines added up, in base units so nothing is lost to rounding. Paper and live are never
+ * added together: asking for live counts only live machines, asking for paper only paper ones.
+ */
 export type Totals = {
 	machines: number;
 	running: number;
-	/** The floats: what every machine was given to trade with, in USDC base units. */
+	/** What the machines that can still act were given to trade with, in USDC base units. */
 	granted: bigint;
-	/** Profit and loss taken so far, in USDC base units. Can be below zero. */
-	realised: bigint;
-	/** What is held between a buy and a sale, in SOL base units. */
+	/** Profit and loss taken so far by every machine on this side, stopped ones too. Can be below zero. */
+	realized: bigint;
+	/** What the machines that can still act hold between a buy and a sale, in SOL base units. */
 	holding: bigint;
 	trades: number;
-	/** True when any of it is paper, so the numbers are not money. */
-	simulated: boolean;
 };
 
-export function totalsOf(machines: MachineSummary[]): Totals {
-	return machines.reduce<Totals>(
-		(sum, machine) => ({
-			machines: sum.machines + 1,
-			running: sum.running + (machine.state === "running" ? 1 : 0),
-			granted: sum.granted + BigInt(machine.budget.granted),
-			realised: sum.realised + BigInt(machine.result.realised),
-			holding: sum.holding + BigInt(machine.result.position),
-			trades: sum.trades + machine.result.trades,
-			simulated: sum.simulated || machine.result.simulated,
-		}),
-		{
-			machines: 0,
-			running: 0,
-			granted: 0n,
-			realised: 0n,
-			holding: 0n,
-			trades: 0,
-			simulated: false,
-		},
-	);
+export function totalsOf(machines: MachineSummary[], side: Side = "live"): Totals {
+	const zero: Totals = {
+		machines: 0,
+		running: 0,
+		granted: 0n,
+		realized: 0n,
+		holding: 0n,
+		trades: 0,
+	};
+	return machines
+		.filter((machine) => onPaper(machine) === (side === "paper"))
+		.reduce<Totals>((sum, machine) => {
+			// A stopped machine never acts again: its budget and holding are history, not money at work.
+			const atWork = machine.state !== "stopped";
+			return {
+				machines: sum.machines + 1,
+				running: sum.running + (machine.state === "running" ? 1 : 0),
+				granted: sum.granted + (atWork ? BigInt(machine.budget.granted) : 0n),
+				realized: sum.realized + BigInt(machine.result.realised),
+				holding: sum.holding + (atWork ? BigInt(machine.result.position) : 0n),
+				trades: sum.trades + machine.result.trades,
+			};
+		}, zero);
 }
 
 export type ActivityEntry = RecordEntry & { machineId: string; machineName: string };

@@ -16,7 +16,7 @@ import { Tile, TileEmpty, TileLoading, type TileSize } from "./bento.tsx";
 import { Figure, Line, sentence, useSolDay } from "./home.tsx";
 import { Tape } from "./money-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
-import { useActivity, useOperatingPicture } from "./portfolio.tsx";
+import { useActivity, useLivePicture } from "./portfolio.tsx";
 
 /**
  * The tiles of every section but Home and Network, each page filling the six by three at most. Every
@@ -69,7 +69,7 @@ function SignedOutGrid({ pick = SIGNED_OUT_PICK }: { pick?: number }) {
 /** Portfolio: your money, over time and right now. */
 function PortfolioTilesSignedIn() {
 	const signedIn = useSignedIn();
-	const picture = useOperatingPicture();
+	const picture = useLivePicture();
 	const machines = picture.map((each) => each.machine);
 	const totals = machines.length ? totalsOf(machines) : undefined;
 	const points = portfolioPnl(picture.map((each) => each.record));
@@ -101,7 +101,7 @@ function PortfolioTilesSignedIn() {
 					signedOut
 				) : (
 					<Figure
-						value={totals ? amount(totals.realised.toString()) : "0.00"}
+						value={totals ? amount(totals.realized.toString()) : "0.00"}
 						note="USDC, realized"
 						name="Realized"
 					/>
