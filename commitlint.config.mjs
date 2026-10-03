@@ -17,6 +17,7 @@ export default {
 				"core",
 				"runtime",
 				"rules",
+				"manager",
 				"db",
 				"solana",
 				"wallet",
