@@ -1,15 +1,16 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { setIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
-import { useTheme } from "../lib/theme.ts";
+import { setTheme, useTheme } from "../lib/theme.ts";
 import { SECTIONS } from "./sections.tsx";
 
 /**
- * Search: ⌘K (or Ctrl K) from anywhere, or Search in the tiles. One opaque bar near the top, the dashboard
- * dimmed behind it. Type to narrow, the arrow keys to move, Enter to go, Escape to close.
+ * Search, in the header: ⌘K (or Ctrl K) from anywhere, or Search in the tiles, opens the header with the
+ * cursor in the field. The results drop below it, over the page. Type to narrow, the arrow keys to move,
+ * Enter to go, Escape to close.
  *
  * It finds the pages, your machines by name, and the things you do anywhere.
  */
@@ -32,42 +33,14 @@ export function matches(result: Pick<Result, "label" | "detail">, typed: string)
 		.every((word) => haystack.includes(word));
 }
 
-let shown = false;
-const listeners = new Set<() => void>();
-function setShown(next: boolean) {
-	shown = next;
-	for (const listener of listeners) listener();
+const FOCUS = "maschina:focus-search";
+
+/** Puts the cursor in the header's search field, which is already showing or about to be. */
+export function focusSearch() {
+	window.dispatchEvent(new Event(FOCUS));
 }
 
-/** Opens search from anywhere, such as the tiles. */
-export function openSearch() {
-	setShown(true);
-}
-
-export function Search() {
-	const open = useSyncExternalStore(
-		(listener) => {
-			listeners.add(listener);
-			return () => listeners.delete(listener);
-		},
-		() => shown,
-	);
-
-	useEffect(() => {
-		const onKey = (event: KeyboardEvent) => {
-			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-				event.preventDefault();
-				setShown(!shown);
-			}
-		};
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, []);
-
-	return open ? <SearchBox onClose={() => setShown(false)} /> : null;
-}
-
-function SearchBox({ onClose }: { onClose: () => void }) {
+export function SearchField({ onClose }: { onClose: () => void }) {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
 	const machines = useMachines(api);
@@ -75,10 +48,15 @@ function SearchBox({ onClose }: { onClose: () => void }) {
 	const [typed, setTyped] = useState("");
 	const [at, setAt] = useState(0);
 	const box = useRef<HTMLInputElement>(null);
-	useEffect(() => box.current?.focus(), []);
+	useEffect(() => {
+		const focus = () => box.current?.focus();
+		window.addEventListener(FOCUS, focus);
+		return () => window.removeEventListener(FOCUS, focus);
+	}, []);
 
 	const go = (to: string) => () => void navigate({ to });
 	const light = useTheme().mode === "light";
+	const showing = typed.trim().length > 0;
 	const results: Result[] = [
 		...SECTIONS.map((section) => ({
 			id: `page:${section.to}`,
@@ -108,70 +86,64 @@ function SearchBox({ onClose }: { onClose: () => void }) {
 			id: "mode",
 			group: "Actions",
 			label: light ? "Dark mode" : "Light mode",
-			run: () => {
-				window.location.search = light ? "" : "?mode=light";
-			},
+			run: () => setTheme(light ? "dark" : "light"),
 		},
 	];
 	const found = results.filter((result) => matches(result, typed));
 
 	const run = (result: Result | undefined) => {
 		if (!result) return;
+		setTyped("");
 		onClose();
 		result.run();
 	};
 
 	return (
-		<div
-			role="dialog"
-			aria-modal="true"
-			aria-label="Search"
-			className="fixed inset-0 z-[60] flex justify-center bg-black/50 px-4 pt-[14vh]"
-		>
-			<button
-				type="button"
-				aria-label="Close search"
-				tabIndex={-1}
-				onClick={onClose}
-				className="absolute inset-0 cursor-default"
-			/>
-			<div className="relative flex h-fit max-h-[62vh] w-full max-w-[600px] flex-col bg-(--surface-sheet)">
-				<label className="flex items-center gap-3 px-5">
-					<MagnifyingGlass size={20} weight="light" className="shrink-0 text-neutral-400" />
-					<input
-						ref={box}
-						value={typed}
-						onChange={(event) => {
-							setTyped(event.target.value);
-							setAt(0);
-						}}
-						onKeyDown={(event) => {
-							if (event.key === "Escape") onClose();
-							if (event.key === "ArrowDown") {
-								event.preventDefault();
-								setAt((was) => Math.min(found.length - 1, was + 1));
-							}
-							if (event.key === "ArrowUp") {
-								event.preventDefault();
-								setAt((was) => Math.max(0, was - 1));
-							}
-							if (event.key === "Enter") run(found[at]);
-						}}
-						placeholder="Search pages, machines and actions"
-						aria-label="Search"
-						className="h-14 min-w-0 flex-1 bg-transparent font-display text-[17px] text-neutral-100 outline-none placeholder:text-neutral-600"
-					/>
-				</label>
-				<ul className="no-scrollbar overflow-y-auto pb-2">
+		<search className="relative block w-full max-w-[520px]">
+			<label className="flex h-12 items-center gap-3 bg-white/[0.08] px-4 transition-colors focus-within:bg-white/[0.12]">
+				<MagnifyingGlass size={18} weight="light" className="shrink-0 text-neutral-400" />
+				<input
+					ref={box}
+					value={typed}
+					onChange={(event) => {
+						setTyped(event.target.value);
+						setAt(0);
+					}}
+					onKeyDown={(event) => {
+						if (event.key === "Escape") {
+							setTyped("");
+							onClose();
+						}
+						if (event.key === "ArrowDown") {
+							event.preventDefault();
+							setAt((was) => Math.min(found.length - 1, was + 1));
+						}
+						if (event.key === "ArrowUp") {
+							event.preventDefault();
+							setAt((was) => Math.max(0, was - 1));
+						}
+						if (event.key === "Enter") run(found[at]);
+					}}
+					placeholder="Search pages, machines and actions"
+					aria-label="Search"
+					className="min-w-0 flex-1 bg-transparent font-display text-[16px] text-neutral-100 outline-none placeholder:text-neutral-500"
+				/>
+				<kbd className="hidden shrink-0 text-[12px] text-neutral-500 md:inline">⌘K</kbd>
+			</label>
+			{showing ? (
+				<ul
+					aria-label="Results"
+					className="no-scrollbar absolute inset-x-0 top-full z-10 max-h-[52vh] overflow-y-auto bg-(--surface-sheet) pb-2 shadow-[0_24px_48px_-12px_oklch(0_0_0/0.45)]"
+				>
 					{found.length === 0 ? (
-						<li className="px-5 py-4 text-[15px] text-neutral-500">Nothing matches.</li>
+						<li className="px-4 py-4 text-[15px] text-neutral-500">Nothing matches.</li>
 					) : null}
 					{found.map((result, index) => {
 						const first = index === 0 || found[index - 1]?.group !== result.group;
 						return (
 							<li key={result.id}>
 								{first ? (
-									<span className="block px-5 pt-3 pb-1.5 text-[12px] text-neutral-500">
+									<span className="block px-4 pt-3 pb-1.5 text-[12px] text-neutral-500">
 										{result.group}
 									</span>
 								) : null}
@@ -179,7 +151,7 @@ function SearchBox({ onClose }: { onClose: () => void }) {
 									type="button"
 									onMouseEnter={() => setAt(index)}
 									onClick={() => run(result)}
-									className={`flex w-full items-baseline justify-between gap-4 px-5 py-2.5 text-left font-display text-[16px] transition-colors ${index === at ? "bg-white/[0.1] text-white" : "text-neutral-300"}`}
+									className={`flex w-full items-baseline justify-between gap-4 px-4 py-2.5 text-left font-display text-[15px] transition-colors ${index === at ? "bg-white/[0.1] text-white" : "text-neutral-300"}`}
 								>
 									<span className="truncate">{result.label}</span>
 									{result.detail ? (
@@ -190,7 +162,7 @@ function SearchBox({ onClose }: { onClose: () => void }) {
 						);
 					})}
 				</ul>
-			</div>
-		</div>
+			) : null}
+		</search>
 	);
 }

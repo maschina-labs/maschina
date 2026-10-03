@@ -7,7 +7,6 @@ import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
 import { FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
-import { Search } from "../components/search.tsx";
 import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
 import { TabTitle } from "../components/tab-title.tsx";
@@ -86,7 +85,6 @@ function Field() {
 			</div>
 			<SideRail />
 			<Edges />
-			<Search />
 			<Toaster />
 			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
 			<div

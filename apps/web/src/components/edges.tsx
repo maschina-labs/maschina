@@ -38,11 +38,12 @@ import {
 import { amount, useMachines } from "../lib/machines.ts";
 import { useManagerKey } from "../lib/manager-key.ts";
 import { onPaper, totalsOf } from "../lib/portfolio.ts";
+import { preview } from "../lib/preview.ts";
 import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { useActivity } from "./portfolio.tsx";
-import { openSearch } from "./search.tsx";
+import { focusSearch, SearchField } from "./search.tsx";
 import { SECTIONS } from "./sections.tsx";
 
 /**
@@ -65,7 +66,11 @@ type Edge = "top" | "left" | "right" | "account" | "sections";
  * Which panel is open, kept in one place that the panels and the page both read, so a sidebar and the
  * page it pushes change on the same frame and travel as one.
  */
-let current: Edge | undefined;
+// ?open=top, ?open=left and so on, while developing: a sidebar or the header open on arrival, to look at it.
+const asked = preview("open");
+let current: Edge | undefined = (["top", "left", "right", "account", "sections"] as const).find(
+	(each) => each === asked,
+);
 const listeners = new Set<() => void>();
 function setEdge(next: Edge | undefined) {
 	if (next === current) return;
@@ -167,6 +172,12 @@ export function SideRail() {
 /** Opens a panel from anywhere, such as the account tile opening its own. */
 export function openEdge(edge: Edge) {
 	setEdge(edge);
+}
+
+/** Search lives in the header: open it, and put the cursor in the field once it is there. */
+export function openSearch() {
+	setEdge("top");
+	requestAnimationFrame(() => focusSearch());
 }
 
 const PANEL =
@@ -286,6 +297,12 @@ export function Edges() {
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") setEdge(undefined);
+			// Command K, or Control K, is search, which is in the header.
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+				event.preventDefault();
+				if (current === "top") setEdge(undefined);
+				else openSearch();
+			}
 			// Command J, or Control J, opens the manager from anywhere.
 			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") {
 				event.preventDefault();
@@ -534,6 +551,10 @@ function HeaderPanel() {
 					>
 						<ArrowLeft size={22} weight="light" />
 					</a>
+				</div>
+				{/* Search, in the middle of the header, the way an app keeps its command bar at the top. */}
+				<div className="flex flex-1 justify-center">
+					<SearchField onClose={() => setEdge(undefined)} />
 				</div>
 				<div className="flex flex-col items-end gap-1">
 					<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
