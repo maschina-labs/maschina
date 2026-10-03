@@ -123,6 +123,30 @@ describe("your account", () => {
 	});
 });
 
+describe("closing a screen", () => {
+	const shown = (dialog: HTMLElement) =>
+		(dialog.querySelector(":scope > div:last-child") as HTMLElement | null)?.style.opacity;
+
+	it("a screen reached while another fades shows whole, never as an invisible layer over everything", async () => {
+		const { router } = renderAt("/settings/alerts");
+		await screen.findByRole("dialog", { name: "Alerts" });
+		// Alerts starts to close, and the address moves on to Settings before the fade is done: what a
+		// step back through history does.
+		fireEvent.keyDown(window, { key: "Escape" });
+		await router.navigate({ to: "/settings" });
+		const settings = await screen.findByRole("dialog", { name: "Settings" });
+		await vi.waitFor(() => expect(shown(settings)).toBe("1"));
+		expect(settings.style.pointerEvents).toBe("auto");
+	});
+
+	it("lets every click through the moment it starts to close", async () => {
+		renderAt("/settings");
+		const settings = await screen.findByRole("dialog", { name: "Settings" });
+		fireEvent.keyDown(window, { key: "Escape" });
+		await vi.waitFor(() => expect(settings.style.pointerEvents).toBe("none"));
+	});
+});
+
 describe("the account sidebar", () => {
 	const OTHER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 	const openAccount = async () => {

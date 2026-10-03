@@ -1,7 +1,7 @@
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { takeOrigin, tileTransform } from "../lib/launch.ts";
 import {
 	FeedbackScreen,
@@ -124,15 +124,31 @@ export function Detail({ back }: { back: string }) {
 	// Back to where you came from when there is somewhere in the app to go back to; otherwise to the
 	// section underneath, so a link opened fresh still has a way out.
 	const leave = () => {
+		const from = router.state.location.href;
 		if (window.history.state?.__TSR_index > 0) router.history.back();
 		else void navigate({ to: back });
+		// Going back can land nowhere new: the same page, or a page outside the app. Then the faded screen
+		// would stay over the dashboard, catching every click, so the section underneath is the way out.
+		timers.current.push(
+			setTimeout(() => {
+				if (router.state.location.href === from) void navigate({ to: back });
+			}, 120),
+		);
 	};
 	// Closing is a plain fade of the whole screen, quicker than the zoom in. Zooming back into the tile
 	// put two near colors against each other as it shrank, and looked wrong.
+	// Timers outlive nothing: replaced by the next screen, this one stops steering where you go.
+	const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+	useEffect(
+		() => () => {
+			for (const timer of timers.current) clearTimeout(timer);
+		},
+		[],
+	);
 	const close = () => {
 		if (phase === "fading") return;
 		setPhase("fading");
-		setTimeout(leave, CLOSE_MS);
+		timers.current.push(setTimeout(leave, CLOSE_MS));
 	};
 
 	useEffect(() => {
@@ -150,7 +166,13 @@ export function Detail({ back }: { back: string }) {
 	const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 	return (
-		<div role="dialog" aria-label={titleFor(path)} className="fixed inset-0 z-20">
+		<div
+			role="dialog"
+			aria-label={titleFor(path)}
+			className="fixed inset-0 z-20"
+			// Closing, it lets every click through at once: a screen on its way out never blocks the one below.
+			style={{ pointerEvents: leaving ? "none" : "auto" }}
+		>
 			{/* The dashboard dims behind it while it is open. */}
 			<div
 				aria-hidden="true"

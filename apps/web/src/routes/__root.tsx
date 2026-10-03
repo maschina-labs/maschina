@@ -82,7 +82,8 @@ function Field() {
 				<div className="relative h-full">
 					<Deck behind={behind} />
 				</div>
-				{section ? null : <Detail back={behind} />}
+				{/* A fresh screen for every address, so one half closed can never linger over the next. */}
+				{section ? null : <Detail key={path} back={behind} />}
 			</div>
 			<SideRail />
 			<Edges />
