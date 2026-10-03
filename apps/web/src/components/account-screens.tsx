@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import { useSession, useSignIn } from "../lib/session.ts";
@@ -24,16 +24,14 @@ const when = (at: string) =>
 function useConnect() {
 	const { api } = useRouter().options.context;
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
 	const signIn = useSignIn(api, queryClient);
 	return {
 		pending: signIn.isPending,
 		connect: () =>
 			signIn.mutate(undefined, {
 				onError: (error) =>
-					error.name === "NoWallet"
-						? void navigate({ to: "/get-a-wallet" })
-						: toast(error.message, "problem"),
+					// Closing the wallet picker is a choice, not a problem worth a message.
+					error.name === "NoWalletChosen" ? undefined : toast(error.message, "problem"),
 			}),
 	};
 }

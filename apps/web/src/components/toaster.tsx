@@ -25,11 +25,8 @@ export function Toaster() {
 		<div
 			role="status"
 			aria-live="polite"
-			// Phone: across the bottom, above the dock. Wider: in the open space to the right of the tiles,
-			// where the right sidebar comes in from: starting one tile gap past the grid's right edge, filling that
-			// margin to the same gap from the screen's edge, stacked with the same gap, newest at the bottom.
-			// Where that margin is too narrow to read in, it keeps at least 240px and reaches over the grid.
-			className="pointer-events-none fixed inset-x-4 bottom-[calc(max(env(safe-area-inset-bottom),16px)+74px)] z-[70] flex flex-col items-stretch gap-2.5 md:right-2.5 md:bottom-6 md:left-[min(calc(50vw+(var(--u)*6+50px)/2+10px),calc(100vw-250px))] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]"
+			// Bottom center: phones above the dock, wider screens just off the bottom edge. Newest at the bottom.
+			className="pointer-events-none fixed inset-x-4 bottom-[calc(max(env(safe-area-inset-bottom),16px)+74px)] z-[70] mx-auto flex w-auto max-w-[420px] flex-col items-stretch gap-2.5 md:bottom-6"
 		>
 			{toasts.map((each) => (
 				<Line key={each.id} toast={each} />

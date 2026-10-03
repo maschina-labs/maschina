@@ -11,6 +11,7 @@ import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
 import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
+import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
 import { useTheme } from "../lib/theme.ts";
@@ -86,6 +87,7 @@ function Field() {
 			<SideRail />
 			<Edges />
 			<Toaster />
+			<WalletPicker />
 			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
 			<div
 				className="transition-opacity duration-1000 ease-in-out"

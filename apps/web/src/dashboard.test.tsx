@@ -15,6 +15,7 @@ const wallet = vi.hoisted(() => ({ sendTransaction: vi.fn(async () => "signature
 vi.mock("./lib/wallet.ts", async (real) => ({ ...(await real<object>()), ...wallet }));
 
 const { MACHINE_ID, machine, renderAt, standIn } = await import("./test/app.tsx");
+const { installWallet } = await import("./test/wallets.ts");
 
 const section = async (name: string) => within(await screen.findByRole("region", { name }));
 const screenNamed = async (title: string) =>
@@ -102,33 +103,69 @@ describe("the sections, signed out", () => {
 });
 
 describe("connecting", () => {
-	it("with no wallet in the browser, shows where to get one", async () => {
+	it("with no wallet in the browser, the picker says so and shows where to get one", async () => {
 		standIn({ signedIn: false });
-		const { router } = renderAt("/");
-		await section("Home");
-		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
-		// Ready once the app knows nobody is signed in.
-		await vi.waitFor(() => expect(connect).toBeEnabled());
-		fireEvent.click(connect);
-		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/get-a-wallet"));
-	});
-
-	it("a wallet that refuses says why", async () => {
-		standIn({ signedIn: false });
-		Object.assign(window, {
-			solana: {
-				isPhantom: true,
-				connect: async () => Promise.reject(new Error("The user rejected the request")),
-			},
-		});
 		renderAt("/");
 		await section("Home");
 		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
 		// Ready once the app knows nobody is signed in.
 		await vi.waitFor(() => expect(connect).toBeEnabled());
 		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		expect(picker.getByText("No Solana wallet is installed in this browser.")).toBeInTheDocument();
+		expect(picker.getByRole("link", { name: "Get Solflare" })).toHaveAttribute(
+			"href",
+			"https://solflare.com",
+		);
+		fireEvent.click(picker.getByRole("button", { name: "Close wallets" }));
+		await vi.waitFor(() =>
+			expect(screen.queryByRole("dialog", { name: "Choose a wallet" })).toBeNull(),
+		);
+	});
+
+	it("lists the wallets installed, connects the one chosen, and says why when it refuses", async () => {
+		standIn({ signedIn: false });
+		installWallet("Solflare", "SoLfLaRe", {
+			"standard:connect": {
+				connect: async () => Promise.reject(new Error("The user rejected the request")),
+			},
+		});
+		installWallet("Jupiter");
+		renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		const listed = within(picker.getByRole("list", { name: "Installed wallets" }));
+		// Each with its own icon, and nothing chosen for the owner.
+		const icons = picker.getByRole("list", { name: "Installed wallets" }).querySelectorAll("img");
+		expect(
+			[...icons].map((icon) => icon.getAttribute("src")?.startsWith("data:image/svg+xml")),
+		).toEqual([true, true]);
+		expect(picker.queryByText("Default")).toBeNull();
+		fireEvent.click(listed.getByRole("button", { name: "Solflare" }));
 		expect(await screen.findByText(/rejected the request/)).toBeInTheDocument();
-		Object.assign(window, { solana: undefined });
+	});
+
+	it("remembers a default the owner chose, and lists it first", async () => {
+		standIn({ signedIn: false });
+		installWallet("Backpack");
+		installWallet("Solflare");
+		renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		fireEvent.click(picker.getByRole("button", { name: "Use Solflare by default" }));
+		expect(localStorage.getItem("maschina.wallet.default")).toBe("Solflare");
+		const names = within(picker.getByRole("list", { name: "Installed wallets" }))
+			.getAllByRole("button")
+			.map((each) => each.textContent ?? "");
+		expect(names[0]).toContain("Solflare");
+		expect(picker.getByText("Default")).toBeInTheDocument();
+		fireEvent.keyDown(window, { key: "Escape" });
 	});
 });
 

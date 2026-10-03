@@ -9,7 +9,7 @@
 import { type QueryClient, queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import type { Api } from "./api.ts";
 import { ApiError } from "./machines.ts";
-import { connect, signMessage } from "./wallet.ts";
+import { connect, forgetActiveWallet, signMessage } from "./wallet.ts";
 
 export type SignedInOwner = { ownerId: string; walletAddress: string };
 
@@ -67,6 +67,7 @@ export function useSignOut(api: Api, queryClient: QueryClient) {
 	return useMutation({
 		mutationFn: async () => {
 			await api.v1.auth["sign-out"].$post();
+			forgetActiveWallet();
 		},
 		onSuccess: () => {
 			queryClient.setQueryData(sessionQuery(api).queryKey, null);

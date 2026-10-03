@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useSession, useSignIn } from "../lib/session.ts";
 import { toast } from "../lib/toasts.ts";
 
@@ -42,7 +42,6 @@ export function StartHere({ at }: { at: NonNullable<ReturnType<typeof firstRunSt
 	const queryClient = useQueryClient();
 	const session = useSession(api);
 	const signIn = useSignIn(api, queryClient);
-	const navigate = useNavigate();
 
 	const action =
 		at.step === 1 ? (
@@ -52,9 +51,8 @@ export function StartHere({ at }: { at: NonNullable<ReturnType<typeof firstRunSt
 				onClick={() =>
 					signIn.mutate(undefined, {
 						onError: (error) =>
-							error.name === "NoWallet"
-								? void navigate({ to: "/get-a-wallet" })
-								: toast(error.message, "problem"),
+							// Closing the wallet picker is a choice, not a problem worth a message.
+							error.name === "NoWalletChosen" ? undefined : toast(error.message, "problem"),
 					})
 				}
 				className={ACTION}
