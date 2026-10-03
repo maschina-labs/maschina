@@ -275,19 +275,28 @@ input[type="range"].square::-moz-range-thumb {
 }
 
 /*
- * Frost: pebbled glass with light falling across it from the top left, deepening toward the bottom
- * right, in greys only. A light theme. Always pebbled: the glass is the whole of it.
+ * Frost: pebbled glass with light coming in at the top left and falling off into black, in greys only.
+ * Always pebbled: the glass is the whole of it.
  */
 .frost-field {
-	/* Grey only: no city colors. Pale where the light comes in, deepening across to the far corner. */
-	background: linear-gradient(
-		135deg,
-		oklch(95% 0 0) 0%,
-		oklch(88% 0 0) 25%,
-		oklch(76% 0 0) 50%,
-		oklch(58% 0 0) 75%,
-		oklch(34% 0 0) 100%
+	/* Grey only, as in Ash's reference: light coming in at the top left corner, falling off into graphite,
+	   never quite black, so the glass still shows in the far corner. */
+	background: radial-gradient(
+		circle at 0% 0%,
+		oklch(86% 0 0) 0%,
+		oklch(76% 0 0) 18%,
+		oklch(60% 0 0) 34%,
+		oklch(42% 0 0) 50%,
+		oklch(30% 0 0) 64%,
+		oklch(23% 0 0) 78%,
+		oklch(19% 0 0) 92%
 	);
+}
+
+/* Over light that runs from pale to black, the tiles are dark frosted panes, so white words read on all. */
+:root[data-theme="frost"] [class~="bg-white/[0.09]"] {
+	background-color: oklch(10% 0 0 / 0.55);
+	backdrop-filter: blur(10px);
 }
 :root[data-theme="frost"] .fog-field {
 	filter: url(#pebbled);

@@ -46,7 +46,7 @@ export function modeOf(
 	if (theme === "system") return systemDark ? "dark" : "light";
 	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
 	if (theme === "club") return "dark";
-	if (theme === "frost") return "light";
+	if (theme === "frost") return "dark";
 	return theme;
 }
 

@@ -55,3 +55,10 @@ describe("the club theme", () => {
 		expect(themeFrom("club")).toBe("club");
 	});
 });
+
+describe("the frost theme", () => {
+	it("keeps white text over the glass, whatever the hour", () => {
+		expect(modeOf("frost", { systemDark: false, hour: 12 })).toBe("dark");
+		expect(themeFrom("frost")).toBe("frost");
+	});
+});
