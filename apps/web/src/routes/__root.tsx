@@ -37,9 +37,9 @@ function Field() {
 	// Which side an open sidebar pushes the page from, on a desktop only. One at a time.
 	const edge = useOpenEdge();
 	const pushedFrom =
-		edge === "left" || edge === "sections"
+		edge === "left"
 			? "left"
-			: edge === "right" || edge === "account"
+			: edge === "right" || edge === "account" || edge === "sections"
 				? "right"
 				: undefined;
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.

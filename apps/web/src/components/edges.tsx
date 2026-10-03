@@ -168,6 +168,7 @@ function Panel({
 	open,
 	width = "",
 	onClose,
+	handle,
 	children,
 }: {
 	label: string;
@@ -175,6 +176,8 @@ function Panel({
 	open: boolean;
 	width?: string;
 	onClose: () => void;
+	/** Something fixed to the panel's outer edge, which moves with it: the header's own mark. */
+	handle?: ReactNode;
 	children: ReactNode;
 }) {
 	const [pulled, setPulled] = useState(0);
@@ -247,6 +250,7 @@ function Panel({
 			}}
 		>
 			{children}
+			{handle}
 		</aside>
 	);
 }
@@ -277,12 +281,40 @@ export function Edges() {
 					className="fixed inset-0 z-30 cursor-default"
 				/>
 			) : null}
-			<Mark edge="top" label="Header" onPress={() => toggle("top")} />
-			<Mark edge="left" label="Your machines" onPress={() => toggle("left")} />
-			<Mark edge="right" label="Charms" onPress={() => toggle("right")} news={fresh > 0} />
+			<Mark
+				edge="left"
+				label="Your machines"
+				onPress={() => toggle("left")}
+				attached={open === "left"}
+			/>
+			<Mark
+				edge="right"
+				label="Charms"
+				onPress={() => toggle("right")}
+				news={fresh > 0}
+				attached={open === "right" || open === "account" || open === "sections"}
+			/>
 			<Dock open={open} onPress={toggle} news={fresh > 0} />
 
-			<Panel label="Header" from="top" open={open === "top"} onClose={close}>
+			<Panel
+				label="Header"
+				from="top"
+				open={open === "top"}
+				onClose={close}
+				// The header's mark hangs from its bottom edge, so it drops and rises with the header itself.
+				handle={
+					<button
+						type="button"
+						aria-label="Header"
+						onClick={() => toggle("top")}
+						className="group absolute inset-x-0 top-full hidden h-5 items-start justify-center pt-1.5 md:flex"
+					>
+						<span
+							className={`block h-[3px] w-14 bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 ${open === "top" ? "opacity-60" : "opacity-0"}`}
+						/>
+					</button>
+				}
+			>
 				<HeaderPanel />
 			</Panel>
 		</>
@@ -295,17 +327,23 @@ function Mark({
 	label,
 	onPress,
 	news = false,
+	attached = false,
 }: {
 	edge: Edge;
 	label: string;
 	onPress: () => void;
 	/** Something new to see: the one thing on the edges that shows without the pointer there. */
 	news?: boolean;
+	/**
+	 * Its sidebar is open: the mark rides the sidebar's edge, stays in sight, and closes it on a press.
+	 */
+	attached?: boolean;
 }) {
+	const side = edge === "left" ? "left" : "right";
 	const zone =
 		edge === "top"
 			? "inset-x-0 top-0 h-5 justify-center items-start pt-1.5"
-			: `inset-y-0 w-5 items-center ${edge === "left" ? "left-0 justify-start pl-1.5" : "right-0 justify-end pr-1.5"}`;
+			: `inset-y-0 w-5 items-center ${edge === "left" ? "justify-start pl-1.5" : "justify-end pr-1.5"}`;
 	const bar = edge === "top" ? "h-[3px] w-14" : "h-14 w-[3px]";
 	return (
 		<button
@@ -313,11 +351,23 @@ function Mark({
 			aria-label={label}
 			onClick={onPress}
 			// A phone has no pointer to come to an edge, so it has the dock instead.
-			className={`group fixed z-30 hidden md:flex ${zone}`}
+			// It slides exactly as the sidebar does, the same property, time and curve, so the two move as
+			// one: it sits a sidebar's width in from its edge and is slid back out to the edge while closed.
+			className={`group fixed z-[45] hidden transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] md:flex ${zone} ${
+				edge === "top"
+					? ""
+					: attached
+						? "translate-x-0"
+						: side === "left"
+							? "-translate-x-[var(--side)]"
+							: "translate-x-[var(--side)]"
+			}`}
+			style={edge === "top" ? undefined : { [side]: "var(--side)" }}
 		>
 			<span
-				// Unseen until the pointer comes to the edge, then a quiet mark that something is there.
-				className={`block ${bar} bg-white/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100`}
+				// Unseen until the pointer comes to the edge, then a quiet mark that something is there. Riding
+				// an open sidebar, it stays in sight: it is how that sidebar closes.
+				className={`block ${bar} bg-white/50 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 ${attached ? "opacity-60" : "opacity-0"}`}
 			/>
 			{news ? (
 				<span
@@ -478,6 +528,8 @@ function MachinesPanel() {
 			data-scroll
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
+			{/* The name at the top of the left sidebar, where an app keeps its own. */}
+			<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto self-start" />
 			<Section title="Your machines">
 				{!session.data ? (
 					<p className="text-[15px] text-neutral-400">Connect to see your machines.</p>
