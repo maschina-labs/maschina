@@ -99,7 +99,7 @@ export function SearchField({ onClose }: { onClose: () => void }) {
 	};
 
 	return (
-		<search className="relative block w-full max-w-[520px]">
+		<search className="relative block w-[min(400px,52vw)]">
 			<label className="flex h-12 items-center gap-3 bg-white/[0.08] px-4 transition-colors focus-within:bg-white/[0.12]">
 				<MagnifyingGlass size={18} weight="light" className="shrink-0 text-neutral-400" />
 				<input

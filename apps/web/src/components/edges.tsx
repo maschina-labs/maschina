@@ -538,7 +538,8 @@ function HeaderPanel() {
 	// both line up with the grid's edges.
 	return (
 		<div className="flex justify-center px-5 py-7 md:px-0">
-			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
+			{/* Three columns, the outer two equal, so the search sits on the page's true center. */}
+			<div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
 				{/*
 				 * Back out to Maschina's front page. Until the front page is its own site, that is the welcome
 				 * screen here; once it is built, FRONT_PAGE becomes its address.
@@ -553,10 +554,8 @@ function HeaderPanel() {
 					</a>
 				</div>
 				{/* Search, in the middle of the header, the way an app keeps its command bar at the top. */}
-				<div className="flex flex-1 justify-center">
-					<SearchField onClose={() => setEdge(undefined)} />
-				</div>
-				<div className="flex flex-col items-end gap-1">
+				<SearchField onClose={() => setEdge(undefined)} />
+				<div className="flex flex-col items-end gap-1 justify-self-end">
 					<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
 						{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 					</span>
