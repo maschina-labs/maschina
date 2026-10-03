@@ -20,6 +20,7 @@ import {
 } from "@maschina/db";
 import { CHOICES, claude, converse, type Message } from "@maschina/manager";
 import { jupiterMarket, rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "@maschina/solana";
+import type { Logger } from "@maschina/telemetry";
 import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
 import { fundingTransaction } from "./funding.ts";
@@ -31,6 +32,8 @@ import type { MachinePorts } from "./routes/machines.ts";
 import type { ManagerPorts } from "./routes/manager.ts";
 import { walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
+import { traderRunner } from "./trader-runner.ts";
+import { traderView } from "./trader-view.ts";
 
 /** A session lasts a week, and a sentence waiting to be signed lasts five minutes. */
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -50,7 +53,7 @@ export type GatewayConfig = {
 	GATEWAY_SECRETS_KEY?: string | undefined;
 };
 
-export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) {
+export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, logger?: Logger) {
 	const database = createDatabase({ url: config.DATABASE_URL, applicationName: "gateway" });
 	const provisioner = provisionerClient({
 		url: config.PROVISIONER_URL,
@@ -145,7 +148,23 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		config.GATEWAY_SECRETS_KEY === undefined
 			? undefined
 			: parseSealingKey(config.GATEWAY_SECRETS_KEY);
+	const runner = logger ? traderRunner({ db: database.db, sealing, logger }) : undefined;
+	const noRunner = () => {
+		throw new MaschinaError("unavailable", "the trader is not running here");
+	};
+	const asStatus = (run: { id: string; state: Parameters<typeof traderView>[1] } | undefined) => ({
+		run: run ? traderView(run.id, run.state) : null,
+	});
 	const manager: ManagerPorts = {
+		trader: async (ownerId) => asStatus(await (runner ?? noRunner()).latest(ownerId)),
+		startTrader: async (ownerId, cashUsd) => {
+			if (!(await readOwnerSecret(database.db, ownerId, "anthropic")))
+				throw new MaschinaError("conflict", "add your Anthropic key in settings first");
+			return asStatus(
+				await (runner ?? noRunner()).begin(ownerId, BigInt(Math.round(cashUsd * 1_000_000))),
+			);
+		},
+		stopTrader: async (ownerId) => asStatus(await (runner ?? noRunner()).end(ownerId)),
 		ownerOf: sessions.ownerOf,
 		keyStatus: async (ownerId) => {
 			const stored = await readOwnerSecret(database.db, ownerId, "anthropic");
@@ -206,5 +225,16 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock) 
 		},
 	};
 
-	return { ports, auth, cookie, halt, manager, close: database.close };
+	return {
+		ports,
+		auth,
+		cookie,
+		halt,
+		manager,
+		runner,
+		close: async () => {
+			runner?.stop();
+			await database.close();
+		},
+	};
 }

@@ -13,6 +13,8 @@ import {
 	ManagerMessageRequest,
 	ManagerMessageResponse,
 	SetManagerKeyRequest,
+	StartTraderRequest,
+	TraderStatus,
 } from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
@@ -30,6 +32,10 @@ export type ManagerPorts = {
 		messages: ManagerMessageRequest["messages"],
 		choice: { model: ManagerMessageRequest["model"]; effort: ManagerMessageRequest["effort"] },
 	): Promise<ManagerMessageResponse & { steps?: { stopReason: string; blocks: string[] }[] }>;
+	/** The owner's paper AI trader: its newest run, starting one, and stopping it. */
+	trader(ownerId: string): Promise<TraderStatus>;
+	startTrader(ownerId: string, cashUsd: number): Promise<TraderStatus>;
+	stopTrader(ownerId: string): Promise<TraderStatus>;
 };
 
 /** A gateway with nowhere to keep keys: signed in owners are told so, rather than shown nothing. */
@@ -43,6 +49,9 @@ export function noManager(ownerOf: ManagerPorts["ownerOf"]): ManagerPorts {
 		setKey: unavailable,
 		clearKey: unavailable,
 		ask: unavailable,
+		trader: unavailable,
+		startTrader: unavailable,
+		stopTrader: unavailable,
 	};
 }
 
@@ -129,6 +138,52 @@ const ask = createRoute({
 	},
 });
 
+const traderStatus = createRoute({
+	method: "get",
+	path: "/manager/trader",
+	tags: ["Manager"],
+	summary: "Your AI trader's newest run",
+	responses: {
+		200: {
+			description: "The run, or none",
+			content: { "application/json": { schema: TraderStatus } },
+		},
+		...problem,
+	},
+});
+
+const traderStart = createRoute({
+	method: "post",
+	path: "/manager/trader",
+	tags: ["Manager"],
+	summary: "Start a paper AI trader",
+	description:
+		"Paper: real prices and real quotes, pretend money. It trades on its own inside limits it cannot change, and thinks on your key. Only one runs at a time; asking again returns the one running.",
+	request: { body: { content: { "application/json": { schema: StartTraderRequest } } } },
+	responses: {
+		200: { description: "The run", content: { "application/json": { schema: TraderStatus } } },
+		...problem,
+		409: {
+			description: "No AI key is set",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+	},
+});
+
+const traderStop = createRoute({
+	method: "post",
+	path: "/manager/trader/stop",
+	tags: ["Manager"],
+	summary: "Stop your AI trader",
+	responses: {
+		200: {
+			description: "The stopped run",
+			content: { "application/json": { schema: TraderStatus } },
+		},
+		...problem,
+	},
+});
+
 export function managerRoutes(ports: ManagerPorts) {
 	const owner = async (c: { req: { raw: Request } }) => {
 		const who = await ports.ownerOf(c.req.raw.headers);
@@ -159,5 +214,18 @@ export function managerRoutes(ports: ManagerPorts) {
 			// came back empty or cut short.
 			if (steps) c.get("logger").info({ steps, costUsd: answer.costUsd }, "manager turn");
 			return c.json(ManagerMessageResponse.parse(answer), 200);
+		})
+		.openapi(traderStatus, async (c) => {
+			const who = await owner(c);
+			return c.json(TraderStatus.parse(await ports.trader(who.ownerId)), 200);
+		})
+		.openapi(traderStart, async (c) => {
+			const who = await owner(c);
+			const { cashUsd } = c.req.valid("json");
+			return c.json(TraderStatus.parse(await ports.startTrader(who.ownerId, cashUsd)), 200);
+		})
+		.openapi(traderStop, async (c) => {
+			const who = await owner(c);
+			return c.json(TraderStatus.parse(await ports.stopTrader(who.ownerId)), 200);
 		});
 }

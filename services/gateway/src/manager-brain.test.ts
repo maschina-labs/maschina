@@ -75,6 +75,7 @@ describe("a token as the manager reads it", () => {
 		expect(compactToken(token)).toEqual({
 			symbol: "PUMP",
 			mint: token.mint,
+			decimals: 6,
 			priceUsd: 0.0054,
 			liquidityUsd: 40_327_120,
 			marketCapUsd: 2_538_573_334,

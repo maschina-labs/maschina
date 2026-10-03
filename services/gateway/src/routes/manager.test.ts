@@ -29,6 +29,9 @@ function app(ports: Partial<ManagerPorts> = {}, offered = true) {
 			seconds: 4.2,
 			looked: [{ tool: "list_machines", ok: true }],
 		}),
+		trader: async () => ({ run: null }),
+		startTrader: async () => ({ run: null }),
+		stopTrader: async () => ({ run: null }),
 		...ports,
 	};
 	const unused = async () => {
@@ -234,5 +237,70 @@ describe("asking the manager", () => {
 			body: JSON.stringify({ messages: [{ role: "you", text: "hi" }] }),
 		});
 		expect(res.status).toBe(401);
+	});
+});
+
+describe("the AI trader", () => {
+	const run = {
+		id: "r1",
+		mode: "paper" as const,
+		status: "running" as const,
+		startedAt: "2026-10-03T12:00:00.000Z",
+		startingCash: "40.00",
+		cash: "29.99",
+		worth: "40.10",
+		realized: "0.00",
+		fees: "0.00",
+		trades: 1,
+		holdings: [
+			{
+				symbol: "WIF",
+				mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+				cost: "10.00",
+				worth: "10.11",
+			},
+		],
+		thinking: { spentUsd: 0.02, turns: 1 },
+		log: [{ at: "2026-10-03T12:00:00.000Z", kind: "buy", text: "Bought $10.00 of WIF: volume" }],
+	};
+
+	it("shows the newest run, or none", async () => {
+		const res = await app().request("/v1/manager/trader", { headers: signedIn });
+		expect(await res.json()).toEqual({ run: null });
+		const running = await app({ trader: async () => ({ run }) }).request("/v1/manager/trader", {
+			headers: signedIn,
+		});
+		expect(await running.json()).toEqual({ run });
+	});
+
+	it("starts one with the cash asked for, within bounds", async () => {
+		const startTrader = vi.fn(async () => ({ run }));
+		const res = await app({ startTrader }).request("/v1/manager/trader", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ cashUsd: 40 }),
+		});
+		expect(res.status).toBe(200);
+		expect(startTrader).toHaveBeenCalledWith(ownerId, 40);
+		const tooSmall = await app().request("/v1/manager/trader", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ cashUsd: 1 }),
+		});
+		expect(tooSmall.status).toBe(400);
+	});
+
+	it("stops it", async () => {
+		const stopTrader = vi.fn(async () => ({ run: { ...run, status: "stopped" as const } }));
+		const res = await app({ stopTrader }).request("/v1/manager/trader/stop", {
+			method: "POST",
+			headers: signedIn,
+		});
+		expect(((await res.json()) as { run: { status: string } }).run.status).toBe("stopped");
+		expect(stopTrader).toHaveBeenCalledWith(ownerId);
+	});
+
+	it("is only for a signed in owner", async () => {
+		expect((await app().request("/v1/manager/trader")).status).toBe(401);
 	});
 });

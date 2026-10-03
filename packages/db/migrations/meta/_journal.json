@@ -141,6 +141,13 @@
       "when": 1791007392108,
       "tag": "0019_owner_secrets",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791010052348,
+      "tag": "0020_trader_runs",
+      "breakpoints": true
     }
   ]
 }

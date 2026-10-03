@@ -64,3 +64,52 @@ export const ManagerMessageResponse = z
 	})
 	.meta({ id: "ManagerMessageResponse" });
 export type ManagerMessageResponse = z.infer<typeof ManagerMessageResponse>;
+
+/** The AI trader's run, as the app shows it. Dollars are strings with cents, never rounded up. */
+export const TraderView = z
+	.strictObject({
+		id: z.string(),
+		mode: z.literal("paper"),
+		status: z.enum(["running", "paused", "stopped"]),
+		pausedBecause: z.string().optional(),
+		startedAt: z.iso.datetime(),
+		startingCash: z.string(),
+		cash: z.string(),
+		worth: z.string(),
+		realized: z.string(),
+		fees: z.string(),
+		trades: z.number().int(),
+		holdings: z.array(
+			z.strictObject({
+				symbol: z.string(),
+				mint: z.string(),
+				cost: z.string(),
+				worth: z.string().nullable(),
+			}),
+		),
+		thinking: z.strictObject({
+			spentUsd: z.number(),
+			turns: z.number().int(),
+			lastAt: z.string().optional(),
+		}),
+		log: z.array(
+			z.strictObject({
+				at: z.string(),
+				kind: z.string(),
+				text: z.string(),
+				costUsd: z.number().optional(),
+			}),
+		),
+	})
+	.meta({ id: "TraderView" });
+export type TraderView = z.infer<typeof TraderView>;
+
+export const TraderStatus = z
+	.strictObject({ run: TraderView.nullable() })
+	.meta({ id: "TraderStatus" });
+export type TraderStatus = z.infer<typeof TraderStatus>;
+
+export const StartTraderRequest = z
+	.strictObject({ cashUsd: z.number().min(5).max(10_000) })
+	.meta({ id: "StartTraderRequest" });
+export type StartTraderRequest = z.infer<typeof StartTraderRequest>;

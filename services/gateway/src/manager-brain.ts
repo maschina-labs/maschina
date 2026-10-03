@@ -32,6 +32,7 @@ export function compactToken(token: MarketToken) {
 	return {
 		symbol: token.symbol,
 		mint: token.mint,
+		decimals: token.decimals ?? null,
 		priceUsd: token.priceUsd ?? null,
 		liquidityUsd: round(token.liquidityUsd, 0),
 		marketCapUsd: round(token.marketCapUsd, 0),

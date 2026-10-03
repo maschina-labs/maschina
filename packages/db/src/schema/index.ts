@@ -12,3 +12,4 @@ export * from "./owner-secrets.ts";
 export * from "./owners.ts";
 export * from "./runs.ts";
 export * from "./sign-in.ts";
+export * from "./trader-runs.ts";

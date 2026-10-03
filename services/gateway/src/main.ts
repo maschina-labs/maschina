@@ -17,7 +17,9 @@ const reporter = await initErrorReporting({
 	release: config.SERVICE_VERSION,
 });
 
-const gateway = machinePorts(config);
+const gateway = machinePorts(config, undefined, logger);
+// Paper AI traders tick inside the gateway: they need prices and quotes, never a signature.
+gateway.runner?.start();
 
 startServer({
 	app: buildApp({

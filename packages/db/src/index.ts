@@ -18,5 +18,6 @@ export * from "./sign-in.ts";
 export * from "./signer-record.ts";
 export * from "./sweep-candidates.ts";
 export * from "./sweeps.ts";
+export * from "./trader-runs.ts";
 export * from "./watching-machines.ts";
 export * from "./withdrawals.ts";
