@@ -6,6 +6,7 @@ import { ApiError } from "../lib/machines.ts";
 import { useManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
 import { openEdge } from "./edges.tsx";
+import { RichText } from "./rich-text.tsx";
 import { TraderPanel } from "./trader-panel.tsx";
 
 /**
@@ -131,7 +132,11 @@ export function ManagerPage() {
 								key={index}
 								className={`max-w-[75%] whitespace-pre-wrap px-4 py-3 text-[15px] leading-relaxed ${message.from === "you" ? "self-end bg-white text-neutral-950" : message.failed ? "self-start border border-white/20 text-neutral-300" : "self-start bg-white/[0.08] text-neutral-100"}`}
 							>
-								{message.text}
+								{message.from === "manager" && !message.failed ? (
+									<RichText text={message.text} />
+								) : (
+									message.text
+								)}
 								{message.costUsd !== undefined ? (
 									<span className="mt-1.5 block text-[12px] text-neutral-500">
 										{cents(message.costUsd)}

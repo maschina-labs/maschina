@@ -13,7 +13,11 @@ vi.mock("./components/globe.tsx", () => ({ Globe: () => <div /> }));
 
 const { renderAt, standIn, TRADER_RUN } = await import("./test/app.tsx");
 
-const panel = async () => within(await screen.findByRole("region", { name: "Paper trader" }));
+// The panel waits on three answers in a row (who is signed in, the key, then the run), which a busy CI
+// machine takes well past the usual second to give.
+const WAIT = { timeout: 8_000 };
+vi.setConfig({ testTimeout: 20_000 });
+const panel = async () => within(await screen.findByRole("region", { name: "Paper trader" }, WAIT));
 
 beforeEach(() => {
 	localStorage.clear();
@@ -24,9 +28,11 @@ describe("the paper trader", () => {
 		const { requests } = standIn({ aiKey: "wxyz" });
 		renderAt("/manager");
 		const trader = await panel();
-		fireEvent.change(trader.getByLabelText("Paper cash"), { target: { value: "25" } });
+		fireEvent.change(await trader.findByLabelText("Paper cash", {}, WAIT), {
+			target: { value: "25" },
+		});
 		fireEvent.click(trader.getByRole("button", { name: "Start paper trading" }));
-		expect(await trader.findByRole("button", { name: "Stop" })).toBeInTheDocument();
+		expect(await trader.findByRole("button", { name: "Stop" }, WAIT)).toBeInTheDocument();
 		expect(requests).toContainEqual({
 			method: "POST",
 			path: "/v1/manager/trader",
@@ -39,7 +45,7 @@ describe("the paper trader", () => {
 		standIn({ aiKey: "wxyz", trader: TRADER_RUN });
 		renderAt("/manager");
 		const trader = await panel();
-		expect(await trader.findByText("+2.05%")).toBeInTheDocument();
+		expect(await trader.findByText("+2.05%", {}, WAIT)).toBeInTheDocument();
 		expect(trader.getByText("4 looks")).toBeInTheDocument();
 		const holding = within(trader.getByRole("list", { name: "Holding" }));
 		expect(holding.getByText("$10.00 → $10.52")).toBeInTheDocument();
@@ -52,8 +58,10 @@ describe("the paper trader", () => {
 		standIn({ aiKey: "wxyz", trader: TRADER_RUN });
 		renderAt("/manager");
 		const trader = await panel();
-		fireEvent.click(await trader.findByRole("button", { name: "Stop" }));
-		expect(await trader.findByText("Stopped. Start again for a new run.")).toBeInTheDocument();
+		fireEvent.click(await trader.findByRole("button", { name: "Stop" }, WAIT));
+		expect(
+			await trader.findByText("Stopped. Start again for a new run.", {}, WAIT),
+		).toBeInTheDocument();
 		expect(trader.getByRole("button", { name: "Start paper trading" })).toBeInTheDocument();
 	});
 
@@ -64,7 +72,7 @@ describe("the paper trader", () => {
 		});
 		renderAt("/manager");
 		const trader = await panel();
-		expect(await trader.findByText("Paused: the book is down 30%")).toBeInTheDocument();
+		expect(await trader.findByText("Paused: the book is down 30%", {}, WAIT)).toBeInTheDocument();
 		expect(trader.getByText("Its first look is on the way.")).toBeInTheDocument();
 	});
 
@@ -72,7 +80,9 @@ describe("the paper trader", () => {
 		standIn({ aiKey: "wxyz" });
 		renderAt("/manager");
 		const trader = await panel();
-		fireEvent.change(trader.getByLabelText("Paper cash"), { target: { value: "2" } });
+		fireEvent.change(await trader.findByLabelText("Paper cash", {}, WAIT), {
+			target: { value: "2" },
+		});
 		expect(trader.getByRole("button", { name: "Start paper trading" })).toBeDisabled();
 	});
 });
