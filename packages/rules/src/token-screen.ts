@@ -4,8 +4,11 @@
  * Memecoins lose people money in a few well known ways before any trading skill comes into it: a supply
  * that can be inflated, holders that can be frozen, a token that can be bought but never sold, liquidity
  * too thin to get out through, a handful of wallets holding most of it, and tokens a few hours old. Each
- * of those is a fact that can be read, so each is a rule here, and a token is bought only if it passes
- * every one.
+ * of those is a fact that can be read, so each is a rule here.
+ *
+ * Where it applies is set by where a coin was launched. A coin launched on Maschina must pass all of it,
+ * whoever trades it. A coin launched anywhere else is the open market: a machine trading it is held to
+ * none of these unless its owner turned them on, and then to the ones they chose at the limits they set.
  *
  * Unknown is a refusal. A figure that could not be read is never taken as a good one: the one token in a
  * thousand whose holders cannot be looked up is not the one to bet on.
@@ -37,7 +40,7 @@ export type ScreenLimits = {
 	maxImpactPct: number;
 };
 
-/** Strict on purpose: these limits are for money that is meant to survive. An owner can loosen them. */
+/** The bar for launching on Maschina. Strict on purpose: these are for coins people are meant to trust. */
 export const DEFAULT_SCREEN: ScreenLimits = {
 	minLiquidityUsd: 25_000,
 	maxTopHoldersShare: 0.35,
