@@ -20,29 +20,30 @@ type Oklch = { l: number; c: number; h: number };
 export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; glow: Oklch };
 
 /**
- * City, measured from Ash's Obsidian reference (2026-09-28), region by region. The only palette for now;
- * themes come back with a theme switcher (the Gen X Soft Club hues among them).
+ * Maschina's own palette, after the Gen X soft club look Ash wants (2026-10-03): a blue-black night with
+ * periwinkle above, a lilac haze through the middle and one soft aqua glow, a little silver in all of it.
+ * It replaced the olive and amber city measured from the Obsidian reference ("puke and pee").
  */
 export type Mode = "dark" | "light";
 
 const CITY_DARK: Palette = {
-	night: { l: 0.16, c: 0.002, h: 286 },
-	top: { l: 0.246, c: 0.021, h: 136 },
-	upper: { l: 0.367, c: 0.021, h: 232 },
-	middle: { l: 0.405, c: 0.012, h: 72 },
-	glow: { l: 0.471, c: 0.047, h: 77 },
+	night: { l: 0.14, c: 0.018, h: 265 },
+	top: { l: 0.23, c: 0.045, h: 258 },
+	upper: { l: 0.35, c: 0.06, h: 250 },
+	middle: { l: 0.4, c: 0.045, h: 295 },
+	glow: { l: 0.6, c: 0.08, h: 205 },
 };
 
 /**
- * The same city in daylight: every region keeps its hue and its place, and the light is turned up, so
- * the field reads as morning haze rather than night. Each theme has both.
+ * The same palette by day: frosted pearl, powder blue above, pale lilac through the middle and the aqua
+ * glow kept soft, so the field reads as a bright, cool haze. Each theme has both.
  */
 const CITY_LIGHT: Palette = {
-	night: { l: 0.93, c: 0.004, h: 286 },
-	top: { l: 0.87, c: 0.022, h: 136 },
-	upper: { l: 0.82, c: 0.022, h: 232 },
-	middle: { l: 0.89, c: 0.012, h: 72 },
-	glow: { l: 0.92, c: 0.05, h: 77 },
+	night: { l: 0.95, c: 0.008, h: 255 },
+	top: { l: 0.89, c: 0.028, h: 245 },
+	upper: { l: 0.85, c: 0.04, h: 252 },
+	middle: { l: 0.9, c: 0.032, h: 300 },
+	glow: { l: 0.87, c: 0.06, h: 200 },
 };
 
 const CITY: Record<Mode, Palette> = { dark: CITY_DARK, light: CITY_LIGHT };
