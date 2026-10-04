@@ -59,7 +59,7 @@ export function Tile({
 }) {
 	const navigate = useNavigate();
 	// A container, so what is inside can size itself to the tile rather than to the screen.
-	const look = `${SPAN[size]} @container relative overflow-hidden bg-white/[0.09] text-left transition-colors duration-300 hover:bg-white/[0.13]`;
+	const look = `${SPAN[size]} @container tile relative overflow-hidden bg-white/[0.09] text-left transition-colors duration-300 hover:bg-white/[0.13]`;
 	if (href) {
 		return (
 			<a

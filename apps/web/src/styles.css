@@ -288,3 +288,36 @@ input[type="range"].square::-moz-range-thumb {
 	) {
 	opacity: 0.78;
 }
+
+/* Every tile is lit from above: a few percent brighter at the top, a few deeper at the bottom, and a soft
+   shadow beneath, so it has depth without a sheen (Ash, 2026-10-04: flat, but a sheen would ruin it). */
+.tile {
+	background-image: linear-gradient(
+		to bottom,
+		oklch(100% 0 0 / 0.035),
+		oklch(100% 0 0 / 0) 45%,
+		oklch(0% 0 0 / 0.05)
+	);
+	box-shadow:
+		0 1px 2px oklch(0% 0 0 / 0.18),
+		0 12px 28px -14px oklch(0% 0 0 / 0.45);
+}
+:root[data-mode="light"] .tile {
+	background-image: linear-gradient(
+		to bottom,
+		oklch(100% 0 0 / 0.3),
+		oklch(100% 0 0 / 0) 50%,
+		oklch(40% 0.01 270 / 0.035)
+	);
+	box-shadow:
+		0 1px 2px oklch(30% 0.01 270 / 0.07),
+		0 14px 30px -16px oklch(30% 0.02 270 / 0.22);
+}
+/* By day the tiles are frosted white panes over the silver, lighter than what is behind them, so the UI
+   sits on the background rather than sinking into it as grey. Night is unchanged. */
+:root[data-mode="light"] .tile {
+	background-color: oklch(100% 0 0 / 0.55);
+}
+:root[data-mode="light"] .tile:hover {
+	background-color: oklch(100% 0 0 / 0.72);
+}
