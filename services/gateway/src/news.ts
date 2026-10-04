@@ -20,7 +20,7 @@ export type Feed = {
 };
 
 const FEEDS: Feed[] = [
-	{ name: "Solana", url: "https://solana.com/news/rss.xml", solana: true },
+	{ name: "Solana Foundation", url: "https://solana.com/news/rss.xml", solana: true },
 	{ name: "Helius", url: "https://www.helius.dev/blog/rss.xml", solana: true },
 	{ name: "Cointelegraph", url: "https://cointelegraph.com/rss/tag/solana", solana: true },
 	{ name: "Decrypt", url: "https://decrypt.co/feed" },
@@ -34,6 +34,8 @@ const FRESH_MS = 5 * 60_000;
 /** A feed slower than this is skipped for this read. */
 const TIMEOUT_MS = 8_000;
 const SUMMARY_MAX = 280;
+/** The newest this many from each publisher, so the busiest ones do not crowd out the rest. */
+const PER_FEED = 15;
 // Named outright, so a story about Solana from a general publisher is found too.
 const ABOUT_SOLANA = /\bsolana\b|\$?\bSOL\b/i;
 
@@ -169,7 +171,9 @@ export function newsDesk(options: {
 				signal: AbortSignal.timeout(TIMEOUT_MS),
 			});
 			if (!response.ok) return [];
-			return readFeed(await response.text(), feed);
+			return readFeed(await response.text(), feed)
+				.sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+				.slice(0, PER_FEED);
 		} catch {
 			return [];
 		}

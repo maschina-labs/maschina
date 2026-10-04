@@ -159,6 +159,28 @@ describe("the news desk", () => {
 		expect((await desk.latest()).items).toEqual(before.items);
 	});
 
+	it("gives every publisher a place, however often the busiest one posts", async () => {
+		const busy = RSS.replace(
+			"</channel>",
+			`${Array.from(
+				{ length: 40 },
+				(_, index) =>
+					`<item><title>Busy ${index}</title><link>https://busy.example.com/${index}</link><pubDate>Sat, 03 Oct 2026 10:00:00 GMT</pubDate></item>`,
+			).join("")}</channel>`,
+		);
+		const helius = { name: "Helius", url: "https://www.helius.dev/blog/rss.xml" };
+		const { fetcher } = answers({ [decrypt.url]: busy, [helius.url]: ATOM });
+		const desk = newsDesk({
+			feeds: [decrypt, helius],
+			fetch: fetcher,
+			clock: new ManualClock(),
+			limit: 20,
+		});
+		const { items } = await desk.latest();
+		expect(items.filter((each) => each.source === "Decrypt").length).toBeLessThanOrEqual(15);
+		expect(items.some((each) => each.source === "Helius")).toBe(true);
+	});
+
 	it("shows only so many stories", async () => {
 		const many = RSS.replace(
 			"</channel>",
