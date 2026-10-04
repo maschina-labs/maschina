@@ -60,7 +60,8 @@ function Field() {
 			root.dataset["accent"] = "on";
 			root.style.setProperty("--accent", accent);
 			root.style.setProperty("--on-accent", onAccent);
-			// The text and the charts take the team's hue as well.
+			// The charts draw in the team's own color, and the text takes its hue.
+			root.style.setProperty("--chart", accent);
 			for (const [key, color] of Object.entries(inkFor(inkHue ?? 0, mode)))
 				root.style.setProperty(key, color);
 		} else {
@@ -68,6 +69,7 @@ function Field() {
 			root.style.removeProperty("--accent");
 			root.style.removeProperty("--on-accent");
 			for (const key of INK_KEYS) root.style.removeProperty(key);
+			root.style.removeProperty("--chart");
 		}
 	}, [choice.palette, accent, onAccent, inkHue, mode]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.

@@ -95,30 +95,31 @@ const BRANDS = {
 			onAccent: "oklch(18% 0.03 230)",
 		},
 	},
-	// Solana: violet above, the green coming up beneath it; by day, pale violet and the same green.
+	// Solana as solana.com draws itself: near black, with violet running through blue to green only in the
+	// details. Softened from the neon first version, which Ash found loud beside the others (2026-10-04).
 	solana: {
 		name: "Solana",
 		dark: {
 			sky: {
-				night: { l: 0.12, c: 0.03, h: 295 },
-				top: { l: 0.22, c: 0.12, h: 300 },
-				upper: { l: 0.36, c: 0.16, h: 300 },
-				middle: { l: 0.46, c: 0.1, h: 200 },
-				glow: { l: 0.82, c: 0.18, h: 160 },
+				night: { l: 0.09, c: 0.012, h: 262 },
+				top: { l: 0.15, c: 0.03, h: 255 },
+				upper: { l: 0.2, c: 0.05, h: 288 },
+				middle: { l: 0.22, c: 0.03, h: 200 },
+				glow: { l: 0.5, c: 0.1, h: 290 },
 			},
-			accent: "oklch(85% 0.19 160)",
-			onAccent: "oklch(16% 0.04 295)",
+			accent: "oklch(66% 0.17 292)",
+			onAccent: "oklch(98% 0.01 292)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.95, c: 0.015, h: 300 },
-				top: { l: 0.88, c: 0.05, h: 300 },
-				upper: { l: 0.82, c: 0.09, h: 300 },
-				middle: { l: 0.86, c: 0.08, h: 190 },
-				glow: { l: 0.84, c: 0.15, h: 160 },
+				night: { l: 0.95, c: 0.01, h: 280 },
+				top: { l: 0.9, c: 0.025, h: 270 },
+				upper: { l: 0.86, c: 0.045, h: 290 },
+				middle: { l: 0.89, c: 0.03, h: 200 },
+				glow: { l: 0.84, c: 0.07, h: 170 },
 			},
-			accent: "oklch(58% 0.25 300)",
-			onAccent: "oklch(98% 0.01 300)",
+			accent: "oklch(55% 0.17 292)",
+			onAccent: "oklch(98% 0.01 292)",
 		},
 	},
 	// Phantom: soft lavender, on a dusky purple or a pale one.

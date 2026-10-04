@@ -50,7 +50,7 @@ function Spark({ series }: { series: number[] }) {
 				viewBox={`0 0 ${width} ${height}`}
 				preserveAspectRatio="none"
 				aria-hidden="true"
-				className="h-full w-full overflow-visible text-white"
+				className="h-full w-full overflow-visible text-(--chart)"
 			>
 				<defs>
 					<linearGradient id="spark-fill" x1="0" x2="0" y1="0" y2="1">
@@ -71,7 +71,7 @@ function Spark({ series }: { series: number[] }) {
 			{/* The latest point, drawn outside the stretched drawing so it stays round. */}
 			{end ? (
 				<span
-					className="absolute size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+					className="absolute size-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--chart)"
 					style={{ left: `${(end.x / width) * 100}%`, top: `${(end.y / height) * 100}%` }}
 				/>
 			) : null}

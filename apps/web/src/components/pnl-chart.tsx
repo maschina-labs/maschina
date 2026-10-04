@@ -153,7 +153,7 @@ export function PnlChartView({ points }: { points: PnlPoint[] }) {
 				else return;
 				event.preventDefault();
 			}}
-			className="relative h-64 w-full cursor-crosshair touch-none select-none text-white active:cursor-grabbing"
+			className="relative h-64 w-full cursor-crosshair touch-none select-none text-(--chart) active:cursor-grabbing"
 			onPointerDown={(event) => {
 				drag.current = {
 					x: event.clientX,

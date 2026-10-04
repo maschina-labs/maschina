@@ -336,6 +336,8 @@ describe("the edges", () => {
 		expect(document.documentElement.style.getPropertyValue("--color-neutral-100")).toMatch(
 			/^oklch\(/,
 		);
+		// And the charts draw in the team's own color.
+		expect(document.documentElement.style.getPropertyValue("--chart")).toMatch(/^oklch\(/);
 		// The background is its own choice, for any palette.
 		press("Background", "Ribbon");
 		await vi.waitFor(() => expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull());
@@ -349,6 +351,7 @@ describe("the edges", () => {
 		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
 		// Maschina's own text stays pure white and black.
 		expect(document.documentElement.style.getPropertyValue("--color-neutral-100")).toBe("");
+		expect(document.documentElement.style.getPropertyValue("--chart")).toBe("");
 		press("Background", "Particles");
 		await vi.waitFor(() =>
 			expect(document.querySelector('[data-field="particles"]')).not.toBeNull(),

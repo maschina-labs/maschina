@@ -175,6 +175,8 @@ input[type="range"].square::-moz-range-thumb {
  * once here so light mode can turn each over with the rest of the palette.
  */
 :root {
+	/* What the charts draw in: white (black by day) for Maschina, a team's own color on its palette. */
+	--chart: var(--color-white);
 	--surface-sheet: oklch(15% 0 0);
 	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
 	   bottom, opaque enough to read on. */
@@ -239,6 +241,10 @@ input[type="range"].square::-moz-range-thumb {
 /* The charts paint their own colors on a canvas. They are grayscale, so turning them over is exact. */
 :root[data-mode="light"] .tv-lightweight-charts {
 	filter: invert(1);
+}
+/* A team's colored candles: inverted for light mode, then turned back round the hue wheel, so red stays red. */
+:root[data-mode="light"][data-accent] .tv-lightweight-charts {
+	filter: invert(1) hue-rotate(180deg);
 }
 
 /*
