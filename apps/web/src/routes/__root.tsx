@@ -14,6 +14,7 @@ import { Toaster } from "../components/toaster.tsx";
 import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
+import { INK_KEYS, inkFor } from "../lib/ink.ts";
 import { useTheme } from "../lib/theme.ts";
 import { useWeather } from "../lib/weather.ts";
 
@@ -37,6 +38,7 @@ function Field() {
 	const { choice, mode, sky, brand, weather: wantsWeather } = useTheme();
 	const accent = brand?.accent;
 	const onAccent = brand?.onAccent;
+	const inkHue = brand?.sky.glow.h;
 	// Which side an open sidebar pushes the page from, on a desktop only. One at a time.
 	const edge = useOpenEdge();
 	const pushedFrom =
@@ -58,12 +60,16 @@ function Field() {
 			root.dataset["accent"] = "on";
 			root.style.setProperty("--accent", accent);
 			root.style.setProperty("--on-accent", onAccent);
+			// The text and the charts take the team's hue as well.
+			for (const [key, color] of Object.entries(inkFor(inkHue ?? 0, mode)))
+				root.style.setProperty(key, color);
 		} else {
 			delete root.dataset["accent"];
 			root.style.removeProperty("--accent");
 			root.style.removeProperty("--on-accent");
+			for (const key of INK_KEYS) root.style.removeProperty(key);
 		}
-	}, [choice.palette, accent, onAccent]);
+	}, [choice.palette, accent, onAccent, inkHue, mode]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
 		const { cool, warm } = cityTint(mode, sky);

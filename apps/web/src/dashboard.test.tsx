@@ -332,6 +332,10 @@ describe("the edges", () => {
 		expect(document.documentElement.dataset["accent"]).toBe("on");
 		expect(document.documentElement.style.getPropertyValue("--accent")).toMatch(/^oklch\(/);
 		expect(document.querySelector('[data-field="mesh"]')).not.toBeNull();
+		// The text and the charts take the team's hue too, not only the buttons.
+		expect(document.documentElement.style.getPropertyValue("--color-neutral-100")).toMatch(
+			/^oklch\(/,
+		);
 		// The background is its own choice, for any palette.
 		press("Background", "Ribbon");
 		await vi.waitFor(() => expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull());
@@ -343,6 +347,8 @@ describe("the edges", () => {
 		// Maschina's own palette has no accent of its own.
 		press("Palette", "Maschina");
 		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
+		// Maschina's own text stays pure white and black.
+		expect(document.documentElement.style.getPropertyValue("--color-neutral-100")).toBe("");
 		press("Background", "Particles");
 		await vi.waitFor(() =>
 			expect(document.querySelector('[data-field="particles"]')).not.toBeNull(),
