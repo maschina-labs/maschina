@@ -258,3 +258,27 @@ input[type="range"].square::-moz-range-thumb {
 	background-color: var(--accent);
 	color: var(--on-accent);
 }
+/* Everything inside takes the button's own text color, so a second line in grey never sits unreadable on
+   the accent (Backpack's red, 2026-10-04). Quieter lines stay quieter, just in the same color. */
+:root[data-accent] [aria-pressed="true"].bg-white *,
+:root[data-accent] button.bg-white:not(:disabled) * {
+	color: var(--on-accent);
+}
+:root[data-accent]
+	[aria-pressed="true"].bg-white
+	:is(
+		[class*="text-neutral-3"],
+		[class*="text-neutral-4"],
+		[class*="text-neutral-5"],
+		[class*="text-neutral-6"]
+	),
+:root[data-accent]
+	button.bg-white:not(:disabled)
+	:is(
+		[class*="text-neutral-3"],
+		[class*="text-neutral-4"],
+		[class*="text-neutral-5"],
+		[class*="text-neutral-6"]
+	) {
+	opacity: 0.78;
+}
