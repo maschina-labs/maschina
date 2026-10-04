@@ -32,4 +32,16 @@ describe("the fog background", () => {
 
 		expect((container.firstElementChild as HTMLElement).className).toContain("absolute");
 	});
+
+	it("is the city with its color patches for our own themes, and ribbons of light for a tribute theme", () => {
+		const city = render(<FogBackground />);
+		expect((city.container.firstElementChild as HTMLElement).dataset["field"]).toBe("city");
+		city.unmount();
+		const ribbon = render(<FogBackground ribbon />);
+		const field = ribbon.container.firstElementChild as HTMLElement;
+		expect(field.dataset["field"]).toBe("ribbon");
+		// Still the same fogged window: decoration only, never in the way.
+		expect(field).toHaveAttribute("aria-hidden", "true");
+		expect(field.className).toContain("pointer-events-none");
+	});
 });

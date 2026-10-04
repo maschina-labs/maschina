@@ -327,6 +327,9 @@ describe("the edges", () => {
 		fireEvent.click(within(panel).getByRole("button", { name: "Solana" }));
 		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana"));
 		expect(document.documentElement.dataset["accent"]).toBe("on");
+		// A tribute theme flows behind the glass as ribbons of the team's colors, not the city.
+		expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull();
+		expect(document.querySelector('[data-field="city"]')).toBeNull();
 		expect(document.documentElement.style.getPropertyValue("--accent")).toMatch(/^oklch\(/);
 		// Each team comes light too, picked beside it, and kept when moving to another team.
 		const look = within(panel).getByRole("group", { name: "Solana, dark or light" });
@@ -341,6 +344,9 @@ describe("the edges", () => {
 		// The plain Dark theme comes first; the team's own Dark sits in its pair below.
 		fireEvent.click(within(panel).getAllByRole("button", { name: "Dark" })[0] as HTMLElement);
 		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
+		// Our own themes keep the city, with its weather.
+		expect(document.querySelector('[data-field="city"]')).not.toBeNull();
+		expect(document.querySelector('[data-field="ribbon"]')).toBeNull();
 		expect(within(panel).queryByRole("group", { name: /dark or light/ })).toBeNull();
 		fireEvent.keyDown(window, { key: "Escape" });
 	});

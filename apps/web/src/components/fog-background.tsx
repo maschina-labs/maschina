@@ -92,6 +92,10 @@ const FRAGMENT = /* glsl */ `
 	uniform float uFog;
 	uniform float uFlash;
 
+	// 0 the city's patches of color, 1 a ribbon of light across the glass, for the tribute themes. Eased,
+	// so changing theme crossfades rather than cuts.
+	uniform float uRibbon;
+
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
 	float hash(vec3 p3) {
@@ -166,6 +170,43 @@ const FRAGMENT = /* glsl */ `
 		color = mix(color, FOG, atFog * smoothstep(0.3, 0.75, warm) * 0.9);
 		color = mix(color, AMBER, atAmber * smoothstep(0.3, 0.75, warm));
 
+		// The ribbon: a smooth fall of light from the top color into the dark, and across it one wide sheet,
+		// as on a PlayStation 3, made of fine strands that follow a single slow wave. Its two edges catch the
+		// most light; the body between them is faint smoke. It replaces the patches, nothing else: the glass,
+		// grain, vignette and weather below apply to it the same.
+		if (uRibbon > 0.001) {
+			vec3 field = mix(OLIVE, NIGHT, smoothstep(0.0, 0.95, y));
+			field = mix(field, SLATE, 0.35 * smoothstep(0.15, 0.45, y) * smoothstep(0.75, 0.45, y) * (0.6 + 0.4 * cold));
+			bool light = NIGHT.x > 0.6;
+			// Light on dark themes, the glow itself on light ones, so it reads against either.
+			vec3 strandColor = light ? AMBER : vec3(min(AMBER.x + 0.18, 0.96), AMBER.yz * 0.75);
+			float t = uTime;
+			float across = p.x / max(aspect, 0.001);
+			float spine = 0.56 - 0.14 * (across - 0.5)
+				+ 0.07 * sin(p.x * 1.25 + t * 0.06)
+				+ 0.04 * sin(p.x * 2.6 - t * 0.045 + 1.3);
+			float width = 0.11 + 0.05 * sin(p.x * 1.7 + t * 0.035 + 0.6);
+			float strands = 0.0;
+			float edges = 0.0;
+			const int N = 14;
+			for (int i = 0; i <= N; i++) {
+				float k = float(i) / float(N);
+				// Each strand drifts a little on its own, so the sheet twists rather than sliding as one.
+				float wobble = 0.018 * sin(p.x * (2.2 + k * 1.4) + t * (0.05 + k * 0.03) + k * 6.0);
+				float at = spine + (k - 0.5) * width + wobble;
+				float d = abs(y - at);
+				float line = exp(-(d * d) / 0.000018);
+				strands += line;
+				if (i == 0 || i == N) edges += line;
+			}
+			float body = smoothstep(width * 0.55, 0.0, abs(y - spine)) * (0.35 + 0.65 * smoke(vec2(p.x * 1.6 - t * 0.02, y * 6.0)));
+			// Fades in from the left edge and out at the right, so it seems to pass through the screen.
+			float pass = smoothstep(-0.05, 0.25, across) * smoothstep(1.08, 0.8, across);
+			float glow = clamp(strands * 0.09 + edges * 0.38 + body * 0.12, 0.0, 1.0) * pass;
+			field = mix(field, strandColor, glow);
+			color = mix(color, field, uRibbon);
+		}
+
 		// Overcast: the glow dims and the color drains, as a city does under low cloud.
 		color = mix(color, NIGHT, atAmber * smoothstep(0.3, 0.75, warm) * uCloud * 0.6);
 		color.yz *= 1.0 - 0.45 * uCloud;
@@ -214,7 +255,17 @@ const FRAGMENT = /* glsl */ `
 	}
 `;
 
-function Fog({ still, palette, weather }: { still: boolean; palette: Palette; weather: Weather }) {
+function Fog({
+	still,
+	palette,
+	weather,
+	ribbon,
+}: {
+	still: boolean;
+	palette: Palette;
+	weather: Weather;
+	ribbon: boolean;
+}) {
 	const material = useRef<ShaderMaterial>(null);
 	const size = useThree((state) => state.size);
 	// Made once: rebuilding uniforms would send the clock back to zero and make the field jump.
@@ -231,6 +282,7 @@ function Fog({ still, palette, weather }: { still: boolean; palette: Palette; we
 			uCloud: { value: 0 },
 			uFog: { value: 0 },
 			uFlash: { value: 0 },
+			uRibbon: { value: 0 },
 		}),
 		[],
 	);
@@ -293,6 +345,11 @@ function Fog({ still, palette, weather }: { still: boolean; palette: Palette; we
 		live.uCloud.value += (weather.cloud - live.uCloud.value) * ease;
 		live.uFog.value += (weather.fog - live.uFog.value) * ease;
 		live.uFlash.value = flash.current;
+		// Changing theme crossfades over about a second and a half; reduced motion just switches.
+		const target = ribbon ? 1 : 0;
+		live.uRibbon.value = still
+			? target
+			: live.uRibbon.value + (target - live.uRibbon.value) * Math.min(1, delta * 2);
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
 		live.uTime.value = still ? 0 : (now - started.current) / 1000;
 		live.uResolution.value.set(size.width, size.height);
@@ -326,6 +383,7 @@ export function FogBackground({
 	mode = "dark",
 	sky,
 	weather = CLEAR,
+	ribbon = false,
 }: {
 	position?: "fixed" | "absolute";
 	mode?: Mode;
@@ -333,6 +391,8 @@ export function FogBackground({
 	sky?: Palette | undefined;
 	/** The weather in the city. Clear unless told otherwise. */
 	weather?: Weather;
+	/** A ribbon of light across the glass in place of the city's patches of color, for a tribute theme. */
+	ribbon?: boolean;
 } = {}) {
 	const palette = sky ?? CITY[mode];
 	const still =
@@ -341,6 +401,7 @@ export function FogBackground({
 	return (
 		<div
 			aria-hidden="true"
+			data-field={ribbon ? "ribbon" : "city"}
 			// z-0, not negative: with no stacking context above it, a negative one hides behind the body.
 			className={`fog-field pointer-events-none ${position} inset-0 z-0`}
 			// The same light in CSS, holding the screen while WebGL starts and standing in without it.
@@ -363,7 +424,7 @@ export function FogBackground({
 				}}
 				style={{ width: "100%", height: "100%" }}
 			>
-				<Fog still={still} palette={palette} weather={weather} />
+				<Fog still={still} palette={palette} weather={weather} ribbon={ribbon} />
 			</Canvas>
 		</div>
 	);

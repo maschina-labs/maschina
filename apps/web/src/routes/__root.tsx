@@ -81,7 +81,12 @@ function Field() {
 	}, [section, path]);
 	return (
 		<div className="fixed inset-0 overflow-hidden [--side:0px] md:[--side:340px]">
-			<FogBackground mode={mode} sky={sky} weather={weather} />
+			<FogBackground
+				mode={mode}
+				sky={sky}
+				weather={weather}
+				ribbon={brandOf(theme) !== undefined}
+			/>
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />
 			{/*
