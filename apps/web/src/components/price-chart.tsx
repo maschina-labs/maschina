@@ -62,6 +62,8 @@ export function PriceChart({
 	const series = useRef<ISeriesApi<"Candlestick">>(undefined);
 	const pins = useRef<ISeriesMarkersPluginApi<Time>>(undefined);
 	const [failed, setFailed] = useState<string>();
+	// The first candle drawn: trades from before it are off the chart, not piled at its edge.
+	const [since, setSince] = useState<number>();
 	/** The candle under the pointer, for the readout; the latest one when the pointer is elsewhere. */
 	const [hover, setHover] = useState<Candle>();
 	const latest = useRef<Candle>(undefined);
@@ -128,6 +130,7 @@ export function PriceChart({
 				if (closed) return;
 				candles.setData(past as never);
 				volume.setData(past.map(bar) as never);
+				setSince(past[0]?.time as number | undefined);
 				for (const candle of past) known.set(candle.time, candle);
 				latest.current = past.at(-1);
 				setHover(latest.current);
@@ -163,16 +166,18 @@ export function PriceChart({
 	useEffect(() => {
 		const offset = new Date().getTimezoneOffset();
 		pins.current?.setMarkers(
-			trades.map((trade) => ({
-				time: candleTime(trade.at, interval, offset) as never,
-				position: trade.side === "buy" ? ("belowBar" as const) : ("aboveBar" as const),
-				shape: trade.side === "buy" ? ("arrowUp" as const) : ("arrowDown" as const),
-				color: MARK,
-				text: `${trade.side.toUpperCase()} ${trade.price.toFixed(2)}`,
-			})),
+			trades
+				.filter((trade) => since !== undefined && candleTime(trade.at, interval, offset) >= since)
+				.map((trade) => ({
+					time: candleTime(trade.at, interval, offset) as never,
+					position: trade.side === "buy" ? ("belowBar" as const) : ("aboveBar" as const),
+					shape: trade.side === "buy" ? ("arrowUp" as const) : ("arrowDown" as const),
+					color: MARK,
+					text: `${trade.side.toUpperCase()} ${trade.price.toFixed(2)}`,
+				})),
 		);
 		// The joined key stands for the trades, so the same trades in a new array do nothing.
-	}, [traded, interval]);
+	}, [traded, interval, since]);
 
 	// The band follows the machine, not the market, so it is drawn apart from the candles.
 	const key = levels.map((level) => `${level.label}${level.price}`).join();

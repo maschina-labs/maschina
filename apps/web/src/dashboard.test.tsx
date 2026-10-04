@@ -15,6 +15,7 @@ const wallet = vi.hoisted(() => ({ sendTransaction: vi.fn(async () => "signature
 vi.mock("./lib/wallet.ts", async (real) => ({ ...(await real<object>()), ...wallet }));
 
 const { MACHINE_ID, machine, renderAt, standIn } = await import("./test/app.tsx");
+const { installWallet } = await import("./test/wallets.ts");
 
 const section = async (name: string) => within(await screen.findByRole("region", { name }));
 const screenNamed = async (title: string) =>
@@ -102,33 +103,69 @@ describe("the sections, signed out", () => {
 });
 
 describe("connecting", () => {
-	it("with no wallet in the browser, shows where to get one", async () => {
+	it("with no wallet in the browser, the picker says so and shows where to get one", async () => {
 		standIn({ signedIn: false });
-		const { router } = renderAt("/");
-		await section("Home");
-		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
-		// Ready once the app knows nobody is signed in.
-		await vi.waitFor(() => expect(connect).toBeEnabled());
-		fireEvent.click(connect);
-		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/get-a-wallet"));
-	});
-
-	it("a wallet that refuses says why", async () => {
-		standIn({ signedIn: false });
-		Object.assign(window, {
-			solana: {
-				isPhantom: true,
-				connect: async () => Promise.reject(new Error("The user rejected the request")),
-			},
-		});
 		renderAt("/");
 		await section("Home");
 		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
 		// Ready once the app knows nobody is signed in.
 		await vi.waitFor(() => expect(connect).toBeEnabled());
 		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		expect(picker.getByText("No Solana wallet is installed in this browser.")).toBeInTheDocument();
+		expect(picker.getByRole("link", { name: "Get Solflare" })).toHaveAttribute(
+			"href",
+			"https://solflare.com",
+		);
+		fireEvent.click(picker.getByRole("button", { name: "Close wallets" }));
+		await vi.waitFor(() =>
+			expect(screen.queryByRole("dialog", { name: "Choose a wallet" })).toBeNull(),
+		);
+	});
+
+	it("lists the wallets installed, connects the one chosen, and says why when it refuses", async () => {
+		standIn({ signedIn: false });
+		installWallet("Solflare", "SoLfLaRe", {
+			"standard:connect": {
+				connect: async () => Promise.reject(new Error("The user rejected the request")),
+			},
+		});
+		installWallet("Jupiter");
+		renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		const listed = within(picker.getByRole("list", { name: "Installed wallets" }));
+		// Each with its own icon, and nothing chosen for the owner.
+		const icons = picker.getByRole("list", { name: "Installed wallets" }).querySelectorAll("img");
+		expect(
+			[...icons].map((icon) => icon.getAttribute("src")?.startsWith("data:image/svg+xml")),
+		).toEqual([true, true]);
+		expect(picker.queryByText("Your default")).toBeNull();
+		fireEvent.click(listed.getByRole("button", { name: /^Solflare/ }));
 		expect(await screen.findByText(/rejected the request/)).toBeInTheDocument();
-		Object.assign(window, { solana: undefined });
+	});
+
+	it("remembers a default the owner chose, and lists it first", async () => {
+		standIn({ signedIn: false });
+		installWallet("Backpack");
+		installWallet("Solflare");
+		renderAt("/");
+		await section("Home");
+		const connect = screen.getAllByRole("button", { name: "Connect" })[0] as HTMLElement;
+		await vi.waitFor(() => expect(connect).toBeEnabled());
+		fireEvent.click(connect);
+		const picker = within(await screen.findByRole("dialog", { name: "Choose a wallet" }));
+		fireEvent.click(picker.getByRole("button", { name: "Use Solflare by default" }));
+		expect(localStorage.getItem("maschina.wallet.default")).toBe("Solflare");
+		const names = within(picker.getByRole("list", { name: "Installed wallets" }))
+			.getAllByRole("button")
+			.map((each) => each.textContent ?? "");
+		expect(names[0]).toContain("Solflare");
+		expect(picker.getByText("Your default")).toBeInTheDocument();
+		fireEvent.keyDown(window, { key: "Escape" });
 	});
 });
 
@@ -189,7 +226,7 @@ describe("the edges", () => {
 	it("the charms switch idle mode off and on again", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
 		const idle = await screen.findByRole("button", { name: /Idle mode/ });
 		// On to begin with, so the first press switches it off, and the next plays it.
 		fireEvent.click(idle);
@@ -222,7 +259,7 @@ describe("the edges", () => {
 	it("the charms open search, and set the theme", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
 		fireEvent.click(await screen.findByRole("button", { name: "Dynamic" }));
 		expect(localStorage.getItem("maschina.theme")).toBe("dynamic");
 		fireEvent.click(screen.getAllByRole("button", { name: /^Search/ }).at(-1) as HTMLElement);
@@ -232,7 +269,7 @@ describe("the edges", () => {
 	it("the charms switch what money is shown between live and paper", async () => {
 		renderAt("/");
 		await section("Home");
-		fireEvent.click(screen.getAllByRole("button", { name: "Charms" })[0] as HTMLElement);
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
 		fireEvent.click(await screen.findByRole("button", { name: "Paper" }));
 		expect(localStorage.getItem("maschina.side")).toBe("paper");
 		expect(screen.getByRole("button", { name: "Paper" })).toHaveAttribute("aria-pressed", "true");
@@ -247,6 +284,76 @@ describe("the edges", () => {
 		const closes = await screen.findAllByRole("button", { name: "Close" });
 		for (const close of closes) fireEvent.click(close);
 		expect(screen.getAllByRole("button", { name: "Your machines" }).length).toBeGreaterThan(0);
+	});
+
+	it("the right handle closes whichever right sidebar is open, rather than opening another", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Account" })[0] as HTMLElement);
+		const account = (await screen.findByText(/^Showing (live|paper) money$/)).closest("aside");
+		await vi.waitFor(() => expect(account?.className).toContain("translate-x-0"));
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
+		await vi.waitFor(() => expect(account?.className).not.toContain("translate-x-0"));
+		// The tiles stayed shut: their buttons are hidden, as they are whenever the sidebar is closed.
+		expect(screen.queryByRole("button", { name: "Search" })).toBeNull();
+	});
+
+	it("a click on bare space closes an open sidebar; a click on a tile leaves it open", async () => {
+		renderAt("/");
+		await section("Home");
+		const page = screen.getByRole("region", { name: "Home" });
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
+		const sidebar = (await screen.findByRole("button", { name: "Close sidebar" })).closest("aside");
+		await vi.waitFor(() => expect(sidebar?.className).toContain("translate-x-0"));
+		// A tile is something: the sidebar stays.
+		const tile = page.querySelector("article, a, button") as HTMLElement;
+		fireEvent.pointerDown(tile);
+		expect(sidebar?.className).toContain("translate-x-0");
+		// The bare page behind the tiles is nothing: the sidebar goes.
+		fireEvent.pointerDown(document.body);
+		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
+	});
+
+	it("a tribute theme lights what is pressed in its own accent, and there is no glass switch", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
+		expect(screen.queryByRole("button", { name: "Pebbled" })).toBeNull();
+		// The news under Home has a Solana source of its own, so the theme is chosen inside the sidebar.
+		const panel = (await screen.findByText("Theme")).closest("aside") as HTMLElement;
+		fireEvent.click(within(panel).getByRole("button", { name: "Solana" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana"));
+		expect(document.documentElement.dataset["accent"]).toBe("on");
+		expect(document.documentElement.style.getPropertyValue("--accent")).toMatch(/^oklch\(/);
+		// Each team comes light too, picked beside it, and kept when moving to another team.
+		const look = within(panel).getByRole("group", { name: "Solana, dark or light" });
+		fireEvent.click(within(look).getByRole("button", { name: "Light" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana-light"));
+		expect(document.documentElement.dataset["mode"]).toBe("light");
+		expect(within(panel).getByRole("button", { name: "Solana" }).getAttribute("aria-pressed")).toBe(
+			"true",
+		);
+		fireEvent.click(within(panel).getByRole("button", { name: "Jupiter" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("jupiter-light"));
+		// The plain Dark theme comes first; the team's own Dark sits in its pair below.
+		fireEvent.click(within(panel).getAllByRole("button", { name: "Dark" })[0] as HTMLElement);
+		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
+		expect(within(panel).queryByRole("group", { name: /dark or light/ })).toBeNull();
+		fireEvent.keyDown(window, { key: "Escape" });
+	});
+
+	it("the left sidebar closes from the button beside the logo", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.click(screen.getAllByRole("button", { name: "Your machines" })[0] as HTMLElement);
+		const close = await screen.findByRole("button", { name: "Close sidebar" });
+		const sidebar = close.closest("aside");
+		expect(sidebar?.className).toContain("translate-x-0");
+		fireEvent.click(close);
+		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
 	});
 
 	it("your machines, on the left", async () => {

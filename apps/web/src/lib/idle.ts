@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 /**
  * Idle mode: left alone, the dashboard drifts through the sections by itself, slowly, round and round,
  * for a screen left on a nightstand or a second monitor. It starts on its own after a minute without a
- * touch, unless that is switched off, and it can be started at once from the charms.
+ * touch, unless that is switched off, and it can be started at once from the tiles.
  */
 
 const KEY = "maschina.idle";

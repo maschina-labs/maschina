@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { describeEvent } from "../lib/describe.ts";
 import { amount, holdingOf, useBalances, useMachines } from "../lib/machines.ts";
 import { type Day, streamDay } from "../lib/market.ts";
+import { portfolioPnl, recent } from "../lib/pnl.ts";
 import { totalsOf } from "../lib/portfolio.ts";
 import { useSession } from "../lib/session.ts";
 import { useSide } from "../lib/side.ts";
@@ -10,8 +11,11 @@ import { statusOf } from "../lib/status.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { bandOf, useMachineAtWork } from "./at-work.tsx";
 import { Tile, TileEmpty, TileLoading } from "./bento.tsx";
+import { Odometer } from "./odometer.tsx";
+import { useSidePicture } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
 import { firstRunStep, StartHere } from "./start-here.tsx";
+import { deltaOf, Stat } from "./stat.tsx";
 
 /**
  * Home: one tile, one job. Each shows a single figure or a single line, quiet, with its name small
@@ -40,8 +44,19 @@ export function Figure({
 	return (
 		<div className="flex h-full flex-col justify-between p-4">
 			<div className="flex flex-col gap-1">
-				<span className="font-display text-[clamp(22px,15cqw,44px)] text-neutral-100 tabular-nums leading-none">
-					{value}
+				<span
+					className="font-display text-[clamp(22px,15cqw,44px)] text-neutral-100 tabular-nums leading-none whitespace-nowrap"
+					// A long figure shrinks to fit its tile rather than running out of it.
+					style={
+						typeof value === "string" && value.length > 7
+							? {
+									fontSize: `min(clamp(22px, 15cqw, 44px), calc((100cqw - 32px) / ${value.length * 0.58}))`,
+								}
+							: undefined
+					}
+				>
+					{/* Figures roll to their numbers, like an odometer. */}
+					{typeof value === "string" ? <Odometer value={value} /> : value}
 				</span>
 				{note ? <span className="text-[13px] text-neutral-400">{note}</span> : null}
 			</div>
@@ -65,8 +80,11 @@ export function Line({ children, name }: { children: ReactNode; name: string }) 
 const signedOut = <TileEmpty>Connect to see your machines.</TileEmpty>;
 
 /** A line in sentence case: a capital at the start and nowhere else that shouts. */
+/** Words that stay as they are written in a sentence: token symbols and the like. */
+const KEPT = /\b(sol|usdc|usdt|ai|api|csv|pnl)\b/g;
+
 export const sentence = (text: string) => {
-	const lower = text.toLowerCase();
+	const lower = text.toLowerCase().replace(KEPT, (word) => word.toUpperCase());
 	return lower.charAt(0).toUpperCase() + lower.slice(1);
 };
 
@@ -79,6 +97,8 @@ export function HomeTiles() {
 	const mine = session.data ? machines.data : [];
 	const side = useSide();
 	const totals = mine ? totalsOf(mine, side) : undefined;
+	// The last week of realized profit, for the big tile's sparkline and its change.
+	const week = recent(portfolioPnl(useSidePicture().map((each) => each.record)), 7);
 	const latest = record[0];
 	// Until a machine has started, the big tile on the left walks you through getting one going.
 	const firstRun = firstRunStep({ signedIn: Boolean(session.data), machines: mine });
@@ -109,7 +129,13 @@ export function HomeTiles() {
 			) : (
 				<Tile size="large" to="/profit" label="Realized profit">
 					{totals ? (
-						<Figure value={amount(totals.realized.toString())} note="USDC" name="Realized" />
+						<Stat
+							label="Realized profit"
+							value={amount(totals.realized.toString())}
+							unit="USDC"
+							series={week.series}
+							delta={deltaOf(week.series, (value) => `$${value.toFixed(2)}`, "7D")}
+						/>
 					) : (
 						<TileLoading />
 					)}

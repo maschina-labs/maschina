@@ -159,3 +159,102 @@ input[type="range"].square::-moz-range-thumb {
 	border-radius: 0;
 	background: oklch(0.98 0 0);
 }
+
+/* The opening moment: the ring arrives, a little small and faint, and settles. */
+@keyframes splash {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/*
+ * The surfaces things sit on: the sheet a tile opens into, the sidebars, bars, toasts and banners. Named
+ * once here so light mode can turn each over with the rest of the palette.
+ */
+:root {
+	--surface-sheet: oklch(15% 0 0);
+	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
+	   bottom, opaque enough to read on. */
+	--surface-panel: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--tint-cool, oklch(30% 0.02 232)) 22%, oklch(12% 0 0 / 0.9)),
+		color-mix(in oklab, var(--tint-warm, oklch(45% 0.05 77)) 14%, oklch(12% 0 0 / 0.9))
+	);
+	--surface-bar: color-mix(
+		in oklab,
+		var(--tint-cool, oklch(30% 0.02 232)) 20%,
+		oklch(12% 0 0 / 0.86)
+	);
+	--surface-chip: oklch(24% 0 0 / 0.78);
+	--surface-raised: oklch(17% 0 0);
+	--surface-banner: oklch(18% 0 0);
+	--surface-alert: oklch(20% 0.04 60);
+}
+
+/*
+ * Light mode. Every color in the app is one of these variables, so light mode is the scale turned over:
+ * what was white is near black, the lightest grays become the darkest, and black becomes white. Every
+ * screen follows without a light version of its own, and nothing can be forgotten.
+ */
+:root[data-mode="light"] {
+	--surface-sheet: oklch(96.5% 0 0);
+	--surface-panel: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--tint-cool, oklch(80% 0.02 232)) 18%, oklch(97% 0 0 / 0.9)),
+		color-mix(in oklab, var(--tint-warm, oklch(85% 0.04 77)) 14%, oklch(97% 0 0 / 0.9))
+	);
+	--surface-bar: color-mix(
+		in oklab,
+		var(--tint-cool, oklch(80% 0.02 232)) 16%,
+		oklch(97% 0 0 / 0.86)
+	);
+	--surface-chip: oklch(90% 0 0 / 0.82);
+	--surface-raised: oklch(95% 0 0);
+	--surface-banner: oklch(92% 0 0);
+	--surface-alert: oklch(92% 0.05 70);
+	--color-white: oklch(18% 0 0);
+	--color-black: #fff;
+	--color-neutral-50: oklch(14.5% 0 0);
+	--color-neutral-100: oklch(20.5% 0 0);
+	--color-neutral-200: oklch(26.9% 0 0);
+	--color-neutral-300: oklch(37.1% 0 0);
+	--color-neutral-400: oklch(38% 0 0);
+	--color-neutral-500: oklch(44% 0 0);
+	--color-neutral-600: oklch(52% 0 0);
+	--color-neutral-700: oklch(70% 0 0);
+	--color-neutral-800: oklch(92.2% 0 0);
+	--color-neutral-900: oklch(97% 0 0);
+	--color-neutral-950: oklch(98.5% 0 0);
+	color-scheme: light;
+}
+
+/* The logo files are white; on a light page they are drawn dark. */
+:root[data-mode="light"] img[src^="/brand/"] {
+	filter: invert(1);
+}
+
+/* The charts paint their own colors on a canvas. They are grayscale, so turning them over is exact. */
+:root[data-mode="light"] .tv-lightweight-charts {
+	filter: invert(1);
+}
+
+/*
+ * White on dark glows and reads larger; black on light reads thinner, and the ring looks smaller than the
+ * word beside it. A hairline of shadow gives the dark logo back the weight the light one has.
+ */
+:root[data-mode="light"] img.brand-mark {
+	filter: invert(1) drop-shadow(0 0 0.45px #000) drop-shadow(0 0 0.25px #000);
+}
+
+/*
+ * Tribute themes: whatever is chosen or pressed glows in the theme's accent instead of white. The colors
+ * come from the theme, set on the root as --accent and --on-accent.
+ */
+:root[data-accent] [aria-pressed="true"].bg-white,
+:root[data-accent] button.bg-white:not(:disabled) {
+	background-color: var(--accent);
+	color: var(--on-accent);
+}

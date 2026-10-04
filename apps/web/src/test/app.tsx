@@ -71,6 +71,7 @@ const record = [
 	event("sweep.completed", 80, { mint: USDC, amount: "1100000" }),
 	event("trade.completed", 70, {
 		tradeId: "t2",
+		signature: "5sigTwoxRealLookingButMadeUpForTheTestsOnly",
 		inputAmount: "330000000",
 		outputAmount: "41000000",
 	}),
@@ -147,6 +148,40 @@ export const TRADER_RUN = {
 	],
 };
 
+/** The news, the same for everyone, signed in or not. */
+const NEWS = {
+	fetchedAt: "2026-10-03T12:00:00.000Z",
+	items: [
+		{
+			id: "https://solana.com/news/open-usd",
+			title: "Open USD Is Live on Solana",
+			link: "https://solana.com/news/open-usd",
+			source: "Solana",
+			publishedAt: "2026-10-03T11:00:00.000Z",
+			summary: "A dollar that settles in seconds.",
+			image: "https://solana.com/uploads/hero.webp",
+			solana: true,
+		},
+		{
+			id: "https://decrypt.co/1",
+			title: "Crypto job postings triple",
+			link: "https://decrypt.co/1",
+			source: "Decrypt",
+			publishedAt: "2026-10-03T10:00:00.000Z",
+			image: "https://img.decrypt.co/1.png",
+			solana: false,
+		},
+		{
+			id: "https://www.helius.dev/blog/agave",
+			title: "Agave 4.3: all you need to know",
+			link: "https://www.helius.dev/blog/agave",
+			source: "Helius",
+			publishedAt: "2026-10-02T10:00:00.000Z",
+			solana: true,
+		},
+	],
+};
+
 /** Answers the API as a signed in owner with one machine at work, or as nobody. */
 export function standIn({
 	signedIn = true,
@@ -179,7 +214,8 @@ export function standIn({
 						.text()
 						.catch(() => "")
 				: init?.body;
-		const url = new URL(href);
+		// Relative, as the globe asks for its map, means the app's own address.
+		const url = new URL(href, "http://localhost:3000");
 		let body: unknown;
 		if (method !== "GET" && typeof raw === "string" && raw) {
 			try {
@@ -199,6 +235,7 @@ export function standIn({
 				time: "2026-10-02T21:00:00.000Z",
 				...(halt ? { halt: { reason: halt, since: "2026-10-02T20:55:00.000Z" } } : {}),
 			});
+		if (url.pathname === "/v1/news") return json(NEWS);
 		if (url.pathname === "/v1/auth/me")
 			return signedIn
 				? json({ ownerId: "o", walletAddress: OWNER })

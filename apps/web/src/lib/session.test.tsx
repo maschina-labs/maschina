@@ -1,10 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { installWallet } from "../test/wallets.ts";
 import type { Api } from "./api.ts";
 import { createQueryClient } from "./query.ts";
 import { useSession, useSignIn, useSignOut } from "./session.ts";
+import { choose, discoverWallets, forgetActiveWallet, isPicking } from "./wallet.ts";
 
 const json = (body: unknown, status = 200) =>
 	new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -42,15 +44,20 @@ function wrap() {
 	return { queryClient, wrapper };
 }
 
+/** A wallet installed, and chosen in the picker as soon as the picker asks. */
 function injectWallet() {
-	window.solana = {
-		connect: vi.fn(async () => ({ publicKey: { toString: () => "WaLLet" } })),
-		signMessage: vi.fn(async () => ({ signature: new Uint8Array([1, 2, 3]) })),
-	} as unknown as NonNullable<Window["solana"]>;
+	discoverWallets();
+	installWallet("Solflare", "WaLLet");
+	const pick = setInterval(() => {
+		if (isPicking()) choose("Solflare");
+	}, 1);
+	return () => clearInterval(pick);
 }
 
+let stop: (() => void) | undefined;
 afterEach(() => {
-	delete window.solana;
+	stop?.();
+	forgetActiveWallet();
 });
 
 describe("who is signed in", () => {
@@ -77,7 +84,7 @@ describe("who is signed in", () => {
 
 describe("signing in", () => {
 	it("asks for a sentence, signs it, and hands it back", async () => {
-		injectWallet();
+		stop = injectWallet();
 		const { api, sent } = fakeApi({
 			challenge: () => json({ message: "maschina.dev wants you to sign in" }),
 			verify: () => json(owner),
@@ -101,7 +108,7 @@ describe("signing in", () => {
 	});
 
 	it("stops at the first refusal, and says why", async () => {
-		injectWallet();
+		stop = injectWallet();
 		const { api } = fakeApi({
 			challenge: () => json({ error: { message: "that wallet is blocked" } }, 403),
 		});

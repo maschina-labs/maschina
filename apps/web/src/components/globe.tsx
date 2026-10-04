@@ -20,7 +20,9 @@ async function loadCountries(): Promise<Countries> {
 	type World = Parameters<typeof feature>[0] & {
 		objects: { countries: Parameters<typeof feature>[1] };
 	};
-	const topology = (await (await fetch(worldUrl)).json()) as World;
+	const response = await fetch(worldUrl);
+	if (!response.ok) throw new Error(`The map answered ${response.status}`);
+	const topology = (await response.json()) as World;
 	return feature(topology, topology.objects.countries) as unknown as Countries;
 }
 
@@ -40,7 +42,10 @@ export function Globe({
 
 	useEffect(() => {
 		let live = true;
-		void loadCountries().then((loaded) => live && setCountries(loaded));
+		void loadCountries()
+			.then((loaded) => live && setCountries(loaded))
+			// Without its map the globe is still a globe: the sphere and its lines, no countries.
+			.catch(() => {});
 		return () => {
 			live = false;
 		};
@@ -131,7 +136,7 @@ export function Globe({
 			viewBox={`0 0 ${SIZE} ${SIZE}`}
 			role="img"
 			aria-label="The network, on a turning globe"
-			className="h-full w-full cursor-grab touch-none select-none active:cursor-grabbing"
+			className="h-full w-full cursor-grab touch-none select-none text-white active:cursor-grabbing"
 			onPointerDown={grab}
 			onPointerMove={move}
 			onPointerUp={release}
@@ -140,7 +145,8 @@ export function Globe({
 			<path
 				d={through(grid) ?? ""}
 				fill="none"
-				stroke="rgba(255,255,255,0.035)"
+				stroke="currentColor"
+				strokeOpacity={0.07}
 				strokeWidth={0.5}
 				strokeDasharray="2 4"
 			/>
@@ -148,28 +154,32 @@ export function Globe({
 				<path
 					d={through(countries) ?? ""}
 					fill="none"
-					stroke="rgba(255,255,255,0.06)"
+					stroke="currentColor"
+					strokeOpacity={0.11}
 					strokeWidth={0.5}
 				/>
 			) : null}
 			<path
 				d={front(grid) ?? ""}
 				fill="none"
-				stroke="rgba(255,255,255,0.11)"
+				stroke="currentColor"
+				strokeOpacity={0.18}
 				strokeWidth={0.6}
 				strokeDasharray="2 4"
 			/>
 			<path
 				d={front({ type: "Sphere" }) ?? ""}
 				fill="none"
-				stroke="rgba(255,255,255,0.22)"
+				stroke="currentColor"
+				strokeOpacity={0.34}
 				strokeWidth={0.8}
 			/>
 			{countries ? (
 				<path
 					d={front(countries) ?? ""}
 					fill="none"
-					stroke="rgba(255,255,255,0.34)"
+					stroke="currentColor"
+					strokeOpacity={0.34}
 					strokeWidth={0.6}
 				/>
 			) : null}

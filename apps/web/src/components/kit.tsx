@@ -11,8 +11,6 @@ import { Tile, type TileSize } from "./bento.tsx";
 const LABEL = "text-[13px] text-neutral-500";
 export const BUTTON =
 	"inline-flex items-center justify-center bg-white px-4 py-2.5 font-display text-[15px] text-neutral-950 transition-opacity disabled:opacity-30";
-export const QUIET =
-	"inline-flex items-center justify-center bg-white/[0.08] px-4 py-2.5 font-display text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.14]";
 
 /** A tile with its contents above and its name below, like every tile on Home. */
 export function Panel({

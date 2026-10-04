@@ -123,6 +123,124 @@ describe("your account", () => {
 	});
 });
 
+describe("closing a screen", () => {
+	const shown = (dialog: HTMLElement) =>
+		(dialog.querySelector(":scope > div:last-child") as HTMLElement | null)?.style.opacity;
+
+	it("a screen reached while another fades shows whole, never as an invisible layer over everything", async () => {
+		const { router } = renderAt("/settings/alerts");
+		await screen.findByRole("dialog", { name: "Alerts" });
+		// Alerts starts to close, and the address moves on to Settings before the fade is done: what a
+		// step back through history does.
+		fireEvent.keyDown(window, { key: "Escape" });
+		await router.navigate({ to: "/settings" });
+		const settings = await screen.findByRole("dialog", { name: "Settings" });
+		await vi.waitFor(() => expect(shown(settings)).toBe("1"));
+		expect(settings.style.pointerEvents).toBe("auto");
+	});
+
+	it("lets every click through the moment it starts to close", async () => {
+		renderAt("/settings");
+		const settings = await screen.findByRole("dialog", { name: "Settings" });
+		fireEvent.keyDown(window, { key: "Escape" });
+		await vi.waitFor(() => expect(settings.style.pointerEvents).toBe("none"));
+	});
+});
+
+describe("checking a trade on chain", () => {
+	it("links each trade to the explorer the owner chose, Solscan unless they chose another", async () => {
+		localStorage.removeItem("maschina.explorer");
+		renderAt(`/machines/${MACHINE_ID}`);
+		const link = await screen.findByRole("link", { name: "View on Solscan" });
+		expect(link).toHaveAttribute(
+			"href",
+			"https://solscan.io/tx/5sigTwoxRealLookingButMadeUpForTheTestsOnly",
+		);
+		localStorage.setItem("maschina.explorer", "solana");
+		window.dispatchEvent(new Event("maschina:explorer"));
+		expect(await screen.findByRole("link", { name: "View on Solana Explorer" })).toHaveAttribute(
+			"href",
+			"https://explorer.solana.com/tx/5sigTwoxRealLookingButMadeUpForTheTestsOnly",
+		);
+	});
+});
+
+describe("the account sidebar", () => {
+	const OTHER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
+	const openAccount = async () => {
+		renderAt("/");
+		await home();
+		// Which sidebar is open outlives a test, so each one starts with them all closed.
+		fireEvent.keyDown(window, { key: "Escape" });
+		fireEvent.click(await screen.findByRole("button", { name: "Account" }));
+		return within(
+			(await screen.findByText(/^Showing (live|paper) money$/)).closest("aside") as HTMLElement,
+		);
+	};
+
+	it("shows what your money is doing, and remembers this wallet", async () => {
+		const account = await openAccount();
+		expect(account.getByText("Showing live money")).toBeInTheDocument();
+		expect(account.getByText("At work")).toBeInTheDocument();
+		expect(account.getByText(/1 of 1 machine running/)).toBeInTheDocument();
+		expect(account.getByText("AI key")).toBeInTheDocument();
+		await vi.waitFor(() =>
+			expect(localStorage.getItem("maschina.wallets") ?? "").toContain("8GTgV1msc"),
+		);
+	});
+
+	it("lists another wallet used here, forgets it, and switches by asking the wallet", async () => {
+		localStorage.setItem(
+			"maschina.wallets",
+			JSON.stringify([{ address: OTHER, lastUsed: "2026-10-03T10:00:00.000Z" }]),
+		);
+		const { requests } = standIn();
+		const account = await openAccount();
+		expect(account.getByText("3KnH…bEQF")).toBeInTheDocument();
+		fireEvent.click(account.getByRole("button", { name: "Switch wallet" }));
+		// It asks first, and nothing is signed out while it asks.
+		const picker = await screen.findByRole("dialog", { name: "Choose a wallet" });
+		expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(false);
+		// Closing it leaves you signed in as you were.
+		fireEvent.click(within(picker).getByRole("button", { name: "Close wallets" }));
+		await vi.waitFor(() =>
+			expect(screen.queryByRole("dialog", { name: "Choose a wallet" })).toBeNull(),
+		);
+		expect(account.getByText("Showing live money")).toBeInTheDocument();
+		expect(requests.some((each) => each.path === "/v1/auth/sign-out")).toBe(false);
+	});
+
+	it("forgets a wallet it no longer needs", async () => {
+		localStorage.setItem(
+			"maschina.wallets",
+			JSON.stringify([{ address: OTHER, lastUsed: "2026-10-03T10:00:00.000Z" }]),
+		);
+		const account = await openAccount();
+		fireEvent.click(account.getByRole("button", { name: "Forget 3KnH…bEQF" }));
+		await vi.waitFor(() => expect(account.queryByText("3KnH…bEQF")).not.toBeInTheDocument());
+	});
+
+	it("opens and closes from the same account button", async () => {
+		renderAt("/");
+		await home();
+		fireEvent.keyDown(window, { key: "Escape" });
+		const button = (
+			await screen.findAllByRole("button", { name: "Your account" })
+		)[0] as HTMLElement;
+		fireEvent.click(button);
+		const panel = (await screen.findByText(/^Showing (live|paper) money$/)).closest("aside");
+		await vi.waitFor(() => expect(panel?.className).toContain("translate-x-0"));
+		fireEvent.click(button);
+		await vi.waitFor(() => expect(panel?.className).not.toContain("translate-x-0"));
+	});
+
+	it("takes you to settings, alerts and the papers", async () => {
+		const account = await openAccount();
+		fireEvent.click(account.getByRole("button", { name: "Alerts" }));
+		await vi.waitFor(() => expect(window.location.pathname).toBeDefined());
+	});
+});
+
 describe("the stop switch", () => {
 	it("when it is on, says so across the top: why, and that money can still come home", async () => {
 		standIn({ halt: "upgrading the signer" });

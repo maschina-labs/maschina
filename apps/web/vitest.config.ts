@@ -19,6 +19,8 @@ export default mergeConfig(
 			"src/routes/**",
 			// The test harness itself.
 			"src/test/**",
+			// Made-up data for looking at the app while developing; never in a build (vite.config.ts).
+			"src/dev/**",
 			// GPU drawing: the fog shader and the rain on the glass. A test browser has no WebGL to draw
 			// them with; they are checked by rendering them in a real browser (TECH_DEBT.md).
 			"src/components/fog-background.tsx",

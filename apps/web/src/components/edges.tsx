@@ -1,8 +1,12 @@
 import {
 	ArrowLeft,
+	ArrowsLeftRight,
+	Bell,
 	BookOpen,
+	Check,
 	Clock,
 	Copy,
+	FileText,
 	GearSix,
 	MagnifyingGlass,
 	Moon,
@@ -10,11 +14,14 @@ import {
 	Play,
 	Plus,
 	Robot,
+	SidebarSimple,
 	SignOut,
 	Sparkle,
 	SquaresFour,
 	Sun,
 	User,
+	Wallet,
+	X,
 } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
@@ -22,23 +29,32 @@ import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } fro
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
-import { useMachines } from "../lib/machines.ts";
-import { onPaper } from "../lib/portfolio.ts";
-import { useSession, useSignOut } from "../lib/session.ts";
+import {
+	forgetWallet,
+	rememberWallet,
+	shortAddress,
+	useKnownWallets,
+} from "../lib/known-wallets.ts";
+import { amount, useMachines } from "../lib/machines.ts";
+import { useManagerKey } from "../lib/manager-key.ts";
+import { onPaper, totalsOf } from "../lib/portfolio.ts";
+import { preview } from "../lib/preview.ts";
+import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
-import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
+import { brandOf, setTheme, THEMES, type Theme, useTheme } from "../lib/theme.ts";
+import { toast } from "../lib/toasts.ts";
 import { useActivity } from "./portfolio.tsx";
-import { openSearch } from "./search.tsx";
+import { focusSearch, SearchField } from "./search.tsx";
 import { SECTIONS } from "./sections.tsx";
 
 /**
- * The edges, after the Windows 8 charms: a mark at the top, the left and the right, unseen until the
+ * The edges: a mark at the top, the left and the right, unseen until the
  * pointer comes to it, and no words.
  * Click one and its panel slides in and stays; click anywhere else, or press Escape, and it slides out.
  *
  *   top    the header: the time, the date, the price of SOL
  *   left   your machines
- *   right  alerts, then charms: search, idle mode, light or dark, settings. A dot on this edge, the one
+ *   right  alerts, then tiles: search, idle mode, light or dark, settings. A dot on this edge, the one
  *          thing that shows without the pointer there, says there are alerts you have not seen.
 
  * Your account has its own panel on the right too, opened from the account tile rather than an edge.
@@ -51,7 +67,11 @@ type Edge = "top" | "left" | "right" | "account" | "sections";
  * Which panel is open, kept in one place that the panels and the page both read, so a sidebar and the
  * page it pushes change on the same frame and travel as one.
  */
-let current: Edge | undefined;
+// ?open=top, ?open=left and so on, while developing: a sidebar or the header open on arrival, to look at it.
+const asked = preview("open");
+let current: Edge | undefined = (["top", "left", "right", "account", "sections"] as const).find(
+	(each) => each === asked,
+);
 const listeners = new Set<() => void>();
 function setEdge(next: Edge | undefined) {
 	if (next === current) return;
@@ -65,7 +85,7 @@ const subscribe = (listener: () => void) => {
 
 /**
  * Alerts: what your machines did that is worth knowing, and how many arrived since you last opened the
- * charms. Opening the charms is looking at them.
+ * tiles. Opening them is looking at them.
  */
 function useAlerts() {
 	const feed = useActivity();
@@ -106,7 +126,7 @@ export function SideRail() {
 			key={edge}
 			aria-label={label}
 			aria-hidden={open !== edge}
-			className={`fixed inset-y-0 z-40 flex flex-col bg-[oklch(0.13_0_0/0.82)] backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
+			className={`fixed inset-y-0 z-40 flex flex-col [background:var(--surface-panel)] backdrop-blur-2xl transition-[translate] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${SIDE_WIDTH} ${
 				from === "left"
 					? `left-0 ${open === edge ? "translate-x-0" : "-translate-x-full"}`
 					: `right-0 ${open === edge ? "translate-x-0" : "translate-x-full"}`
@@ -145,18 +165,35 @@ export function SideRail() {
 				"Section menu",
 				<SectionsPanel onChoose={() => setEdge(undefined)} />,
 			)}
-			{side("right", "right", "Charms", <CharmsPanel />)}
+			{side("right", "right", "Tiles", <TilesPanel />)}
 		</>
 	);
 }
 
 /** Opens a panel from anywhere, such as the account tile opening its own. */
+/** What counts as something on the page: a click on any of these never closes a sidebar. */
+const SOMETHING =
+	"a, button, input, textarea, select, label, article, aside, nav, search, svg, canvas, img, [role='button'], [role='tab'], [data-own-drag]";
+/** Words are something too, even outside a tile. */
+const TEXT = new Set(["P", "SPAN", "H1", "H2", "H3", "H4", "LI", "STRONG", "EM", "KBD", "TIME"]);
+
 export function openEdge(edge: Edge) {
 	setEdge(edge);
 }
 
+/** Opens a sidebar, or closes it when it is the one already open: one button, both ways. */
+export function toggleEdge(edge: Edge) {
+	setEdge(current === edge ? undefined : edge);
+}
+
+/** Search lives in the header: open it, and put the cursor in the field once it is there. */
+function openSearch() {
+	setEdge("top");
+	requestAnimationFrame(() => focusSearch());
+}
+
 const PANEL =
-	"fixed z-40 bg-[oklch(0.13_0_0/0.78)] backdrop-blur-2xl transition-[translate,transform,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]";
+	"fixed z-40 bg-(--surface-bar) backdrop-blur-2xl transition-[translate,transform,opacity] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]";
 
 /** How far a panel has to be dragged towards its edge before letting go closes it. */
 const DISMISS = 90;
@@ -265,11 +302,37 @@ export function Edges() {
 	const open = useOpenEdge();
 	const { fresh } = useAlerts();
 	const toggle = (edge: Edge) => setEdge(current === edge ? undefined : edge);
+	const rightOpen = open === "right" || open === "account" || open === "sections";
+	const onManager = useRouterState({ select: (state) => state.location.pathname }) === "/manager";
+	/*
+	 * A click on bare space closes whatever is open, header or sidebar: the background, the gutters, the
+	 * gap between tiles. A click on anything with something in it (a tile, a link, a button, a field, a
+	 * section, words, a chart) does what it does and leaves the sidebar open, so you can work with it
+	 * there. The manager's own page keeps your machines beside the conversation.
+	 */
+	useEffect(() => {
+		if (!open || (open === "left" && onManager)) return;
+		const onDown = (event: PointerEvent) => {
+			const target = event.target;
+			if (!(target instanceof Element)) return;
+			if (target.closest(SOMETHING)) return;
+			if (TEXT.has(target.tagName)) return;
+			setEdge(undefined);
+		};
+		document.addEventListener("pointerdown", onDown);
+		return () => document.removeEventListener("pointerdown", onDown);
+	}, [open, onManager]);
 	const close = () => setEdge(undefined);
 
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") setEdge(undefined);
+			// Command K, or Control K, is search, which is in the header.
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+				event.preventDefault();
+				if (current === "top") setEdge(undefined);
+				else openSearch();
+			}
 			// Command J, or Control J, opens the manager from anywhere.
 			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") {
 				event.preventDefault();
@@ -282,16 +345,6 @@ export function Edges() {
 
 	return (
 		<>
-			{/* Anywhere else on the screen closes the header. */}
-			{open === "top" ? (
-				<button
-					type="button"
-					aria-label="Close"
-					tabIndex={-1}
-					onClick={close}
-					className="fixed inset-0 z-30 cursor-default"
-				/>
-			) : null}
 			<Mark
 				edge="left"
 				label="Your machines"
@@ -300,10 +353,12 @@ export function Edges() {
 			/>
 			<Mark
 				edge="right"
-				label="Charms"
-				onPress={() => toggle("right")}
+				label="Tiles"
+				// One right edge, three right sidebars: the handle closes whichever is open, and opens the tiles
+				// only when none is.
+				onPress={() => (rightOpen ? close() : setEdge("right"))}
 				news={fresh > 0}
-				attached={open === "right" || open === "account" || open === "sections"}
+				attached={rightOpen}
 			/>
 			<Dock open={open} onPress={toggle} news={fresh > 0} />
 
@@ -406,7 +461,7 @@ function Dock({
 	const keys = [
 		{ edge: "left", label: "Your machines", Icon: Robot },
 		{ edge: "top", label: "Now", Icon: Clock },
-		{ edge: "right", label: "Charms", Icon: SquaresFour },
+		{ edge: "right", label: "Tiles", Icon: SquaresFour },
 		{ edge: "account", label: "Account", Icon: User },
 	] as const;
 	return (
@@ -424,9 +479,7 @@ function Dock({
 					onClick={() => onPress(edge)}
 					// Square glass, the same as the account tile.
 					className={`relative grid size-[58px] place-items-center backdrop-blur-xl transition-colors duration-300 ${
-						open === edge
-							? "bg-white text-neutral-950"
-							: "bg-[oklch(0.24_0_0/0.78)] text-neutral-100"
+						open === edge ? "bg-white text-neutral-950" : "bg-(--surface-chip) text-neutral-100"
 					}`}
 				>
 					<Icon size={26} weight="light" />
@@ -502,7 +555,8 @@ function HeaderPanel() {
 	// both line up with the grid's edges.
 	return (
 		<div className="flex justify-center px-5 py-7 md:px-0">
-			<div className="flex w-full items-center justify-between gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
+			{/* Three columns, the outer two equal, so the search sits on the page's true center. */}
+			<div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-6 md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
 				{/*
 				 * Back out to Maschina's front page. Until the front page is its own site, that is the welcome
 				 * screen here; once it is built, FRONT_PAGE becomes its address.
@@ -516,7 +570,9 @@ function HeaderPanel() {
 						<ArrowLeft size={22} weight="light" />
 					</a>
 				</div>
-				<div className="flex flex-col items-end gap-1">
+				{/* Search, in the middle of the header, the way an app keeps its command bar at the top. */}
+				<SearchField onClose={() => setEdge(undefined)} />
+				<div className="flex flex-col items-end gap-1 justify-self-end">
 					<span className="font-display text-[28px] text-neutral-100 tabular-nums leading-none">
 						{now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 					</span>
@@ -545,8 +601,19 @@ function MachinesPanel() {
 			data-scroll
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
-			{/* The name at the top of the left sidebar, where an app keeps its own. */}
-			<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto self-start" />
+			{/* The name at the top of the left sidebar, where an app keeps its own, and the way to close it. */}
+			<div className="flex items-center justify-between gap-3">
+				<img src="/brand/word.svg" alt="Maschina" className="h-5 w-auto" />
+				<button
+					type="button"
+					aria-label="Close sidebar"
+					title="Close sidebar"
+					onClick={() => setEdge(undefined)}
+					className="grid size-10 place-items-center bg-white/[0.11] text-neutral-100 transition-colors duration-300 hover:bg-white/[0.18]"
+				>
+					<SidebarSimple size={20} weight="light" />
+				</button>
+			</div>
 			<div className="flex flex-col gap-1.5">
 				<Link to="/manager" className={row}>
 					<Sparkle size={18} weight="light" />
@@ -594,53 +661,182 @@ function MachinesPanel() {
 	);
 }
 
+/**
+ * The account sidebar: who is signed in, what their money is doing, the wallets this browser knows, and
+ * the way out. Switching wallets signs out and asks the wallet to connect again: the wallet app decides
+ * which account answers, so the switcher can only ever ask, never choose for it.
+ */
 function AccountPanel() {
-	const { api } = useRouter().options.context;
+	const router = useRouter();
+	const { api } = router.options.context;
 	const queryClient = useQueryClient();
 	const session = useSession(api);
+	const machines = useMachines(api);
+	const side = useSide();
 	const signOut = useSignOut(api, queryClient);
+	const signIn = useSignIn(api, queryClient);
+	const known = useKnownWallets();
+	const key = useManagerKey(api, Boolean(session.data));
 	const [copied, setCopied] = useState(false);
 	const address = session.data?.walletAddress;
+	useEffect(() => {
+		if (address) rememberWallet(address);
+	}, [address]);
 	if (!address) return null;
+
+	const totals = totalsOf(machines.data ?? [], side);
+	const others = known.filter((each) => each.address !== address);
+	const row =
+		"flex items-center gap-3 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
+	// Switching asks first: the picker opens, and only a wallet chosen and approved replaces this one,
+	// whose session the new sign in takes over. Closing the picker leaves you exactly as you were.
+	const switchWallet = () => {
+		signIn.mutate(undefined, {
+			onError: (error) => {
+				if (error.name !== "NoWalletChosen") toast(error.message, "problem");
+			},
+		});
+	};
+	const go = (to: string) => () => {
+		setEdge(undefined);
+		void router.navigate({ to });
+	};
+
 	return (
 		<div
 			data-scroll
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
-			<Section title="Account">
-				<div className="flex flex-col gap-1 bg-white/[0.06] px-4 py-3.5">
-					<span className="text-[13px] text-neutral-500">Signed in with</span>
-					<span className="break-all font-mono text-[13px] text-neutral-100">{address}</span>
+			<div className="flex items-center gap-3">
+				<span
+					aria-hidden="true"
+					className="grid size-11 shrink-0 place-items-center bg-white/[0.11] text-neutral-100"
+				>
+					<User size={22} weight="light" />
+				</span>
+				<div className="flex min-w-0 flex-col">
+					<span className="font-mono text-[15px] text-neutral-100">{shortAddress(address)}</span>
+					<span className="text-[13px] text-neutral-500">
+						Showing {side === "paper" ? "paper" : "live"} money
+					</span>
 				</div>
-				<div className="flex gap-1.5">
-					<button
-						type="button"
-						onClick={() => {
-							void navigator.clipboard?.writeText(address);
-							setCopied(true);
-							setTimeout(() => setCopied(false), 1500);
-						}}
-						className="flex flex-1 items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12]"
-					>
-						<Copy size={16} weight="light" />
-						{copied ? "Copied" : "Copy"}
+				<button
+					type="button"
+					aria-label={copied ? "Copied" : "Copy address"}
+					title="Copy address"
+					onClick={() => {
+						void navigator.clipboard?.writeText(address);
+						setCopied(true);
+						setTimeout(() => setCopied(false), 1500);
+					}}
+					className="ml-auto grid size-9 place-items-center text-neutral-400 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
+				>
+					{copied ? <Check size={18} weight="light" /> : <Copy size={18} weight="light" />}
+				</button>
+			</div>
+
+			<Section title={side === "paper" ? "Your money · paper" : "Your money"}>
+				<div className="grid grid-cols-2 gap-1.5">
+					<div className="flex flex-col gap-0.5 bg-white/[0.06] px-4 py-3">
+						<span className="text-[12px] text-neutral-500">At work</span>
+						<span className="text-[16px] text-neutral-100">
+							${amount(totals.granted.toString())}
+						</span>
+					</div>
+					<div className="flex flex-col gap-0.5 bg-white/[0.06] px-4 py-3">
+						<span className="text-[12px] text-neutral-500">Realized</span>
+						<span className="text-[16px] text-neutral-100">
+							${amount(totals.realized.toString())}
+						</span>
+					</div>
+				</div>
+				<p className="text-[13px] text-neutral-500">
+					{totals.running} of {totals.machines} machine{totals.machines === 1 ? "" : "s"} running
+				</p>
+			</Section>
+
+			<Section title="Wallets">
+				<div className={`${row} cursor-default hover:bg-white/[0.06]`}>
+					<Wallet size={18} weight="light" />
+					<span className="flex-1 font-mono">{shortAddress(address)}</span>
+					<span className="text-[12px] text-neutral-500">Signed in</span>
+				</div>
+				{others.map((each) => (
+					<div key={each.address} className="flex gap-1.5">
+						<button
+							type="button"
+							onClick={switchWallet}
+							title="Sign out, then pick this account in your wallet"
+							className={`${row} flex-1`}
+						>
+							<Wallet size={18} weight="light" className="text-neutral-500" />
+							<span className="flex-1 text-left font-mono">{shortAddress(each.address)}</span>
+							<span className="text-[12px] text-neutral-500">Switch</span>
+						</button>
+						<button
+							type="button"
+							aria-label={`Forget ${shortAddress(each.address)}`}
+							onClick={() => forgetWallet(each.address)}
+							className="grid w-11 place-items-center bg-white/[0.06] text-neutral-500 transition-colors hover:bg-white/[0.12] hover:text-neutral-100"
+						>
+							<X size={14} weight="light" />
+						</button>
+					</div>
+				))}
+				<button
+					type="button"
+					disabled={signOut.isPending || signIn.isPending}
+					onClick={switchWallet}
+					className={`${row} disabled:opacity-50`}
+				>
+					<ArrowsLeftRight size={18} weight="light" />
+					<span className="flex-1 text-left">
+						{signIn.isPending ? "Waiting for your wallet" : "Switch wallet"}
+					</span>
+				</button>
+				<p className="text-[12px] text-neutral-500">
+					Your wallet decides which account connects: pick the one you want in its window.
+				</p>
+			</Section>
+
+			<Section title="Shortcuts">
+				<div className="flex flex-col gap-1.5">
+					<button type="button" onClick={go("/settings")} className={row}>
+						<GearSix size={18} weight="light" />
+						<span className="flex-1 text-left">Settings</span>
 					</button>
-					<button
-						type="button"
-						disabled={signOut.isPending}
-						onClick={() => signOut.mutate()}
-						className="flex flex-1 items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-50"
-					>
-						<SignOut size={16} weight="light" />
-						Disconnect
+					<button type="button" onClick={go("/settings/alerts")} className={row}>
+						<Bell size={18} weight="light" />
+						<span className="flex-1 text-left">Alerts</span>
+					</button>
+					<button type="button" onClick={go("/settings")} className={row}>
+						<Sparkle size={18} weight="light" />
+						<span className="flex-1 text-left">AI key</span>
+						<span className="text-[12px] text-neutral-500">
+							{key.data?.set ? `ending ${key.data.hint}` : "not set"}
+						</span>
+					</button>
+					<button type="button" onClick={go("/papers")} className={row}>
+						<FileText size={18} weight="light" />
+						<span className="flex-1 text-left">Papers</span>
 					</button>
 				</div>
 			</Section>
+
+			<button
+				type="button"
+				disabled={signOut.isPending}
+				onClick={() => signOut.mutate()}
+				className="mt-auto flex items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-50"
+			>
+				<SignOut size={16} weight="light" />
+				Disconnect
+			</button>
 		</div>
 	);
 }
 
-/** The latest alerts, in plain words, at the top of the charms. */
+/** The latest alerts, in plain words, at the top of the tiles. */
 function AlertsSection() {
 	const { alerts } = useAlerts();
 	return (
@@ -680,11 +876,12 @@ function AlertsSection() {
 	);
 }
 
-function CharmsPanel() {
+function TilesPanel() {
 	const idle = useIdleMode();
 	const { theme } = useTheme();
+	const brand = brandOf(theme);
 	const side = useSide();
-	const charm =
+	const tile =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
 	return (
 		<div
@@ -692,14 +889,14 @@ function CharmsPanel() {
 			className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 pt-10 pb-8"
 		>
 			<AlertsSection />
-			<Section title="Charms">
+			<Section title="Tiles">
 				<button
 					type="button"
 					onClick={() => {
 						setEdge(undefined);
 						openSearch();
 					}}
-					className={charm}
+					className={tile}
 				>
 					<MagnifyingGlass size={20} weight="light" />
 					<span className="flex-1">Search</span>
@@ -718,7 +915,7 @@ function CharmsPanel() {
 						// After the switch has reached the dashboard, so the drift it starts is the one that runs.
 						setTimeout(playIdleNow, 50);
 					}}
-					className={charm}
+					className={tile}
 				>
 					{idle ? <Pause size={20} weight="light" /> : <Play size={20} weight="light" />}
 					<span className="flex-1">Idle mode</span>
@@ -733,19 +930,45 @@ function CharmsPanel() {
 						)}
 						Theme
 					</span>
-					<div className="grid grid-cols-4 gap-1">
-						{THEMES.map((each) => (
-							<button
-								key={each.id}
-								type="button"
-								aria-pressed={theme === each.id}
-								onClick={() => setTheme(each.id)}
-								className={`py-2 text-[13px] transition-colors ${theme === each.id ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-							>
-								{each.name}
-							</button>
-						))}
+					<div className="grid grid-cols-3 gap-1">
+						{THEMES.map((each) => {
+							// A team's button stands for both its looks; moving to another team keeps light or dark.
+							const chosen = theme === each.id || brand?.id === each.id;
+							const next =
+								brand?.mode === "light" && brandOf(each.id) ? `${each.id}-light` : each.id;
+							return (
+								<button
+									key={each.id}
+									type="button"
+									aria-pressed={chosen}
+									onClick={() => setTheme(next as Theme)}
+									className={`py-2 text-[13px] transition-colors ${chosen ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+								>
+									{each.name}
+								</button>
+							);
+						})}
 					</div>
+					{brand ? (
+						<fieldset
+							aria-label={`${THEMES.find((each) => each.id === brand.id)?.name}, dark or light`}
+							className="grid grid-cols-2 gap-1"
+						>
+							{(["dark", "light"] as const).map((look) => (
+								<button
+									key={look}
+									type="button"
+									aria-pressed={brand.mode === look}
+									onClick={() =>
+										setTheme((look === "light" ? `${brand.id}-light` : brand.id) as Theme)
+									}
+									className={`py-2 text-[13px] transition-colors ${brand.mode === look ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+								>
+									{look === "light" ? "Light" : "Dark"}
+								</button>
+							))}
+						</fieldset>
+					) : null}
 				</div>
 				{/* Which money is shown, live or paper: one at a time, never the two in one number. */}
 				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
@@ -764,11 +987,11 @@ function CharmsPanel() {
 						))}
 					</div>
 				</div>
-				<Link to="/papers" className={charm}>
+				<Link to="/papers" className={tile}>
 					<BookOpen size={20} weight="light" />
 					<span className="flex-1">Papers</span>
 				</Link>
-				<Link to="/settings" className={charm}>
+				<Link to="/settings" className={tile}>
 					<GearSix size={20} weight="light" />
 					<span className="flex-1">Settings</span>
 				</Link>

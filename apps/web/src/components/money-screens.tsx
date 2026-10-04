@@ -1,3 +1,4 @@
+import { DownloadSimple } from "@phosphor-icons/react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { byDay, filterActivity, KINDS, type Kind } from "../lib/activity-filter.ts";
@@ -20,11 +21,12 @@ import { recordCsv } from "../lib/track-record.ts";
 import { tradesFrom } from "../lib/trades.ts";
 import { useMachineAtWork } from "./at-work.tsx";
 import { sentence, useSolDay } from "./home.tsx";
-import { BUTTON, Headline, Note, Panel, QUIET, Rows } from "./kit.tsx";
+import { BUTTON, Headline, Note, Panel, Rows } from "./kit.tsx";
 import { winRate } from "./place-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 import { useActivity, useOperatingPicture, useSidePicture } from "./portfolio.tsx";
 import { PriceChart } from "./price-chart.tsx";
+import { RecordRow } from "./record-row.tsx";
 
 /**
  * The screens Home's tiles open: profit, the vault, your machines, decisions, trades, everything that
@@ -33,23 +35,24 @@ import { PriceChart } from "./price-chart.tsx";
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-const when = (at: string | number) =>
-	new Date(at).toLocaleString([], {
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-
 const signedOut = <Note>Connect your wallet to see your machines.</Note>;
 
 /** One line of a list: when, then what. */
-function Entry({ at, children }: { at: string | number; children: React.ReactNode }) {
+function Entry({
+	at,
+	children,
+	signature,
+}: {
+	at: string | number;
+	children: React.ReactNode;
+	signature?: unknown;
+}) {
 	return (
-		<li className="grid grid-cols-[auto_1fr] gap-x-5 border-white/[0.06] border-b py-2.5">
-			<time className="text-[13px] text-neutral-500 tabular-nums">{when(at)}</time>
-			<span className="truncate text-[15px] text-neutral-100">{children}</span>
-		</li>
+		<RecordRow
+			at={at}
+			title={children}
+			signature={typeof signature === "string" ? signature : undefined}
+		/>
 	);
 }
 
@@ -86,6 +89,7 @@ export function ProfitScreen() {
 	const wins = machines.reduce((sum, m) => sum + m.result.wins, 0);
 	const losses = machines.reduce((sum, m) => sum + m.result.losses, 0);
 	const fees = machines.reduce((sum, m) => sum + BigInt(m.result.feesLamports), 0n);
+	const roundTrips = machines.reduce((sum, m) => sum + m.result.roundTrips, 0);
 	const ranked = [...machines].sort((a, b) =>
 		Number(BigInt(b.result.realised) - BigInt(a.result.realised)),
 	);
@@ -108,15 +112,16 @@ export function ProfitScreen() {
 				<Headline>{totals ? amount(totals.realized.toString()) : "0.00"} USDC</Headline>
 			</Panel>
 			<Panel size="wide" name="Round trips">
-				<Rows
-					rows={[
-						["Won", String(wins)],
-						["Lost", String(losses)],
-						["Win rate", wins + losses ? `${Math.round((wins / (wins + losses)) * 100)}%` : "-"],
-					]}
-				/>
+				<Headline>
+					{wins} won, {losses} lost
+				</Headline>
+				<Note>
+					{wins + losses
+						? `Win rate ${Math.round((wins / (wins + losses)) * 100)}%`
+						: "None closed yet."}
+				</Note>
 			</Panel>
-			<Panel size="large" name="By machine" scroll>
+			<Panel size="wide" name="By machine" scroll>
 				{ranked.length
 					? ranked.map((m) => (
 							<MachineRow
@@ -134,6 +139,19 @@ export function ProfitScreen() {
 						["Trades", String(totals?.trades ?? 0)],
 					]}
 				/>
+			</Panel>
+			{/* What a round trip earns on average: the number a fee or a bad fill is measured against. */}
+			<Panel size="wide" name="Per round trip">
+				<Headline>
+					{totals && roundTrips
+						? `${amount((totals.realized / BigInt(roundTrips)).toString())} USDC`
+						: "-"}
+				</Headline>
+				<Note>
+					{roundTrips
+						? `Across ${roundTrips} round trip${roundTrips === 1 ? "" : "s"}.`
+						: "None closed yet."}
+				</Note>
 			</Panel>
 		</>
 	);
@@ -375,7 +393,11 @@ export function FeedScreen() {
 							<h3 className="pt-3 pb-1 text-[13px] text-neutral-500">{sentence(day)}</h3>
 							<ol className="flex flex-col">
 								{entries.map((entry) => (
-									<Entry key={entry.id} at={entry.occurredAt}>
+									<Entry
+										key={entry.id}
+										at={entry.occurredAt}
+										signature={(entry.payload as Record<string, unknown>)["signature"]}
+									>
 										{entry.machineName} · {sentence(describeEvent(entry).title).toLowerCase()}
 									</Entry>
 								))}
@@ -394,22 +416,22 @@ export function FeedScreen() {
 							type="button"
 							aria-pressed={kind === each}
 							onClick={() => setKind(each)}
-							className={`py-2 text-[14px] transition-colors ${kind === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+							className={`py-2.5 text-[14px] transition-colors ${kind === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
 						>
 							{sentence(each)}
 						</button>
 					))}
 				</div>
-				<div>
-					<button
-						type="button"
-						disabled={feed.length === 0}
-						onClick={() => download(feed)}
-						className={QUIET}
-					>
-						Export everything as CSV
-					</button>
-				</div>
+				{/* The one action, along the tile's foot, as wide as the filters above it. */}
+				<button
+					type="button"
+					disabled={feed.length === 0}
+					onClick={() => download(feed)}
+					className="mt-auto flex w-full items-center justify-center gap-2 bg-white/[0.06] py-2.5 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-40"
+				>
+					<DownloadSimple size={16} weight="light" />
+					Export everything as CSV
+				</button>
 			</Panel>
 		</>
 	);

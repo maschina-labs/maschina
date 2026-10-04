@@ -26,6 +26,7 @@ describe("what each screen is called", () => {
 		["/teams/abc", "Team"],
 		["/u/ash", "Profile"],
 		["/manager", "Manager"],
+		["/news/1a2b3c", "News"],
 		["/sign-in", "Sign in"],
 		["/welcome", "Welcome"],
 		["/papers", "Papers"],

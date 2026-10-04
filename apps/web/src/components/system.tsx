@@ -60,7 +60,7 @@ export function NotFound() {
 export function Broken({ detail, retry }: { detail: string; retry: () => void }) {
 	return (
 		<div className="flex h-dvh items-center justify-center px-5">
-			<div className="flex w-full max-w-[560px] flex-col gap-4 bg-[oklch(0.15_0_0)] p-7">
+			<div className="flex w-full max-w-[560px] flex-col gap-4 bg-(--surface-sheet) p-7">
 				<span className="text-[13px] text-neutral-500">500</span>
 				<h1 className="font-display text-[30px] text-neutral-100 leading-tight">
 					Something broke on this screen
@@ -123,7 +123,7 @@ export function OfflineBanner() {
 	return (
 		<div
 			role="status"
-			className="fixed inset-x-0 top-0 z-[80] flex items-center justify-center gap-2.5 bg-[oklch(0.17_0_0)] px-4 py-2.5 font-display text-[14px] text-neutral-200"
+			className="fixed inset-x-0 top-0 z-[80] flex items-center justify-center gap-2.5 bg-(--surface-raised) px-4 py-2.5 font-display text-[14px] text-neutral-200"
 		>
 			<WifiSlash size={16} weight="light" />
 			Offline. Figures will catch up when the connection is back; your machines keep running.
@@ -152,7 +152,7 @@ export function HaltBanner() {
 	return (
 		<div
 			role="alert"
-			className="fixed inset-x-0 top-0 z-[81] flex items-center justify-center gap-2.5 bg-[oklch(0.2_0.04_60)] px-4 py-2.5 text-center font-display text-[14px] text-neutral-100"
+			className="fixed inset-x-0 top-0 z-[81] flex items-center justify-center gap-2.5 bg-(--surface-alert) px-4 py-2.5 text-center font-display text-[14px] text-neutral-100"
 		>
 			<Pause size={16} weight="light" />
 			Machines are paused while {halt.reason}. You can still withdraw.
@@ -172,7 +172,7 @@ export function PaperBanner() {
 			role="status"
 			aria-label="Showing paper"
 			// A dark gray, to sit in the theme, one color throughout.
-			className="fixed inset-x-0 top-0 z-[25] flex items-center justify-center gap-3 bg-[oklch(0.18_0_0)] px-4 py-2 font-display text-[14px] text-neutral-100"
+			className="fixed inset-x-0 top-0 z-[25] flex items-center justify-center gap-3 bg-(--surface-banner) px-4 py-2 font-display text-[14px] text-neutral-100"
 		>
 			<span className="font-medium">Paper</span>
 			None of this is real money.

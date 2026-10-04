@@ -10,6 +10,7 @@ import { openEdge } from "./edges.tsx";
 import { Greeting } from "./greeting.tsx";
 import { HomeTiles } from "./home.tsx";
 import { NetworkTiles } from "./network.tsx";
+import { NewsFeed } from "./news.tsx";
 import {
 	ActivityTiles,
 	InsightsTiles,
@@ -334,14 +335,26 @@ export function Deck({ behind }: { behind?: string } = {}) {
 								key={place}
 								aria-hidden={place !== position}
 								style={{ left: `${place * 100}%` }}
-								// On a phone the tiles scroll, clear of the dock at the bottom.
-								className="no-scrollbar absolute top-0 h-full w-full overflow-y-auto overscroll-y-contain px-5 pb-32 md:overflow-hidden md:px-0 md:pb-10"
+								// On a phone the tiles scroll, clear of the dock at the bottom. On a desktop only Home scrolls,
+								// down past its tiles to the news.
+								className={`no-scrollbar absolute top-0 h-full w-full overflow-y-auto overscroll-y-contain px-5 pb-32 md:px-0 md:pb-10 ${section.to === "/" ? "" : "md:overflow-hidden"}`}
 							>
-								<div className="flex justify-center">
+								{/*
+								 * The first screen is your own tiles alone. The news starts just past its bottom edge, the
+								 * page's own bottom padding included, so it is found by scrolling and never peeks in.
+								 */}
+								<div className="flex justify-center md:min-h-[calc(100%+2.5rem)]">
 									<Bento label={section.label}>
 										<Content />
 									</Bento>
 								</div>
+								{section.to === "/" ? (
+									<div className="mt-8 flex justify-center md:mt-0">
+										<div className="w-full md:w-[calc(var(--u)*6+50px)] md:[--u:min(calc((86cqw-50px)/6),calc((66cqh-20px)/3))]">
+											<NewsFeed />
+										</div>
+									</div>
+								) : null}
 							</div>
 						);
 					})}

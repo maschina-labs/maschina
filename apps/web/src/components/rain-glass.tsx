@@ -49,14 +49,16 @@ const REFRESH_MS = 250;
 
 export function RainGlass({ rain }: { rain: Rain }) {
 	const canvas = useRef<HTMLCanvasElement>(null);
-	// The city's canvas is made a moment after the page, so the glass waits for it.
+	// The city's canvas is made a moment after the page, so the glass waits for it, and it is made again
+	// whenever the theme changes, so the glass follows it there. Holding on to the old one showed the half
+	// of its last frame a discarded canvas keeps: a dark triangle across the page.
 	const [city, setCity] = useState(fogCanvas.current);
 	useEffect(() => {
-		if (city) return;
-		const wait = setInterval(() => {
-			if (fogCanvas.current) setCity(fogCanvas.current);
-		}, 100);
-		return () => clearInterval(wait);
+		const follow = setInterval(() => {
+			const now = fogCanvas.current;
+			if (now && now !== city && now.isConnected) setCity(now);
+		}, 250);
+		return () => clearInterval(follow);
 	}, [city]);
 
 	useEffect(() => {

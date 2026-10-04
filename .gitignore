@@ -40,3 +40,6 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 *.swp
+
+# The router generator's scratch space.
+.tanstack/

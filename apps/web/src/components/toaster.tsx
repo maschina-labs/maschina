@@ -25,11 +25,8 @@ export function Toaster() {
 		<div
 			role="status"
 			aria-live="polite"
-			// Phone: across the bottom, above the dock. Wider: in the open space to the right of the tiles,
-			// where the charms come in from: starting one tile gap past the grid's right edge, filling that
-			// margin to the same gap from the screen's edge, stacked with the same gap, newest at the bottom.
-			// Where that margin is too narrow to read in, it keeps at least 240px and reaches over the grid.
-			className="pointer-events-none fixed inset-x-4 bottom-[calc(max(env(safe-area-inset-bottom),16px)+74px)] z-[70] flex flex-col items-stretch gap-2.5 md:right-2.5 md:bottom-6 md:left-[min(calc(50vw+(var(--u)*6+50px)/2+10px),calc(100vw-250px))] md:[--u:min(calc((86vw-50px)/6),calc((66vh-20px)/3))]"
+			// Bottom center: phones above the dock, wider screens just off the bottom edge. Newest at the bottom.
+			className="pointer-events-none fixed inset-x-4 bottom-[calc(max(env(safe-area-inset-bottom),16px)+74px)] z-[70] mx-auto flex w-auto max-w-[420px] flex-col items-stretch gap-2.5 md:bottom-6"
 		>
 			{toasts.map((each) => (
 				<Line key={each.id} toast={each} />
@@ -47,7 +44,7 @@ function Line({ toast: line }: { toast: Toast }) {
 	const Icon = line.tone === "problem" ? WarningCircle : CheckCircle;
 	return (
 		<p
-			className={`flex w-full items-center gap-3 bg-[oklch(0.17_0_0)] px-4 py-3 font-display text-[15px] text-neutral-100 transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+			className={`flex w-full items-center gap-3 bg-(--surface-raised) px-4 py-3 font-display text-[15px] text-neutral-100 transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${shown ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
 		>
 			<Icon
 				size={18}

@@ -6,7 +6,7 @@ import { briefOn } from "../lib/analyst.ts";
 import { describeEvent } from "../lib/describe.ts";
 import { KIND_CARDS } from "../lib/kinds.ts";
 import { amount, useMachines } from "../lib/machines.ts";
-import { portfolioPnl } from "../lib/pnl.ts";
+import { portfolioPnl, recent } from "../lib/pnl.ts";
 import { totalsOf } from "../lib/portfolio.ts";
 import { fetchQuote, type Token } from "../lib/quote.ts";
 import { useSession } from "../lib/session.ts";
@@ -18,6 +18,7 @@ import { Figure, Line, sentence, useSolDay } from "./home.tsx";
 import { Tape } from "./money-screens.tsx";
 import { PnlChartView } from "./pnl-chart.tsx";
 import { useActivity, useSidePicture } from "./portfolio.tsx";
+import { deltaOf, Stat } from "./stat.tsx";
 
 /**
  * The tiles of every section but Home and Network, each page filling the six by three at most. Every
@@ -73,6 +74,7 @@ function PortfolioTilesSignedIn() {
 	const machines = picture.map((each) => each.machine);
 	const totals = machines.length ? totalsOf(machines, side) : undefined;
 	const points = portfolioPnl(picture.map((each) => each.record));
+	const week = recent(points, 7);
 	const fees = machines.reduce((sum, machine) => sum + BigInt(machine.result.feesLamports), 0n);
 	const best = [...machines].sort((a, b) =>
 		Number(BigInt(b.result.realised) - BigInt(a.result.realised)),
@@ -100,10 +102,12 @@ function PortfolioTilesSignedIn() {
 				{!signedIn ? (
 					signedOut
 				) : (
-					<Figure
+					<Stat
+						label="Realized"
 						value={totals ? amount(totals.realized.toString()) : "0.00"}
-						note="USDC, realized"
-						name="Realized"
+						unit="USDC"
+						series={week.series}
+						delta={deltaOf(week.series, (value) => `$${value.toFixed(2)}`, "7D")}
 					/>
 				)}
 			</Tile>
@@ -111,10 +115,11 @@ function PortfolioTilesSignedIn() {
 				{!signedIn ? (
 					signedOut
 				) : (
-					<Figure
+					<Stat
+						layout="label"
+						label="In play, given to machines"
 						value={totals ? amount(totals.granted.toString()) : "0.00"}
-						note="USDC given to machines"
-						name="In play"
+						unit="USDC"
 					/>
 				)}
 			</Tile>
@@ -122,10 +127,11 @@ function PortfolioTilesSignedIn() {
 				{!signedIn ? (
 					signedOut
 				) : (
-					<Figure
+					<Stat
+						layout="top"
+						label="Holding, across your machines"
 						value={totals ? amount(totals.holding.toString(), 9) : "0.00"}
-						note="SOL your machines hold"
-						name="Holding"
+						unit="SOL"
 					/>
 				)}
 			</Tile>
@@ -352,9 +358,7 @@ function InsightsTilesSignedIn() {
 			</Tile>
 			<Tile size="wide" label="Against holding" to="/profit">
 				<Figure
-					value={
-						holding === undefined ? "-" : `${holding >= 0 ? "+" : ""}${(holding * 100).toFixed(2)}%`
-					}
+					value={holding === undefined ? "-" : percent(holding)}
 					note="had it just held since its first buy"
 					name="Against holding"
 				/>
@@ -543,4 +547,13 @@ export function ActivityTiles() {
 /** Your own data once you are signed in; a grid asking you to connect until then. */
 export function InsightsTiles() {
 	return useSignedIn() ? <InsightsTilesSignedIn /> : <SignedOutGrid />;
+}
+
+/** A change as a percent, compact once it is large: +12.34%, +1,234%, +1.2M%. */
+export function percent(ratio: number): string {
+	const value = ratio * 100;
+	const sign = value >= 0 ? "+" : "";
+	if (Math.abs(value) < 1000) return `${sign}${value.toFixed(2)}%`;
+	if (Math.abs(value) < 100_000) return `${sign}${Math.round(value).toLocaleString("en-US")}%`;
+	return `${sign}${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value)}%`;
 }

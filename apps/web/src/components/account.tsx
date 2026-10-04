@@ -1,9 +1,9 @@
 import { User } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { useSession, useSignIn } from "../lib/session.ts";
 import { toast } from "../lib/toasts.ts";
-import { openEdge } from "./edges.tsx";
+import { toggleEdge } from "./edges.tsx";
 
 /**
  * The corner: the wallet you signed in with, at a glance, and a tile that opens your account in its own
@@ -21,7 +21,6 @@ export function Account() {
 	const queryClient = useQueryClient();
 	const session = useSession(api);
 	const signIn = useSignIn(api, queryClient);
-	const navigate = useNavigate();
 
 	if (session.data) {
 		return (
@@ -32,7 +31,7 @@ export function Account() {
 				<button
 					type="button"
 					aria-label="Your account"
-					onClick={() => openEdge("account")}
+					onClick={() => toggleEdge("account")}
 					className={TILE}
 				>
 					<User size={24} weight="light" />
@@ -47,11 +46,9 @@ export function Account() {
 				disabled={session.isPending || signIn.isPending}
 				onClick={() =>
 					signIn.mutate(undefined, {
-						// No wallet in this browser: show where to get one rather than a bare error.
+						// Closing the wallet picker is a choice, not a problem worth a message.
 						onError: (error) =>
-							error.name === "NoWallet"
-								? void navigate({ to: "/get-a-wallet" })
-								: toast(error.message, "problem"),
+							error.name === "NoWalletChosen" ? undefined : toast(error.message, "problem"),
 					})
 				}
 				className="flex items-center gap-4 disabled:opacity-50"

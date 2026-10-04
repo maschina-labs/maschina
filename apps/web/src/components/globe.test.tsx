@@ -21,6 +21,15 @@ const topology = {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("the globe", () => {
+	it("still draws the sphere when its map cannot be fetched, and the failure goes nowhere", async () => {
+		const answered = vi.fn(async () => new Response("offline", { status: 503 }));
+		vi.stubGlobal("fetch", answered);
+		const { container } = render(<Globe />);
+		await waitFor(() => expect(answered).toHaveBeenCalled());
+		await new Promise((done) => setTimeout(done, 20));
+		expect(container.querySelector("svg")).not.toBeNull();
+	});
+
 	it("draws the sphere and its dashed graticule, then the countries near and far once they arrive", async () => {
 		vi.stubGlobal(
 			"fetch",

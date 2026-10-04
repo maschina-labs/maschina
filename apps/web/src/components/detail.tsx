@@ -1,7 +1,7 @@
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { takeOrigin, tileTransform } from "../lib/launch.ts";
 import {
 	FeedbackScreen,
@@ -27,6 +27,7 @@ import {
 	VaultScreen,
 } from "./money-screens.tsx";
 import { NewMachineScreen } from "./new-machine-screen.tsx";
+import { NewsReader } from "./news.tsx";
 import { PapersScreen } from "./papers-screen.tsx";
 import {
 	CreatorScreen,
@@ -81,6 +82,7 @@ export function titleFor(path: string): string {
 		[/^\/teams(\/|$)/, "Teams"],
 		[/^\/u\/[^/]+(\/|$)/, "Profile"],
 		[/^\/manager(\/|$)/, "Manager"],
+		[/^\/news\/[^/]+(\/|$)/, "News"],
 		[/^\/sign-in(\/|$)/, "Sign in"],
 		[/^\/welcome(\/|$)/, "Welcome"],
 		[/^\/papers(\/|$)/, "Papers"],
@@ -124,15 +126,31 @@ export function Detail({ back }: { back: string }) {
 	// Back to where you came from when there is somewhere in the app to go back to; otherwise to the
 	// section underneath, so a link opened fresh still has a way out.
 	const leave = () => {
+		const from = router.state.location.href;
 		if (window.history.state?.__TSR_index > 0) router.history.back();
 		else void navigate({ to: back });
+		// Going back can land nowhere new: the same page, or a page outside the app. Then the faded screen
+		// would stay over the dashboard, catching every click, so the section underneath is the way out.
+		timers.current.push(
+			setTimeout(() => {
+				if (router.state.location.href === from) void navigate({ to: back });
+			}, 120),
+		);
 	};
 	// Closing is a plain fade of the whole screen, quicker than the zoom in. Zooming back into the tile
 	// put two near colors against each other as it shrank, and looked wrong.
+	// Timers outlive nothing: replaced by the next screen, this one stops steering where you go.
+	const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+	useEffect(
+		() => () => {
+			for (const timer of timers.current) clearTimeout(timer);
+		},
+		[],
+	);
 	const close = () => {
 		if (phase === "fading") return;
 		setPhase("fading");
-		setTimeout(leave, CLOSE_MS);
+		timers.current.push(setTimeout(leave, CLOSE_MS));
 	};
 
 	useEffect(() => {
@@ -150,7 +168,13 @@ export function Detail({ back }: { back: string }) {
 	const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 	return (
-		<div role="dialog" aria-label={titleFor(path)} className="fixed inset-0 z-20">
+		<div
+			role="dialog"
+			aria-label={titleFor(path)}
+			className="fixed inset-0 z-20"
+			// Closing, it lets every click through at once: a screen on its way out never blocks the one below.
+			style={{ pointerEvents: leaving ? "none" : "auto" }}
+		>
 			{/* The dashboard dims behind it while it is open. */}
 			<div
 				aria-hidden="true"
@@ -163,7 +187,7 @@ export function Detail({ back }: { back: string }) {
 			{/* The card that grows: solid, nothing in it, so it moves cleanly. The opened screen is opaque. */}
 			<div
 				aria-hidden="true"
-				className="absolute inset-0 bg-[oklch(0.15_0_0)] will-change-transform [transform-origin:center]"
+				className="absolute inset-0 bg-(--surface-sheet) will-change-transform [transform-origin:center]"
 				style={{
 					transform: atTile ? tileTransform(origin, screen) : "none",
 					opacity: leaving ? 0 : 1,
@@ -172,7 +196,7 @@ export function Detail({ back }: { back: string }) {
 			/>
 			{/* The screen itself, faded in once the card has landed and out before it flips back. */}
 			<div
-				className="no-scrollbar relative h-full overflow-y-auto md:overflow-hidden"
+				className="no-scrollbar relative h-full overflow-y-auto"
 				style={{
 					opacity: showing ? 1 : 0,
 					transition: `opacity ${leaving ? CLOSE_MS : FADE_MS}ms ease-out`,
@@ -205,6 +229,9 @@ export function Detail({ back }: { back: string }) {
 						{/* The manager is a conversation, not tiles: it takes the whole of the grid's room. */}
 						{titleFor(path) === "Manager" ? (
 							<ManagerPage />
+						) : titleFor(path) === "News" ? (
+							// A story is read, not tiled: it takes the grid's room like the manager does.
+							<NewsReader storyKey={path.split("/")[2] ?? ""} />
 						) : (
 							<Bento label={titleFor(path)}>
 								<DetailTiles path={path} />

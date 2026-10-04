@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { alertsFrom } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
+import { EXPLORERS, type Explorer, setExplorer, useExplorer } from "../lib/explorer.ts";
 import { useClearManagerKey, useManagerKey, useSetManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
 import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
@@ -49,19 +50,17 @@ export function SettingsScreen() {
 			<Panel size="large" name="Fees and plan">
 				<Rows
 					rows={[
-						["Paper machines", "Free, as many as you like"],
-						["Live machines", "As many as you like"],
-						["Each running live machine", "A small monthly fee"],
-						["Each trade", "A small share, inside the swap"],
-						["Never charged", "Signing up, paper, stopped machines"],
+						["Paper machines", "Free, any number"],
+						["Live machines", "Any number"],
+						["Running live", "Small monthly fee"],
+						["Each trade", "Small share of the swap"],
+						["Never charged", "Sign up, paper, stopped"],
 					]}
 				/>
-				<Note>
-					The exact numbers are set when billing is built, and shown here before anyone pays.
-				</Note>
+				<Note>Exact numbers are shown here before anyone pays.</Note>
 			</Panel>
 			<Panel size="wide" name="Theme">
-				<div className="grid grid-cols-4 gap-1">
+				<div className="grid grid-cols-3 gap-1">
 					{THEMES.map((each) => (
 						<button
 							key={each.id}
@@ -76,14 +75,12 @@ export function SettingsScreen() {
 				</div>
 				<Note>Dynamic follows the time of day and the weather where you are.</Note>
 			</Panel>
+			<ExplorerPanel />
 			<Panel size="wide" name="Your data">
 				<Note>
 					Each machine's record exports from its screen. Exporting everything at once, and deleting
 					your account and personal data, arrive with accounts.
 				</Note>
-			</Panel>
-			<Panel size="small" name="Your AI key">
-				<Note>Bring your own key for the AI manager, when it arrives.</Note>
 			</Panel>
 		</>
 	);
@@ -142,7 +139,7 @@ export function AlertsScreen() {
 					))}
 				</ul>
 				<Note>
-					Shown here and in the charms now. Sent to Telegram once you can link it from here.
+					Shown here and in the tiles sidebar now. Sent to Telegram once you can link it from here.
 				</Note>
 			</Panel>
 		</>
@@ -192,7 +189,9 @@ function AiKeyPanel() {
 		<Panel size="wide" name="AI key">
 			{set ? (
 				<>
-					<Headline>Anthropic key ending {status.data?.hint}</Headline>
+					<p className="font-display text-[19px] text-neutral-100 leading-tight">
+						Anthropic key ending <span className="font-mono">{status.data?.hint}</span>
+					</p>
 					<div className="flex gap-1">
 						<button
 							type="button"
@@ -210,7 +209,7 @@ function AiKeyPanel() {
 							Remove
 						</button>
 					</div>
-					<Note>The manager thinks with this key. It is kept sealed and never shown again.</Note>
+					<Note>Kept sealed, never shown again.</Note>
 				</>
 			) : (
 				<form
@@ -250,12 +249,32 @@ function AiKeyPanel() {
 							{save.error.message}
 						</p>
 					) : null}
-					<Note>
-						From console.anthropic.com. It is checked with Anthropic, kept sealed, and never shown
-						again. Set a spend limit there so the manager can never cost more than you chose.
-					</Note>
+					<Note>From console.anthropic.com. Checked, sealed, never shown again.</Note>
 				</form>
 			)}
+		</Panel>
+	);
+}
+
+/** Where a transaction opens when you want to check it happened: your explorer, kept in this browser. */
+function ExplorerPanel() {
+	const explorer = useExplorer();
+	return (
+		<Panel size="wide" name="Explorer">
+			<div className="grid grid-cols-3 gap-1">
+				{(Object.keys(EXPLORERS) as Explorer[]).map((each) => (
+					<button
+						key={each}
+						type="button"
+						aria-pressed={explorer === each}
+						onClick={() => setExplorer(each)}
+						className={`py-2 text-[13px] transition-colors ${explorer === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+					>
+						{EXPLORERS[each].name}
+					</button>
+				))}
+			</div>
+			<Note>Every trade on chain links here, so you can see it happened.</Note>
 		</Panel>
 	);
 }

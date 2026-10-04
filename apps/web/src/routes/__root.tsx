@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { Deck, sectionIndex } from "../components/deck.tsx";
 import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
-import { FogBackground } from "../components/fog-background.tsx";
+import { cityTint, FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
-import { Search } from "../components/search.tsx";
+import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
 import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
+import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
-import { useTheme } from "../lib/theme.ts";
+import { brandOf, useTheme } from "../lib/theme.ts";
 import { useWeather } from "../lib/weather.ts";
 
 export type RouterContext = {
@@ -42,6 +43,32 @@ function Field() {
 			: edge === "right" || edge === "account" || edge === "sections"
 				? "right"
 				: undefined;
+	const splash = useSplash();
+	// The page's whole palette follows the mode, from one attribute: see the light mode block in styles.css.
+	useEffect(() => {
+		document.documentElement.dataset["mode"] = mode;
+	}, [mode]);
+	// Which theme, and for a tribute theme, the accent that what is chosen or pressed glows in.
+	useEffect(() => {
+		const root = document.documentElement;
+		root.dataset["theme"] = theme;
+		const brand = brandOf(theme);
+		if (brand) {
+			root.dataset["accent"] = "on";
+			root.style.setProperty("--accent", brand.accent);
+			root.style.setProperty("--on-accent", brand.onAccent);
+		} else {
+			delete root.dataset["accent"];
+			root.style.removeProperty("--accent");
+			root.style.removeProperty("--on-accent");
+		}
+	}, [theme]);
+	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
+	useEffect(() => {
+		const { cool, warm } = cityTint(mode, sky);
+		document.documentElement.style.setProperty("--tint-cool", cool);
+		document.documentElement.style.setProperty("--tint-warm", warm);
+	}, [mode, sky]);
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.
@@ -63,25 +90,37 @@ function Field() {
 			 * size themselves from the stage (cqw, cqh), and the transform keeps the detail layer inside it.
 			 */}
 			<div
-				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)] transition-[left,right] duration-[420ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
+				className="absolute inset-y-0 z-10 [container-type:size] [transform:translateZ(0)]"
 				style={{
 					left: pushedFrom === "left" ? "var(--side)" : 0,
 					right: pushedFrom === "right" ? "var(--side)" : 0,
+					// The app waits for the logo to fade out completely, then fades in over a second.
+					opacity: splash === "done" ? 1 : 0,
+					transition:
+						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1), opacity 1000ms ease-in-out",
 				}}
 			>
 				<div className="relative h-full">
 					<Deck behind={behind} />
 				</div>
-				{section ? null : <Detail back={behind} />}
+				{/* A fresh screen for every address, so one half closed can never linger over the next. */}
+				{section ? null : <Detail key={path} back={behind} />}
 			</div>
 			<SideRail />
 			<Edges />
-			<Search />
 			<Toaster />
-			<OfflineBanner />
-			<HaltBanner />
-			<PaperBanner />
+			<WalletPicker />
+			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
+			<div
+				className="transition-opacity duration-1000 ease-in-out"
+				style={{ opacity: splash === "done" ? 1 : 0 }}
+			>
+				<OfflineBanner />
+				<HaltBanner />
+				<PaperBanner />
+			</div>
 			<TabTitle />
+			<Splash phase={splash} />
 			<Grain />
 		</div>
 	);

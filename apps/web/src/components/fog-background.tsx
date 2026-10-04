@@ -54,6 +54,15 @@ const lab = ({ l, c, h }: Oklch) => {
 const vector = (color: Oklch) => new Vector3(...lab(color));
 const css = ({ l, c, h }: Oklch) => `oklch(${l} ${c} ${h})`;
 
+/**
+ * The city's own hue, for what sits in front of it: the sidebars take it on so they belong to the theme
+ * chosen, rather than being flat black or flat white. The slate and the glow, the two that carry color.
+ */
+export function cityTint(mode: Mode, sky?: Palette): { cool: string; warm: string } {
+	const palette = sky ?? CITY[mode];
+	return { cool: css(palette.upper), warm: css(palette.glow) };
+}
+
 const VERTEX = /* glsl */ `
 	varying vec2 vUv;
 	void main() {
@@ -333,7 +342,7 @@ export function FogBackground({
 		<div
 			aria-hidden="true"
 			// z-0, not negative: with no stacking context above it, a negative one hides behind the body.
-			className={`pointer-events-none ${position} inset-0 z-0`}
+			className={`fog-field pointer-events-none ${position} inset-0 z-0`}
 			// The same light in CSS, holding the screen while WebGL starts and standing in without it.
 			style={{
 				background: `radial-gradient(ellipse at 90% 55%, ${css(palette.glow)} 0%, transparent 40%), linear-gradient(in oklab to bottom, ${css(palette.top)} 0%, ${css(palette.upper)} 33%, ${css(palette.middle)} 50%, ${css(palette.night)} 85%)`,

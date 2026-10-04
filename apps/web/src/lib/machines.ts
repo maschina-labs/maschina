@@ -8,6 +8,7 @@
 
 import { type QueryClient, queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import type { Api } from "./api.ts";
+import { withTradeMints } from "./describe.ts";
 
 export type MachineAction = "fund" | "start" | "pause" | "resume" | "stop";
 
@@ -120,6 +121,8 @@ export const recordQueryFor = (api: Api, machineId: string) =>
 					}),
 				)
 			).events,
+		// Each completed trade carries the tokens of its intent, so every screen can tell a sale from a buy.
+		select: withTradeMints,
 	});
 
 export const useMachines = (api: Api) => useQuery(machinesQuery(api));
@@ -280,7 +283,7 @@ export function useCreateMachine(api: Api, queryClient: QueryClient) {
 }
 
 /** Base units to something a person reads. USDC has six decimals, SOL has nine. */
-export function amount(base: string, decimals = 6): string {
+export function amount(base: string, decimals = 6, places = 2): string {
 	// A result can be a loss, so the sign is taken off, the digits are read, and the sign goes back on.
 	// Working in bigint the other way rounds towards zero and turns a small loss into a positive number.
 	const negative = base.startsWith("-");
@@ -288,6 +291,6 @@ export function amount(base: string, decimals = 6): string {
 	const unit = 10n ** BigInt(decimals);
 	const whole = size / unit;
 	const fraction = size % unit;
-	const shown = fraction.toString().padStart(decimals, "0").slice(0, 2);
+	const shown = fraction.toString().padStart(decimals, "0").slice(0, places);
 	return `${negative && size > 0n ? "-" : ""}${whole.toLocaleString("en-US")}.${shown}`;
 }
