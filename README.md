@@ -56,6 +56,8 @@ Working today, each proved against real services rather than mocks:
 | A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
 | Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
 | Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
+| Choosing which wallet signs you in, from every one installed, found through the Wallet Standard | `apps/web/src/lib/wallet.ts`, `apps/web/src/components/wallet-picker.tsx` |
+| The news from across Solana under Home: read here, with the publisher one plain choice away | `services/gateway/src/news.ts`, `apps/web/src/components/news.tsx` |
 | An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
 | Making a range machine from the web app, told as it is typed whether its band pays for itself, and taking everything out with one confirmed click | `apps/web/src/routes/new.tsx`, `apps/web/src/lib/range-form.ts` |
 | A range that follows the price: it re-centres on each sale, moves up with a rising price, and sells at a floor below what it paid, with every move of its band in the record | `packages/runtime/src/kinds/following-range.ts`, `services/orchestrator/src/price-watcher.ts` |
