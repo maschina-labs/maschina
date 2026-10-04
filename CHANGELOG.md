@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.35](https://github.com/maschina-labs/maschina/compare/v0.0.34...v0.0.35) (2026-10-04)
+
+
+### Added
+
+* **gateway:** the news, read from solana and crypto feeds ([#757](https://github.com/maschina-labs/maschina/issues/757)) ([d7fe0c6](https://github.com/maschina-labs/maschina/commit/d7fe0c6bc42d88fab84496b4145d06025d9f9faa))
+* **web:** the news under home, solana themes, and wallet choice ([#758](https://github.com/maschina-labs/maschina/issues/758)) ([726f3a7](https://github.com/maschina-labs/maschina/commit/726f3a767b8d0059f23e12415dd0b41b3869b076))
+
+
+### Fixed
+
+* **ci:** find the release pull request by its branch prefix ([#751](https://github.com/maschina-labs/maschina/issues/751)) ([c3491d9](https://github.com/maschina-labs/maschina/commit/c3491d975c18941e600ca978da07bdd1c6ffaf23))
+* **manager:** back off when a feed refuses; take a jupiter key ([#753](https://github.com/maschina-labs/maschina/issues/753)) ([089ba3b](https://github.com/maschina-labs/maschina/commit/089ba3b0e1c2fbd2e86da2407504203c5a324079))
+
 ## [0.0.34](https://github.com/maschina-labs/maschina/compare/v0.0.33...v0.0.34) (2026-10-03)
 
 
