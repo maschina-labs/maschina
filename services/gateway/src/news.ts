@@ -157,7 +157,8 @@ export function newsDesk(options: {
 }): NewsDesk {
 	const feeds = options.feeds ?? FEEDS;
 	const get = options.fetch ?? fetch;
-	const limit = options.limit ?? 80;
+	// Room for every publisher's newest, so none is cut for being a little older than the rest.
+	const limit = options.limit ?? PER_FEED * feeds.length;
 	let kept: { news: NewsResponse; at: number } | undefined;
 	let reading: Promise<NewsResponse> | undefined;
 
