@@ -75,9 +75,11 @@ function Field() {
 	}, [choice.palette, accent, onAccent, inkHue, chartColor, mode]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
-		const { cool, warm } = cityTint(mode, sky);
+		const { cool, warm, top, night } = cityTint(mode, sky);
 		document.documentElement.style.setProperty("--tint-cool", cool);
 		document.documentElement.style.setProperty("--tint-warm", warm);
+		document.documentElement.style.setProperty("--sky-top", top);
+		document.documentElement.style.setProperty("--sky-night", night);
 	}, [mode, sky]);
 	// The weather where you are, only with a dynamic sky: that is the one that follows the world outside.
 	const weather = useWeather(wantsWeather);

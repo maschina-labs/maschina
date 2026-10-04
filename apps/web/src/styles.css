@@ -178,6 +178,13 @@ input[type="range"].square::-moz-range-thumb {
 	/* What the charts draw in: white (black by day) for Maschina, a team's own color on its palette. */
 	--chart: var(--color-white);
 	--surface-sheet: oklch(15% 0 0);
+	/* A detail page sits in the theme's own sky, the field's colors from top to night, only still, so it
+	   never clashes with the world behind it (Ash, 2026-10-04). */
+	--surface-detail: linear-gradient(
+		to bottom,
+		var(--sky-top, oklch(25% 0 0)),
+		var(--sky-night, oklch(15% 0 0)) 70%
+	);
 	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
 	   bottom, opaque enough to read on. */
 	--surface-panel: linear-gradient(
