@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.37](https://github.com/maschina-labs/maschina/compare/v0.0.36...v0.0.37) (2026-10-04)
+
+
+### Added
+
+* **web:** silver and pearl, themed charts and text, new backgrounds ([#763](https://github.com/maschina-labs/maschina/issues/763)) ([97c740d](https://github.com/maschina-labs/maschina/commit/97c740d5171d8add896e6c9fc0afacc9c3da9d75))
+
 ## [0.0.36](https://github.com/maschina-labs/maschina/compare/v0.0.35...v0.0.36) (2026-10-04)
 
 
