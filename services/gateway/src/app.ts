@@ -4,9 +4,11 @@ import { createServiceApp, rateLimit, registerHealth } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
+import type { NewsDesk } from "./news.ts";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
+import { newsRoutes } from "./routes/news.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
@@ -24,6 +26,8 @@ export type GatewayDeps = {
 	halt?: HaltReader | undefined;
 	/** The owner's own AI. Left out, its routes answer that it is not available here. */
 	manager?: ManagerPorts | undefined;
+	/** The headlines from the publishers' feeds. Left out, the news is empty. */
+	news?: NewsDesk | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -53,7 +57,8 @@ function v1(deps: GatewayDeps) {
 		)
 		.route("/", machineRoutes(deps.machines))
 		.route("/", authRoutes(deps.auth, deps.cookie))
-		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)));
+		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))
+		.route("/", newsRoutes(deps.news, deps.clock ?? systemClock));
 }
 
 export function buildApp(deps: GatewayDeps) {
