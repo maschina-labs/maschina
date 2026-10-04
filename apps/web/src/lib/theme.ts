@@ -280,7 +280,7 @@ export const FIELDS: { id: Field; name: string }[] = [
 	{ id: "mesh", name: "Mesh" },
 	{ id: "ribbon", name: "Ribbon" },
 	{ id: "particles", name: "Particles" },
-	{ id: "towers", name: "Towers" },
+	// Towers: parked until after October 8 (Ash, 2026-10-04); the scene is kept, only hidden here.
 ];
 
 export const MOTIONS: { id: Motion; name: string }[] = [

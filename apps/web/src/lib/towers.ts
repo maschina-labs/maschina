@@ -12,7 +12,7 @@ import { useSide } from "./side.ts";
 export type Tower = { height: number; glow: number };
 
 /** The most towers drawn: the shader reads twelve. */
-export const MAX_TOWERS = 12;
+const MAX_TOWERS = 12;
 
 /** What stands in the fog before there are any machines: low, quiet, a little uneven. */
 export const AMBIENT: Tower[] = [0.22, 0.14, 0.3, 0.18, 0.26, 0.12].map((height) => ({
