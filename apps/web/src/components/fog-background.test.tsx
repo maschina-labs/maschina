@@ -35,9 +35,9 @@ describe("the fog background", () => {
 
 	it("is the city with its color patches for our own themes, and ribbons of light for a tribute theme", () => {
 		const city = render(<FogBackground />);
-		expect((city.container.firstElementChild as HTMLElement).dataset["field"]).toBe("city");
+		expect((city.container.firstElementChild as HTMLElement).dataset["field"]).toBe("mesh");
 		city.unmount();
-		const ribbon = render(<FogBackground ribbon />);
+		const ribbon = render(<FogBackground field="ribbon" />);
 		const field = ribbon.container.firstElementChild as HTMLElement;
 		expect(field.dataset["field"]).toBe("ribbon");
 		// Still the same fogged window: decoration only, never in the way.

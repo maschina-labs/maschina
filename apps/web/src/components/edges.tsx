@@ -9,7 +9,6 @@ import {
 	FileText,
 	GearSix,
 	MagnifyingGlass,
-	Moon,
 	Pause,
 	Play,
 	Plus,
@@ -18,7 +17,6 @@ import {
 	SignOut,
 	Sparkle,
 	SquaresFour,
-	Sun,
 	User,
 	Wallet,
 	X,
@@ -41,8 +39,8 @@ import { onPaper, totalsOf } from "../lib/portfolio.ts";
 import { preview } from "../lib/preview.ts";
 import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
-import { brandOf, setTheme, THEMES, type Theme, useTheme } from "../lib/theme.ts";
 import { toast } from "../lib/toasts.ts";
+import { LookControls } from "./look-controls.tsx";
 import { useActivity } from "./portfolio.tsx";
 import { focusSearch, SearchField } from "./search.tsx";
 import { SECTIONS } from "./sections.tsx";
@@ -878,8 +876,6 @@ function AlertsSection() {
 
 function TilesPanel() {
 	const idle = useIdleMode();
-	const { theme } = useTheme();
-	const brand = brandOf(theme);
 	const side = useSide();
 	const tile =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
@@ -921,54 +917,8 @@ function TilesPanel() {
 					<span className="flex-1">Idle mode</span>
 					<span className="text-[13px] text-neutral-400">{idle ? "On" : "Off"}</span>
 				</button>
-				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
-					<span className="flex items-center gap-4 text-[15px] text-neutral-100">
-						{theme === "light" ? (
-							<Sun size={20} weight="light" />
-						) : (
-							<Moon size={20} weight="light" />
-						)}
-						Theme
-					</span>
-					<div className="grid grid-cols-3 gap-1">
-						{THEMES.map((each) => {
-							// A team's button stands for both its looks; moving to another team keeps light or dark.
-							const chosen = theme === each.id || brand?.id === each.id;
-							const next =
-								brand?.mode === "light" && brandOf(each.id) ? `${each.id}-light` : each.id;
-							return (
-								<button
-									key={each.id}
-									type="button"
-									aria-pressed={chosen}
-									onClick={() => setTheme(next as Theme)}
-									className={`py-2 text-[13px] transition-colors ${chosen ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-								>
-									{each.name}
-								</button>
-							);
-						})}
-					</div>
-					{brand ? (
-						<fieldset
-							aria-label={`${THEMES.find((each) => each.id === brand.id)?.name}, dark or light`}
-							className="grid grid-cols-2 gap-1"
-						>
-							{(["dark", "light"] as const).map((look) => (
-								<button
-									key={look}
-									type="button"
-									aria-pressed={brand.mode === look}
-									onClick={() =>
-										setTheme((look === "light" ? `${brand.id}-light` : brand.id) as Theme)
-									}
-									className={`py-2 text-[13px] transition-colors ${brand.mode === look ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-								>
-									{look === "light" ? "Light" : "Dark"}
-								</button>
-							))}
-						</fieldset>
-					) : null}
+				<div className="bg-white/[0.06] px-4 py-3.5">
+					<LookControls />
 				</div>
 				{/* Which money is shown, live or paper: one at a time, never the two in one number. */}
 				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">

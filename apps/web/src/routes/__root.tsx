@@ -14,7 +14,7 @@ import { Toaster } from "../components/toaster.tsx";
 import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
-import { brandOf, useTheme } from "../lib/theme.ts";
+import { useTheme } from "../lib/theme.ts";
 import { useWeather } from "../lib/weather.ts";
 
 export type RouterContext = {
@@ -34,7 +34,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function Field() {
-	const { theme, mode, sky } = useTheme();
+	const { choice, mode, sky, brand, weather: wantsWeather } = useTheme();
+	const accent = brand?.accent;
+	const onAccent = brand?.onAccent;
 	// Which side an open sidebar pushes the page from, on a desktop only. One at a time.
 	const edge = useOpenEdge();
 	const pushedFrom =
@@ -48,29 +50,28 @@ function Field() {
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
 	}, [mode]);
-	// Which theme, and for a tribute theme, the accent that what is chosen or pressed glows in.
+	// Whose colors, and for a team's palette, the accent that what is chosen or pressed glows in.
 	useEffect(() => {
 		const root = document.documentElement;
-		root.dataset["theme"] = theme;
-		const brand = brandOf(theme);
-		if (brand) {
+		root.dataset["theme"] = choice.palette;
+		if (accent && onAccent) {
 			root.dataset["accent"] = "on";
-			root.style.setProperty("--accent", brand.accent);
-			root.style.setProperty("--on-accent", brand.onAccent);
+			root.style.setProperty("--accent", accent);
+			root.style.setProperty("--on-accent", onAccent);
 		} else {
 			delete root.dataset["accent"];
 			root.style.removeProperty("--accent");
 			root.style.removeProperty("--on-accent");
 		}
-	}, [theme]);
+	}, [choice.palette, accent, onAccent]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
 		const { cool, warm } = cityTint(mode, sky);
 		document.documentElement.style.setProperty("--tint-cool", cool);
 		document.documentElement.style.setProperty("--tint-warm", warm);
 	}, [mode, sky]);
-	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
-	const weather = useWeather(theme === "dynamic");
+	// The weather where you are, only with a dynamic sky: that is the one that follows the world outside.
+	const weather = useWeather(wantsWeather);
 	// The sections slide on one strip; every other page is drawn on its own.
 	const path = useRouterState({ select: (state) => state.location.pathname });
 	const section = sectionIndex(path) >= 0;
@@ -81,12 +82,7 @@ function Field() {
 	}, [section, path]);
 	return (
 		<div className="fixed inset-0 overflow-hidden [--side:0px] md:[--side:340px]">
-			<FogBackground
-				mode={mode}
-				sky={sky}
-				weather={weather}
-				ribbon={brandOf(theme) !== undefined}
-			/>
+			<FogBackground mode={mode} sky={sky} weather={weather} field={choice.field} />
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />
 			{/*

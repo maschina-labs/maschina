@@ -261,7 +261,7 @@ describe("the edges", () => {
 		await section("Home");
 		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
 		fireEvent.click(await screen.findByRole("button", { name: "Dynamic" }));
-		expect(localStorage.getItem("maschina.theme")).toBe("dynamic");
+		expect(JSON.parse(localStorage.getItem("maschina.look") ?? "{}").dynamic).toBe(true);
 		fireEvent.click(screen.getAllByRole("button", { name: /^Search/ }).at(-1) as HTMLElement);
 		expect(await screen.findByRole("textbox", { name: "Search" })).toBeInTheDocument();
 	});
@@ -316,38 +316,43 @@ describe("the edges", () => {
 		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
 	});
 
-	it("a tribute theme lights what is pressed in its own accent, and there is no glass switch", async () => {
+	it("the look is four switches: mode, sky, background and palette, each on its own", async () => {
 		renderAt("/");
 		await section("Home");
 		fireEvent.keyDown(window, { key: "Escape" });
 		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
 		expect(screen.queryByRole("button", { name: "Pebbled" })).toBeNull();
-		// The news under Home has a Solana source of its own, so the theme is chosen inside the sidebar.
 		const panel = (await screen.findByText("Theme")).closest("aside") as HTMLElement;
-		fireEvent.click(within(panel).getByRole("button", { name: "Solana" }));
+		const group = (name: string) => within(panel).getByRole("group", { name });
+		const press = (row: string, name: string) =>
+			fireEvent.click(within(group(row)).getByRole("button", { name }));
+		// A team's palette brings its accent, and changes nothing else.
+		press("Palette", "Solana");
 		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana"));
 		expect(document.documentElement.dataset["accent"]).toBe("on");
-		// A tribute theme flows behind the glass as ribbons of the team's colors, not the city.
-		expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull();
-		expect(document.querySelector('[data-field="city"]')).toBeNull();
 		expect(document.documentElement.style.getPropertyValue("--accent")).toMatch(/^oklch\(/);
-		// Each team comes light too, picked beside it, and kept when moving to another team.
-		const look = within(panel).getByRole("group", { name: "Solana, dark or light" });
-		fireEvent.click(within(look).getByRole("button", { name: "Light" }));
-		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana-light"));
-		expect(document.documentElement.dataset["mode"]).toBe("light");
-		expect(within(panel).getByRole("button", { name: "Solana" }).getAttribute("aria-pressed")).toBe(
-			"true",
-		);
-		fireEvent.click(within(panel).getByRole("button", { name: "Jupiter" }));
-		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("jupiter-light"));
-		// The plain Dark theme comes first; the team's own Dark sits in its pair below.
-		fireEvent.click(within(panel).getAllByRole("button", { name: "Dark" })[0] as HTMLElement);
+		expect(document.querySelector('[data-field="mesh"]')).not.toBeNull();
+		// The background is its own choice, for any palette.
+		press("Background", "Ribbon");
+		await vi.waitFor(() => expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull());
+		// Light mode keeps the palette and the background.
+		press("Mode", "Light");
+		await vi.waitFor(() => expect(document.documentElement.dataset["mode"]).toBe("light"));
+		expect(document.documentElement.dataset["theme"]).toBe("solana");
+		expect(document.querySelector('[data-field="ribbon"]')).not.toBeNull();
+		// Maschina's own palette has no accent of its own.
+		press("Palette", "Maschina");
 		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
-		// Our own themes keep the city, with its weather.
-		expect(document.querySelector('[data-field="city"]')).not.toBeNull();
-		expect(document.querySelector('[data-field="ribbon"]')).toBeNull();
-		expect(within(panel).queryByRole("group", { name: /dark or light/ })).toBeNull();
+		press("Background", "Particles");
+		await vi.waitFor(() =>
+			expect(document.querySelector('[data-field="particles"]')).not.toBeNull(),
+		);
+		expect(JSON.parse(localStorage.getItem("maschina.look") ?? "{}")).toEqual({
+			palette: "maschina",
+			mode: "light",
+			dynamic: false,
+			field: "particles",
+		});
 		fireEvent.keyDown(window, { key: "Escape" });
 	});
 

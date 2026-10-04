@@ -99,9 +99,13 @@ describe("every screen a tile opens, signed in with a machine at work", () => {
 		renderAt("/settings");
 		const settings = await screenNamed("Settings");
 		expect(await settings.findByText(/8GTgV1msc/)).toBeInTheDocument();
-		fireEvent.click(settings.getByRole("button", { name: "Light" }));
-		expect(settings.getByRole("button", { name: "Light" })).toHaveAttribute("aria-pressed", "true");
-		expect(localStorage.getItem("maschina.theme")).toBe("light");
+		const mode = settings.getByRole("group", { name: "Mode" });
+		fireEvent.click(within(mode).getByRole("button", { name: "Light" }));
+		expect(within(mode).getByRole("button", { name: "Light" })).toHaveAttribute(
+			"aria-pressed",
+			"true",
+		);
+		expect(JSON.parse(localStorage.getItem("maschina.look") ?? "{}").mode).toBe("light");
 	});
 
 	it("alerts: everything worth telling you, newest first", async () => {

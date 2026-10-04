@@ -228,51 +228,128 @@ const BRANDS = {
 } as const satisfies Record<string, Brand>;
 
 export type BrandId = keyof typeof BRANDS;
-export type Theme = "dark" | "light" | "system" | "dynamic" | BrandId | `${BrandId}-light`;
 export type Mode = "dark" | "light";
 
-/** The plain themes, then one entry per team: its light look is picked beside it. */
-export const THEMES: { id: Theme; name: string }[] = [
-	{ id: "dark", name: "Dark" },
-	{ id: "light", name: "Light" },
-	{ id: "system", name: "System" },
-	{ id: "dynamic", name: "Dynamic" },
+/*
+ * How the screen looks is four choices, each on its own:
+ *
+ *   palette:    Maschina's own city, or a team's colors
+ *   mode:       dark, light, or the system's (with a dynamic sky, the sun's)
+ *   dynamic:    the weather where you are, and on System the sky through the day; or a still screen
+ *   field:      what moves behind the glass: the mesh of colored fog, a ribbon, particles, dither, ASCII
+ *
+ * The old Dynamic theme is System with a dynamic sky, so nothing anyone had chosen looks different.
+ */
+export type PaletteId = "maschina" | BrandId;
+export type ModeChoice = Mode | "system";
+export type Field = "mesh" | "ribbon" | "particles" | "dither" | "ascii";
+export type Choice = { palette: PaletteId; mode: ModeChoice; dynamic: boolean; field: Field };
+
+export const PALETTES: { id: PaletteId; name: string }[] = [
+	{ id: "maschina", name: "Maschina" },
 	...(Object.entries(BRANDS) as [BrandId, Brand][]).map(([id, brand]) => ({
 		id,
 		name: brand.name,
 	})),
 ];
+export const MODES: { id: ModeChoice; name: string }[] = [
+	{ id: "dark", name: "Dark" },
+	{ id: "light", name: "Light" },
+	{ id: "system", name: "System" },
+];
+export const FIELDS: { id: Field; name: string }[] = [
+	{ id: "mesh", name: "Mesh" },
+	{ id: "ribbon", name: "Ribbon" },
+	{ id: "particles", name: "Particles" },
+	{ id: "dither", name: "Dither" },
+	{ id: "ascii", name: "ASCII" },
+];
 
-/** Which team a theme is after, and in which mode, or nothing for the plain themes. */
-export function brandOf(theme: Theme): (Look & { id: BrandId; mode: Mode }) | undefined {
-	const light = theme.endsWith("-light");
-	const id = (light ? theme.slice(0, -"-light".length) : theme) as BrandId;
-	if (!(id in BRANDS)) return undefined;
-	const mode: Mode = light ? "light" : "dark";
-	return { id, mode, ...BRANDS[id][mode] };
+export const DEFAULT_CHOICE: Choice = {
+	palette: "maschina",
+	mode: "dark",
+	dynamic: false,
+	field: "mesh",
+};
+
+const isPalette = (value: unknown): value is PaletteId =>
+	PALETTES.some((each) => each.id === value);
+const isMode = (value: unknown): value is ModeChoice => MODES.some((each) => each.id === value);
+const isField = (value: unknown): value is Field => FIELDS.some((each) => each.id === value);
+
+/** A theme saved before the four choices existed: "dark", "dynamic", "solana-light", "club". */
+export function choiceFromTheme(saved: string | null): Choice {
+	if (!saved) return DEFAULT_CHOICE;
+	if (saved === "club") return { ...DEFAULT_CHOICE, palette: "helius" };
+	if (saved === "dynamic") return { ...DEFAULT_CHOICE, mode: "system", dynamic: true };
+	if (isMode(saved)) return { ...DEFAULT_CHOICE, mode: saved };
+	const light = saved.endsWith("-light");
+	const id = light ? saved.slice(0, -"-light".length) : saved;
+	if (id !== "maschina" && isPalette(id)) {
+		return { ...DEFAULT_CHOICE, palette: id, mode: light ? "light" : "dark" };
+	}
+	return DEFAULT_CHOICE;
 }
 
-const KEY = "maschina.theme";
-const CHANGED = "maschina:theme";
-
-export function themeFrom(saved: string | null): Theme {
-	// Club was renamed Helius: a browser that chose it keeps it.
-	if (saved === "club") return "helius";
-	if (saved === null) return "dark";
-	const known = THEMES.some((each) => each.id === saved) || brandOf(saved as Theme) !== undefined;
-	return known ? (saved as Theme) : "dark";
+/** The four choices as saved, each checked on its own, so one bad value never costs the others. */
+export function choiceFrom(saved: string | null, legacy: string | null): Choice {
+	if (!saved) return choiceFromTheme(legacy);
+	try {
+		const read = JSON.parse(saved) as Partial<Record<keyof Choice, unknown>>;
+		return {
+			palette: isPalette(read.palette) ? read.palette : DEFAULT_CHOICE.palette,
+			mode: isMode(read.mode) ? read.mode : DEFAULT_CHOICE.mode,
+			dynamic: typeof read.dynamic === "boolean" ? read.dynamic : DEFAULT_CHOICE.dynamic,
+			field: isField(read.field) ? read.field : DEFAULT_CHOICE.field,
+		};
+	} catch {
+		return choiceFromTheme(legacy);
+	}
 }
 
-/** Light or dark, for a theme, given the computer's setting and the hour (0 to 24, fractional). */
-export function modeOf(
-	theme: Theme,
+/** A team's colors in a mode, or nothing for Maschina's own. */
+export function brandOf(
+	palette: PaletteId,
+	mode: Mode,
+): (Look & { id: BrandId; mode: Mode }) | undefined {
+	if (palette === "maschina") return undefined;
+	return { id: palette, mode, ...BRANDS[palette][mode] };
+}
+
+export type Resolved = {
+	mode: Mode;
+	/** The fog's colors, when they are not the city's own for the mode. */
+	sky?: Palette | undefined;
+	/** A team's accent, when a team's palette is chosen. */
+	brand?: (Look & { id: BrandId; mode: Mode }) | undefined;
+	/** Whether the weather where you are is shown. */
+	weather: boolean;
+};
+
+/** What the four choices mean right now, given the computer's setting and the hour (0 to 24). */
+export function resolve(
+	choice: Choice,
 	{ systemDark, hour }: { systemDark: boolean; hour: number },
-): Mode {
-	if (theme === "system") return systemDark ? "dark" : "light";
-	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
-	const brand = brandOf(theme);
-	if (brand) return brand.mode;
-	return theme as Mode;
+): Resolved {
+	const sunUp = skyAt(hour).night.l > 0.6;
+	const followSun = choice.mode === "system" && choice.dynamic;
+	const mode: Mode =
+		choice.mode === "system"
+			? followSun
+				? sunUp
+					? "light"
+					: "dark"
+				: systemDark
+					? "dark"
+					: "light"
+			: choice.mode;
+	const brand = brandOf(choice.palette, mode);
+	return {
+		mode,
+		sky: brand ? brand.sky : followSun ? skyAt(hour) : undefined,
+		brand,
+		weather: choice.dynamic,
+	};
 }
 
 /**
@@ -369,33 +446,47 @@ const hourNow = () => {
 	return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
 };
 
-function readTheme(): Theme {
-	// ?theme=light and the like, while developing, to look at a theme without changing the saved one.
+const KEY = "maschina.look";
+// Where a single theme was kept before the four choices, read once so nobody's choice is lost.
+const LEGACY = "maschina.theme";
+const CHANGED = "maschina:theme";
+
+function readChoice(): Choice {
+	// ?theme=light, ?field=ribbon and ?sky=dynamic while developing, to look without saving anything.
 	const asked = preview("theme");
-	if (asked) return themeFrom(asked);
+	const field = preview("field");
+	const sky = preview("sky");
+	let choice: Choice;
 	try {
-		return themeFrom(localStorage.getItem(KEY));
+		choice = asked
+			? choiceFromTheme(asked)
+			: choiceFrom(localStorage.getItem(KEY), localStorage.getItem(LEGACY));
 	} catch {
-		return "dark";
+		choice = DEFAULT_CHOICE;
 	}
+	if (isField(field)) choice = { ...choice, field };
+	if (sky) choice = { ...choice, dynamic: sky === "dynamic" };
+	return choice;
 }
 
-export function setTheme(theme: Theme) {
+/** Changes some of the four choices and keeps the rest. */
+export function setChoice(change: Partial<Choice>) {
+	const next = { ...readChoice(), ...change };
 	try {
-		localStorage.setItem(KEY, theme);
+		localStorage.setItem(KEY, JSON.stringify(next));
 	} catch {}
 	window.dispatchEvent(new Event(CHANGED));
 }
 
-/** The chosen theme, what it means right now, and for dynamic, the sky. Updates every minute. */
-export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefined } {
-	const [theme, setChosen] = useState(readTheme);
+/** The four choices, what they mean right now, and the sky. Updates every minute. */
+export function useTheme(): Resolved & { choice: Choice } {
+	const [choice, setChosen] = useState(readChoice);
 	const [systemDark, setSystemDark] = useState(
 		() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true,
 	);
 	const [hour, setHour] = useState(hourNow);
 	useEffect(() => {
-		const changed = () => setChosen(readTheme());
+		const changed = () => setChosen(readChoice());
 		window.addEventListener(CHANGED, changed);
 		const media = window.matchMedia?.("(prefers-color-scheme: dark)");
 		const follow = (event: MediaQueryListEvent) => setSystemDark(event.matches);
@@ -407,10 +498,5 @@ export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefine
 			clearInterval(clock);
 		};
 	}, []);
-	const mode = modeOf(theme, { systemDark, hour });
-	return {
-		theme,
-		mode,
-		sky: theme === "dynamic" ? skyAt(hour) : brandOf(theme)?.sky,
-	};
+	return { choice, ...resolve(choice, { systemDark, hour }) };
 }

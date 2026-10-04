@@ -2,6 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2, Vector3 } from "three";
+import type { Field } from "../lib/theme.ts";
 import { CLEAR, type Weather } from "../lib/weather.ts";
 
 /**
@@ -92,9 +93,12 @@ const FRAGMENT = /* glsl */ `
 	uniform float uFog;
 	uniform float uFlash;
 
-	// 0 the city's patches of color, 1 a ribbon of light across the glass, for the tribute themes. Eased,
-	// so changing theme crossfades rather than cuts.
+	// What moves behind the glass, each 0 to 1 and eased, so changing it crossfades rather than cuts. All
+	// at 0 is the mesh: the city's patches of colored fog.
 	uniform float uRibbon;
+	uniform float uParticles;
+	uniform float uDither;
+	uniform float uAscii;
 
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
@@ -129,6 +133,19 @@ const FRAGMENT = /* glsl */ `
 			amp *= 0.4;
 		}
 		return v / total;
+	}
+
+	// An 8 by 8 ordered dither threshold, 0 to 1, built from the 2 by 2 pattern without a lookup table.
+	float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
+	float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
+	float bayer8(vec2 a) { return bayer4(0.5 * a) * 0.25 + bayer2(a); }
+
+	// One character of a 5 by 5 pixel font, its pixels packed into the bits of n; p runs -1 to 1 in a cell.
+	float glyph(float n, vec2 p) {
+		p = floor(p * vec2(2.5, -2.5) + 2.5);
+		if (p.x < 0.0 || p.x > 4.0 || p.y < 0.0 || p.y > 4.0) return 0.0;
+		float bit = p.x + 5.0 * p.y;
+		return mod(floor(n / exp2(bit)), 2.0);
 	}
 
 	// OKLab to sRGB (Ottosson's matrices, then the sRGB curve), because the canvas writes straight out.
@@ -207,6 +224,88 @@ const FRAGMENT = /* glsl */ `
 			color = mix(color, field, uRibbon);
 		}
 
+		// Particles: suspended in water, as on a PlayStation 4. Motes at four depths, the near ones large and
+		// soft, the far ones small and sharp, rising slowly and swaying, each catching the light now and
+		// then. Light falls in from above.
+		if (uParticles > 0.001) {
+			float t = uTime;
+			vec3 water = mix(OLIVE, NIGHT, smoothstep(0.0, 1.0, y));
+			water = mix(water, SLATE, 0.3 * smoothstep(0.65, 0.0, y) * (0.6 + 0.4 * cold));
+			bool light = NIGHT.x > 0.6;
+			vec3 moteColor = light ? AMBER : vec3(min(AMBER.x + 0.25, 0.97), AMBER.yz * 0.6);
+			float motes = 0.0;
+			for (int i = 0; i < 4; i++) {
+				float depth = float(i);
+				float scale = 4.0 + depth * 5.0;
+				vec2 q = p * scale;
+				q.y += t * (0.01 + depth * 0.004) * scale;
+				q.x += sin(q.y * 0.45 + depth * 1.7 + t * 0.12) * 0.22 + t * 0.003 * scale;
+				vec2 cell = floor(q);
+				vec2 inCell = fract(q) - 0.5;
+				float seed = hash(vec3(cell, depth + 40.0));
+				if (seed > 0.62) {
+					vec2 offset = vec2(hash(vec3(cell, depth + 51.0)), hash(vec3(cell, depth + 63.0))) - 0.5;
+					float radius = mix(0.05, 0.2, hash(vec3(cell, depth + 77.0))) * (1.0 - depth * 0.2);
+					float soft = radius * (depth < 0.5 ? 0.95 : 0.4);
+					float mote = smoothstep(radius, radius - soft, length(inCell - offset * 0.55));
+					float twinkle = 0.55 + 0.45 * sin(t * (0.25 + seed * 0.6) + seed * 40.0);
+					motes += mote * twinkle * (depth < 0.5 ? 0.22 : 0.35 + depth * 0.08);
+				}
+			}
+			vec3 field = mix(water, moteColor, clamp(motes, 0.0, 1.0));
+			color = mix(color, field, uParticles);
+		}
+
+		// Dither: Ash's NeoEngine hero. Slow drifting clouds in big pixels, an 8 by 8 ordered dither, and
+		// only three colors, here the palette's dark, haze and glow.
+		if (uDither > 0.001) {
+			float pixel = 2.0;
+			vec2 cellAt = floor(gl_FragCoord.xy / pixel);
+			vec2 uvPixel = (cellAt * pixel) / uResolution;
+			uvPixel.x *= aspect;
+			float t = uTime * 0.008;
+			vec2 drift = vec2(t * 0.5, t * 0.1);
+			float clouds = smoke(uvPixel * 1.6 + drift) * 0.45
+				+ smoke(uvPixel * 2.8 + drift * 1.3 + vec2(10.0, 5.0)) * 0.3
+				+ smoke(uvPixel * 4.8 + drift * 1.6 + vec2(20.0, 10.0)) * 0.15
+				+ smoke(uvPixel * 8.0 + drift * 2.0 + vec2(30.0, 15.0)) * 0.1;
+			clouds = pow(smoothstep(0.3, 0.7, clouds), 0.8);
+			float threshold = bayer8(cellAt);
+			float lum = clouds + (threshold - 0.5) * 0.2;
+			vec3 bright = NIGHT.x > 0.6 ? AMBER : vec3(min(AMBER.x + 0.12, 0.95), AMBER.yz);
+			vec3 field;
+			if (lum < 0.3) field = NIGHT;
+			else if (lum < 0.6) field = (lum - 0.3) / 0.3 > threshold ? SLATE : NIGHT;
+			else field = (lum - 0.6) / 0.4 > threshold ? bright : SLATE;
+			color = mix(color, field, uDither);
+		}
+
+		// ASCII: the fog itself, drawn as characters from a space to a hash, brighter where it is brighter.
+		if (uAscii > 0.001) {
+			float cellSize = 8.0;
+			vec2 cellAt = floor(gl_FragCoord.xy / cellSize);
+			vec2 center = (cellAt + 0.5) * cellSize / uResolution;
+			vec2 at = vec2(center.x * aspect, 1.0 - center.y);
+			vec2 d2 = vec2(at.x * 0.8 + uTime * 0.035, at.y * 1.2 + uTime * 0.018);
+			float lum = smoothstep(0.25, 0.8, smoke(d2 + smoke(d2 * 0.5) * 1.2));
+			lum *= 1.0 - 0.45 * smoothstep(0.3, 0.75, length(center - 0.5));
+			// Most of the screen is quiet punctuation; only the brightest fog reaches the dense characters.
+			lum = pow(lum, 1.6);
+			float n = 0.0;
+			if (lum > 0.12) n = 4096.0;
+			if (lum > 0.24) n = 65600.0;
+			if (lum > 0.36) n = 332772.0;
+			if (lum > 0.48) n = 15255086.0;
+			if (lum > 0.6) n = 15252014.0;
+			if (lum > 0.72) n = 13199452.0;
+			if (lum > 0.84) n = 11512810.0;
+			vec2 inCell = mod(gl_FragCoord.xy, cellSize) / cellSize * 2.0 - 1.0;
+			float ink = glyph(n, inCell);
+			vec3 inkColor = mix(SLATE, NIGHT.x > 0.6 ? AMBER : vec3(min(AMBER.x + 0.2, 0.96), AMBER.yz), lum);
+			vec3 field = mix(NIGHT, inkColor, ink * (0.45 + 0.4 * lum));
+			color = mix(color, field, uAscii);
+		}
+
 		// Overcast: the glow dims and the color drains, as a city does under low cloud.
 		color = mix(color, NIGHT, atAmber * smoothstep(0.3, 0.75, warm) * uCloud * 0.6);
 		color.yz *= 1.0 - 0.45 * uCloud;
@@ -226,8 +325,9 @@ const FRAGMENT = /* glsl */ `
 		float flakes = 0.0;
 		for (int i = 0; i < 3; i++) {
 			float depth = float(i);
-			float scale = 6.0 + depth * 7.0;
-			float speed = 0.09 - depth * 0.022;
+			// Small flakes, sharp enough to read as snow and not dust (Ash, 2026-10-03).
+			float scale = 16.0 + depth * 14.0;
+			float speed = 0.06 - depth * 0.014;
 			vec2 q = p * scale;
 			q.y -= uTime * speed * scale;
 			q.x += uTime * 0.02 * scale + sin(q.y * 0.35 + depth * 2.1 + uTime * 0.3) * 0.35;
@@ -235,18 +335,28 @@ const FRAGMENT = /* glsl */ `
 			vec2 inCell = fract(q) - 0.5;
 			float seed = hash(vec3(cell, depth + 3.0));
 			vec2 offset = vec2(hash(vec3(cell, depth + 11.0)), hash(vec3(cell, depth + 19.0))) - 0.5;
-			float size = 0.16 - depth * 0.04;
-			float soft = 0.16 - depth * 0.05;
+			float size = 0.11 - depth * 0.025;
+			float soft = 0.07 - depth * 0.02;
 			float flake = smoothstep(size, size - soft, length(inCell - offset * 0.6));
 			// How many cells hold a flake is how hard it is snowing.
-			flakes += flake * step(1.0 - uSnow * (0.55 - depth * 0.1), seed) * (0.55 - depth * 0.12);
+			flakes += flake * step(1.0 - uSnow * (0.55 - depth * 0.1), seed) * (0.8 - depth * 0.15);
 		}
-		color.x += flakes * 0.5;
+		color.x += flakes * 0.75;
 		color.yz *= 1.0 - min(flakes, 1.0) * 0.6;
 
 		// Dark at the edges, as an out of focus lens is.
 		vec2 centered = vUv - 0.5;
 		color.x *= mix(1.0, 0.72, smoothstep(0.25, 0.75, length(centered * vec2(1.1, 1.0))));
+
+		// Frost: in heavy snow, ice creeps in from the edges of the glass, white and crystalline.
+		float frosting = smoothstep(0.5, 0.95, uSnow);
+		if (frosting > 0.001) {
+			float edge = smoothstep(0.32, 0.74, length(centered * vec2(1.15, 1.0)));
+			float crystals = smoke(p * 18.0) * 0.6 + smoke(p * 46.0 + 3.1) * 0.4;
+			float ice = edge * frosting * smoothstep(0.25, 0.75, crystals + edge * 0.35);
+			color.x = mix(color.x, 0.93, ice * 0.6);
+			color.yz *= 1.0 - ice * 0.75;
+		}
 
 		// A whisper of dither, so the long dark fades never band on an 8-bit screen.
 		color.x += (hash(vec3(floor(gl_FragCoord.xy), mod(floor(uTime * 12.0), 16.0))) - 0.5) * 0.004;
@@ -259,12 +369,12 @@ function Fog({
 	still,
 	palette,
 	weather,
-	ribbon,
+	field,
 }: {
 	still: boolean;
 	palette: Palette;
 	weather: Weather;
-	ribbon: boolean;
+	field: Field;
 }) {
 	const material = useRef<ShaderMaterial>(null);
 	const size = useThree((state) => state.size);
@@ -283,6 +393,9 @@ function Fog({
 			uFog: { value: 0 },
 			uFlash: { value: 0 },
 			uRibbon: { value: 0 },
+			uParticles: { value: 0 },
+			uDither: { value: 0 },
+			uAscii: { value: 0 },
 		}),
 		[],
 	);
@@ -345,11 +458,15 @@ function Fog({
 		live.uCloud.value += (weather.cloud - live.uCloud.value) * ease;
 		live.uFog.value += (weather.fog - live.uFog.value) * ease;
 		live.uFlash.value = flash.current;
-		// Changing theme crossfades over about a second and a half; reduced motion just switches.
-		const target = ribbon ? 1 : 0;
-		live.uRibbon.value = still
-			? target
-			: live.uRibbon.value + (target - live.uRibbon.value) * Math.min(1, delta * 2);
+		// Changing the background crossfades over about a second and a half; reduced motion just switches.
+		const toward = (now: number, on: boolean) => {
+			const target = on ? 1 : 0;
+			return still ? target : now + (target - now) * Math.min(1, delta * 2);
+		};
+		live.uRibbon.value = toward(live.uRibbon.value, field === "ribbon");
+		live.uParticles.value = toward(live.uParticles.value, field === "particles");
+		live.uDither.value = toward(live.uDither.value, field === "dither");
+		live.uAscii.value = toward(live.uAscii.value, field === "ascii");
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
 		live.uTime.value = still ? 0 : (now - started.current) / 1000;
 		live.uResolution.value.set(size.width, size.height);
@@ -383,7 +500,7 @@ export function FogBackground({
 	mode = "dark",
 	sky,
 	weather = CLEAR,
-	ribbon = false,
+	field = "mesh",
 }: {
 	position?: "fixed" | "absolute";
 	mode?: Mode;
@@ -391,8 +508,8 @@ export function FogBackground({
 	sky?: Palette | undefined;
 	/** The weather in the city. Clear unless told otherwise. */
 	weather?: Weather;
-	/** A ribbon of light across the glass in place of the city's patches of color, for a tribute theme. */
-	ribbon?: boolean;
+	/** What moves behind the glass: the mesh of colored fog, a ribbon, particles, dither or ASCII. */
+	field?: Field;
 } = {}) {
 	const palette = sky ?? CITY[mode];
 	const still =
@@ -401,7 +518,7 @@ export function FogBackground({
 	return (
 		<div
 			aria-hidden="true"
-			data-field={ribbon ? "ribbon" : "city"}
+			data-field={field}
 			// z-0, not negative: with no stacking context above it, a negative one hides behind the body.
 			className={`fog-field pointer-events-none ${position} inset-0 z-0`}
 			// The same light in CSS, holding the screen while WebGL starts and standing in without it.
@@ -424,7 +541,7 @@ export function FogBackground({
 				}}
 				style={{ width: "100%", height: "100%" }}
 			>
-				<Fog still={still} palette={palette} weather={weather} ribbon={ribbon} />
+				<Fog still={still} palette={palette} weather={weather} field={field} />
 			</Canvas>
 		</div>
 	);

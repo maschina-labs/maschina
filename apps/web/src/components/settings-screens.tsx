@@ -6,9 +6,9 @@ import { describeEvent } from "../lib/describe.ts";
 import { EXPLORERS, type Explorer, setExplorer, useExplorer } from "../lib/explorer.ts";
 import { useClearManagerKey, useManagerKey, useSetManagerKey } from "../lib/manager-key.ts";
 import { useSession } from "../lib/session.ts";
-import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
 import { toast } from "../lib/toasts.ts";
 import { Headline, Note, Onward, Panel, Rows } from "./kit.tsx";
+import { LookControls } from "./look-controls.tsx";
 import { useActivity } from "./portfolio.tsx";
 
 /**
@@ -19,7 +19,6 @@ import { useActivity } from "./portfolio.tsx";
 export function SettingsScreen() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
-	const { theme } = useTheme();
 	const wallet = session.data?.walletAddress;
 	return (
 		<>
@@ -59,21 +58,8 @@ export function SettingsScreen() {
 				/>
 				<Note>Exact numbers are shown here before anyone pays.</Note>
 			</Panel>
-			<Panel size="wide" name="Theme">
-				<div className="grid grid-cols-3 gap-1">
-					{THEMES.map((each) => (
-						<button
-							key={each.id}
-							type="button"
-							aria-pressed={theme === each.id}
-							onClick={() => setTheme(each.id)}
-							className={`py-2 text-[14px] transition-colors ${theme === each.id ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-						>
-							{each.name}
-						</button>
-					))}
-				</div>
-				<Note>Dynamic follows the time of day and the weather where you are.</Note>
+			<Panel size="large" name="Theme" scroll>
+				<LookControls title={false} />
 			</Panel>
 			<ExplorerPanel />
 			<Panel size="wide" name="Your data">
