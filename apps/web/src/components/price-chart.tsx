@@ -64,7 +64,8 @@ export function PriceChart({
 	const series = useRef<ISeriesApi<"Candlestick">>(undefined);
 	const bars = useRef<ISeriesApi<"Histogram">>(undefined);
 	// A team's palette draws the candles in its own color; Maschina's stay monochrome.
-	const accent = useTheme().brand?.accent;
+	const { brand } = useTheme();
+	const accent = brand?.chart ?? brand?.accent;
 	const pins = useRef<ISeriesMarkersPluginApi<Time>>(undefined);
 	const [failed, setFailed] = useState<string>();
 	// The first candle drawn: trades from before it are off the chart, not piled at its edge.

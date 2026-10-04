@@ -9,7 +9,13 @@ import { preview } from "./preview.ts";
  */
 
 /** One look of a tribute theme: the city's colors, and the accent for whatever is chosen or pressed. */
-export type Look = { sky: Palette; accent: string; onAccent: string };
+export type Look = {
+	sky: Palette;
+	accent: string;
+	onAccent: string;
+	/** What the charts draw in, when it is not the accent (Solana: green buttons, violet charts). */
+	chart?: string;
+};
 type Brand = { name: string; dark: Look; light: Look };
 
 /*
@@ -43,30 +49,30 @@ const BRANDS = {
 			onAccent: "oklch(98% 0.01 40)",
 		},
 	},
-	// ORE Supply (ore.com): gold in black regolith; or gold on pale sand. Warm, deep gold, not lemon.
+	// ORE Supply (ore.com): gold in the earth. Umber soil and ochre, and a metallic gold light (2026-10-04).
 	ore: {
 		name: "Ore",
 		dark: {
 			sky: {
-				night: { l: 0.09, c: 0.006, h: 75 },
-				top: { l: 0.14, c: 0.015, h: 75 },
-				upper: { l: 0.22, c: 0.04, h: 78 },
-				middle: { l: 0.36, c: 0.1, h: 78 },
-				glow: { l: 0.74, c: 0.15, h: 80 },
+				night: { l: 0.1, c: 0.015, h: 60 },
+				top: { l: 0.16, c: 0.03, h: 55 },
+				upper: { l: 0.24, c: 0.05, h: 60 },
+				middle: { l: 0.34, c: 0.07, h: 70 },
+				glow: { l: 0.76, c: 0.14, h: 84 },
 			},
-			accent: "oklch(79% 0.15 80)",
-			onAccent: "oklch(14% 0.02 75)",
+			accent: "oklch(78% 0.14 82)",
+			onAccent: "oklch(15% 0.02 60)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.94, c: 0.02, h: 82 },
-				top: { l: 0.89, c: 0.045, h: 80 },
-				upper: { l: 0.84, c: 0.08, h: 80 },
-				middle: { l: 0.78, c: 0.12, h: 78 },
-				glow: { l: 0.74, c: 0.15, h: 78 },
+				night: { l: 0.93, c: 0.025, h: 75 },
+				top: { l: 0.86, c: 0.04, h: 65 },
+				upper: { l: 0.8, c: 0.06, h: 65 },
+				middle: { l: 0.86, c: 0.06, h: 80 },
+				glow: { l: 0.82, c: 0.13, h: 85 },
 			},
-			accent: "oklch(72% 0.15 76)",
-			onAccent: "oklch(14% 0.02 75)",
+			accent: "oklch(70% 0.14 78)",
+			onAccent: "oklch(15% 0.02 60)",
 		},
 	},
 	// Jupiter: deep teal night and its lime green; or lime over pale mint.
@@ -95,31 +101,33 @@ const BRANDS = {
 			onAccent: "oklch(18% 0.03 230)",
 		},
 	},
-	// Solana as solana.com draws itself: near black, with violet running through blue to green only in the
-	// details. Softened from the neon first version, which Ash found loud beside the others (2026-10-04).
+	// Solana as solana.com draws itself: near black, violet into the blue that violet and green make, with
+	// green kept for what is pressed. Charts stay violet, so the theme stays mostly purple (Ash, 2026-10-04).
 	solana: {
 		name: "Solana",
 		dark: {
 			sky: {
 				night: { l: 0.09, c: 0.012, h: 262 },
-				top: { l: 0.15, c: 0.03, h: 255 },
+				top: { l: 0.15, c: 0.03, h: 265 },
 				upper: { l: 0.2, c: 0.05, h: 288 },
-				middle: { l: 0.22, c: 0.03, h: 200 },
-				glow: { l: 0.5, c: 0.1, h: 290 },
+				middle: { l: 0.22, c: 0.04, h: 250 },
+				glow: { l: 0.5, c: 0.1, h: 285 },
 			},
-			accent: "oklch(66% 0.17 292)",
-			onAccent: "oklch(98% 0.01 292)",
+			accent: "oklch(80% 0.13 165)",
+			onAccent: "oklch(16% 0.03 280)",
+			chart: "oklch(66% 0.17 292)",
 		},
 		light: {
 			sky: {
 				night: { l: 0.95, c: 0.01, h: 280 },
 				top: { l: 0.9, c: 0.025, h: 270 },
 				upper: { l: 0.86, c: 0.045, h: 290 },
-				middle: { l: 0.89, c: 0.03, h: 200 },
-				glow: { l: 0.84, c: 0.07, h: 170 },
+				middle: { l: 0.88, c: 0.035, h: 250 },
+				glow: { l: 0.84, c: 0.06, h: 285 },
 			},
-			accent: "oklch(55% 0.17 292)",
-			onAccent: "oklch(98% 0.01 292)",
+			accent: "oklch(62% 0.13 165)",
+			onAccent: "oklch(98% 0.01 165)",
+			chart: "oklch(55% 0.17 292)",
 		},
 	},
 	// Phantom: soft lavender, on a dusky purple or a pale one.
@@ -174,30 +182,30 @@ const BRANDS = {
 			onAccent: "oklch(98% 0.01 25)",
 		},
 	},
-	// Solflare: its yellow running into orange, out of black or out of cream.
+	// Solflare: deep black and its yellow (2026-10-04).
 	solflare: {
 		name: "Solflare",
 		dark: {
 			sky: {
-				night: { l: 0.1, c: 0.004, h: 70 },
-				top: { l: 0.15, c: 0.01, h: 70 },
-				upper: { l: 0.22, c: 0.03, h: 60 },
-				middle: { l: 0.36, c: 0.09, h: 50 },
-				glow: { l: 0.86, c: 0.17, h: 100 },
+				night: { l: 0.07, c: 0.004, h: 90 },
+				top: { l: 0.1, c: 0.008, h: 90 },
+				upper: { l: 0.14, c: 0.018, h: 92 },
+				middle: { l: 0.2, c: 0.04, h: 92 },
+				glow: { l: 0.84, c: 0.16, h: 100 },
 			},
-			accent: "oklch(93% 0.18 105)",
-			onAccent: "oklch(16% 0.02 80)",
+			accent: "oklch(90% 0.18 102)",
+			onAccent: "oklch(14% 0.02 90)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.96, c: 0.02, h: 95 },
-				top: { l: 0.92, c: 0.06, h: 100 },
-				upper: { l: 0.87, c: 0.1, h: 85 },
-				middle: { l: 0.8, c: 0.14, h: 60 },
-				glow: { l: 0.88, c: 0.17, h: 100 },
+				night: { l: 0.95, c: 0.02, h: 100 },
+				top: { l: 0.9, c: 0.05, h: 100 },
+				upper: { l: 0.86, c: 0.09, h: 98 },
+				middle: { l: 0.88, c: 0.08, h: 100 },
+				glow: { l: 0.88, c: 0.16, h: 102 },
 			},
 			accent: "oklch(86% 0.18 100)",
-			onAccent: "oklch(16% 0.02 80)",
+			onAccent: "oklch(14% 0.02 90)",
 		},
 	},
 	// Bonk: a warm, loud yellow and orange, at night or in full sun.

@@ -39,6 +39,7 @@ function Field() {
 	const accent = brand?.accent;
 	const onAccent = brand?.onAccent;
 	const inkHue = brand?.sky.glow.h;
+	const chartColor = brand?.chart;
 	// Which side an open sidebar pushes the page from, on a desktop only. One at a time.
 	const edge = useOpenEdge();
 	const pushedFrom =
@@ -61,7 +62,7 @@ function Field() {
 			root.style.setProperty("--accent", accent);
 			root.style.setProperty("--on-accent", onAccent);
 			// The charts draw in the team's own color, and the text takes its hue.
-			root.style.setProperty("--chart", accent);
+			root.style.setProperty("--chart", chartColor ?? accent);
 			for (const [key, color] of Object.entries(inkFor(inkHue ?? 0, mode)))
 				root.style.setProperty(key, color);
 		} else {
@@ -71,7 +72,7 @@ function Field() {
 			for (const key of INK_KEYS) root.style.removeProperty(key);
 			root.style.removeProperty("--chart");
 		}
-	}, [choice.palette, accent, onAccent, inkHue, mode]);
+	}, [choice.palette, accent, onAccent, inkHue, chartColor, mode]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
 		const { cool, warm } = cityTint(mode, sky);
