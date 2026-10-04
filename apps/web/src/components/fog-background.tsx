@@ -2,7 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2, Vector3 } from "three";
-import type { Field } from "../lib/theme.ts";
+import type { Field, Motion } from "../lib/theme.ts";
 import { CLEAR, type Weather } from "../lib/weather.ts";
 
 /**
@@ -97,7 +97,6 @@ const FRAGMENT = /* glsl */ `
 	// at 0 is the mesh: the city's patches of colored fog.
 	uniform float uRibbon;
 	uniform float uParticles;
-	uniform float uContours;
 
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
@@ -158,7 +157,7 @@ const FRAGMENT = /* glsl */ `
 
 		// How much of the screen another background covers. Fully covered, the mesh underneath is never
 		// seen, so its smoke is not worked out at all: that was most of the cost of every other background.
-		float covered = max(max(uRibbon, uParticles), uContours);
+		float covered = max(uRibbon, uParticles);
 		float cold = 0.5;
 		float warm = 0.5;
 		float atAmber = 0.0;
@@ -253,23 +252,6 @@ const FRAGMENT = /* glsl */ `
 			color = mix(color, field, uParticles);
 		}
 
-		// Contours: the lines of a topographic map over ground that slowly reshapes itself, every fifth
-		// line a little stronger, as on a survey sheet.
-		if (uContours > 0.001) {
-			float t = uTime;
-			bool light = NIGHT.x > 0.6;
-			vec3 field = mix(OLIVE, NIGHT, smoothstep(0.0, 1.0, y));
-			float height = smoke(p * 1.3 + vec2(t * 0.006, -t * 0.004));
-			float levels = height * 16.0;
-			float f = fract(levels);
-			float edge = min(f, 1.0 - f);
-			float line = smoothstep(0.05, 0.0, edge);
-			float major = step(4.5, mod(floor(levels + 0.5), 5.0));
-			vec3 ink = mix(SLATE, light ? AMBER : vec3(min(AMBER.x + 0.15, 0.92), AMBER.yz), height);
-			field = mix(field, ink, line * (light ? 0.18 : 0.24) * (1.0 + major * 0.8));
-			color = mix(color, field, uContours);
-		}
-
 		// Overcast: the glow dims and the color drains, as a city does under low cloud.
 		color = mix(color, NIGHT, atAmber * smoothstep(0.3, 0.75, warm) * uCloud * 0.6);
 		color.yz *= 1.0 - 0.45 * uCloud;
@@ -336,11 +318,13 @@ function Fog({
 	palette,
 	weather,
 	field,
+	calm,
 }: {
 	still: boolean;
 	palette: Palette;
 	weather: Weather;
 	field: Field;
+	calm: boolean;
 }) {
 	const material = useRef<ShaderMaterial>(null);
 	const size = useThree((state) => state.size);
@@ -360,7 +344,6 @@ function Fog({
 			uFlash: { value: 0 },
 			uRibbon: { value: 0 },
 			uParticles: { value: 0 },
-			uContours: { value: 0 },
 		}),
 		[],
 	);
@@ -379,7 +362,9 @@ function Fog({
 			if (timer) clearInterval(timer);
 			timer = undefined;
 			if (document.visibilityState === "hidden") return;
-			timer = setInterval(() => invalidate(), document.hasFocus() ? 1000 / 20 : 1000 / 4);
+			// Calm draws less than half as often; the drift is slow enough that it still reads as moving.
+			const perSecond = (calm ? 8 : 20) / (document.hasFocus() ? 1 : 5);
+			timer = setInterval(() => invalidate(), 1000 / perSecond);
 		};
 		pace();
 		document.addEventListener("visibilitychange", pace);
@@ -391,7 +376,7 @@ function Fog({
 			window.removeEventListener("focus", pace);
 			window.removeEventListener("blur", pace);
 		};
-	}, [invalidate, still]);
+	}, [invalidate, still, calm]);
 
 	// Lightning, in a storm: every twenty to sixty seconds, a strike and its echo. Never faster than
 	// three flashes a second, and never with reduced motion asked for.
@@ -446,7 +431,6 @@ function Fog({
 		};
 		live.uRibbon.value = toward(live.uRibbon.value, field === "ribbon");
 		live.uParticles.value = toward(live.uParticles.value, field === "particles");
-		live.uContours.value = toward(live.uContours.value, field === "contours");
 
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
 		live.uTime.value = still ? 0 : (now - started.current) / 1000;
@@ -482,6 +466,7 @@ export function FogBackground({
 	sky,
 	weather = CLEAR,
 	field = "mesh",
+	motion = "calm",
 }: {
 	position?: "fixed" | "absolute";
 	mode?: Mode;
@@ -489,12 +474,17 @@ export function FogBackground({
 	sky?: Palette | undefined;
 	/** The weather in the city. Clear unless told otherwise. */
 	weather?: Weather;
-	/** What moves behind the glass: the mesh of colored fog, a ribbon, particles or contours. */
+	/** What moves behind the glass: the mesh of colored fog, a ribbon or particles. */
 	field?: Field;
+	/** How much it moves: full, calm (a fraction of the work) or off (one still frame). */
+	motion?: Motion;
 } = {}) {
 	const palette = sky ?? CITY[mode];
 	const still =
-		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		motion === "off" ||
+		(typeof window !== "undefined" &&
+			window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+	const calm = motion === "calm";
 
 	return (
 		<div
@@ -513,7 +503,7 @@ export function FogBackground({
 				// A quarter of the screen's pixels on a Retina display, upscaled. Fog is soft by nature, so the
 				// difference cannot be seen, and it is sixteen times less work than full resolution. At full
 				// resolution and sixty frames it kept a laptop's fans running flat out (2026-09-28).
-				dpr={0.5}
+				dpr={calm ? 0.4 : 0.5}
 				frameloop="demand"
 				// Kept after each frame, so the rain on the glass can take the city as its background.
 				gl={{ antialias: false, alpha: true, preserveDrawingBuffer: true }}
@@ -522,7 +512,7 @@ export function FogBackground({
 				}}
 				style={{ width: "100%", height: "100%" }}
 			>
-				<Fog still={still} palette={palette} weather={weather} field={field} />
+				<Fog still={still} palette={palette} weather={weather} field={field} calm={calm} />
 			</Canvas>
 		</div>
 	);

@@ -31,6 +31,8 @@ describe("the four choices", () => {
 			mode: "dark",
 			dynamic: true,
 			field: "ribbon",
+			// Not saved before Motion existed: it starts Calm.
+			motion: "calm",
 		});
 		expect(choiceFrom("not json", "light")).toMatchObject({ mode: "light" });
 		expect(choiceFrom(null, "dynamic")).toMatchObject({ mode: "system", dynamic: true });

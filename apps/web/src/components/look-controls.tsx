@@ -1,5 +1,13 @@
 import { Moon, Sun } from "@phosphor-icons/react";
-import { type Choice, FIELDS, MODES, PALETTES, setChoice, useTheme } from "../lib/theme.ts";
+import {
+	type Choice,
+	FIELDS,
+	MODES,
+	MOTIONS,
+	PALETTES,
+	setChoice,
+	useTheme,
+} from "../lib/theme.ts";
 
 /**
  * How the screen looks, as four switches that do not depend on each other: dark or light, a dynamic or
@@ -73,6 +81,13 @@ export function LookControls({ title = true }: { title?: boolean }) {
 				chosen={choice.field}
 				onPick={pick("field")}
 				columns={2}
+			/>
+			<Row
+				name="Motion"
+				options={MOTIONS}
+				chosen={choice.motion}
+				onPick={pick("motion")}
+				columns={3}
 			/>
 			<Row
 				name="Palette"

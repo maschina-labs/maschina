@@ -236,15 +236,24 @@ export type Mode = "dark" | "light";
  *   palette:    Maschina's own city, or a team's colors
  *   mode:       dark, light, or the system's (with a dynamic sky, the sun's)
  *   dynamic:    the weather where you are, and on System the sky through the day; or a still screen
- *   field:      what moves behind the glass: the mesh of colored fog, a ribbon, particles or contours
+ *   field:      what moves behind the glass: the mesh of colored fog, a ribbon or particles
+ *   motion:     how much it moves: full, calm (a fraction of the work) or off
  *               (all soft by rule: nothing behind the tiles may have an edge or pattern their words sit on)
  *
  * The old Dynamic theme is System with a dynamic sky, so nothing anyone had chosen looks different.
  */
 export type PaletteId = "maschina" | BrandId;
 export type ModeChoice = Mode | "system";
-export type Field = "mesh" | "ribbon" | "particles" | "contours";
-export type Choice = { palette: PaletteId; mode: ModeChoice; dynamic: boolean; field: Field };
+export type Field = "mesh" | "ribbon" | "particles";
+/** How much the background moves: smoothly, calmly (a fraction of the work), or not at all. */
+export type Motion = "full" | "calm" | "off";
+export type Choice = {
+	palette: PaletteId;
+	mode: ModeChoice;
+	dynamic: boolean;
+	field: Field;
+	motion: Motion;
+};
 
 export const PALETTES: { id: PaletteId; name: string }[] = [
 	{ id: "maschina", name: "Maschina" },
@@ -262,20 +271,28 @@ export const FIELDS: { id: Field; name: string }[] = [
 	{ id: "mesh", name: "Mesh" },
 	{ id: "ribbon", name: "Ribbon" },
 	{ id: "particles", name: "Particles" },
-	{ id: "contours", name: "Contours" },
 ];
 
+export const MOTIONS: { id: Motion; name: string }[] = [
+	{ id: "full", name: "Full" },
+	{ id: "calm", name: "Calm" },
+	{ id: "off", name: "Off" },
+];
+
+/** Calm by default: the backgrounds were keeping laptop fans running at Full (Ash, 2026-10-03). */
 export const DEFAULT_CHOICE: Choice = {
 	palette: "maschina",
 	mode: "dark",
 	dynamic: false,
 	field: "mesh",
+	motion: "calm",
 };
 
 const isPalette = (value: unknown): value is PaletteId =>
 	PALETTES.some((each) => each.id === value);
 const isMode = (value: unknown): value is ModeChoice => MODES.some((each) => each.id === value);
 const isField = (value: unknown): value is Field => FIELDS.some((each) => each.id === value);
+const isMotion = (value: unknown): value is Motion => MOTIONS.some((each) => each.id === value);
 
 /** A theme saved before the four choices existed: "dark", "dynamic", "solana-light", "club". */
 export function choiceFromTheme(saved: string | null): Choice {
@@ -301,6 +318,7 @@ export function choiceFrom(saved: string | null, legacy: string | null): Choice 
 			mode: isMode(read.mode) ? read.mode : DEFAULT_CHOICE.mode,
 			dynamic: typeof read.dynamic === "boolean" ? read.dynamic : DEFAULT_CHOICE.dynamic,
 			field: isField(read.field) ? read.field : DEFAULT_CHOICE.field,
+			motion: isMotion(read.motion) ? read.motion : DEFAULT_CHOICE.motion,
 		};
 	} catch {
 		return choiceFromTheme(legacy);
@@ -465,6 +483,8 @@ function readChoice(): Choice {
 		choice = DEFAULT_CHOICE;
 	}
 	if (isField(field)) choice = { ...choice, field };
+	const motion = preview("motion");
+	if (isMotion(motion)) choice = { ...choice, motion };
 	if (sky) choice = { ...choice, dynamic: sky === "dynamic" };
 	return choice;
 }

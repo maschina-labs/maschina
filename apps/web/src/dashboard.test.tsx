@@ -352,6 +352,7 @@ describe("the edges", () => {
 			mode: "light",
 			dynamic: false,
 			field: "particles",
+			motion: "calm",
 		});
 		fireEvent.keyDown(window, { key: "Escape" });
 	});
