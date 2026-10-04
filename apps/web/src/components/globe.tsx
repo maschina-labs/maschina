@@ -20,7 +20,9 @@ async function loadCountries(): Promise<Countries> {
 	type World = Parameters<typeof feature>[0] & {
 		objects: { countries: Parameters<typeof feature>[1] };
 	};
-	const topology = (await (await fetch(worldUrl)).json()) as World;
+	const response = await fetch(worldUrl);
+	if (!response.ok) throw new Error(`The map answered ${response.status}`);
+	const topology = (await response.json()) as World;
 	return feature(topology, topology.objects.countries) as unknown as Countries;
 }
 
@@ -40,7 +42,10 @@ export function Globe({
 
 	useEffect(() => {
 		let live = true;
-		void loadCountries().then((loaded) => live && setCountries(loaded));
+		void loadCountries()
+			.then((loaded) => live && setCountries(loaded))
+			// Without its map the globe is still a globe: the sphere and its lines, no countries.
+			.catch(() => {});
 		return () => {
 			live = false;
 		};
