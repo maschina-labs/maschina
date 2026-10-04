@@ -253,7 +253,7 @@ export type Mode = "dark" | "light";
  */
 export type PaletteId = "maschina" | BrandId;
 export type ModeChoice = Mode | "system";
-export type Field = "mesh" | "ribbon" | "particles";
+export type Field = "mesh" | "ribbon" | "particles" | "towers";
 /** How much the background moves: smoothly, calmly (a fraction of the work), or not at all. */
 export type Motion = "full" | "calm" | "off";
 export type Choice = {
@@ -280,6 +280,7 @@ export const FIELDS: { id: Field; name: string }[] = [
 	{ id: "mesh", name: "Mesh" },
 	{ id: "ribbon", name: "Ribbon" },
 	{ id: "particles", name: "Particles" },
+	{ id: "towers", name: "Towers" },
 ];
 
 export const MOTIONS: { id: Motion; name: string }[] = [

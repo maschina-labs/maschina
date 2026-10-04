@@ -16,6 +16,7 @@ import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
 import { INK_KEYS, inkFor } from "../lib/ink.ts";
 import { useTheme } from "../lib/theme.ts";
+import { useTowers } from "../lib/towers.ts";
 import { useWeather } from "../lib/weather.ts";
 
 export type RouterContext = {
@@ -36,6 +37,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function Field() {
 	const { choice, mode, sky, brand, weather: wantsWeather } = useTheme();
+	const towers = useTowers();
 	const accent = brand?.accent;
 	const onAccent = brand?.onAccent;
 	const inkHue = brand?.sky.glow.h;
@@ -99,6 +101,7 @@ function Field() {
 				weather={weather}
 				field={choice.field}
 				motion={choice.motion}
+				towers={towers}
 			/>
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />

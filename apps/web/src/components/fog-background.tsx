@@ -3,7 +3,9 @@ import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2, Vector3 } from "three";
 import type { Field, Motion } from "../lib/theme.ts";
+import type { Tower } from "../lib/towers.ts";
 import { CLEAR, type Weather } from "../lib/weather.ts";
+import { Towers } from "./towers-scene.tsx";
 
 /**
  * The field behind the terminal: city light through a fogged window, far out of focus. Dark olive at
@@ -107,6 +109,7 @@ const FRAGMENT = /* glsl */ `
 	// at 0 is the mesh: the city's patches of colored fog.
 	uniform float uRibbon;
 	uniform float uParticles;
+	uniform float uTowersOn;
 
 	// White noise from fract alone. The usual fract(sin(...)) hash breaks down on GPUs as its input grows,
 	// and time grows forever.
@@ -167,7 +170,7 @@ const FRAGMENT = /* glsl */ `
 
 		// How much of the screen another background covers. Fully covered, the mesh underneath is never
 		// seen, so its smoke is not worked out at all: that was most of the cost of every other background.
-		float covered = max(uRibbon, uParticles);
+		float covered = max(max(uRibbon, uParticles), uTowersOn);
 		float cold = 0.5;
 		float warm = 0.5;
 		float atAmber = 0.0;
@@ -237,7 +240,7 @@ const FRAGMENT = /* glsl */ `
 			water = mix(water, SLATE, 0.3 * smoothstep(0.65, 0.0, y) * (0.6 + 0.4 * cold));
 			bool light = NIGHT.x > 0.6;
 			// On a dark field the motes are light; on a light one they are soft shade, like dust in a sunbeam.
-			vec3 moteColor = light ? vec3(NIGHT.x - 0.16, mix(NIGHT.yz, SLATE.yz, 0.6)) : vec3(min(AMBER.x + 0.25, 0.97), AMBER.yz * 0.6);
+			vec3 moteColor = light ? vec3(NIGHT.x - 0.32, mix(NIGHT.yz, SLATE.yz, 0.85)) : vec3(min(AMBER.x + 0.25, 0.97), AMBER.yz * 0.6);
 			float motes = 0.0;
 			for (int i = 0; i < 4; i++) {
 				float depth = float(i);
@@ -258,8 +261,20 @@ const FRAGMENT = /* glsl */ `
 					motes += mote * twinkle * (depth < 0.5 ? 0.22 : 0.35 + depth * 0.08);
 				}
 			}
-			vec3 field = mix(water, moteColor, clamp(motes, 0.0, 1.0) * (light ? 0.55 : 1.0));
+			vec3 field = mix(water, moteColor, clamp(motes, 0.0, 1.0) * (light ? 0.85 : 1.0));
 			color = mix(color, field, uParticles);
+		}
+
+		// Towers: behind the 3D pillars (drawn by the Towers scene), the tunnel itself: near black, with the
+		// theme's light pooled in the middle, as on the PlayStation 2's boot screen.
+		if (uTowersOn > 0.001) {
+			bool light = NIGHT.x > 0.6;
+			vec2 c = vec2((p.x - aspect * 0.5) / aspect, y - 0.5);
+			float pool = exp(-dot(c, c) * 7.0) * (0.8 + 0.2 * cold);
+			vec3 deep = light ? NIGHT : vec3(NIGHT.x * 0.55, NIGHT.yz * 0.8);
+			vec3 core = light ? SLATE : vec3(min(SLATE.x + 0.05, 0.5), SLATE.yz * 2.2);
+			vec3 field = mix(deep, core, pool * (light ? 0.6 : 0.85));
+			color = mix(color, field, uTowersOn);
 		}
 
 		// Overcast: the glow dims and the color drains, as a city does under low cloud.
@@ -354,6 +369,7 @@ function Fog({
 			uFlash: { value: 0 },
 			uRibbon: { value: 0 },
 			uParticles: { value: 0 },
+			uTowersOn: { value: 0 },
 		}),
 		[],
 	);
@@ -441,6 +457,7 @@ function Fog({
 		};
 		live.uRibbon.value = toward(live.uRibbon.value, field === "ribbon");
 		live.uParticles.value = toward(live.uParticles.value, field === "particles");
+		live.uTowersOn.value = toward(live.uTowersOn.value, field === "towers");
 
 		// Reduced motion freezes the clock rather than removing the field, so the picture is the same.
 		live.uTime.value = still ? 0 : (now - started.current) / 1000;
@@ -454,9 +471,12 @@ function Fog({
 
 	return (
 		// Not culled: the vertex shader ignores the camera, so three would cull against the wrong place.
-		<mesh frustumCulled={false}>
+		// Drawn first and writes no depth, so the 3D towers always stand in front of it.
+		<mesh frustumCulled={false} renderOrder={-1}>
 			<planeGeometry args={[2, 2]} />
 			<shaderMaterial
+				depthTest={false}
+				depthWrite={false}
 				ref={material}
 				uniforms={uniforms}
 				vertexShader={VERTEX}
@@ -477,6 +497,7 @@ export function FogBackground({
 	weather = CLEAR,
 	field = "mesh",
 	motion = "calm",
+	towers = [],
 }: {
 	position?: "fixed" | "absolute";
 	mode?: Mode;
@@ -488,6 +509,8 @@ export function FogBackground({
 	field?: Field;
 	/** How much it moves: full, calm (a fraction of the work) or off (one still frame). */
 	motion?: Motion;
+	/** The owner's machines as towers, for the towers background. */
+	towers?: Tower[];
 } = {}) {
 	const palette = sky ?? CITY[mode];
 	const still =
@@ -523,6 +546,7 @@ export function FogBackground({
 				style={{ width: "100%", height: "100%" }}
 			>
 				<Fog still={still} palette={palette} weather={weather} field={field} calm={calm} />
+				{field === "towers" ? <Towers towers={towers} palette={palette} still={still} /> : null}
 			</Canvas>
 		</div>
 	);

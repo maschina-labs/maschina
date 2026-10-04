@@ -4,7 +4,10 @@
  * dim when paused, faint when stopped, and see through on paper. With no machines, a few low ones wait.
  */
 
-import type { MachineSummary } from "./machines.ts";
+import { useRouter } from "@tanstack/react-router";
+import { type MachineSummary, useMachines } from "./machines.ts";
+import { useSession } from "./session.ts";
+import { useSide } from "./side.ts";
 
 export type Tower = { height: number; glow: number };
 
@@ -38,4 +41,14 @@ export function towersFrom(
 		height: Math.max(0.18, Math.log1p(machine.result.trades) / most),
 		glow: (GLOW[machine.state] ?? 0.3) * (machine.paper ? 0.55 : 1),
 	}));
+}
+
+/** Your machines as towers, on the side of the money being shown: live ones, or paper ones. */
+export function useTowers(): Tower[] {
+	const { api } = useRouter().options.context;
+	const session = useSession(api);
+	const machines = useMachines(api);
+	const side = useSide();
+	const mine = session.data ? (machines.data ?? []) : [];
+	return towersFrom(mine.filter((machine) => Boolean(machine.paper) === (side === "paper")));
 }
