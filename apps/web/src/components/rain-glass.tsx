@@ -48,7 +48,7 @@ const STRENGTH: Record<
 const REFRESH_MS = 250;
 
 export function RainGlass({ rain }: { rain: Rain }) {
-	const canvas = useRef<HTMLCanvasElement>(null);
+	const holder = useRef<HTMLDivElement>(null);
 	// The city's canvas is made a moment after the page, so the glass waits for it, and it is made again
 	// whenever the theme changes, so the glass follows it there. Holding on to the old one showed the half
 	// of its last frame a discarded canvas keeps: a dark triangle across the page.
@@ -62,8 +62,17 @@ export function RainGlass({ rain }: { rain: Rain }) {
 	}, [city]);
 
 	useEffect(() => {
-		const element = canvas.current;
-		if (!element || !city) return;
+		const box = holder.current;
+		if (!box || !city) return;
+		/*
+		 * Every glass draws on a canvas of its own, made here and taken away with it. Two glasses once shared
+		 * one canvas, and so one WebGL context: a theme change replaced the glass while the first was still
+		 * starting, its loop began anyway once it had, and the two drew halves of each other's frames, a
+		 * diagonal block across the page (MISTAKES M45).
+		 */
+		const element = document.createElement("canvas");
+		element.className = "h-full w-full";
+		box.appendChild(element);
 		// Drawn at the screen's real size, unlike the fog: drops are sharp things and must look it.
 		const scale = Math.min(window.devicePixelRatio || 1, 2);
 		const size = () =>
@@ -99,7 +108,11 @@ export function RainGlass({ rain }: { rain: Rain }) {
 				raindropLightBump: 0.7,
 			});
 			fx = glass;
-			void glass.start();
+			// Starting takes a moment. A glass replaced in that moment still begins its loop once started,
+			// so it is stopped again then rather than left drawing.
+			void glass.start().then(() => {
+				if (!alive) glass.stop();
+			});
 			// One copy at a time, and never of an empty canvas: a copy taken mid-resize, or a second one
 			// started before the first is done, leaves the glass with no picture and it draws black.
 			let copying = false;
@@ -123,12 +136,13 @@ export function RainGlass({ rain }: { rain: Rain }) {
 			if (refresh) clearInterval(refresh);
 			window.removeEventListener("resize", resize);
 			fx?.stop();
+			// Its context goes with it, so nothing it left behind can ever be drawn again.
+			try {
+				element.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
+			} catch {}
+			element.remove();
 		};
 	}, [rain, city]);
 
-	return (
-		<div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
-			<canvas ref={canvas} className="h-full w-full" />
-		</div>
-	);
+	return <div ref={holder} aria-hidden="true" className="pointer-events-none fixed inset-0 z-0" />;
 }
