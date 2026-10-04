@@ -316,17 +316,30 @@ describe("the edges", () => {
 		await vi.waitFor(() => expect(sidebar?.className).not.toContain("translate-x-0"));
 	});
 
-	it("the glass can be pebbled from the tiles, and cleared again with one press", async () => {
+	it("a tribute theme lights what is pressed in its own accent, and there is no glass switch", async () => {
 		renderAt("/");
 		await section("Home");
 		fireEvent.keyDown(window, { key: "Escape" });
 		fireEvent.click(screen.getAllByRole("button", { name: "Tiles" })[0] as HTMLElement);
-		fireEvent.click(await screen.findByRole("button", { name: "Pebbled" }));
-		await vi.waitFor(() => expect(document.documentElement.dataset["glass"]).toBe("pebbled"));
-		expect(localStorage.getItem("maschina.glass")).toBe("pebbled");
-		fireEvent.click(screen.getByRole("button", { name: "Clear" }));
-		await vi.waitFor(() => expect(document.documentElement.dataset["glass"]).toBe("clear"));
-		expect(localStorage.getItem("maschina.glass")).toBeNull();
+		expect(screen.queryByRole("button", { name: "Pebbled" })).toBeNull();
+		fireEvent.click(await screen.findByRole("button", { name: "Solana" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana"));
+		expect(document.documentElement.dataset["accent"]).toBe("on");
+		expect(document.documentElement.style.getPropertyValue("--accent")).toMatch(/^oklch\(/);
+		// Each team comes light too, picked beside it, and kept when moving to another team.
+		const look = screen.getByRole("group", { name: "Solana, dark or light" });
+		fireEvent.click(within(look).getByRole("button", { name: "Light" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("solana-light"));
+		expect(document.documentElement.dataset["mode"]).toBe("light");
+		expect(screen.getByRole("button", { name: "Solana" }).getAttribute("aria-pressed")).toBe(
+			"true",
+		);
+		fireEvent.click(screen.getByRole("button", { name: "Jupiter" }));
+		await vi.waitFor(() => expect(document.documentElement.dataset["theme"]).toBe("jupiter-light"));
+		// The plain Dark theme comes first; the team's own Dark sits in its pair below.
+		fireEvent.click(screen.getAllByRole("button", { name: "Dark" })[0] as HTMLElement);
+		await vi.waitFor(() => expect(document.documentElement.dataset["accent"]).toBeUndefined());
+		expect(screen.queryByRole("group", { name: /dark or light/ })).toBeNull();
 		fireEvent.keyDown(window, { key: "Escape" });
 	});
 

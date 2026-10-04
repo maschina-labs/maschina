@@ -249,56 +249,12 @@ input[type="range"].square::-moz-range-thumb {
 	filter: invert(1) drop-shadow(0 0 0.45px #000) drop-shadow(0 0 0.25px #000);
 }
 
-/* Pebbled glass, when chosen: only the city behind is bent; everything in front stays sharp. */
-:root[data-glass="pebbled"] .fog-field {
-	filter: url(#pebbled);
-	/* Bending pulls the edges in, so the city is drawn a little past the window and the torn edges fall
-	   outside it. */
-	inset: -56px;
-}
-
 /*
- * Club: the glass is always frosted, and whatever is chosen or pressed glows orange instead of white, the
- * one warm color in a black and graphite room.
+ * Tribute themes: whatever is chosen or pressed glows in the theme's accent instead of white. The colors
+ * come from the theme, set on the root as --accent and --on-accent.
  */
-:root[data-theme="club"] {
-	--club-orange: oklch(70% 0.19 45);
-}
-:root[data-theme="club"] .fog-field {
-	filter: url(#pebbled);
-	inset: -56px;
-}
-:root[data-theme="club"] [aria-pressed="true"].bg-white,
-:root[data-theme="club"] button.bg-white:not(:disabled) {
-	background-color: var(--club-orange);
-	color: oklch(14% 0.01 45);
-}
-
-/*
- * Frost: pebbled glass with light coming in at the top left and falling off into black, in greys only.
- * Always pebbled: the glass is the whole of it.
- */
-.frost-field {
-	/* Grey only, as in Ash's reference: light coming in at the top left corner, falling off into graphite,
-	   never quite black, so the glass still shows in the far corner. */
-	background: radial-gradient(
-		circle at 0% 0%,
-		oklch(86% 0 0) 0%,
-		oklch(76% 0 0) 18%,
-		oklch(60% 0 0) 34%,
-		oklch(42% 0 0) 50%,
-		oklch(30% 0 0) 64%,
-		oklch(23% 0 0) 78%,
-		oklch(19% 0 0) 92%
-	);
-}
-
-/* Over light that runs from pale to black, the tiles are dark frosted panes, so white words read on all. */
-:root[data-theme="frost"] [class~="bg-white/[0.09]"] {
-	background-color: oklch(10% 0 0 / 0.55);
-	backdrop-filter: blur(10px);
-}
-:root[data-theme="frost"] .fog-field {
-	filter: url(#pebbled);
-	inset: -56px;
+:root[data-accent] [aria-pressed="true"].bg-white,
+:root[data-accent] button.bg-white:not(:disabled) {
+	background-color: var(--accent);
+	color: var(--on-accent);
 }

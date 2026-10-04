@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modeOf, skyAt, themeFrom } from "./theme.ts";
+import { brandOf, modeOf, skyAt, themeFrom } from "./theme.ts";
 
 describe("themes", () => {
 	it("reads a saved theme, and falls back to dark for anything else", () => {
@@ -49,16 +49,44 @@ describe("themes", () => {
 	});
 });
 
-describe("the club theme", () => {
-	it("is a dark theme of its own, with its own warm sky", () => {
-		expect(modeOf("club", { systemDark: false, hour: 12 })).toBe("dark");
-		expect(themeFrom("club")).toBe("club");
+describe("tribute themes", () => {
+	it("Club is now Helius, so a browser that chose it keeps its orange", () => {
+		expect(themeFrom("club")).toBe("helius");
+		expect(themeFrom("helius")).toBe("helius");
 	});
-});
 
-describe("the frost theme", () => {
-	it("keeps white text over the glass, whatever the hour", () => {
-		expect(modeOf("frost", { systemDark: false, hour: 12 })).toBe("dark");
-		expect(themeFrom("frost")).toBe("frost");
+	it("Frost is gone, and a browser that chose it falls back to dark", () => {
+		expect(themeFrom("frost")).toBe("dark");
+	});
+
+	it("every one comes dark and light, each with its own sky and accent", () => {
+		const ids = ["helius", "ore", "jupiter", "solana", "phantom", "backpack", "solflare", "bonk"];
+		for (const id of ids) {
+			for (const [theme, mode] of [
+				[id, "dark"],
+				[`${id}-light`, "light"],
+			] as const) {
+				expect(themeFrom(theme)).toBe(theme);
+				const brand = brandOf(themeFrom(theme));
+				expect(brand?.id).toBe(id);
+				expect(brand?.mode).toBe(mode);
+				expect(brand?.accent).toMatch(/^oklch\(/);
+				expect(brand?.onAccent).toMatch(/^oklch\(/);
+				// A light city is pale behind, a dark one dark, whatever the computer or the hour says.
+				expect((brand?.sky.night.l ?? 0) > 0.6).toBe(mode === "light");
+				expect(modeOf(themeFrom(theme), { systemDark: true, hour: 2 })).toBe(mode);
+				expect(modeOf(themeFrom(theme), { systemDark: false, hour: 12 })).toBe(mode);
+			}
+		}
+	});
+
+	it("a made up team, light or not, falls back to dark", () => {
+		expect(themeFrom("nobody-light")).toBe("dark");
+		expect(themeFrom("light-light")).toBe("dark");
+	});
+
+	it("the plain themes have no accent of their own", () => {
+		expect(brandOf("dark")).toBeUndefined();
+		expect(brandOf("dynamic")).toBeUndefined();
 	});
 });

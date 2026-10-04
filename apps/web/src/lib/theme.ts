@@ -8,35 +8,260 @@ import { preview } from "./preview.ts";
  * turns light by day and dark by night with it. Remembered in this browser only.
  */
 
-export type Theme = "dark" | "light" | "system" | "dynamic" | "club" | "frost";
+/** One look of a tribute theme: the city's colors, and the accent for whatever is chosen or pressed. */
+export type Look = { sky: Palette; accent: string; onAccent: string };
+type Brand = { name: string; dark: Look; light: Look };
+
+/*
+ * Tribute themes, after Solana teams Ash admires: their colors only, never their marks. Each comes dark
+ * and light, the light one saved as its name with -light on the end.
+ */
+const BRANDS = {
+	// Black and graphite, warmed by Helius orange; or the same orange on a pale city.
+	helius: {
+		name: "Helius",
+		dark: {
+			sky: {
+				night: { l: 0.1, c: 0.002, h: 60 },
+				top: { l: 0.15, c: 0.006, h: 55 },
+				upper: { l: 0.21, c: 0.006, h: 55 },
+				middle: { l: 0.27, c: 0.04, h: 45 },
+				glow: { l: 0.64, c: 0.2, h: 38 },
+			},
+			accent: "oklch(66% 0.21 38)",
+			onAccent: "oklch(14% 0.01 40)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.95, c: 0.004, h: 60 },
+				top: { l: 0.88, c: 0.02, h: 50 },
+				upper: { l: 0.82, c: 0.06, h: 42 },
+				middle: { l: 0.74, c: 0.12, h: 38 },
+				glow: { l: 0.7, c: 0.19, h: 38 },
+			},
+			accent: "oklch(62% 0.21 38)",
+			onAccent: "oklch(98% 0.01 40)",
+		},
+	},
+	// ORE Supply (ore.com): gold in black regolith; or gold on pale sand.
+	ore: {
+		name: "Ore",
+		dark: {
+			sky: {
+				night: { l: 0.09, c: 0.004, h: 80 },
+				top: { l: 0.14, c: 0.008, h: 75 },
+				upper: { l: 0.2, c: 0.015, h: 75 },
+				middle: { l: 0.32, c: 0.07, h: 85 },
+				glow: { l: 0.8, c: 0.16, h: 92 },
+			},
+			accent: "oklch(87% 0.17 95)",
+			onAccent: "oklch(14% 0.01 80)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.95, c: 0.012, h: 85 },
+				top: { l: 0.9, c: 0.03, h: 80 },
+				upper: { l: 0.85, c: 0.06, h: 85 },
+				middle: { l: 0.8, c: 0.11, h: 90 },
+				glow: { l: 0.82, c: 0.16, h: 95 },
+			},
+			accent: "oklch(80% 0.17 92)",
+			onAccent: "oklch(16% 0.02 80)",
+		},
+	},
+	// Jupiter: deep teal night and its lime green; or lime over pale mint.
+	jupiter: {
+		name: "Jupiter",
+		dark: {
+			sky: {
+				night: { l: 0.14, c: 0.02, h: 230 },
+				top: { l: 0.2, c: 0.035, h: 225 },
+				upper: { l: 0.3, c: 0.05, h: 200 },
+				middle: { l: 0.42, c: 0.08, h: 170 },
+				glow: { l: 0.82, c: 0.17, h: 125 },
+			},
+			accent: "oklch(89% 0.17 125)",
+			onAccent: "oklch(18% 0.03 230)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.95, c: 0.015, h: 190 },
+				top: { l: 0.9, c: 0.035, h: 200 },
+				upper: { l: 0.86, c: 0.06, h: 180 },
+				middle: { l: 0.84, c: 0.1, h: 150 },
+				glow: { l: 0.86, c: 0.16, h: 125 },
+			},
+			accent: "oklch(84% 0.18 128)",
+			onAccent: "oklch(18% 0.03 230)",
+		},
+	},
+	// Solana: violet above, the green coming up beneath it; by day, pale violet and the same green.
+	solana: {
+		name: "Solana",
+		dark: {
+			sky: {
+				night: { l: 0.12, c: 0.03, h: 295 },
+				top: { l: 0.22, c: 0.12, h: 300 },
+				upper: { l: 0.36, c: 0.16, h: 300 },
+				middle: { l: 0.46, c: 0.1, h: 200 },
+				glow: { l: 0.82, c: 0.18, h: 160 },
+			},
+			accent: "oklch(85% 0.19 160)",
+			onAccent: "oklch(16% 0.04 295)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.95, c: 0.015, h: 300 },
+				top: { l: 0.88, c: 0.05, h: 300 },
+				upper: { l: 0.82, c: 0.09, h: 300 },
+				middle: { l: 0.86, c: 0.08, h: 190 },
+				glow: { l: 0.84, c: 0.15, h: 160 },
+			},
+			accent: "oklch(58% 0.25 300)",
+			onAccent: "oklch(98% 0.01 300)",
+		},
+	},
+	// Phantom: soft lavender, on a dusky purple or a pale one.
+	phantom: {
+		name: "Phantom",
+		dark: {
+			sky: {
+				night: { l: 0.14, c: 0.02, h: 290 },
+				top: { l: 0.22, c: 0.05, h: 288 },
+				upper: { l: 0.32, c: 0.08, h: 290 },
+				middle: { l: 0.44, c: 0.1, h: 292 },
+				glow: { l: 0.76, c: 0.11, h: 292 },
+			},
+			accent: "oklch(78% 0.11 292)",
+			onAccent: "oklch(18% 0.04 292)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.96, c: 0.01, h: 290 },
+				top: { l: 0.91, c: 0.03, h: 290 },
+				upper: { l: 0.86, c: 0.06, h: 292 },
+				middle: { l: 0.8, c: 0.09, h: 292 },
+				glow: { l: 0.76, c: 0.12, h: 292 },
+			},
+			accent: "oklch(66% 0.14 292)",
+			onAccent: "oklch(98% 0.01 292)",
+		},
+	},
+	// Backpack: its red, on near black or on white.
+	backpack: {
+		name: "Backpack",
+		dark: {
+			sky: {
+				night: { l: 0.11, c: 0.004, h: 25 },
+				top: { l: 0.16, c: 0.01, h: 25 },
+				upper: { l: 0.22, c: 0.02, h: 25 },
+				middle: { l: 0.3, c: 0.07, h: 25 },
+				glow: { l: 0.6, c: 0.2, h: 25 },
+			},
+			accent: "oklch(63% 0.21 25)",
+			onAccent: "oklch(98% 0.01 25)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.96, c: 0.004, h: 25 },
+				top: { l: 0.9, c: 0.02, h: 25 },
+				upper: { l: 0.84, c: 0.05, h: 25 },
+				middle: { l: 0.76, c: 0.1, h: 25 },
+				glow: { l: 0.68, c: 0.18, h: 25 },
+			},
+			accent: "oklch(60% 0.22 25)",
+			onAccent: "oklch(98% 0.01 25)",
+		},
+	},
+	// Solflare: its yellow running into orange, out of black or out of cream.
+	solflare: {
+		name: "Solflare",
+		dark: {
+			sky: {
+				night: { l: 0.1, c: 0.004, h: 70 },
+				top: { l: 0.15, c: 0.01, h: 70 },
+				upper: { l: 0.22, c: 0.03, h: 60 },
+				middle: { l: 0.36, c: 0.09, h: 50 },
+				glow: { l: 0.86, c: 0.17, h: 100 },
+			},
+			accent: "oklch(93% 0.18 105)",
+			onAccent: "oklch(16% 0.02 80)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.96, c: 0.02, h: 95 },
+				top: { l: 0.92, c: 0.06, h: 100 },
+				upper: { l: 0.87, c: 0.1, h: 85 },
+				middle: { l: 0.8, c: 0.14, h: 60 },
+				glow: { l: 0.88, c: 0.17, h: 100 },
+			},
+			accent: "oklch(86% 0.18 100)",
+			onAccent: "oklch(16% 0.02 80)",
+		},
+	},
+	// Bonk: a warm, loud yellow and orange, at night or in full sun.
+	bonk: {
+		name: "Bonk",
+		dark: {
+			sky: {
+				night: { l: 0.12, c: 0.01, h: 60 },
+				top: { l: 0.18, c: 0.03, h: 60 },
+				upper: { l: 0.26, c: 0.06, h: 60 },
+				middle: { l: 0.38, c: 0.11, h: 60 },
+				glow: { l: 0.74, c: 0.18, h: 65 },
+			},
+			accent: "oklch(78% 0.17 70)",
+			onAccent: "oklch(16% 0.03 60)",
+		},
+		light: {
+			sky: {
+				night: { l: 0.95, c: 0.03, h: 90 },
+				top: { l: 0.9, c: 0.08, h: 88 },
+				upper: { l: 0.86, c: 0.13, h: 80 },
+				middle: { l: 0.8, c: 0.15, h: 65 },
+				glow: { l: 0.74, c: 0.18, h: 55 },
+			},
+			accent: "oklch(72% 0.18 55)",
+			onAccent: "oklch(16% 0.03 60)",
+		},
+	},
+} as const satisfies Record<string, Brand>;
+
+export type BrandId = keyof typeof BRANDS;
+export type Theme = "dark" | "light" | "system" | "dynamic" | BrandId | `${BrandId}-light`;
 export type Mode = "dark" | "light";
 
+/** The plain themes, then one entry per team: its light look is picked beside it. */
 export const THEMES: { id: Theme; name: string }[] = [
 	{ id: "dark", name: "Dark" },
 	{ id: "light", name: "Light" },
 	{ id: "system", name: "System" },
 	{ id: "dynamic", name: "Dynamic" },
-	// Black, graphite and one orange glow behind frosted glass: after a soft club advertisement Ash loves.
-	{ id: "club", name: "Club" },
-	// Pebbled glass over light falling from the top left into black, after Ash's reference.
-	{ id: "frost", name: "Frost" },
+	...(Object.entries(BRANDS) as [BrandId, Brand][]).map(([id, brand]) => ({
+		id,
+		name: brand.name,
+	})),
 ];
+
+/** Which team a theme is after, and in which mode, or nothing for the plain themes. */
+export function brandOf(theme: Theme): (Look & { id: BrandId; mode: Mode }) | undefined {
+	const light = theme.endsWith("-light");
+	const id = (light ? theme.slice(0, -"-light".length) : theme) as BrandId;
+	if (!(id in BRANDS)) return undefined;
+	const mode: Mode = light ? "light" : "dark";
+	return { id, mode, ...BRANDS[id][mode] };
+}
 
 const KEY = "maschina.theme";
 const CHANGED = "maschina:theme";
 
 export function themeFrom(saved: string | null): Theme {
-	return THEMES.some((each) => each.id === saved) ? (saved as Theme) : "dark";
+	// Club was renamed Helius: a browser that chose it keeps it.
+	if (saved === "club") return "helius";
+	if (saved === null) return "dark";
+	const known = THEMES.some((each) => each.id === saved) || brandOf(saved as Theme) !== undefined;
+	return known ? (saved as Theme) : "dark";
 }
-
-/** Club: near black and graphite, warmed by a single orange glow, like light through frosted glass. */
-const CLUB: Palette = {
-	night: { l: 0.1, c: 0.002, h: 60 },
-	top: { l: 0.15, c: 0.006, h: 55 },
-	upper: { l: 0.21, c: 0.006, h: 55 },
-	middle: { l: 0.27, c: 0.04, h: 50 },
-	glow: { l: 0.64, c: 0.19, h: 45 },
-};
 
 /** Light or dark, for a theme, given the computer's setting and the hour (0 to 24, fractional). */
 export function modeOf(
@@ -45,9 +270,9 @@ export function modeOf(
 ): Mode {
 	if (theme === "system") return systemDark ? "dark" : "light";
 	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
-	if (theme === "club") return "dark";
-	if (theme === "frost") return "dark";
-	return theme;
+	const brand = brandOf(theme);
+	if (brand) return brand.mode;
+	return theme as Mode;
 }
 
 /**
@@ -186,6 +411,6 @@ export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefine
 	return {
 		theme,
 		mode,
-		sky: theme === "dynamic" ? skyAt(hour) : theme === "club" ? CLUB : undefined,
+		sky: theme === "dynamic" ? skyAt(hour) : brandOf(theme)?.sky,
 	};
 }

@@ -28,7 +28,6 @@ import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { alertsFrom, lastSeen, markSeen, unread } from "../lib/alerts.ts";
 import { describeEvent } from "../lib/describe.ts";
-import { setGlass, useGlass } from "../lib/glass.ts";
 import { playIdleNow, setIdleMode, useIdleMode } from "../lib/idle.ts";
 import {
 	forgetWallet,
@@ -42,7 +41,7 @@ import { onPaper, totalsOf } from "../lib/portfolio.ts";
 import { preview } from "../lib/preview.ts";
 import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
-import { setTheme, THEMES, useTheme } from "../lib/theme.ts";
+import { brandOf, setTheme, THEMES, type Theme, useTheme } from "../lib/theme.ts";
 import { toast } from "../lib/toasts.ts";
 import { useActivity } from "./portfolio.tsx";
 import { focusSearch, SearchField } from "./search.tsx";
@@ -878,9 +877,9 @@ function AlertsSection() {
 }
 
 function TilesPanel() {
-	const glass = useGlass();
 	const idle = useIdleMode();
 	const { theme } = useTheme();
+	const brand = brandOf(theme);
 	const side = useSide();
 	const tile =
 		"flex items-center gap-4 bg-white/[0.06] px-4 py-3.5 text-left text-[15px] text-neutral-100 transition-colors hover:bg-white/[0.12]";
@@ -932,18 +931,44 @@ function TilesPanel() {
 						Theme
 					</span>
 					<div className="grid grid-cols-3 gap-1">
-						{THEMES.map((each) => (
-							<button
-								key={each.id}
-								type="button"
-								aria-pressed={theme === each.id}
-								onClick={() => setTheme(each.id)}
-								className={`py-2 text-[13px] transition-colors ${theme === each.id ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-							>
-								{each.name}
-							</button>
-						))}
+						{THEMES.map((each) => {
+							// A team's button stands for both its looks; moving to another team keeps light or dark.
+							const chosen = theme === each.id || brand?.id === each.id;
+							const next =
+								brand?.mode === "light" && brandOf(each.id) ? `${each.id}-light` : each.id;
+							return (
+								<button
+									key={each.id}
+									type="button"
+									aria-pressed={chosen}
+									onClick={() => setTheme(next as Theme)}
+									className={`py-2 text-[13px] transition-colors ${chosen ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+								>
+									{each.name}
+								</button>
+							);
+						})}
 					</div>
+					{brand ? (
+						<fieldset
+							aria-label={`${THEMES.find((each) => each.id === brand.id)?.name}, dark or light`}
+							className="grid grid-cols-2 gap-1"
+						>
+							{(["dark", "light"] as const).map((look) => (
+								<button
+									key={look}
+									type="button"
+									aria-pressed={brand.mode === look}
+									onClick={() =>
+										setTheme((look === "light" ? `${brand.id}-light` : brand.id) as Theme)
+									}
+									className={`py-2 text-[13px] transition-colors ${brand.mode === look ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
+								>
+									{look === "light" ? "Light" : "Dark"}
+								</button>
+							))}
+						</fieldset>
+					) : null}
 				</div>
 				{/* Which money is shown, live or paper: one at a time, never the two in one number. */}
 				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
@@ -958,23 +983,6 @@ function TilesPanel() {
 								className={`py-2 text-[13px] transition-colors ${side === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
 							>
 								{each === "live" ? "Live" : "Paper"}
-							</button>
-						))}
-					</div>
-				</div>
-				{/* The glass the city is seen through: a look to try, and one press to undo. */}
-				<div className="flex flex-col gap-2 bg-white/[0.06] px-4 py-3.5">
-					<span className="text-[15px] text-neutral-100">Glass</span>
-					<div className="grid grid-cols-2 gap-1">
-						{(["clear", "pebbled"] as const).map((each) => (
-							<button
-								key={each}
-								type="button"
-								aria-pressed={glass === each}
-								onClick={() => setGlass(each)}
-								className={`py-2 text-[13px] transition-colors ${glass === each ? "bg-white text-neutral-950" : "bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]"}`}
-							>
-								{each === "clear" ? "Clear" : "Pebbled"}
 							</button>
 						))}
 					</div>

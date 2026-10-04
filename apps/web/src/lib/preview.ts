@@ -1,5 +1,5 @@
 /**
- * Preview switches for trying things that are not finished: ?weather=rain, ?hour=18.5, ?toasts, ?break, ?splash, ?theme=light, ?open=top, ?wallets, ?glass=pebbled.
+ * Preview switches for trying things that are not finished: ?weather=rain, ?hour=18.5, ?toasts, ?break, ?splash, ?theme=light, ?open=top, ?wallets.
  * They work while developing and do nothing in the built app, so nobody on the live site can trip them.
  */
 export function preview(name: string): string | undefined {

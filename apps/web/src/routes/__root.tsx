@@ -6,7 +6,6 @@ import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
 import { cityTint, FogBackground } from "../components/fog-background.tsx";
 import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
-import { PebbledGlassFilter } from "../components/pebbled-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
 import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
@@ -15,8 +14,7 @@ import { Toaster } from "../components/toaster.tsx";
 import { WalletPicker } from "../components/wallet-picker.tsx";
 import type { Api } from "../lib/api.ts";
 import { failureMessage } from "../lib/failure.ts";
-import { useGlass } from "../lib/glass.ts";
-import { useTheme } from "../lib/theme.ts";
+import { brandOf, useTheme } from "../lib/theme.ts";
 import { useWeather } from "../lib/weather.ts";
 
 export type RouterContext = {
@@ -50,9 +48,20 @@ function Field() {
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
 	}, [mode]);
-	// Which theme, for the few things one theme does differently: Club's orange and its frosted glass.
+	// Which theme, and for a tribute theme, the accent that what is chosen or pressed glows in.
 	useEffect(() => {
-		document.documentElement.dataset["theme"] = theme;
+		const root = document.documentElement;
+		root.dataset["theme"] = theme;
+		const brand = brandOf(theme);
+		if (brand) {
+			root.dataset["accent"] = "on";
+			root.style.setProperty("--accent", brand.accent);
+			root.style.setProperty("--on-accent", brand.onAccent);
+		} else {
+			delete root.dataset["accent"];
+			root.style.removeProperty("--accent");
+			root.style.removeProperty("--on-accent");
+		}
 	}, [theme]);
 	// The city's hue, for the sidebars to take on: they follow the theme, and the sky in dynamic.
 	useEffect(() => {
@@ -60,11 +69,6 @@ function Field() {
 		document.documentElement.style.setProperty("--tint-cool", cool);
 		document.documentElement.style.setProperty("--tint-warm", warm);
 	}, [mode, sky]);
-	// The glass the city is seen through, the same way: one attribute, so undoing it is one press.
-	const glass = useGlass();
-	useEffect(() => {
-		document.documentElement.dataset["glass"] = glass;
-	}, [glass]);
 	// The weather where you are, for the dynamic theme only: it is the one that follows the world outside.
 	const weather = useWeather(theme === "dynamic");
 	// The sections slide on one strip; every other page is drawn on its own.
@@ -77,15 +81,7 @@ function Field() {
 	}, [section, path]);
 	return (
 		<div className="fixed inset-0 overflow-hidden [--side:0px] md:[--side:340px]">
-			{theme === "frost" ? (
-				// Frost: no city, only light falling across the glass from the top left into black.
-				<div
-					aria-hidden="true"
-					className="fog-field frost-field pointer-events-none fixed inset-0 z-0"
-				/>
-			) : (
-				<FogBackground mode={mode} sky={sky} weather={weather} />
-			)}
+			<FogBackground mode={mode} sky={sky} weather={weather} />
 			{weather.rain !== "none" ? <RainGlass rain={weather.rain} /> : null}
 			<FoggedGlass mode={mode} />
 			{/*
@@ -114,7 +110,6 @@ function Field() {
 			<Edges />
 			<Toaster />
 			<WalletPicker />
-			<PebbledGlassFilter />
 			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
 			<div
 				className="transition-opacity duration-1000 ease-in-out"
