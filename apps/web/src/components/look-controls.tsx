@@ -72,7 +72,7 @@ export function LookControls({ title = true }: { title?: boolean }) {
 				options={FIELDS}
 				chosen={choice.field}
 				onPick={pick("field")}
-				columns={3}
+				columns={2}
 			/>
 			<Row
 				name="Palette"

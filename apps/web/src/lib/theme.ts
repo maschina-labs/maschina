@@ -236,13 +236,14 @@ export type Mode = "dark" | "light";
  *   palette:    Maschina's own city, or a team's colors
  *   mode:       dark, light, or the system's (with a dynamic sky, the sun's)
  *   dynamic:    the weather where you are, and on System the sky through the day; or a still screen
- *   field:      what moves behind the glass: the mesh of colored fog, a ribbon, particles, dither, ASCII
+ *   field:      what moves behind the glass: the mesh of colored fog, a ribbon, particles or contours
+ *               (all soft by rule: nothing behind the tiles may have an edge or pattern their words sit on)
  *
  * The old Dynamic theme is System with a dynamic sky, so nothing anyone had chosen looks different.
  */
 export type PaletteId = "maschina" | BrandId;
 export type ModeChoice = Mode | "system";
-export type Field = "mesh" | "ribbon" | "particles" | "dither" | "ascii";
+export type Field = "mesh" | "ribbon" | "particles" | "contours";
 export type Choice = { palette: PaletteId; mode: ModeChoice; dynamic: boolean; field: Field };
 
 export const PALETTES: { id: PaletteId; name: string }[] = [
@@ -261,8 +262,7 @@ export const FIELDS: { id: Field; name: string }[] = [
 	{ id: "mesh", name: "Mesh" },
 	{ id: "ribbon", name: "Ribbon" },
 	{ id: "particles", name: "Particles" },
-	{ id: "dither", name: "Dither" },
-	{ id: "ascii", name: "ASCII" },
+	{ id: "contours", name: "Contours" },
 ];
 
 export const DEFAULT_CHOICE: Choice = {
