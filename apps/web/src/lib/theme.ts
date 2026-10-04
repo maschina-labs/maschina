@@ -375,11 +375,11 @@ export function resolve(
  * change is continuous: no moment where the screen visibly switches. Night is the city palette itself.
  */
 const NIGHT: Palette = {
-	night: { l: 0.13, c: 0.03, h: 242 },
-	top: { l: 0.24, c: 0.07, h: 238 },
-	upper: { l: 0.37, c: 0.075, h: 218 },
-	middle: { l: 0.44, c: 0.065, h: 188 },
-	glow: { l: 0.72, c: 0.1, h: 192 },
+	night: { l: 0.14, c: 0.006, h: 270 },
+	top: { l: 0.25, c: 0.012, h: 260 },
+	upper: { l: 0.38, c: 0.02, h: 285 },
+	middle: { l: 0.44, c: 0.012, h: 320 },
+	glow: { l: 0.78, c: 0.025, h: 300 },
 };
 // First light: deep violet above, rose through the middle, the sun coming up orange on the right.
 const DAWN: Palette = {

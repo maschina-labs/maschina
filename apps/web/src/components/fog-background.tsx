@@ -20,30 +20,30 @@ type Oklch = { l: number; c: number; h: number };
 export type Palette = { night: Oklch; top: Oklch; upper: Oklch; middle: Oklch; glow: Oklch };
 
 /**
- * Maschina's own palette, after the Gen X soft club references Ash pinned (2026-10-03): frosted glass,
- * chrome, and light streaking down a subway tunnel. A deep cobalt night, a steel-cyan haze, teal through
- * the middle and one icy aqua glow. It replaced the olive and amber city ("puke and pee").
+ * Maschina's own palette, silver and pearl (Ash, 2026-10-04: "that's the one"). Gunmetal night, a
+ * lilac-silver haze, a hint of pearl blush and one pale pearl light, all at low chroma so no hue leads and
+ * it reads as nobody else's brand. It replaced the olive and amber city, then two tries in blue.
  */
 export type Mode = "dark" | "light";
 
 const CITY_DARK: Palette = {
-	night: { l: 0.13, c: 0.03, h: 242 },
-	top: { l: 0.24, c: 0.07, h: 238 },
-	upper: { l: 0.37, c: 0.075, h: 218 },
-	middle: { l: 0.44, c: 0.065, h: 188 },
-	glow: { l: 0.72, c: 0.1, h: 192 },
+	night: { l: 0.14, c: 0.006, h: 270 },
+	top: { l: 0.25, c: 0.012, h: 260 },
+	upper: { l: 0.38, c: 0.02, h: 285 },
+	middle: { l: 0.44, c: 0.012, h: 320 },
+	glow: { l: 0.78, c: 0.025, h: 300 },
 };
 
 /**
- * The same palette by day: icy white, pale ice blue above, a touch of seafoam through the middle and the
- * aqua glow kept soft, like daylight through frosted glass. Each theme has both.
+ * Silver and pearl by day: pearl white, a deeper silver above and through the haze so the tiles stand off
+ * it, and the brightest pearl light low on the right. Each theme has both.
  */
 const CITY_LIGHT: Palette = {
-	night: { l: 0.955, c: 0.016, h: 212 },
-	top: { l: 0.88, c: 0.045, h: 226 },
-	upper: { l: 0.84, c: 0.06, h: 214 },
-	middle: { l: 0.89, c: 0.055, h: 182 },
-	glow: { l: 0.86, c: 0.085, h: 194 },
+	night: { l: 0.93, c: 0.007, h: 280 },
+	top: { l: 0.8, c: 0.016, h: 262 },
+	upper: { l: 0.75, c: 0.022, h: 285 },
+	middle: { l: 0.88, c: 0.014, h: 325 },
+	glow: { l: 0.98, c: 0.012, h: 300 },
 };
 
 const CITY: Record<Mode, Palette> = { dark: CITY_DARK, light: CITY_LIGHT };
