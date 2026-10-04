@@ -82,6 +82,23 @@ export function weatherOf(code: number): Weather {
 	}
 }
 
+/*
+ * The forecast's code is a model's, every fifteen minutes, and it often calls a thunderstorm heavy rain.
+ * So the energy in the air is read too: rain with enough of it to build thunder is taken as a storm. CAPE
+ * above about 800 J/kg is where thunderstorms become likely; a lightning potential, where a model offers
+ * one (central Europe), is lightning outright.
+ */
+const STORM_CAPE = 800;
+
+export function stormy(
+	weather: Weather,
+	air: { cape?: number | undefined; lightningPotential?: number | null | undefined },
+): Weather {
+	if (weather.lightning || weather.rain === "none") return weather;
+	const charged = (air.cape ?? 0) >= STORM_CAPE || (air.lightningPotential ?? 0) > 0;
+	return charged ? { ...weather, lightning: true, cloud: Math.max(weather.cloud, 0.95) } : weather;
+}
+
 /** The preview switch, ?weather=name, as a code to show. */
 const NAMED: Record<string, number> = {
 	clear: 0,
@@ -115,11 +132,17 @@ const EVERY_MS = 15 * 60_000;
 const ASKED = weatherFrom(preview("weather") ?? null);
 
 async function forecast(latitude: number, longitude: number): Promise<Weather> {
-	const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`;
+	const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code,cape,lightning_potential`;
 	const response = await fetch(url);
 	if (!response.ok) throw new Error(`The forecast answered ${response.status}`);
-	const body = (await response.json()) as { current?: { weather_code?: number } };
-	return weatherOf(body.current?.weather_code ?? 0);
+	const body = (await response.json()) as {
+		current?: { weather_code?: number; cape?: number; lightning_potential?: number | null };
+	};
+	const now = body.current;
+	return stormy(weatherOf(now?.weather_code ?? 0), {
+		cape: now?.cape,
+		lightningPotential: now?.lightning_potential,
+	});
 }
 
 /**

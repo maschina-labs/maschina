@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CLEAR, roundedPlace, useWeather, weatherFrom, weatherOf } from "./weather.ts";
+import { CLEAR, roundedPlace, stormy, useWeather, weatherFrom, weatherOf } from "./weather.ts";
 
 describe("weather from the forecast's codes", () => {
 	it("clear and cloud", () => {
@@ -74,6 +74,29 @@ describe("the weather where you are", () => {
 		const { result } = renderHook(() => useWeather(true));
 		await vi.waitFor(() => expect(result.current.rain).toBe("rain"));
 		expect(String(fetcher.mock.calls[0]?.[0])).toContain("latitude=45.4&longitude=-75.7");
+	});
+
+	it("reads a storm the code calls rain: rain with the energy for thunder in the air brings lightning", async () => {
+		Object.defineProperty(navigator, "geolocation", { configurable: true, value: at(true) });
+		const fetcher = vi.fn(
+			async (_url: string) =>
+				new Response(JSON.stringify({ current: { weather_code: 65, cape: 1400 } })),
+		);
+		vi.stubGlobal("fetch", fetcher);
+		const { result } = renderHook(() => useWeather(true));
+		await vi.waitFor(() => expect(result.current.lightning).toBe(true));
+		expect(result.current.rain).toBe("heavy");
+		expect(String(fetcher.mock.calls[0]?.[0])).toContain("cape");
+	});
+
+	it("storm energy alone is not a storm, and nor is rain in calm air", () => {
+		expect(stormy(weatherOf(65), { cape: 200 }).lightning).toBe(false);
+		expect(stormy(weatherOf(3), { cape: 2500 }).lightning).toBe(false);
+		expect(stormy(weatherOf(81), { cape: 900 }).lightning).toBe(true);
+		// Where the forecast gives a lightning potential, any at all while raining is enough.
+		expect(stormy(weatherOf(61), { cape: 0, lightningPotential: 12 }).lightning).toBe(true);
+		// A thunderstorm code stays one whatever the rest says.
+		expect(stormy(weatherOf(95), {}).lightning).toBe(true);
 	});
 
 	it("stays clear when the place is not given, or the forecast fails", async () => {
