@@ -43,30 +43,30 @@ const BRANDS = {
 			onAccent: "oklch(98% 0.01 40)",
 		},
 	},
-	// ORE Supply (ore.com): gold in black regolith; or gold on pale sand.
+	// ORE Supply (ore.com): gold in black regolith; or gold on pale sand. Warm, deep gold, not lemon.
 	ore: {
 		name: "Ore",
 		dark: {
 			sky: {
-				night: { l: 0.09, c: 0.004, h: 80 },
-				top: { l: 0.14, c: 0.008, h: 75 },
-				upper: { l: 0.2, c: 0.015, h: 75 },
-				middle: { l: 0.32, c: 0.07, h: 85 },
-				glow: { l: 0.8, c: 0.16, h: 92 },
+				night: { l: 0.09, c: 0.006, h: 75 },
+				top: { l: 0.14, c: 0.015, h: 75 },
+				upper: { l: 0.22, c: 0.04, h: 78 },
+				middle: { l: 0.36, c: 0.1, h: 78 },
+				glow: { l: 0.74, c: 0.15, h: 80 },
 			},
-			accent: "oklch(87% 0.17 95)",
-			onAccent: "oklch(14% 0.01 80)",
+			accent: "oklch(79% 0.15 80)",
+			onAccent: "oklch(14% 0.02 75)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.95, c: 0.012, h: 85 },
-				top: { l: 0.9, c: 0.03, h: 80 },
-				upper: { l: 0.85, c: 0.06, h: 85 },
-				middle: { l: 0.8, c: 0.11, h: 90 },
-				glow: { l: 0.82, c: 0.16, h: 95 },
+				night: { l: 0.94, c: 0.02, h: 82 },
+				top: { l: 0.89, c: 0.045, h: 80 },
+				upper: { l: 0.84, c: 0.08, h: 80 },
+				middle: { l: 0.78, c: 0.12, h: 78 },
+				glow: { l: 0.74, c: 0.15, h: 78 },
 			},
-			accent: "oklch(80% 0.17 92)",
-			onAccent: "oklch(16% 0.02 80)",
+			accent: "oklch(72% 0.15 76)",
+			onAccent: "oklch(14% 0.02 75)",
 		},
 	},
 	// Jupiter: deep teal night and its lime green; or lime over pale mint.
