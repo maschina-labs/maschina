@@ -40,6 +40,7 @@ import { Route as MarketplaceListingIdRouteImport } from './routes/marketplace.$
 import { Route as NetworkIndexRouteImport } from './routes/network.index'
 import { Route as NetworkNodeIdRouteImport } from './routes/network.$nodeId'
 import { Route as NetworkJoinRouteImport } from './routes/network.join'
+import { Route as NewsStoryIdRouteImport } from './routes/news.$storyId'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAlertsRouteImport } from './routes/settings.alerts'
 import { Route as SettingsKeysRouteImport } from './routes/settings.keys'
@@ -204,6 +205,11 @@ const NetworkJoinRoute = NetworkJoinRouteImport.update({
   path: '/network/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsStoryIdRoute = NewsStoryIdRouteImport.update({
+  id: '/news/$storyId',
+  path: '/news/$storyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
+  '/news/$storyId': typeof NewsStoryIdRoute
   '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
@@ -315,6 +322,7 @@ export interface FileRoutesByTo {
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
+  '/news/$storyId': typeof NewsStoryIdRoute
   '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
@@ -357,6 +365,7 @@ export interface FileRoutesById {
   '/marketplace/$listingId': typeof MarketplaceListingIdRoute
   '/network/$nodeId': typeof NetworkNodeIdRoute
   '/network/join': typeof NetworkJoinRoute
+  '/news/$storyId': typeof NewsStoryIdRoute
   '/settings/alerts': typeof SettingsAlertsRoute
   '/settings/keys': typeof SettingsKeysRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
+    | '/news/$storyId'
     | '/settings/alerts'
     | '/settings/keys'
     | '/teams/$teamId'
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
+    | '/news/$storyId'
     | '/settings/alerts'
     | '/settings/keys'
     | '/teams/$teamId'
@@ -482,6 +493,7 @@ export interface FileRouteTypes {
     | '/marketplace/$listingId'
     | '/network/$nodeId'
     | '/network/join'
+    | '/news/$storyId'
     | '/settings/alerts'
     | '/settings/keys'
     | '/teams/$teamId'
@@ -524,6 +536,7 @@ export interface RootRouteChildren {
   MarketplaceListingIdRoute: typeof MarketplaceListingIdRoute
   NetworkNodeIdRoute: typeof NetworkNodeIdRoute
   NetworkJoinRoute: typeof NetworkJoinRoute
+  NewsStoryIdRoute: typeof NewsStoryIdRoute
   SettingsAlertsRoute: typeof SettingsAlertsRoute
   SettingsKeysRoute: typeof SettingsKeysRoute
   TeamsTeamIdRoute: typeof TeamsTeamIdRoute
@@ -756,6 +769,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NetworkJoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/news/$storyId': {
+      id: '/news/$storyId'
+      path: '/news/$storyId'
+      fullPath: '/news/$storyId'
+      preLoaderRoute: typeof NewsStoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/': {
       id: '/settings/'
       path: '/settings'
@@ -844,6 +864,7 @@ const rootRouteChildren: RootRouteChildren = {
   MarketplaceListingIdRoute: MarketplaceListingIdRoute,
   NetworkNodeIdRoute: NetworkNodeIdRoute,
   NetworkJoinRoute: NetworkJoinRoute,
+  NewsStoryIdRoute: NewsStoryIdRoute,
   SettingsAlertsRoute: SettingsAlertsRoute,
   SettingsKeysRoute: SettingsKeysRoute,
   TeamsTeamIdRoute: TeamsTeamIdRoute,

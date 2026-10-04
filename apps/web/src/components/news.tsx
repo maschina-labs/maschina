@@ -1,13 +1,22 @@
-import { useRouter } from "@tanstack/react-router";
+import { ArrowUpRight } from "@phosphor-icons/react";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { ago, type NewsFilter, type NewsItem, picked, sourcesOf, useNews } from "../lib/news.ts";
+import {
+	ago,
+	type NewsFilter,
+	type NewsItem,
+	picked,
+	sourcesOf,
+	storyKey,
+	useNews,
+} from "../lib/news.ts";
 
 /**
  * The news, under Home: scrolled down to, never mixed in with your own tiles above it. The world's
  * stories here, your money up there.
  *
  * A rail of sources on the left, the newest story large, then the rest as rows with their picture at
- * the side. Every story opens at its publisher, in a new tab.
+ * the side. A story opens here, over Home; going on to its publisher is a choice of its own.
  */
 
 function Byline({ item }: { item: NewsItem }) {
@@ -27,10 +36,9 @@ function Story({ item, lead }: { item: NewsItem; lead: boolean }) {
 			data-lead={lead}
 			className="bg-white/[0.06] backdrop-blur-xl transition-colors hover:bg-white/[0.1]"
 		>
-			<a
-				href={item.link}
-				target="_blank"
-				rel="noopener noreferrer"
+			<Link
+				to="/news/$storyId"
+				params={{ storyId: storyKey(item.id) }}
 				className={lead ? "flex flex-col gap-4 p-4" : "flex items-start gap-4 p-4"}
 			>
 				{lead && item.image ? (
@@ -70,7 +78,7 @@ function Story({ item, lead }: { item: NewsItem; lead: boolean }) {
 						className="aspect-[16/10] w-32 shrink-0 bg-white/[0.04] object-cover"
 					/>
 				) : null}
-			</a>
+			</Link>
 		</article>
 	);
 }
@@ -153,5 +161,50 @@ export function NewsFeed() {
 				)}
 			</section>
 		</div>
+	);
+}
+
+/** One story, read in the app: what the publisher's feed gives, and a plain way on to the whole of it. */
+export function NewsReader({ storyKey: key }: { storyKey: string }) {
+	const { api } = useRouter().options.context;
+	const news = useNews(api);
+	const item = news.data?.items.find((each) => storyKey(each.id) === key);
+	if (!item)
+		return (
+			<p className="bg-white/[0.06] p-6 text-[14px] text-neutral-400">
+				{news.isPending
+					? "Reading the news…"
+					: "This story is no longer in the news. The feed keeps only the latest from each publisher."}
+			</p>
+		);
+	return (
+		<article className="flex flex-col gap-6 bg-white/[0.06] p-6 backdrop-blur-xl md:flex-row md:gap-8 md:p-8">
+			{item.image ? (
+				<img
+					src={item.image}
+					alt=""
+					referrerPolicy="no-referrer"
+					className="aspect-[16/10] w-full bg-white/[0.04] object-cover md:w-[45%] md:shrink-0"
+				/>
+			) : null}
+			<div className="flex min-w-0 flex-1 flex-col gap-4">
+				<Byline item={item} />
+				<h2 className="font-display font-normal text-[clamp(24px,2.4vw,34px)] text-neutral-100 leading-tight">
+					{item.title}
+				</h2>
+				{item.summary ? (
+					<p className="text-[15px] text-neutral-300 leading-relaxed">{item.summary}</p>
+				) : null}
+				<a
+					href={item.link}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="mt-2 inline-flex items-center gap-2 self-start bg-white px-4 py-2.5 text-[14px] text-neutral-950 transition-colors hover:bg-white/90"
+				>
+					Read it on {item.source}
+					<ArrowUpRight size={16} weight="bold" />
+				</a>
+			</div>
+		</article>
 	);
 }

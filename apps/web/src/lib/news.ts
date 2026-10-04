@@ -19,6 +19,20 @@ export type NewsItem = {
 };
 type NewsResponse = { items: NewsItem[]; fetchedAt: string };
 
+/**
+ * A short, steady name for a story, for its address in the app: the same story always gets the same one,
+ * and the publisher's long link stays out of the address bar.
+ */
+export function storyKey(id: string): string {
+	// FNV-1a, 32 bits, written out in base 36.
+	let hash = 0x811c9dc5;
+	for (let index = 0; index < id.length; index++) {
+		hash ^= id.charCodeAt(index);
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+	return hash.toString(36);
+}
+
 export type NewsFilter = { kind: "all" } | { kind: "solana" } | { kind: "source"; source: string };
 
 /** How long ago, the way people say it; past a week, the date. */

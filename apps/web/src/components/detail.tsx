@@ -27,6 +27,7 @@ import {
 	VaultScreen,
 } from "./money-screens.tsx";
 import { NewMachineScreen } from "./new-machine-screen.tsx";
+import { NewsReader } from "./news.tsx";
 import { PapersScreen } from "./papers-screen.tsx";
 import {
 	CreatorScreen,
@@ -81,6 +82,7 @@ export function titleFor(path: string): string {
 		[/^\/teams(\/|$)/, "Teams"],
 		[/^\/u\/[^/]+(\/|$)/, "Profile"],
 		[/^\/manager(\/|$)/, "Manager"],
+		[/^\/news\/[^/]+(\/|$)/, "News"],
 		[/^\/sign-in(\/|$)/, "Sign in"],
 		[/^\/welcome(\/|$)/, "Welcome"],
 		[/^\/papers(\/|$)/, "Papers"],
@@ -227,6 +229,9 @@ export function Detail({ back }: { back: string }) {
 						{/* The manager is a conversation, not tiles: it takes the whole of the grid's room. */}
 						{titleFor(path) === "Manager" ? (
 							<ManagerPage />
+						) : titleFor(path) === "News" ? (
+							// A story is read, not tiled: it takes the grid's room like the manager does.
+							<NewsReader storyKey={path.split("/")[2] ?? ""} />
 						) : (
 							<Bento label={titleFor(path)}>
 								<DetailTiles path={path} />

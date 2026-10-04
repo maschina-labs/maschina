@@ -27,9 +27,9 @@ describe("the news under Home", () => {
 		expect(await within(news).findByText("Open USD Is Live on Solana")).toBeDefined();
 	});
 
-	it("leads with the newest story large, and every story opens at its publisher", async () => {
+	it("leads with the newest story large, and opens each one here, not at its publisher", async () => {
 		standIn();
-		renderAt("/");
+		const { router } = renderAt("/");
 		const news = await feed();
 		const stories = await within(news).findAllByRole("article");
 		expect(stories).toHaveLength(3);
@@ -40,10 +40,26 @@ describe("the news under Home", () => {
 			"https://solana.com/uploads/hero.webp",
 		);
 		const link = within(lead).getByRole("link", { name: /Open USD Is Live on Solana/ });
-		expect(link.getAttribute("href")).toBe("https://solana.com/news/open-usd");
-		expect(link.getAttribute("target")).toBe("_blank");
-		expect(link.getAttribute("rel")).toContain("noopener");
-		expect(within(lead).getByText(/Solana/, { selector: "[data-source]" })).toBeDefined();
+		expect(link.getAttribute("target")).toBeNull();
+		fireEvent.click(link);
+		await vi.waitFor(() => expect(router.state.location.pathname).toMatch(/^\/news\/[a-z0-9]+$/));
+		const reader = await screen.findByRole("dialog", { name: "News" });
+		expect(
+			within(reader).getByRole("heading", { name: "Open USD Is Live on Solana" }),
+		).toBeDefined();
+		expect(within(reader).getByText("A dollar that settles in seconds.")).toBeDefined();
+		// Going to the publisher is its own, plain choice.
+		const out = within(reader).getByRole("link", { name: "Read it on Solana" });
+		expect(out.getAttribute("href")).toBe("https://solana.com/news/open-usd");
+		expect(out.getAttribute("target")).toBe("_blank");
+		expect(out.getAttribute("rel")).toContain("noopener");
+	});
+
+	it("says so when a story has left the feed", async () => {
+		standIn();
+		renderAt("/news/gone");
+		const reader = await screen.findByRole("dialog", { name: "News" });
+		expect(await within(reader).findByText(/no longer in the news/)).toBeDefined();
 	});
 
 	it("narrows to Solana, or to one source, from the rail beside it", async () => {

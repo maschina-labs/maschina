@@ -149,7 +149,7 @@ export const TRADER_RUN = {
 };
 
 /** The news, the same for everyone, signed in or not. */
-export const NEWS = {
+const NEWS = {
 	fetchedAt: "2026-10-03T12:00:00.000Z",
 	items: [
 		{

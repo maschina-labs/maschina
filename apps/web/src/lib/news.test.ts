@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ago, type NewsItem, picked, sourcesOf } from "./news.ts";
+import { ago, type NewsItem, picked, sourcesOf, storyKey } from "./news.ts";
 
 const story = (source: string, solana: boolean, hour: number): NewsItem => ({
 	id: `https://example.com/${source}/${hour}`,
@@ -28,6 +28,14 @@ describe("the news", () => {
 		expect(ago("2026-10-02T11:00:00.000Z", now)).toBe("1 day ago");
 		expect(ago("2026-09-30T12:00:00.000Z", now)).toBe("3 days ago");
 		expect(ago("2026-09-01T12:00:00.000Z", now)).toBe("Sep 1");
+	});
+
+	it("names each story short and the same every time, one name per story", () => {
+		const key = storyKey("https://decrypt.co/380005/haul");
+		expect(key).toMatch(/^[a-z0-9]+$/);
+		expect(storyKey("https://decrypt.co/380005/haul")).toBe(key);
+		const keys = new Set(items.map((each) => storyKey(each.id)));
+		expect(keys.size).toBe(items.length);
 	});
 
 	it("lists the sources, the busiest first", () => {

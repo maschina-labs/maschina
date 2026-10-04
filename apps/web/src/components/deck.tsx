@@ -339,19 +339,14 @@ export function Deck({ behind }: { behind?: string } = {}) {
 								// down past its tiles to the news.
 								className={`no-scrollbar absolute top-0 h-full w-full overflow-y-auto overscroll-y-contain px-5 pb-32 md:px-0 md:pb-10 ${section.to === "/" ? "" : "md:overflow-hidden"}`}
 							>
-								{/* The first screen is your own tiles alone; the news starts below it. */}
-								<div className="relative flex justify-center md:min-h-full">
+								{/*
+								 * The first screen is your own tiles alone. The news starts just past its bottom edge, the
+								 * page's own bottom padding included, so it is found by scrolling and never peeks in.
+								 */}
+								<div className="flex justify-center md:min-h-[calc(100%+2.5rem)]">
 									<Bento label={section.label}>
 										<Content />
 									</Bento>
-									{section.to === "/" ? (
-										<span
-											aria-hidden="true"
-											className="pointer-events-none absolute bottom-3 hidden text-[12px] text-neutral-500 tracking-[0.1em] md:block"
-										>
-											NEWS BELOW
-										</span>
-									) : null}
 								</div>
 								{section.to === "/" ? (
 									<div className="mt-8 flex justify-center md:mt-0">
