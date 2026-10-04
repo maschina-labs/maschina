@@ -1,28 +1,88 @@
 import { describe, expect, it } from "vitest";
-import { brandOf, modeOf, skyAt, themeFrom } from "./theme.ts";
+import { brandOf, choiceFrom, choiceFromTheme, DEFAULT_CHOICE, resolve, skyAt } from "./theme.ts";
 
-describe("themes", () => {
-	it("reads a saved theme, and falls back to dark for anything else", () => {
-		expect(themeFrom("light")).toBe("light");
-		expect(themeFrom("system")).toBe("system");
-		expect(themeFrom("dynamic")).toBe("dynamic");
-		expect(themeFrom(null)).toBe("dark");
-		expect(themeFrom("purple")).toBe("dark");
+const noon = { systemDark: true, hour: 12 };
+const night = { systemDark: false, hour: 2 };
+
+describe("the four choices", () => {
+	it("carry over every theme saved before them, so nobody's screen changes", () => {
+		expect(choiceFromTheme("dark")).toEqual(DEFAULT_CHOICE);
+		expect(choiceFromTheme("light")).toMatchObject({ palette: "maschina", mode: "light" });
+		expect(choiceFromTheme("system")).toMatchObject({ mode: "system", dynamic: false });
+		// The old Dynamic is System with a dynamic sky.
+		expect(choiceFromTheme("dynamic")).toMatchObject({ mode: "system", dynamic: true });
+		expect(choiceFromTheme("solana-light")).toMatchObject({ palette: "solana", mode: "light" });
+		expect(choiceFromTheme("ore")).toMatchObject({ palette: "ore", mode: "dark" });
+		expect(choiceFromTheme("club")).toMatchObject({ palette: "helius" });
+		expect(choiceFromTheme("frost")).toEqual(DEFAULT_CHOICE);
+		expect(choiceFromTheme("nobody-light")).toEqual(DEFAULT_CHOICE);
+		expect(choiceFromTheme(null)).toEqual(DEFAULT_CHOICE);
 	});
 
-	it("dark and light are fixed; system follows the computer", () => {
-		expect(modeOf("dark", { systemDark: false, hour: 12 })).toBe("dark");
-		expect(modeOf("light", { systemDark: true, hour: 2 })).toBe("light");
-		expect(modeOf("system", { systemDark: true, hour: 12 })).toBe("dark");
-		expect(modeOf("system", { systemDark: false, hour: 2 })).toBe("light");
+	it("read each saved choice on its own, so one bad value never costs the rest", () => {
+		const saved = JSON.stringify({
+			palette: "jupiter",
+			mode: "purple",
+			dynamic: true,
+			field: "ribbon",
+		});
+		expect(choiceFrom(saved, null)).toEqual({
+			palette: "jupiter",
+			mode: "dark",
+			dynamic: true,
+			field: "ribbon",
+			// Not saved before Motion existed: it starts Calm.
+			motion: "calm",
+		});
+		expect(choiceFrom("not json", "light")).toMatchObject({ mode: "light" });
+		expect(choiceFrom(null, "dynamic")).toMatchObject({ mode: "system", dynamic: true });
 	});
 
-	it("dynamic is light by day and dark by night", () => {
-		expect(modeOf("dynamic", { systemDark: true, hour: 12 })).toBe("light");
-		expect(modeOf("dynamic", { systemDark: false, hour: 2 })).toBe("dark");
-		expect(modeOf("dynamic", { systemDark: false, hour: 22 })).toBe("dark");
+	it("dark and light are fixed; system follows the computer, or the sun when the sky is dynamic", () => {
+		expect(resolve({ ...DEFAULT_CHOICE, mode: "dark" }, night).mode).toBe("dark");
+		expect(resolve({ ...DEFAULT_CHOICE, mode: "light" }, night).mode).toBe("light");
+		expect(resolve({ ...DEFAULT_CHOICE, mode: "system" }, noon).mode).toBe("dark");
+		expect(resolve({ ...DEFAULT_CHOICE, mode: "system" }, night).mode).toBe("light");
+		const sun = { ...DEFAULT_CHOICE, mode: "system" as const, dynamic: true };
+		expect(resolve(sun, noon).mode).toBe("light");
+		expect(resolve(sun, night).mode).toBe("dark");
+		// Only then does Maschina's own sky move through the day.
+		expect(resolve(sun, noon).sky).toEqual(skyAt(12));
+		expect(resolve({ ...DEFAULT_CHOICE, mode: "dark", dynamic: true }, noon).sky).toBeUndefined();
 	});
 
+	it("a dynamic sky brings the weather; a still one never does", () => {
+		expect(resolve({ ...DEFAULT_CHOICE, dynamic: true }, noon).weather).toBe(true);
+		expect(resolve(DEFAULT_CHOICE, noon).weather).toBe(false);
+	});
+
+	it("a team's palette gives its own sky and accent in whichever mode is chosen", () => {
+		const solanaLight = resolve({ ...DEFAULT_CHOICE, palette: "solana", mode: "light" }, night);
+		expect(solanaLight.brand?.id).toBe("solana");
+		expect(solanaLight.brand?.accent).toMatch(/^oklch\(/);
+		expect(solanaLight.sky?.night.l).toBeGreaterThan(0.6);
+		expect(resolve({ ...DEFAULT_CHOICE, palette: "solana" }, night).sky?.night.l).toBeLessThan(0.6);
+		expect(resolve(DEFAULT_CHOICE, night).brand).toBeUndefined();
+	});
+
+	it("every team comes dark and light", () => {
+		for (const id of [
+			"helius",
+			"ore",
+			"jupiter",
+			"solana",
+			"phantom",
+			"backpack",
+			"solflare",
+			"bonk",
+		] as const) {
+			expect(brandOf(id, "dark")?.sky.night.l).toBeLessThan(0.6);
+			expect(brandOf(id, "light")?.sky.night.l).toBeGreaterThan(0.6);
+		}
+	});
+});
+
+describe("the sky through the day", () => {
 	it("the sky is darkest at night, brightest at noon, and warm at sunset", () => {
 		const night = skyAt(2);
 		const noon = skyAt(12.5);
@@ -46,47 +106,5 @@ describe("themes", () => {
 	it("wraps past midnight without a jump", () => {
 		expect(skyAt(24).night.l).toBeCloseTo(skyAt(0).night.l, 5);
 		expect(skyAt(23.99).night.l).toBeCloseTo(skyAt(0).night.l, 2);
-	});
-});
-
-describe("tribute themes", () => {
-	it("Club is now Helius, so a browser that chose it keeps its orange", () => {
-		expect(themeFrom("club")).toBe("helius");
-		expect(themeFrom("helius")).toBe("helius");
-	});
-
-	it("Frost is gone, and a browser that chose it falls back to dark", () => {
-		expect(themeFrom("frost")).toBe("dark");
-	});
-
-	it("every one comes dark and light, each with its own sky and accent", () => {
-		const ids = ["helius", "ore", "jupiter", "solana", "phantom", "backpack", "solflare", "bonk"];
-		for (const id of ids) {
-			for (const [theme, mode] of [
-				[id, "dark"],
-				[`${id}-light`, "light"],
-			] as const) {
-				expect(themeFrom(theme)).toBe(theme);
-				const brand = brandOf(themeFrom(theme));
-				expect(brand?.id).toBe(id);
-				expect(brand?.mode).toBe(mode);
-				expect(brand?.accent).toMatch(/^oklch\(/);
-				expect(brand?.onAccent).toMatch(/^oklch\(/);
-				// A light city is pale behind, a dark one dark, whatever the computer or the hour says.
-				expect((brand?.sky.night.l ?? 0) > 0.6).toBe(mode === "light");
-				expect(modeOf(themeFrom(theme), { systemDark: true, hour: 2 })).toBe(mode);
-				expect(modeOf(themeFrom(theme), { systemDark: false, hour: 12 })).toBe(mode);
-			}
-		}
-	});
-
-	it("a made up team, light or not, falls back to dark", () => {
-		expect(themeFrom("nobody-light")).toBe("dark");
-		expect(themeFrom("light-light")).toBe("dark");
-	});
-
-	it("the plain themes have no accent of their own", () => {
-		expect(brandOf("dark")).toBeUndefined();
-		expect(brandOf("dynamic")).toBeUndefined();
 	});
 });

@@ -187,7 +187,7 @@ export function Detail({ back }: { back: string }) {
 			{/* The card that grows: solid, nothing in it, so it moves cleanly. The opened screen is opaque. */}
 			<div
 				aria-hidden="true"
-				className="absolute inset-0 bg-(--surface-sheet) will-change-transform [transform-origin:center]"
+				className="absolute inset-0 [background:var(--surface-detail)] will-change-transform [transform-origin:center]"
 				style={{
 					transform: atTile ? tileTransform(origin, screen) : "none",
 					opacity: leaving ? 0 : 1,

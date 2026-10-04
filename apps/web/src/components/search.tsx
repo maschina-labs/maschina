@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { setIdleMode } from "../lib/idle.ts";
 import { useMachines } from "../lib/machines.ts";
 import { useSession } from "../lib/session.ts";
-import { setTheme, useTheme } from "../lib/theme.ts";
+import { setChoice, useTheme } from "../lib/theme.ts";
 import { SECTIONS } from "./sections.tsx";
 
 /**
@@ -86,7 +86,7 @@ export function SearchField({ onClose }: { onClose: () => void }) {
 			id: "mode",
 			group: "Actions",
 			label: light ? "Dark mode" : "Light mode",
-			run: () => setTheme(light ? "dark" : "light"),
+			run: () => setChoice({ mode: light ? "dark" : "light" }),
 		},
 	];
 	const found = results.filter((result) => matches(result, typed));

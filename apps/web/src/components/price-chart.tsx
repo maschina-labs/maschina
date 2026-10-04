@@ -14,6 +14,8 @@ import {
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import { type Candle, fetchCandles, streamCandles } from "../lib/candles.ts";
+import { rgbaOf } from "../lib/chart-tone.ts";
+import { useTheme } from "../lib/theme.ts";
 import { candleTime, type Trade } from "../lib/trades.ts";
 
 /**
@@ -60,6 +62,10 @@ export function PriceChart({
 }) {
 	const holder = useRef<HTMLDivElement>(null);
 	const series = useRef<ISeriesApi<"Candlestick">>(undefined);
+	const bars = useRef<ISeriesApi<"Histogram">>(undefined);
+	// A team's palette draws the candles in its own color; Maschina's stay monochrome.
+	const { brand } = useTheme();
+	const accent = brand?.chart ?? brand?.accent;
 	const pins = useRef<ISeriesMarkersPluginApi<Time>>(undefined);
 	const [failed, setFailed] = useState<string>();
 	// The first candle drawn: trades from before it are off the chart, not piled at its edge.
@@ -116,6 +122,7 @@ export function PriceChart({
 			priceLineVisible: false,
 		});
 		volume.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+		bars.current = volume;
 		const bar = (candle: Candle) => ({ time: candle.time, value: candle.volume });
 		const known = new Map<number, Candle>();
 		chart.subscribeCrosshairMove((move) => {
@@ -155,11 +162,25 @@ export function PriceChart({
 			closed = true;
 			stop();
 			series.current = undefined;
+			bars.current = undefined;
 			pins.current = undefined;
 			chart.remove();
 		};
 		// onLive is a callback for the page; a new one each render must not rebuild the chart.
 	}, [symbol, interval, history]);
+
+	// The theme's color on the candles: full for a rise, quieter for a fall, faint on the volume.
+	useEffect(() => {
+		const up = (accent && rgbaOf(accent, 0.95)) || UP;
+		const down = (accent && rgbaOf(accent, 0.42)) || DOWN;
+		series.current?.applyOptions?.({
+			upColor: up,
+			downColor: down,
+			wickUpColor: up,
+			wickDownColor: down,
+		});
+		bars.current?.applyOptions?.({ color: (accent && rgbaOf(accent, 0.16)) || VOLUME });
+	}, [accent, symbol, interval, history]);
 
 	// The machine's own trades, pinned on the candle each happened in: a buy under it, a sale over it.
 	const traded = trades.map((trade) => `${trade.at}${trade.side}`).join();

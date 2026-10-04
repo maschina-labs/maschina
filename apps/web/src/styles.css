@@ -175,7 +175,16 @@ input[type="range"].square::-moz-range-thumb {
  * once here so light mode can turn each over with the rest of the palette.
  */
 :root {
+	/* What the charts draw in: white (black by day) for Maschina, a team's own color on its palette. */
+	--chart: var(--color-white);
 	--surface-sheet: oklch(15% 0 0);
+	/* A detail page sits in the theme's own sky, the field's colors from top to night, only still, so it
+	   never clashes with the world behind it (Ash, 2026-10-04). */
+	--surface-detail: linear-gradient(
+		to bottom,
+		var(--sky-top, oklch(25% 0 0)),
+		var(--sky-night, oklch(15% 0 0)) 70%
+	);
 	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
 	   bottom, opaque enough to read on. */
 	--surface-panel: linear-gradient(
@@ -240,6 +249,10 @@ input[type="range"].square::-moz-range-thumb {
 :root[data-mode="light"] .tv-lightweight-charts {
 	filter: invert(1);
 }
+/* A team's colored candles: inverted for light mode, then turned back round the hue wheel, so red stays red. */
+:root[data-mode="light"][data-accent] .tv-lightweight-charts {
+	filter: invert(1) hue-rotate(180deg);
+}
 
 /*
  * White on dark glows and reads larger; black on light reads thinner, and the ring looks smaller than the
@@ -257,4 +270,61 @@ input[type="range"].square::-moz-range-thumb {
 :root[data-accent] button.bg-white:not(:disabled) {
 	background-color: var(--accent);
 	color: var(--on-accent);
+}
+/* Everything inside takes the button's own text color, so a second line in grey never sits unreadable on
+   the accent (Backpack's red, 2026-10-04). Quieter lines stay quieter, just in the same color. */
+:root[data-accent] [aria-pressed="true"].bg-white *,
+:root[data-accent] button.bg-white:not(:disabled) * {
+	color: var(--on-accent);
+}
+:root[data-accent]
+	[aria-pressed="true"].bg-white
+	:is(
+		[class*="text-neutral-3"],
+		[class*="text-neutral-4"],
+		[class*="text-neutral-5"],
+		[class*="text-neutral-6"]
+	),
+:root[data-accent]
+	button.bg-white:not(:disabled)
+	:is(
+		[class*="text-neutral-3"],
+		[class*="text-neutral-4"],
+		[class*="text-neutral-5"],
+		[class*="text-neutral-6"]
+	) {
+	opacity: 0.78;
+}
+
+/* Every tile is lit from above: a few percent brighter at the top, a few deeper at the bottom, and a soft
+   shadow beneath, so it has depth without a sheen (Ash, 2026-10-04: flat, but a sheen would ruin it). */
+.tile {
+	background-image: linear-gradient(
+		to bottom,
+		oklch(100% 0 0 / 0.035),
+		oklch(100% 0 0 / 0) 45%,
+		oklch(0% 0 0 / 0.05)
+	);
+	box-shadow:
+		0 1px 2px oklch(0% 0 0 / 0.18),
+		0 12px 28px -14px oklch(0% 0 0 / 0.45);
+}
+:root[data-mode="light"] .tile {
+	background-image: linear-gradient(
+		to bottom,
+		oklch(100% 0 0 / 0.3),
+		oklch(100% 0 0 / 0) 50%,
+		oklch(40% 0.01 270 / 0.035)
+	);
+	box-shadow:
+		0 1px 2px oklch(30% 0.01 270 / 0.07),
+		0 14px 30px -16px oklch(30% 0.02 270 / 0.22);
+}
+/* By day the tiles are frosted white panes over the silver, lighter than what is behind them, so the UI
+   sits on the background rather than sinking into it as grey. Night is unchanged. */
+:root[data-mode="light"] .tile {
+	background-color: oklch(100% 0 0 / 0.55);
+}
+:root[data-mode="light"] .tile:hover {
+	background-color: oklch(100% 0 0 / 0.72);
 }

@@ -9,7 +9,13 @@ import { preview } from "./preview.ts";
  */
 
 /** One look of a tribute theme: the city's colors, and the accent for whatever is chosen or pressed. */
-export type Look = { sky: Palette; accent: string; onAccent: string };
+export type Look = {
+	sky: Palette;
+	accent: string;
+	onAccent: string;
+	/** What the charts draw in, when it is not the accent (Solana: green buttons, violet charts). */
+	chart?: string;
+};
 type Brand = { name: string; dark: Look; light: Look };
 
 /*
@@ -43,30 +49,30 @@ const BRANDS = {
 			onAccent: "oklch(98% 0.01 40)",
 		},
 	},
-	// ORE Supply (ore.com): gold in black regolith; or gold on pale sand. Warm, deep gold, not lemon.
+	// ORE Supply (ore.com): gold in the earth. Umber soil and ochre, and a metallic gold light (2026-10-04).
 	ore: {
 		name: "Ore",
 		dark: {
 			sky: {
-				night: { l: 0.09, c: 0.006, h: 75 },
-				top: { l: 0.14, c: 0.015, h: 75 },
-				upper: { l: 0.22, c: 0.04, h: 78 },
-				middle: { l: 0.36, c: 0.1, h: 78 },
-				glow: { l: 0.74, c: 0.15, h: 80 },
+				night: { l: 0.1, c: 0.015, h: 60 },
+				top: { l: 0.16, c: 0.03, h: 55 },
+				upper: { l: 0.24, c: 0.05, h: 60 },
+				middle: { l: 0.34, c: 0.07, h: 70 },
+				glow: { l: 0.76, c: 0.14, h: 84 },
 			},
-			accent: "oklch(79% 0.15 80)",
-			onAccent: "oklch(14% 0.02 75)",
+			accent: "oklch(78% 0.14 82)",
+			onAccent: "oklch(15% 0.02 60)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.94, c: 0.02, h: 82 },
-				top: { l: 0.89, c: 0.045, h: 80 },
-				upper: { l: 0.84, c: 0.08, h: 80 },
-				middle: { l: 0.78, c: 0.12, h: 78 },
-				glow: { l: 0.74, c: 0.15, h: 78 },
+				night: { l: 0.93, c: 0.025, h: 75 },
+				top: { l: 0.86, c: 0.04, h: 65 },
+				upper: { l: 0.8, c: 0.06, h: 65 },
+				middle: { l: 0.86, c: 0.06, h: 80 },
+				glow: { l: 0.82, c: 0.13, h: 85 },
 			},
-			accent: "oklch(72% 0.15 76)",
-			onAccent: "oklch(14% 0.02 75)",
+			accent: "oklch(70% 0.14 78)",
+			onAccent: "oklch(15% 0.02 60)",
 		},
 	},
 	// Jupiter: deep teal night and its lime green; or lime over pale mint.
@@ -95,30 +101,33 @@ const BRANDS = {
 			onAccent: "oklch(18% 0.03 230)",
 		},
 	},
-	// Solana: violet above, the green coming up beneath it; by day, pale violet and the same green.
+	// Solana as solana.com draws itself: near black, violet into the blue that violet and green make, with
+	// green kept for what is pressed. Charts stay violet, so the theme stays mostly purple (Ash, 2026-10-04).
 	solana: {
 		name: "Solana",
 		dark: {
 			sky: {
-				night: { l: 0.12, c: 0.03, h: 295 },
-				top: { l: 0.22, c: 0.12, h: 300 },
-				upper: { l: 0.36, c: 0.16, h: 300 },
-				middle: { l: 0.46, c: 0.1, h: 200 },
-				glow: { l: 0.82, c: 0.18, h: 160 },
+				night: { l: 0.09, c: 0.012, h: 262 },
+				top: { l: 0.15, c: 0.03, h: 265 },
+				upper: { l: 0.2, c: 0.05, h: 288 },
+				middle: { l: 0.22, c: 0.04, h: 250 },
+				glow: { l: 0.5, c: 0.1, h: 285 },
 			},
-			accent: "oklch(85% 0.19 160)",
-			onAccent: "oklch(16% 0.04 295)",
+			accent: "oklch(80% 0.13 165)",
+			onAccent: "oklch(16% 0.03 280)",
+			chart: "oklch(66% 0.17 292)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.95, c: 0.015, h: 300 },
-				top: { l: 0.88, c: 0.05, h: 300 },
-				upper: { l: 0.82, c: 0.09, h: 300 },
-				middle: { l: 0.86, c: 0.08, h: 190 },
-				glow: { l: 0.84, c: 0.15, h: 160 },
+				night: { l: 0.95, c: 0.01, h: 280 },
+				top: { l: 0.9, c: 0.025, h: 270 },
+				upper: { l: 0.86, c: 0.045, h: 290 },
+				middle: { l: 0.88, c: 0.035, h: 250 },
+				glow: { l: 0.84, c: 0.06, h: 285 },
 			},
-			accent: "oklch(58% 0.25 300)",
-			onAccent: "oklch(98% 0.01 300)",
+			accent: "oklch(62% 0.13 165)",
+			onAccent: "oklch(98% 0.01 165)",
+			chart: "oklch(55% 0.17 292)",
 		},
 	},
 	// Phantom: soft lavender, on a dusky purple or a pale one.
@@ -173,30 +182,30 @@ const BRANDS = {
 			onAccent: "oklch(98% 0.01 25)",
 		},
 	},
-	// Solflare: its yellow running into orange, out of black or out of cream.
+	// Solflare: deep black and its yellow (2026-10-04).
 	solflare: {
 		name: "Solflare",
 		dark: {
 			sky: {
-				night: { l: 0.1, c: 0.004, h: 70 },
-				top: { l: 0.15, c: 0.01, h: 70 },
-				upper: { l: 0.22, c: 0.03, h: 60 },
-				middle: { l: 0.36, c: 0.09, h: 50 },
-				glow: { l: 0.86, c: 0.17, h: 100 },
+				night: { l: 0.07, c: 0.004, h: 90 },
+				top: { l: 0.1, c: 0.008, h: 90 },
+				upper: { l: 0.14, c: 0.018, h: 92 },
+				middle: { l: 0.2, c: 0.04, h: 92 },
+				glow: { l: 0.84, c: 0.16, h: 100 },
 			},
-			accent: "oklch(93% 0.18 105)",
-			onAccent: "oklch(16% 0.02 80)",
+			accent: "oklch(90% 0.18 102)",
+			onAccent: "oklch(14% 0.02 90)",
 		},
 		light: {
 			sky: {
-				night: { l: 0.96, c: 0.02, h: 95 },
-				top: { l: 0.92, c: 0.06, h: 100 },
-				upper: { l: 0.87, c: 0.1, h: 85 },
-				middle: { l: 0.8, c: 0.14, h: 60 },
-				glow: { l: 0.88, c: 0.17, h: 100 },
+				night: { l: 0.95, c: 0.02, h: 100 },
+				top: { l: 0.9, c: 0.05, h: 100 },
+				upper: { l: 0.86, c: 0.09, h: 98 },
+				middle: { l: 0.88, c: 0.08, h: 100 },
+				glow: { l: 0.88, c: 0.16, h: 102 },
 			},
 			accent: "oklch(86% 0.18 100)",
-			onAccent: "oklch(16% 0.02 80)",
+			onAccent: "oklch(14% 0.02 90)",
 		},
 	},
 	// Bonk: a warm, loud yellow and orange, at night or in full sun.
@@ -228,51 +237,147 @@ const BRANDS = {
 } as const satisfies Record<string, Brand>;
 
 export type BrandId = keyof typeof BRANDS;
-export type Theme = "dark" | "light" | "system" | "dynamic" | BrandId | `${BrandId}-light`;
 export type Mode = "dark" | "light";
 
-/** The plain themes, then one entry per team: its light look is picked beside it. */
-export const THEMES: { id: Theme; name: string }[] = [
-	{ id: "dark", name: "Dark" },
-	{ id: "light", name: "Light" },
-	{ id: "system", name: "System" },
-	{ id: "dynamic", name: "Dynamic" },
+/*
+ * How the screen looks is four choices, each on its own:
+ *
+ *   palette:    Maschina's own city, or a team's colors
+ *   mode:       dark, light, or the system's (with a dynamic sky, the sun's)
+ *   dynamic:    the weather where you are, and on System the sky through the day; or a still screen
+ *   field:      what moves behind the glass: the mesh of colored fog, a ribbon or particles
+ *   motion:     how much it moves: full, calm (a fraction of the work) or off
+ *               (all soft by rule: nothing behind the tiles may have an edge or pattern their words sit on)
+ *
+ * The old Dynamic theme is System with a dynamic sky, so nothing anyone had chosen looks different.
+ */
+export type PaletteId = "maschina" | BrandId;
+export type ModeChoice = Mode | "system";
+export type Field = "mesh" | "ribbon" | "particles" | "towers";
+/** How much the background moves: smoothly, calmly (a fraction of the work), or not at all. */
+export type Motion = "full" | "calm" | "off";
+export type Choice = {
+	palette: PaletteId;
+	mode: ModeChoice;
+	dynamic: boolean;
+	field: Field;
+	motion: Motion;
+};
+
+export const PALETTES: { id: PaletteId; name: string }[] = [
+	{ id: "maschina", name: "Maschina" },
 	...(Object.entries(BRANDS) as [BrandId, Brand][]).map(([id, brand]) => ({
 		id,
 		name: brand.name,
 	})),
 ];
+export const MODES: { id: ModeChoice; name: string }[] = [
+	{ id: "dark", name: "Dark" },
+	{ id: "light", name: "Light" },
+	{ id: "system", name: "System" },
+];
+export const FIELDS: { id: Field; name: string }[] = [
+	{ id: "mesh", name: "Mesh" },
+	{ id: "ribbon", name: "Ribbon" },
+	{ id: "particles", name: "Particles" },
+	// Towers: parked until after October 8 (Ash, 2026-10-04); the scene is kept, only hidden here.
+];
 
-/** Which team a theme is after, and in which mode, or nothing for the plain themes. */
-export function brandOf(theme: Theme): (Look & { id: BrandId; mode: Mode }) | undefined {
-	const light = theme.endsWith("-light");
-	const id = (light ? theme.slice(0, -"-light".length) : theme) as BrandId;
-	if (!(id in BRANDS)) return undefined;
-	const mode: Mode = light ? "light" : "dark";
-	return { id, mode, ...BRANDS[id][mode] };
+export const MOTIONS: { id: Motion; name: string }[] = [
+	{ id: "full", name: "Full" },
+	{ id: "calm", name: "Calm" },
+	{ id: "off", name: "Off" },
+];
+
+/** Calm by default: the backgrounds were keeping laptop fans running at Full (Ash, 2026-10-03). */
+export const DEFAULT_CHOICE: Choice = {
+	palette: "maschina",
+	mode: "dark",
+	dynamic: false,
+	field: "mesh",
+	motion: "calm",
+};
+
+const isPalette = (value: unknown): value is PaletteId =>
+	PALETTES.some((each) => each.id === value);
+const isMode = (value: unknown): value is ModeChoice => MODES.some((each) => each.id === value);
+const isField = (value: unknown): value is Field => FIELDS.some((each) => each.id === value);
+const isMotion = (value: unknown): value is Motion => MOTIONS.some((each) => each.id === value);
+
+/** A theme saved before the four choices existed: "dark", "dynamic", "solana-light", "club". */
+export function choiceFromTheme(saved: string | null): Choice {
+	if (!saved) return DEFAULT_CHOICE;
+	if (saved === "club") return { ...DEFAULT_CHOICE, palette: "helius" };
+	if (saved === "dynamic") return { ...DEFAULT_CHOICE, mode: "system", dynamic: true };
+	if (isMode(saved)) return { ...DEFAULT_CHOICE, mode: saved };
+	const light = saved.endsWith("-light");
+	const id = light ? saved.slice(0, -"-light".length) : saved;
+	if (id !== "maschina" && isPalette(id)) {
+		return { ...DEFAULT_CHOICE, palette: id, mode: light ? "light" : "dark" };
+	}
+	return DEFAULT_CHOICE;
 }
 
-const KEY = "maschina.theme";
-const CHANGED = "maschina:theme";
-
-export function themeFrom(saved: string | null): Theme {
-	// Club was renamed Helius: a browser that chose it keeps it.
-	if (saved === "club") return "helius";
-	if (saved === null) return "dark";
-	const known = THEMES.some((each) => each.id === saved) || brandOf(saved as Theme) !== undefined;
-	return known ? (saved as Theme) : "dark";
+/** The four choices as saved, each checked on its own, so one bad value never costs the others. */
+export function choiceFrom(saved: string | null, legacy: string | null): Choice {
+	if (!saved) return choiceFromTheme(legacy);
+	try {
+		const read = JSON.parse(saved) as Partial<Record<keyof Choice, unknown>>;
+		return {
+			palette: isPalette(read.palette) ? read.palette : DEFAULT_CHOICE.palette,
+			mode: isMode(read.mode) ? read.mode : DEFAULT_CHOICE.mode,
+			dynamic: typeof read.dynamic === "boolean" ? read.dynamic : DEFAULT_CHOICE.dynamic,
+			field: isField(read.field) ? read.field : DEFAULT_CHOICE.field,
+			motion: isMotion(read.motion) ? read.motion : DEFAULT_CHOICE.motion,
+		};
+	} catch {
+		return choiceFromTheme(legacy);
+	}
 }
 
-/** Light or dark, for a theme, given the computer's setting and the hour (0 to 24, fractional). */
-export function modeOf(
-	theme: Theme,
+/** A team's colors in a mode, or nothing for Maschina's own. */
+export function brandOf(
+	palette: PaletteId,
+	mode: Mode,
+): (Look & { id: BrandId; mode: Mode }) | undefined {
+	if (palette === "maschina") return undefined;
+	return { id: palette, mode, ...BRANDS[palette][mode] };
+}
+
+export type Resolved = {
+	mode: Mode;
+	/** The fog's colors, when they are not the city's own for the mode. */
+	sky?: Palette | undefined;
+	/** A team's accent, when a team's palette is chosen. */
+	brand?: (Look & { id: BrandId; mode: Mode }) | undefined;
+	/** Whether the weather where you are is shown. */
+	weather: boolean;
+};
+
+/** What the four choices mean right now, given the computer's setting and the hour (0 to 24). */
+export function resolve(
+	choice: Choice,
 	{ systemDark, hour }: { systemDark: boolean; hour: number },
-): Mode {
-	if (theme === "system") return systemDark ? "dark" : "light";
-	if (theme === "dynamic") return skyAt(hour).night.l > 0.6 ? "light" : "dark";
-	const brand = brandOf(theme);
-	if (brand) return brand.mode;
-	return theme as Mode;
+): Resolved {
+	const sunUp = skyAt(hour).night.l > 0.6;
+	const followSun = choice.mode === "system" && choice.dynamic;
+	const mode: Mode =
+		choice.mode === "system"
+			? followSun
+				? sunUp
+					? "light"
+					: "dark"
+				: systemDark
+					? "dark"
+					: "light"
+			: choice.mode;
+	const brand = brandOf(choice.palette, mode);
+	return {
+		mode,
+		sky: brand ? brand.sky : followSun ? skyAt(hour) : undefined,
+		brand,
+		weather: choice.dynamic,
+	};
 }
 
 /**
@@ -280,11 +385,11 @@ export function modeOf(
  * change is continuous: no moment where the screen visibly switches. Night is the city palette itself.
  */
 const NIGHT: Palette = {
-	night: { l: 0.16, c: 0.002, h: 286 },
-	top: { l: 0.246, c: 0.021, h: 136 },
-	upper: { l: 0.367, c: 0.021, h: 232 },
-	middle: { l: 0.405, c: 0.012, h: 72 },
-	glow: { l: 0.471, c: 0.047, h: 77 },
+	night: { l: 0.14, c: 0.006, h: 270 },
+	top: { l: 0.25, c: 0.012, h: 260 },
+	upper: { l: 0.38, c: 0.02, h: 285 },
+	middle: { l: 0.44, c: 0.012, h: 320 },
+	glow: { l: 0.78, c: 0.025, h: 300 },
 };
 // First light: deep violet above, rose through the middle, the sun coming up orange on the right.
 const DAWN: Palette = {
@@ -369,33 +474,49 @@ const hourNow = () => {
 	return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
 };
 
-function readTheme(): Theme {
-	// ?theme=light and the like, while developing, to look at a theme without changing the saved one.
+const KEY = "maschina.look";
+// Where a single theme was kept before the four choices, read once so nobody's choice is lost.
+const LEGACY = "maschina.theme";
+const CHANGED = "maschina:theme";
+
+function readChoice(): Choice {
+	// ?theme=light, ?field=ribbon and ?sky=dynamic while developing, to look without saving anything.
 	const asked = preview("theme");
-	if (asked) return themeFrom(asked);
+	const field = preview("field");
+	const sky = preview("sky");
+	let choice: Choice;
 	try {
-		return themeFrom(localStorage.getItem(KEY));
+		choice = asked
+			? choiceFromTheme(asked)
+			: choiceFrom(localStorage.getItem(KEY), localStorage.getItem(LEGACY));
 	} catch {
-		return "dark";
+		choice = DEFAULT_CHOICE;
 	}
+	if (isField(field)) choice = { ...choice, field };
+	const motion = preview("motion");
+	if (isMotion(motion)) choice = { ...choice, motion };
+	if (sky) choice = { ...choice, dynamic: sky === "dynamic" };
+	return choice;
 }
 
-export function setTheme(theme: Theme) {
+/** Changes some of the four choices and keeps the rest. */
+export function setChoice(change: Partial<Choice>) {
+	const next = { ...readChoice(), ...change };
 	try {
-		localStorage.setItem(KEY, theme);
+		localStorage.setItem(KEY, JSON.stringify(next));
 	} catch {}
 	window.dispatchEvent(new Event(CHANGED));
 }
 
-/** The chosen theme, what it means right now, and for dynamic, the sky. Updates every minute. */
-export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefined } {
-	const [theme, setChosen] = useState(readTheme);
+/** The four choices, what they mean right now, and the sky. Updates every minute. */
+export function useTheme(): Resolved & { choice: Choice } {
+	const [choice, setChosen] = useState(readChoice);
 	const [systemDark, setSystemDark] = useState(
 		() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true,
 	);
 	const [hour, setHour] = useState(hourNow);
 	useEffect(() => {
-		const changed = () => setChosen(readTheme());
+		const changed = () => setChosen(readChoice());
 		window.addEventListener(CHANGED, changed);
 		const media = window.matchMedia?.("(prefers-color-scheme: dark)");
 		const follow = (event: MediaQueryListEvent) => setSystemDark(event.matches);
@@ -407,10 +528,5 @@ export function useTheme(): { theme: Theme; mode: Mode; sky?: Palette | undefine
 			clearInterval(clock);
 		};
 	}, []);
-	const mode = modeOf(theme, { systemDark, hour });
-	return {
-		theme,
-		mode,
-		sky: theme === "dynamic" ? skyAt(hour) : brandOf(theme)?.sky,
-	};
+	return { choice, ...resolve(choice, { systemDark, hour }) };
 }
