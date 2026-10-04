@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.36](https://github.com/maschina-labs/maschina/compare/v0.0.35...v0.0.36) (2026-10-04)
+
+
+### Fixed
+
+* **web:** every rain glass draws on its own canvas ([#760](https://github.com/maschina-labs/maschina/issues/760)) ([b0ffd33](https://github.com/maschina-labs/maschina/commit/b0ffd331ec623424cfad2ae3c456497373049724))
+
 ## [0.0.35](https://github.com/maschina-labs/maschina/compare/v0.0.34...v0.0.35) (2026-10-04)
 
 
