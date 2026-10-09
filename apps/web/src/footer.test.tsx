@@ -21,16 +21,24 @@ describe("the footer", () => {
 		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
 	});
 
-	it("has the logo at the top left, linking home, above everything else in the footer", () => {
+	it("has the logo on the left, level with the sitemap's column headers, linking home", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const home = within(footer).getByRole("link", { name: "Maschina, home" });
 		expect(home).toHaveAttribute("href", "/");
 		expect(home.querySelectorAll("img")).toHaveLength(2);
 		for (const image of home.querySelectorAll("img")) expect(image).toHaveAttribute("alt", "");
-		// It is the first thing in the footer, at the top.
-		expect(footer.firstElementChild?.contains(home)).toBe(true);
-		expect(footer.firstElementChild?.className).toContain("pt-32");
+		// The logo and the columns are one row: the logo first, the columns after, both starting at the top.
+		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
+		const row = home.parentElement as HTMLElement;
+		expect(nav.parentElement).toBe(row);
+		expect(row.firstElementChild).toBe(home);
+		expect(row.lastElementChild).toBe(nav);
+		expect(row.className).toContain("sm:flex-row");
+		expect(row.className).toContain("sm:items-start");
+		expect(row.className).toContain("sm:justify-between");
+		// The footer leaves room at the top for the header, which sits over it when it fills the screen.
+		expect(footer.className).toContain("pt-32");
 	});
 
 	it("has the same logo as the header, with the mark that turns a full turn each time the cursor arrives", () => {
@@ -68,12 +76,9 @@ describe("the footer", () => {
 				.getAllByRole("heading", { level: 2 })
 				.map((heading) => heading.textContent),
 		).toEqual(["Product", "Developers", "Company", "Legal"]);
-		expect(nav.className).toContain("w-full");
-		// The columns sit together on the right, ending at the margin, with an even gap between them.
-		// Inside each column the pages are left aligned.
+		// The columns sit together at the right end of the row, up to the margin, with an even gap between
+		// them. Inside each column the pages are left aligned.
 		expect(nav.className).toContain("sm:flex");
-		expect(nav.className).toContain("sm:justify-end");
-		expect(nav.className).not.toContain("sm:justify-start");
 		expect(nav.className).toContain("sm:gap-x-[clamp(3rem,8vw,8rem)]");
 		expect(nav.className).not.toContain("text-center");
 		const headings = within(nav).getAllByRole("heading", { level: 2 });
@@ -123,18 +128,15 @@ describe("the footer", () => {
 		expect(item.className).toMatch(/text-neutral-(600|700)/);
 	});
 
-	it("puts the sitemap between the logo and the copyright line", () => {
+	it("puts the logo and sitemap row above the copyright line, in the middle of the free room", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
-		const logo = within(footer).getByRole("link", { name: "Maschina, home" })
-			.parentElement as HTMLElement;
+		const row = nav.parentElement as HTMLElement;
 		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		const order = [...footer.children];
-		expect(order.indexOf(logo)).toBeLessThan(order.indexOf(nav));
-		expect(order.indexOf(nav)).toBeLessThan(order.indexOf(line));
-		// It takes the free room between them, so it sits in the middle of the screen.
-		expect(nav.className).toContain("my-auto");
+		expect(order.indexOf(row)).toBeLessThan(order.indexOf(line));
+		expect(row.className).toContain("my-auto");
 	});
 
 	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {

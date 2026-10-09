@@ -261,54 +261,54 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter)">
-			<div className="pt-32">
+		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter) pt-32">
+			<div className="my-auto flex w-full flex-col gap-12 py-16 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
-			</div>
-			{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
-			<nav
-				aria-label="Sitemap"
-				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 sm:flex sm:justify-end sm:gap-x-[clamp(3rem,8vw,8rem)]"
-			>
-				{SITEMAP.map((column) => (
-					<div key={column.title} className="text-left">
-						<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
-						<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
-							{column.items.map((item) =>
-								item.href ? (
-									<li key={item.label}>
-										<a
-											href={item.href}
-											className="text-neutral-500 transition-colors hover:text-white"
-										>
+				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
+				<nav
+					aria-label="Sitemap"
+					className="grid grid-cols-2 gap-x-6 gap-y-12 sm:flex sm:gap-x-[clamp(3rem,8vw,8rem)]"
+				>
+					{SITEMAP.map((column) => (
+						<div key={column.title} className="text-left">
+							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
+							<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
+								{column.items.map((item) =>
+									item.href ? (
+										<li key={item.label}>
+											<a
+												href={item.href}
+												className="text-neutral-500 transition-colors hover:text-white"
+											>
+												{item.label}
+												{item.external ? (
+													<svg
+														viewBox="0 0 12 12"
+														data-arrow="external"
+														className="ml-1.5 inline size-3 text-white"
+														fill="none"
+														stroke="currentColor"
+														strokeWidth={1.25}
+														strokeLinecap="square"
+														aria-hidden="true"
+													>
+														<path d="M3.5 8.5 8.5 3.5M4 3.5h4.5V8" />
+													</svg>
+												) : null}
+											</a>
+										</li>
+									) : (
+										<li key={item.label} className="text-neutral-700">
 											{item.label}
-											{item.external ? (
-												<svg
-													viewBox="0 0 12 12"
-													data-arrow="external"
-													className="ml-1.5 inline size-3 text-white"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth={1.25}
-													strokeLinecap="square"
-													aria-hidden="true"
-												>
-													<path d="M3.5 8.5 8.5 3.5M4 3.5h4.5V8" />
-												</svg>
-											) : null}
-										</a>
-									</li>
-								) : (
-									<li key={item.label} className="text-neutral-700">
-										{item.label}
-										<span className="ml-2 text-[11px]">Soon</span>
-									</li>
-								),
-							)}
-						</ul>
-					</div>
-				))}
-			</nav>
+											<span className="ml-2 text-[11px]">Soon</span>
+										</li>
+									),
+								)}
+							</ul>
+						</div>
+					))}
+				</nav>
+			</div>
 			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (
