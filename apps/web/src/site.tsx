@@ -1,10 +1,12 @@
 import { Footer } from "./footer.tsx";
+import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
 
-/** The front pages, built section by section: the footer is in, the header is saved and off the page. */
-export function Site() {
+/** The front pages, built section by section: the header, the hero, then the footer. */
+export function Site({ authUrl }: { authUrl: string }) {
 	return (
-		<div className="flex min-h-dvh flex-col bg-black">
+		<div className="relative flex min-h-dvh flex-col bg-black">
+			<Header authUrl={authUrl} />
 			<main className="min-h-[200dvh] flex-1">
 				<Hero />
 			</main>
