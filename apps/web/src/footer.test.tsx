@@ -13,8 +13,8 @@ describe("the footer", () => {
 	it("draws the wordmark once, as outlines, with a lit copy for the cursor", () => {
 		const { container } = render(<Footer />);
 		expect(container.querySelectorAll("[data-layer]")).toHaveLength(2);
-		// The mark and eight letters.
-		expect(container.querySelectorAll("[data-layer] path")).toHaveLength(18);
+		// The eight letters, without the mark.
+		expect(container.querySelectorAll("[data-layer] path")).toHaveLength(16);
 	});
 
 	it("lights the edges under the cursor, and lets them fade when it leaves", () => {

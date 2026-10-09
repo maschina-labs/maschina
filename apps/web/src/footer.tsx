@@ -6,7 +6,12 @@ const SHOWN = 116;
 /** How far the light from the cursor reaches, in the drawing's own units. */
 const REACH = 260;
 
-const VIEW = { x: 0, y: 0, width: WORDMARK.width, height: WORDMARK.height };
+const VIEW = {
+	x: WORDMARK.left,
+	y: 0,
+	width: WORDMARK.width - WORDMARK.left,
+	height: WORDMARK.height,
+};
 
 /**
  * The wordmark as thin outlines, filled with the page's own black. It is drawn twice: once in faint grey,
@@ -60,7 +65,7 @@ export function Footer() {
 					<defs>
 						<linearGradient
 							id="pearl"
-							x1="0"
+							x1={WORDMARK.left}
 							y1="0"
 							x2={WORDMARK.width}
 							y2="0"
