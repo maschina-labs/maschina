@@ -99,7 +99,7 @@ describe("the hero", () => {
 		// A gradient clipped to the letters, so the words themselves are the color.
 		expect(className).toContain("bg-clip-text");
 		expect(className).toContain("text-transparent");
-		expect(className).toContain("bg-[linear-gradient(");
+		expect(className).toContain("linear-gradient(105deg");
 		// The bloom is a glow that follows the letters' shape, not a box.
 		expect(className).toContain("drop-shadow(");
 		expect(className).not.toContain("animate-");
