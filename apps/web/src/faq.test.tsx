@@ -69,12 +69,21 @@ describe("the questions", () => {
 		expect(className).toContain("-mb-[0.14em]");
 	});
 
-	it("has no hover highlight on the questions, shut or open", () => {
+	it("does not light the whole row on hover: only the plus button lights, when you hover the question", () => {
 		render(<Faq />);
-		for (const trigger of triggers()) expect(trigger.className).not.toMatch(/hover:/);
+		for (const trigger of triggers()) {
+			// The row itself has no hover color of its own, shut or open...
+			expect(trigger.className).not.toMatch(/(^|\s)hover:/);
+			expect(trigger.closest("li")?.className).not.toMatch(/hover:/);
+			// ...it only passes the hover on to the plus, which is what brightens.
+			expect(trigger.className).toMatch(/(^|\s)group(\s|$)/);
+			const mark = trigger.querySelector("[data-mark]") as HTMLElement;
+			expect(mark.className).toContain("group-hover:bg-white/[0.18]");
+			expect(mark.className).toContain("transition-colors");
+			expect(mark.className).toContain("motion-reduce:transition-none");
+		}
 		fireEvent.click(triggers()[0] as HTMLElement);
-		expect(triggers()[0]?.className).not.toMatch(/hover:/);
-		expect(triggers()[0]?.closest("li")?.className).not.toMatch(/hover:/);
+		expect(triggers()[0]?.className).not.toMatch(/(^|\s)hover:/);
 	});
 
 	it("has six questions, in order, each a button that opens a short answer", () => {

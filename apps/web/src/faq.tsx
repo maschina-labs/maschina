@@ -61,7 +61,7 @@ export function Faq() {
 									aria-expanded={shown}
 									aria-controls={`${base}-${index}`}
 									onClick={() => setOpen(shown ? null : index)}
-									className="flex w-full cursor-pointer items-center justify-between gap-6 px-6 py-5 text-left"
+									className="group flex w-full cursor-pointer items-center justify-between gap-6 px-6 py-5 text-left"
 								>
 									<span className="text-[clamp(1.125rem,1.6vw,1.375rem)] text-white tracking-[-0.01em]">
 										{item.question}
@@ -69,7 +69,7 @@ export function Faq() {
 									<span
 										data-mark
 										aria-hidden="true"
-										className="relative grid size-9 shrink-0 place-items-center bg-white/[0.08] text-white"
+										className="relative grid size-9 shrink-0 place-items-center bg-white/[0.08] text-white transition-colors duration-200 group-hover:bg-white/[0.18] motion-reduce:transition-none"
 									>
 										<span className="absolute h-px w-3.5 bg-current" />
 										<span
