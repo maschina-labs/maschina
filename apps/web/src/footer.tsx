@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { COLUMNS, LEGAL } from "./sitemap.ts";
 import { WORDMARK } from "./wordmark.ts";
 
 /** How much of the wordmark shows above the bottom of the page: about three quarters of the letters. */
@@ -53,9 +54,39 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
-			<p className="pb-6 text-[13px] text-neutral-500">
-				© {new Date().getFullYear()} Maschina Labs. All rights reserved.
-			</p>
+			<div className="grid grid-cols-2 gap-x-8 gap-y-10 pt-20 pb-14 sm:grid-cols-4">
+				{COLUMNS.map((column) => (
+					<nav key={column.name} aria-label={column.name} className="flex flex-col gap-4">
+						<span className="text-[13px] text-neutral-200">{column.name}</span>
+						<ul className="flex flex-col gap-3">
+							{column.links.map((link) => (
+								<li key={link.label}>
+									<a
+										href={link.href}
+										className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-100"
+									>
+										{link.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				))}
+			</div>
+			<div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 pb-6 text-[13px] text-neutral-500">
+				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
+				<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
+					{LEGAL.map((link) => (
+						<a
+							key={link.label}
+							href={link.href}
+							className="transition-colors hover:text-neutral-100"
+						>
+							{link.label}
+						</a>
+					))}
+				</nav>
+			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"

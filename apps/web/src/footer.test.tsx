@@ -16,6 +16,23 @@ describe("the footer", () => {
 		vi.useRealTimers();
 	});
 
+	it("maps the site in four columns, one of them for machines", () => {
+		render(<Footer />);
+		for (const name of ["Product", "Build", "Company", "Machines"]) {
+			expect(screen.getByRole("navigation", { name })).toBeInTheDocument();
+		}
+		const machines = screen.getByRole("navigation", { name: "Machines" });
+		expect(within(machines).getByRole("link", { name: "AI index" })).toBeInTheDocument();
+	});
+
+	it("keeps the legal pages on the copyright line", () => {
+		render(<Footer />);
+		const legal = screen.getByRole("navigation", { name: "Legal" });
+		for (const page of ["Terms", "Privacy", "Risk", "Security", "License"]) {
+			expect(within(legal).getByRole("link", { name: page })).toBeInTheDocument();
+		}
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();
