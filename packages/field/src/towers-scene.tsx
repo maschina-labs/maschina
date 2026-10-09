@@ -13,9 +13,9 @@ import {
 	NormalBlending,
 	Vector3,
 } from "three";
-import { rgbaOf } from "../lib/chart-tone.ts";
-import type { Tower } from "../lib/towers.ts";
+import { rgbaOf } from "./chart-tone.ts";
 import type { Palette } from "./fog-background.tsx";
+import type { Tower } from "./types.ts";
 
 /**
  * The towers, after the PlayStation 2's boot screen (Ash's references, 2026-10-04): a tunnel of square

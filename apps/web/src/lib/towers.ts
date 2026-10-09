@@ -4,12 +4,13 @@
  * dim when paused, faint when stopped, and see through on paper. With no machines, a few low ones wait.
  */
 
+import type { Tower } from "@maschina/field";
 import { useRouter } from "@tanstack/react-router";
 import { type MachineSummary, useMachines } from "./machines.ts";
 import { useSession } from "./session.ts";
 import { useSide } from "./side.ts";
 
-export type Tower = { height: number; glow: number };
+export type { Tower };
 
 /** The most towers drawn: the shader reads twelve. */
 const MAX_TOWERS = 12;

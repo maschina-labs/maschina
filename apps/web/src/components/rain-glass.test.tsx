@@ -45,7 +45,7 @@ vi.mock("raindrop-fx", () => ({
 	},
 }));
 
-const { fogCanvas } = await import("./fog-background.tsx");
+const { fogCanvas } = await import("@maschina/field");
 const { RainGlass } = await import("./rain-glass.tsx");
 
 describe("rain on the glass", () => {
