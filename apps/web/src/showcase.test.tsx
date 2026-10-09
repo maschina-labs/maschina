@@ -35,17 +35,35 @@ describe("the showcase", () => {
 		expect(container.innerHTML).not.toMatch(/animate-/);
 	});
 
-	it("stands out from the black: a light square frame around the picture, and no glow underneath", () => {
+	it("has no border or frame around the picture, and no glow underneath it", () => {
 		const { container } = render(<Showcase />);
-		const frame = container.querySelector("[data-frame]") as HTMLElement;
-		expect(frame).not.toBeNull();
-		expect(frame.contains(screen.getByRole("img"))).toBe(true);
-		expect(frame.className).toContain("bg-white/[0.18]");
-		// A thin edge, 2px: enough to lift it off the black, not a bezel.
-		expect(frame.className).toContain("p-0.5");
-		expect(frame.className).not.toMatch(/\bp-(1|2|3|4)\b/);
-		// The glow under it is gone.
+		expect(container.querySelector("[data-frame]")).toBeNull();
+		expect(screen.getByRole("img").parentElement?.className ?? "").not.toMatch(
+			/\bp-|border|ring|outline|bg-white/,
+		);
 		expect(container.innerHTML).not.toMatch(/shadow-/);
+	});
+
+	it("stands out by light instead: a soft spotlight behind the top of it, and a faint sheen across its top edge", () => {
+		const { container } = render(<Showcase />);
+		const spotlight = container.querySelector("[data-spotlight]") as HTMLElement;
+		const sheen = container.querySelector("[data-sheen]") as HTMLElement;
+		for (const layer of [spotlight, sheen]) {
+			expect(layer).toHaveAttribute("aria-hidden", "true");
+			expect(layer.className).toContain("pointer-events-none");
+			expect(layer.className).toContain("absolute");
+		}
+		// The spotlight is behind, wide and low in strength, and starts at the top, so nothing glows below it.
+		expect(spotlight.className).toContain("radial-gradient(ellipse");
+		expect(spotlight.className).toContain("at_50%_0%");
+		expect(spotlight.className).toContain("top-0");
+		expect(spotlight.className).not.toContain("bottom-");
+		expect(spotlight.className).toMatch(/oklch\([^)]*\/0\.(1|2)\d?\)/);
+		// The sheen sits on the picture and is only on its top part.
+		expect(sheen.className).toContain("bg-gradient-to-b");
+		expect(sheen.className).toContain("from-white/[0.08]");
+		expect(sheen.className).toContain("to-transparent");
+		expect(sheen.parentElement).toBe(screen.getByRole("img").parentElement);
 	});
 
 	describe("the tilt", () => {
