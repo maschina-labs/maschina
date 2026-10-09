@@ -127,7 +127,12 @@ export function Footer() {
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
 			<div className="flex flex-col gap-14 pt-20 pb-16 lg:flex-row lg:justify-between">
 				<div className="flex flex-col gap-6">
-					<img src="/brand/favicon.svg" alt="Maschina mark" className="size-8" />
+					{/* The mark is an Allen screw: on hover it turns, one full turn, the way a key drives it. */}
+					<img
+						src="/brand/favicon.svg"
+						alt="Maschina mark"
+						className="size-8 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:rotate-[360deg] motion-reduce:transition-none motion-reduce:hover:rotate-0"
+					/>
 					<p className="max-w-[28ch] text-[14px] text-neutral-400 leading-relaxed">
 						The operating system for autonomous capital.
 					</p>
@@ -135,13 +140,15 @@ export function Footer() {
 				<div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-5 sm:gap-x-16">
 					{COLUMNS.map((column) => (
 						<nav key={column.name} aria-label={column.name} className="flex flex-col gap-4">
-							<span className="text-[13px] text-neutral-200">{column.name}</span>
+							<span className="font-mono text-[11px] text-[oklch(0.52_0.01_285)] uppercase tracking-[0.2em]">
+								{column.name}
+							</span>
 							<ul className="flex flex-col gap-3">
 								{column.links.map((link) => (
 									<li key={link.label}>
 										<a
 											href={link.href}
-											className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-100"
+											className="text-[15px] text-[oklch(0.74_0.012_285)] transition-colors hover:text-[oklch(0.96_0.018_300)]"
 										>
 											{link.label}
 										</a>
