@@ -16,15 +16,24 @@ vi.mock("@maschina/field", () => ({
 }));
 
 describe("the hero", () => {
-	it("is a full screen of background and nothing else: no words, no buttons, nothing floating", () => {
+	it("is a full screen with the headline centered in it, and nothing else on it", () => {
 		const { container } = render(<Hero />);
 		const section = screen.getByRole("region", { name: "Maschina" });
 		expect(section.className).toContain("min-h-dvh");
-		expect(screen.queryByRole("heading")).toBeNull();
+		expect(section.className).toContain("items-center");
+		expect(section.className).toContain("justify-center");
+		expect(section.className).toContain("text-center");
+		expect(section.className).toContain("px-(--gutter)");
+		const heading = screen.getByRole("heading", {
+			level: 1,
+			name: "The operating system for autonomous capital.",
+		});
+		expect(heading.className).toContain("z-20");
+		// The headline is all the words there are: no line under it, no buttons, nothing floating.
+		expect(section.textContent).toBe("The operating system for autonomous capital.");
 		expect(screen.queryAllByRole("link")).toHaveLength(0);
 		expect(screen.queryAllByRole("button")).toHaveLength(0);
 		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
-		expect(section.textContent).toBe("");
 	});
 
 	it("draws the silver and pearl ribbon, dark and calm, filling the section", async () => {
