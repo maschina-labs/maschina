@@ -10,6 +10,16 @@ describe("the try button", () => {
 		expect(screen.getByRole("link").querySelector("[data-glint]")).toBeNull();
 	});
 
+	it("is silver at the edges and pearl in the middle, so a white glint has something to shine against", () => {
+		render(<TryButton {...props} glint />);
+		const link = screen.getByRole("link");
+		expect(link.className).toContain("bg-[linear-gradient(");
+		// A flat near-white pearl hid the glint; the button is no longer flat.
+		expect(link.className).not.toContain("bg-[oklch(0.93");
+		expect(link.querySelector("[data-glint]")?.className).toContain("via-white");
+		expect(link.querySelector("[data-glint]")?.className).toContain("blur-");
+	});
+
 	it("can carry a glint that sweeps across on hover, hidden from assistive technology", () => {
 		render(<TryButton {...props} glint />);
 		const link = screen.getByRole("link", { name: "Try Maschina" });
