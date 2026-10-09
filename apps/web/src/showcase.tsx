@@ -16,7 +16,7 @@ const GRAIN =
  * shadow to lift it off the light, and nothing glows.
  *
  * Under a mouse the picture leans lightly toward the cursor on both axes, so all four corners move (3 degrees at
- * most), and a faint shine follows the cursor across it. It eases level when the cursor leaves. The cursor sets
+ * most), and a lamp's light plays across it: a broad soft reflection that slides as it leans. It eases level when the cursor leaves. The cursor sets
  * a few variables straight on the element, so moving the mouse never re-renders anything. A finger and anyone
  * who asked for less motion get the still picture.
  */
@@ -34,13 +34,10 @@ export function Showcase() {
 		const down = Math.min(1, Math.max(0, (event.clientY - box.top) / box.height));
 		node.style.setProperty("--tx", String(across * 2 - 1));
 		node.style.setProperty("--ty", String(down * 2 - 1));
-		node.style.setProperty("--sx", `${across * 100}%`);
-		node.style.setProperty("--sy", `${down * 100}%`);
-		node.style.setProperty("--shine", "1");
 	};
 
 	const level = () => {
-		for (const name of ["--tx", "--ty", "--shine"]) picture.current?.style.setProperty(name, "0");
+		for (const name of ["--tx", "--ty"]) picture.current?.style.setProperty(name, "0");
 	};
 
 	return (
@@ -61,7 +58,7 @@ export function Showcase() {
 					<div
 						ref={picture}
 						data-picture
-						className="relative [--shine:0] [--sx:50%] [--sy:50%] [--tx:0] [--ty:0] shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)] [transform:perspective(1400px)_rotateX(calc(var(--ty)*-3deg))_rotateY(calc(var(--tx)*3deg))] transition-transform duration-200 ease-out motion-reduce:transition-none"
+						className="relative [--tx:0] [--ty:0] shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)] [transform:perspective(1400px)_rotateX(calc(var(--ty)*-3deg))_rotateY(calc(var(--tx)*3deg))] transition-transform duration-200 ease-out motion-reduce:transition-none"
 					>
 						<img
 							src="/showcase/dashboard.jpg"
@@ -71,12 +68,25 @@ export function Showcase() {
 							decoding="async"
 							className="block h-auto w-full"
 						/>
-						{/* A faint shine, centered on the cursor, there only while the cursor is. */}
+						{/*
+						 * A lamp up and to the left, shining on the picture: a gentle falloff across all of it, and a
+						 * broad soft band of reflected light that slides across as the picture leans, the way a
+						 * reflection moves on glossy glass when it is tilted.
+						 */}
 						<div
 							data-shine
 							aria-hidden="true"
-							className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_var(--sx)_var(--sy),oklch(1_0_0/0.09),transparent_45%)] opacity-(--shine) transition-opacity duration-300"
-						/>
+							className="pointer-events-none absolute inset-0 overflow-hidden"
+						>
+							<div
+								data-falloff
+								className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-black/[0.1]"
+							/>
+							<div
+								data-band
+								className="absolute -inset-y-1/4 left-0 w-[70%] -skew-x-12 [background:linear-gradient(100deg,transparent,oklch(1_0_0/0.1)_50%,transparent)] [transform:translateX(calc(25%+var(--tx)*60%))] transition-transform duration-200 ease-out motion-reduce:transition-none"
+							/>
+						</div>
 					</div>
 				</div>
 				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">

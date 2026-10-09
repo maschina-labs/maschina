@@ -106,29 +106,36 @@ describe("the showcase", () => {
 			expect(read("--tx")).toBe("");
 		});
 
-		it("moves a light shine across the picture with the cursor, and fades it out when the cursor leaves", () => {
+		it("is lit like a lamp is shining on it: a broad soft band of light that slides across as the picture leans, not a glow around the cursor", () => {
 			const { backdrop, picture, read } = setup();
 			const shine = picture.querySelector("[data-shine]") as HTMLElement;
+			const band = shine.querySelector("[data-band]") as HTMLElement;
 			expect(shine).toHaveAttribute("aria-hidden", "true");
 			expect(shine.className).toContain("pointer-events-none");
-			expect(shine.className).toContain("absolute");
+			expect(shine.className).toContain("overflow-hidden");
 			expect(picture.contains(shine)).toBe(true);
-			// A faint white highlight, centered on the cursor, and off until the cursor arrives.
-			expect(shine.className).toContain(
-				"radial-gradient(circle_at_var(--sx)_var(--sy),oklch(1_0_0/0.09),transparent_45%)",
+			// Nothing here is drawn around the cursor.
+			expect(picture.innerHTML).not.toMatch(/radial-gradient|--sx|--sy|--shine/);
+			// A wide, slanted, soft-edged band, always there at a low strength...
+			expect(band.className).toContain(
+				"linear-gradient(100deg,transparent,oklch(1_0_0/0.1)_50%,transparent)",
 			);
-			expect(shine.className).toContain("opacity-(--shine)");
-			expect(picture.className).toContain("[--shine:0]");
-			expect(shine.className).toContain("transition-opacity");
+			expect(band.className).toContain("-skew-x-12");
+			// ...whose position is read from the same lean, so it slides as the picture turns, and eases with it.
+			expect(band.className).toContain("translateX(calc(25%+var(--tx)*60%))");
+			expect(band.className).toContain("transition-transform");
+			expect(band.className).toContain("duration-200");
+			expect(band.className).toContain("motion-reduce:transition-none");
+			// And a gentle falloff across the whole picture, lighter toward the top left where the lamp is.
+			const falloff = shine.querySelector("[data-falloff]") as HTMLElement;
+			expect(falloff.className).toContain("bg-gradient-to-br");
+			expect(falloff.className).toContain("from-white/[0.05]");
+			expect(falloff.className).toContain("to-black/[0.1]");
+			// The cursor only turns the picture; it sets no position of its own for the light.
 			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
-			expect(read("--sx")).toBe("100%");
-			expect(read("--sy")).toBe("0%");
-			expect(read("--shine")).toBe("1");
-			fireEvent.pointerMove(backdrop, { clientX: 600, clientY: 400 });
-			expect(read("--sx")).toBe("50%");
-			expect(read("--sy")).toBe("50%");
-			fireEvent.pointerLeave(backdrop);
-			expect(read("--shine")).toBe("0");
+			expect(read("--sx")).toBe("");
+			expect(read("--shine")).toBe("");
+			expect(read("--tx")).toBe("1");
 		});
 
 		it("is a light lean: 3 degrees at most each way, eased, about the picture's own middle", () => {
