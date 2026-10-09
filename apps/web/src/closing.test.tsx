@@ -10,7 +10,7 @@ describe("the closing section", () => {
 		const section = screen.getByRole("region", { name: "Get started" });
 		const heading = within(section).getByRole("heading", {
 			level: 2,
-			name: "Build your first machine.",
+			name: "Ready to build your first machine?",
 		});
 		const subtext = within(section).getByText("Test it on paper first, with no money at risk.");
 		// Nothing else to read: the headline, one short line under it, and the buttons.
@@ -32,6 +32,10 @@ describe("the closing section", () => {
 		render(<Closing authUrl={AUTH} />);
 		const heading = screen.getByRole("heading", { level: 2 });
 		expect(heading.className).toContain("bg-clip-text");
+		// The gradient only paints inside the heading's box, so the box has room below the letters for the tails of
+		// y, p and g, and the same room is taken back from the margin so nothing moves.
+		expect(heading.className).toContain("pb-[0.14em]");
+		expect(heading.className).toContain("-mb-[0.14em]");
 		expect(heading.className).toContain("text-transparent");
 		expect(heading.className).toContain("linear-gradient(105deg");
 		const start = screen.getByRole("link", { name: "Start for free" });

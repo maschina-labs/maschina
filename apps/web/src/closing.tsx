@@ -13,8 +13,8 @@ export function Closing({ authUrl }: { authUrl: string }) {
 			aria-label="Get started"
 			className="relative flex min-h-[70dvh] flex-col items-center justify-center bg-black px-(--gutter) py-24 text-center"
 		>
-			<h2 className="max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] font-display font-normal text-[clamp(2.25rem,5vw,5rem)] text-transparent leading-[1] tracking-[-0.035em] [text-wrap:balance]">
-				Build your first machine.
+			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] font-display font-normal text-[clamp(2.25rem,5vw,5rem)] pb-[0.14em] text-transparent leading-[1] tracking-[-0.035em] [text-wrap:balance]">
+				Ready to build your first machine?
 			</h2>
 			<p className="mt-5 text-[clamp(1rem,1.3vw,1.125rem)] text-neutral-400 leading-snug">
 				Test it on paper first, with no money at risk.

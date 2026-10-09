@@ -61,7 +61,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			</div>
 			<h1
 				ref={heading}
-				className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
+				className="relative z-20 -mb-[0.14em] max-w-[18ch] pb-[0.14em] font-display font-normal text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
 			>
 				The operating system for autonomous capital.
 			</h1>

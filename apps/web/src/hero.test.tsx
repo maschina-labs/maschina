@@ -209,6 +209,14 @@ describe("the hero", () => {
 		expect(className).toContain("relative");
 	});
 
+	it("keeps the tails of the letters: room below the headline's box for y, p and g, taken back from the margin", () => {
+		render(<Hero authUrl={AUTH} />);
+		const { className } = screen.getByRole("heading", { level: 1 });
+		expect(className).toContain("bg-clip-text");
+		expect(className).toContain("pb-[0.14em]");
+		expect(className).toContain("-mb-[0.14em]");
+	});
+
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
