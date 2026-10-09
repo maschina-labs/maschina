@@ -59,7 +59,7 @@ describe("the footer", () => {
 		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
 	});
 
-	it("has the sitemap: four columns spread across the full width, each centered", () => {
+	it("has the sitemap: four columns spread margin to margin, with the pages in each left aligned", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
@@ -69,9 +69,13 @@ describe("the footer", () => {
 				.map((heading) => heading.textContent),
 		).toEqual(["Product", "Developers", "Company", "Legal"]);
 		expect(nav.className).toContain("w-full");
-		expect(nav.className).toContain("sm:grid-cols-4");
-		expect(nav.className).toContain("sm:justify-items-center");
-		expect(nav.className).toContain("text-center");
+		// Spread margin to margin: the first column on the left margin, the last on the right, equal gaps
+		// between. Inside each column the pages are left aligned.
+		expect(nav.className).toContain("sm:flex");
+		expect(nav.className).toContain("sm:justify-between");
+		expect(nav.className).not.toContain("text-center");
+		const headings = within(nav).getAllByRole("heading", { level: 2 });
+		for (const heading of headings) expect(heading.parentElement?.className).toContain("text-left");
 		expect(nav.innerHTML).not.toMatch(/rounded/);
 		expect(within(nav).getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
 		expect(within(nav).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
