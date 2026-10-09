@@ -10,15 +10,14 @@ describe("the try button", () => {
 		expect(screen.getByRole("link").querySelector("[data-glint]")).toBeNull();
 	});
 
-	it("is plain pearl, with a bright outline that makes it look polished", () => {
+	it("is plain pearl with no outline, so it is exactly as big as its box, like the gray button beside it", () => {
 		render(<TryButton {...props} glint />);
 		const { className } = screen.getByRole("link");
 		expect(className).toContain("bg-[oklch(0.93_0.02_300)]");
 		expect(className).not.toContain("linear-gradient");
 		expect(className).toContain("hover:bg-[oklch(0.98_0.015_300)]");
-		// A white line just inside the edge and a silver one just outside it, so the edge catches the light.
-		expect(className).toMatch(/shadow-\[[^\]]*inset[^\]]*\]/);
-		expect(className).toContain("oklch(1_0_0");
+		// No shadow, ring or border: any of them adds to the edge and makes the button look larger.
+		expect(className).not.toMatch(/shadow-|ring|border|outline/);
 		expect(className).not.toMatch(/rounded/);
 	});
 

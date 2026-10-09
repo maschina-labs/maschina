@@ -11,12 +11,14 @@ describe("the front page", () => {
 		);
 	});
 
-	it("has the hero, then the closing section, then the footer", () => {
+	it("has the hero, then how it works, then the closing section, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
 		const hero = within(main).getByRole("region", { name: "Maschina" });
+		const how = within(main).getByRole("region", { name: "How it works" });
 		const closing = within(main).getByRole("region", { name: "Get started" });
-		expect(hero.nextElementSibling).toBe(closing);
+		expect(hero.nextElementSibling).toBe(how);
+		expect(how.nextElementSibling).toBe(closing);
 		// Plain sections, one after the other: nothing is pinned and nothing rolls over anything.
 		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});

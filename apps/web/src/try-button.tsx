@@ -25,7 +25,7 @@ export function TryButton({
 	return (
 		<a
 			href={href}
-			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black shadow-[inset_0_0_0_1px_oklch(1_0_0/0.95),0_0_0_1px_oklch(0.74_0.035_290/0.8)] transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
+			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
 		>
 			<span className={labelClassName}>{label}</span>
 			{glint ? (
