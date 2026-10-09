@@ -27,20 +27,15 @@ function Row() {
 }
 
 /**
- * A quiet strip under the hero: what Maschina is built with, sliding slowly past, with a line saying these
- * are tools and not partnerships. It rolls up over the pinned hero like the sections after it. The row is
+ * A quiet strip under the hero: what Maschina is built with, sliding slowly past. The heading says what these
+ * are: tools in use, not partners. It rolls up over the pinned hero like the sections after it. The row is
  * repeated so the loop has no seam; the copy is hidden from assistive technology and the keyboard, and goes
  * altogether for anyone who asked for less motion, who gets one still row.
  */
 export function BuiltWith() {
 	return (
 		<section aria-label="Built with" className="relative z-10 bg-black px-(--gutter) py-14">
-			<div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-				<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">Built with</h2>
-				<p className="text-[13px] text-neutral-500">
-					The tools Maschina is made with. These are not partnerships.
-				</p>
-			</div>
+			<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">Built with</h2>
 			<div
 				data-frame
 				className="mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"

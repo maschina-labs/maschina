@@ -12,13 +12,15 @@ const TOOLS = [
 ] as const;
 
 describe("the built with strip", () => {
-	it("says what Maschina is built with, and says plainly that these are not partnerships", () => {
+	it("has the heading Built with, and nothing under it but the tools", () => {
 		render(<BuiltWith />);
 		const section = screen.getByRole("region", { name: "Built with" });
-		expect(within(section).getByText("Built with")).toBeInTheDocument();
 		expect(
-			within(section).getByText("The tools Maschina is made with. These are not partnerships."),
+			within(section).getByRole("heading", { level: 2, name: "Built with" }),
 		).toBeInTheDocument();
+		// No extra line of explanation: the heading says what these are.
+		expect(section.querySelectorAll("p")).toHaveLength(0);
+		expect(section.textContent).not.toMatch(/partner/i);
 	});
 
 	it("lists each tool once for assistive technology, as a link to its own site, with what it does", () => {
@@ -39,10 +41,7 @@ describe("the built with strip", () => {
 	it("claims nothing else: no partner, customer or trusted-by wording anywhere", () => {
 		const { container } = render(<BuiltWith />);
 		const text = container.textContent ?? "";
-		expect(text).not.toMatch(/trusted by|customers?|backed by|official/i);
-		// "partnerships" appears once, and only to deny them.
-		expect(text.match(/partner/gi)).toHaveLength(1);
-		expect(text).toContain("not partnerships");
+		expect(text).not.toMatch(/trusted by|customers?|backed by|official|partner/i);
 	});
 
 	it("scrolls slowly as a marquee, pauses under the cursor, and stands still for reduced motion", () => {
