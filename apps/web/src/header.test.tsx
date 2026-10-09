@@ -330,7 +330,10 @@ describe("the header", () => {
 		const panel = within(screen.getByRole("region", { name: "Search" }));
 		const box = panel.getByRole("searchbox", { name: "Search Maschina" });
 
-		expect(panel.getAllByRole("link").length).toBeGreaterThan(10);
+		// Nothing is listed until something is typed, and nothing is said about it.
+		expect(panel.queryAllByRole("link")).toHaveLength(0);
+		expect(panel.queryByText("No pages match.")).toBeNull();
+
 		fireEvent.change(box, { target: { value: "spec" } });
 		expect(panel.getByRole("link", { name: /Machine spec/ })).toHaveAttribute("href", "/spec");
 		expect(panel.queryByRole("link", { name: /Docs/ })).toBeNull();
@@ -362,6 +365,23 @@ describe("the header", () => {
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "Enter" });
 		expect(navigate).toHaveBeenLastCalledWith("/docs");
+	});
+
+	it("does nothing on Enter when nothing has been typed", () => {
+		const navigate = vi.fn();
+		render(<Header authUrl={AUTH} navigate={navigate} />);
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		const box = within(screen.getByRole("region", { name: "Search" })).getByRole("searchbox", {
+			name: "Search Maschina",
+		});
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).not.toHaveBeenCalled();
+
+		fireEvent.change(box, { target: { value: "docs" } });
+		fireEvent.change(box, { target: { value: "  " } });
+		expect(
+			within(screen.getByRole("region", { name: "Search" })).queryAllByRole("link"),
+		).toHaveLength(0);
 	});
 
 	it("does nothing on Enter when nothing matches", () => {

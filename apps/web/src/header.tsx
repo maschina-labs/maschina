@@ -237,7 +237,9 @@ export function Header({
 	};
 
 	const menu = active ? MENUS[active] : undefined;
-	const hits = search(query).slice(0, MAX_HITS);
+	// Nothing is listed until something is typed.
+	const typed = query.trim() !== "";
+	const hits = typed ? search(query).slice(0, MAX_HITS) : [];
 	const signIn = `${authUrl}/sign-in`;
 	const signUp = `${authUrl}/sign-up`;
 
@@ -438,9 +440,9 @@ export function Header({
 									</li>
 								))}
 							</ul>
-						) : (
+						) : typed ? (
 							<p className="px-3 py-2.5 text-[16px] text-neutral-500">No pages match.</p>
-						)}
+						) : null}
 					</section>
 				) : null}
 				{open ? (
