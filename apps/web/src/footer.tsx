@@ -286,7 +286,7 @@ export function Footer() {
 												<svg
 													viewBox="0 0 12 12"
 													data-arrow="external"
-													className="ml-1.5 inline size-3 text-neutral-500"
+													className="ml-1.5 inline size-3 text-white"
 													fill="none"
 													stroke="currentColor"
 													strokeWidth={1.25}
@@ -315,7 +315,7 @@ export function Footer() {
 						<a
 							key={social.label}
 							href={social.href}
-							className="grid size-9 place-items-center bg-white/[0.07] text-neutral-300 transition-colors hover:bg-white/[0.11] hover:text-neutral-100"
+							className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
 						>
 							<span className="sr-only">{social.label}</span>
 							<svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">

@@ -90,6 +90,8 @@ describe("the footer", () => {
 			const link = nav.getByRole("link", { name });
 			expect(link.querySelector("svg")).toHaveAttribute("data-arrow", "external");
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+			// The arrows are white.
+			expect(link.querySelector("svg")?.getAttribute("class")).toContain("text-white");
 		}
 		for (const link of nav.getAllByRole("link")) {
 			const external = link.getAttribute("href")?.startsWith("https://") ?? false;
@@ -344,6 +346,8 @@ describe("the footer", () => {
 		expect(row.firstElementChild).toBe(left);
 		for (const link of [x, github, youtube]) {
 			expect(link.className).toContain("size-9");
+			// The icons are white.
+			expect(link.className).toContain("text-white");
 			expect(link.className).not.toMatch(/rounded/);
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		}
