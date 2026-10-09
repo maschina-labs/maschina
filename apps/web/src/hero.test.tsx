@@ -147,6 +147,29 @@ describe("the hero", () => {
 		expect(heading.style.getPropertyValue("--mx")).toBe("");
 	});
 
+	it("groups the headline with its line, then leaves a real gap before the buttons", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		const line = within(section).getByText("AI decides. Maschina decides what it's allowed to do.");
+		const buttons = within(section).getByRole("link", { name: "Start for free" })
+			.parentElement as HTMLElement;
+		expect(line.className).toContain("mt-4");
+		expect(buttons.className).toContain("mt-14");
+		// The block sits a little above the middle of the screen.
+		expect(section.className).toContain("pb-40");
+	});
+
+	it("keeps the proof line at the foot of the screen, off the stack", () => {
+		render(<Hero authUrl={AUTH} />);
+		const proof = screen.getByRole("link", {
+			name: "Range Finder has traded real money on Solana since September 28.",
+		}).parentElement as HTMLElement;
+		expect(proof.className).toContain("absolute");
+		expect(proof.className).toContain("inset-x-0");
+		expect(proof.className).toContain("bottom-8");
+		expect(proof.className).toContain("z-20");
+	});
+
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(

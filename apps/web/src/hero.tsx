@@ -40,7 +40,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
-			className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-(--gutter) pt-24 pb-16 text-center"
+			className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-(--gutter) pt-24 pb-40 text-center"
 		>
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 				{ready ? (
@@ -63,10 +63,10 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			>
 				The operating system for autonomous capital.
 			</h1>
-			<p className="relative z-20 mt-6 text-[clamp(1rem,1.4vw,1.25rem)] text-neutral-400 leading-snug sm:whitespace-nowrap">
+			<p className="relative z-20 mt-4 text-[clamp(0.9375rem,1.2vw,1.125rem)] text-neutral-400 leading-snug sm:whitespace-nowrap">
 				AI decides. Maschina decides what it's allowed to do.
 			</p>
-			<div className="relative z-20 mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
+			<div className="relative z-20 mt-14 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
 				<TryButton
 					href={`${authUrl}/sign-up`}
 					label="Start for free"
@@ -81,7 +81,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					Read the docs
 				</a>
 			</div>
-			<p className="relative z-20 mt-8 text-[13px] text-neutral-500">
+			<p className="absolute inset-x-0 bottom-8 z-20 px-(--gutter) text-[13px] text-neutral-500">
 				<a href="/live" className="transition-colors hover:text-neutral-300">
 					Range Finder has traded real money on Solana since September 28.
 				</a>
