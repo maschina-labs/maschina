@@ -44,7 +44,6 @@ export function SettingsScreen() {
 			<Panel size="large" name="More">
 				<Onward to="/settings/alerts">Alerts</Onward>
 				<Onward to="/settings/keys">API keys</Onward>
-				<Onward to="/papers">Papers</Onward>
 			</Panel>
 			<Panel size="large" name="Fees and plan">
 				<Rows

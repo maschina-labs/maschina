@@ -86,8 +86,8 @@ as the product being finished:
   half guards against a node Maschina does not run, which cannot happen yet.
 - **The web app** has every screen laid out. What works against the live API: signing in, the terminal
   following a machine, each machine's page with its record and controls, making a Range Finder, a fixed
-  range or a price trigger, withdrawing, and the papers at `/papers`, served from the master files in
-  `papers/`, and the manager. Live balances, the stream and chat with other people are laid out and say so.
+  range or a price trigger, withdrawing, and the manager. Live balances, the stream and chat with other
+  people are laid out and say so. The papers are being rewritten and will return with the docs site.
 - **The manager** is your own AI, on your own Anthropic key, set in Settings. The key is checked with
   Anthropic, sealed under a key only the server holds, and never shown again. In conversation it can
   look at your machines, their records and the most active tokens on Solana, and it can do nothing else:

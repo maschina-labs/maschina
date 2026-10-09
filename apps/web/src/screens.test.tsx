@@ -237,7 +237,6 @@ describe("the screens that explain", () => {
 		["/network/join", "Run a node", "What it needs"],
 		["/u/ash", "Profile", "@ash"],
 		["/maintenance", "Maintenance", "Back shortly"],
-		["/papers", "Papers", "Index"],
 	])("%s explains itself", async (path, title, text) => {
 		renderAt(path);
 		const page = await screenNamed(title);

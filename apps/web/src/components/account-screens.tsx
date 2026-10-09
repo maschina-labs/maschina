@@ -150,9 +150,6 @@ export function WelcomeScreen() {
 					to the wallet that made it.
 				</Note>
 			</Panel>
-			<Panel size="wide" name="Read first">
-				<Onward to="/papers">The papers</Onward>
-			</Panel>
 		</>
 	);
 }
@@ -188,7 +185,6 @@ export function InviteScreen() {
 			</Panel>
 			<Panel size="large" name="Meanwhile">
 				<Onward to="/new">Make a machine on paper</Onward>
-				<Onward to="/papers">Read the papers</Onward>
 			</Panel>
 		</>
 	);

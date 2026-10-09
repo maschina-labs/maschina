@@ -1,7 +1,6 @@
 import { vitestConfig } from "@maschina/config/vitest";
 import react from "@vitejs/plugin-react";
 import { mergeConfig } from "vitest/config";
-import { papers } from "./papers-plugin.ts";
 
 export default mergeConfig(
 	vitestConfig({
@@ -28,6 +27,5 @@ export default mergeConfig(
 			"src/components/rain-glass.tsx",
 		],
 	}),
-	// The papers come from the master folder, as they do in the app.
-	{ plugins: [react(), papers("../../papers")] },
+	{ plugins: [react()] },
 );

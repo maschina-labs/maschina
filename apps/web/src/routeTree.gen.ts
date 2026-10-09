@@ -21,7 +21,6 @@ import { Route as InviteRouteImport } from './routes/invite'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as NewRouteImport } from './routes/new'
-import { Route as PapersRouteImport } from './routes/papers'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as ProfitRouteImport } from './routes/profit'
 import { Route as SignInRouteImport } from './routes/sign-in'
@@ -108,11 +107,6 @@ const ManagerRoute = ManagerRouteImport.update({
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PapersRoute = PapersRouteImport.update({
-  id: '/papers',
-  path: '/papers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioRoute = PortfolioRouteImport.update({
@@ -264,7 +258,6 @@ export interface FileRoutesByFullPath {
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
-  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
   '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
@@ -306,7 +299,6 @@ export interface FileRoutesByTo {
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
-  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
   '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
@@ -349,7 +341,6 @@ export interface FileRoutesById {
   '/maintenance': typeof MaintenanceRoute
   '/manager': typeof ManagerRoute
   '/new': typeof NewRoute
-  '/papers': typeof PapersRoute
   '/portfolio': typeof PortfolioRoute
   '/profit': typeof ProfitRoute
   '/sign-in': typeof SignInRoute
@@ -393,7 +384,6 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/manager'
     | '/new'
-    | '/papers'
     | '/portfolio'
     | '/profit'
     | '/sign-in'
@@ -435,7 +425,6 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/manager'
     | '/new'
-    | '/papers'
     | '/portfolio'
     | '/profit'
     | '/sign-in'
@@ -477,7 +466,6 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/manager'
     | '/new'
-    | '/papers'
     | '/portfolio'
     | '/profit'
     | '/sign-in'
@@ -520,7 +508,6 @@ export interface RootRouteChildren {
   MaintenanceRoute: typeof MaintenanceRoute
   ManagerRoute: typeof ManagerRoute
   NewRoute: typeof NewRoute
-  PapersRoute: typeof PapersRoute
   PortfolioRoute: typeof PortfolioRoute
   ProfitRoute: typeof ProfitRoute
   SignInRoute: typeof SignInRoute
@@ -634,13 +621,6 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/new'
       preLoaderRoute: typeof NewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/papers': {
-      id: '/papers'
-      path: '/papers'
-      fullPath: '/papers'
-      preLoaderRoute: typeof PapersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio': {
@@ -848,7 +828,6 @@ const rootRouteChildren: RootRouteChildren = {
   MaintenanceRoute: MaintenanceRoute,
   ManagerRoute: ManagerRoute,
   NewRoute: NewRoute,
-  PapersRoute: PapersRoute,
   PortfolioRoute: PortfolioRoute,
   ProfitRoute: ProfitRoute,
   SignInRoute: SignInRoute,

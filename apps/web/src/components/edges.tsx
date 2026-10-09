@@ -2,11 +2,9 @@ import {
 	ArrowLeft,
 	ArrowsLeftRight,
 	Bell,
-	BookOpen,
 	Check,
 	Clock,
 	Copy,
-	FileText,
 	GearSix,
 	MagnifyingGlass,
 	Pause,
@@ -814,10 +812,6 @@ function AccountPanel() {
 							{key.data?.set ? `ending ${key.data.hint}` : "not set"}
 						</span>
 					</button>
-					<button type="button" onClick={go("/papers")} className={row}>
-						<FileText size={18} weight="light" />
-						<span className="flex-1 text-left">Papers</span>
-					</button>
 				</div>
 			</Section>
 
@@ -937,10 +931,6 @@ function TilesPanel() {
 						))}
 					</div>
 				</div>
-				<Link to="/papers" className={tile}>
-					<BookOpen size={20} weight="light" />
-					<span className="flex-1">Papers</span>
-				</Link>
 				<Link to="/settings" className={tile}>
 					<GearSix size={20} weight="light" />
 					<span className="flex-1">Settings</span>

@@ -29,7 +29,7 @@ describe("what each screen is called", () => {
 		["/news/1a2b3c", "News"],
 		["/sign-in", "Sign in"],
 		["/welcome", "Welcome"],
-		["/papers", "Papers"],
+		["/papers", "Not found"],
 		["/invite", "Invite"],
 		["/get-a-wallet", "Get a wallet"],
 		["/legal/terms", "Terms"],

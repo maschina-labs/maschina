@@ -3,7 +3,7 @@ import { describeEvent } from "../lib/describe.ts";
 import { amount, useMachine, useRecord } from "../lib/machines.ts";
 import { largestDrop } from "../lib/track-record.ts";
 import { sentence } from "./home.tsx";
-import { Headline, Note, Onward, Panel, Rows } from "./kit.tsx";
+import { Headline, Note, Panel, Rows } from "./kit.tsx";
 
 /**
  * The manager, and the places beyond your own machines: teams, the marketplace, the network, creators,
@@ -120,7 +120,6 @@ export function JoinScreen() {
 						["The Maschina daemon", "Arriving"],
 					]}
 				/>
-				<Onward to="/papers">How the network works</Onward>
 			</Panel>
 		</>
 	);
