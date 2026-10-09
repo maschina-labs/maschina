@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Logo } from "./logo.tsx";
 import { usePresence } from "./presence.ts";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
@@ -182,9 +183,15 @@ function Language() {
 /** What each state says, and its color: the app's own live and stop signals, grey while unknown. */
 const SHOWN_AS = {
 	checking: { label: "Checking", color: "bg-neutral-600" },
-	up: { label: "All systems normal", color: "bg-[oklch(0.8_0.2_145)]" },
-	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
-	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
+	up: {
+		label: "All systems normal",
+		color: "bg-[oklch(0.8_0.2_145)] animate-blink motion-reduce:animate-none",
+	},
+	paused: { label: "Machines paused", color: "bg-[oklch(0.86_0.17_100)]" },
+	down: {
+		label: "API unreachable",
+		color: "bg-[oklch(0.62_0.24_25)] animate-blink motion-reduce:animate-none",
+	},
 } as const;
 
 /** Green, like the activity light on a network port. The label says which direction it is. */
@@ -255,10 +262,7 @@ export function Footer() {
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
 			<div className="mb-auto pt-32">
-				<a href="/" aria-label="Maschina, home" className="flex w-fit items-center">
-					<img src="/brand/favicon.svg" alt="" className="size-5 shrink-0" />
-					<img src="/brand/word.svg" alt="" className="ml-1.5 h-5 w-auto" />
-				</a>
+				<Logo />
 			</div>
 			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">

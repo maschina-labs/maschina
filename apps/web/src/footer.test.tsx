@@ -34,6 +34,21 @@ describe("the footer", () => {
 		expect(footer.firstElementChild?.className).toContain("pt-32");
 	});
 
+	it("has the same logo as the header, with the mark that turns a full turn each time the cursor arrives", () => {
+		render(<Footer />);
+		const home = within(screen.getByRole("contentinfo")).getByRole("link", {
+			name: "Maschina, home",
+		});
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("src", "/brand/word.svg");
+		const mark = home.querySelector("[data-mark]") as HTMLElement;
+		expect(mark).toHaveAttribute("src", "/brand/favicon.svg");
+		expect(mark.style.transform).toBe("rotate(0deg)");
+		fireEvent.pointerEnter(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+		fireEvent.pointerLeave(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+	});
+
 	it("lights TX and RX green, like the activity light on a network port", async () => {
 		render(<Footer />);
 		const status = within(screen.getByRole("status"));
@@ -56,6 +71,42 @@ describe("the footer", () => {
 		// Each is a short blink, not a state that stays on.
 		await waitFor(() => expect(tx).toHaveAttribute("data-on", "false"));
 		await waitFor(() => expect(rx).toHaveAttribute("data-on", "false"));
+	});
+
+	it("shows the status dot as green when up, yellow when paused, and red when down: never orange", async () => {
+		const dot = () => screen.getByRole("status").querySelector("span") as HTMLElement;
+		const { unmount } = render(<Footer />);
+		await within(screen.getByRole("status")).findByText("All systems normal");
+		expect(dot().className).toContain("oklch(0.8_0.2_145)");
+		// Green and red blink, like a link light; yellow, while paused, stays steady. Not for reduced motion.
+		expect(dot().className).toContain("animate-blink");
+		expect(dot().className).toContain("motion-reduce:animate-none");
+		unmount();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(
+				async () =>
+					new Response(
+						JSON.stringify({ status: "ok", halt: { reason: "x", since: "2026-10-09T00:00:00Z" } }),
+						{
+							status: 200,
+						},
+					),
+			),
+		);
+		const paused = render(<Footer />);
+		await within(screen.getByRole("status")).findByText("Machines paused");
+		expect(dot().className).toContain("oklch(0.86_0.17_100)");
+		expect(dot().className).not.toContain("animate-blink");
+		paused.unmount();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response("{}", { status: 503 })),
+		);
+		render(<Footer />);
+		await within(screen.getByRole("status")).findByText("API unreachable");
+		expect(dot().className).toContain("oklch(0.62_0.24_25)");
+		expect(dot().className).toContain("animate-blink");
 	});
 
 	it("never lights RX when nothing comes back", async () => {

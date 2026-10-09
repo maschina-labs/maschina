@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
 import { search } from "./search.ts";
@@ -73,27 +74,6 @@ function Caret({ open }: { open: boolean }) {
 		>
 			<path d="M2.5 4.5 6 8l3.5-3.5" />
 		</svg>
-	);
-}
-
-/**
- * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
- * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
- * their system for less motion.
- */
-function Mark() {
-	const [turns, setTurns] = useState(0);
-	const still =
-		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-	return (
-		<img
-			data-mark
-			src="/brand/favicon.svg"
-			alt=""
-			onPointerEnter={() => !still && setTurns((count) => count + 1)}
-			style={{ transform: `rotate(${turns * 360}deg)` }}
-			className="size-4 shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:size-5"
-		/>
 	);
 }
 
@@ -240,12 +220,7 @@ export function Header({
 			>
 				<div className="flex items-center justify-between px-(--gutter) py-4">
 					<div className="flex items-center gap-10">
-						<a href="/" aria-label="Maschina, home" className="flex items-center">
-							<Mark />
-							<span data-word className="ml-1.5">
-								<img src="/brand/word.svg" alt="" className="h-4 w-auto sm:h-5" />
-							</span>
-						</a>
+						<Logo />
 						<div className="hidden items-center gap-5 xl:flex">
 							<nav aria-label="Pages" className="flex items-center gap-7">
 								{PAGES.map((page) =>
