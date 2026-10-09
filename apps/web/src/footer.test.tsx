@@ -59,7 +59,7 @@ describe("the footer", () => {
 		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
 	});
 
-	it("has the sitemap: four columns spread margin to margin, with the pages in each left aligned", () => {
+	it("has the sitemap: four columns on the left, with the pages in each left aligned", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
@@ -69,10 +69,12 @@ describe("the footer", () => {
 				.map((heading) => heading.textContent),
 		).toEqual(["Product", "Developers", "Company", "Legal"]);
 		expect(nav.className).toContain("w-full");
-		// Spread margin to margin: the first column on the left margin, the last on the right, equal gaps
-		// between. Inside each column the pages are left aligned.
+		// The columns sit together on the left, starting at the margin, with an even gap between them.
+		// Inside each column the pages are left aligned.
 		expect(nav.className).toContain("sm:flex");
-		expect(nav.className).toContain("sm:justify-between");
+		expect(nav.className).toContain("sm:justify-start");
+		expect(nav.className).not.toContain("sm:justify-between");
+		expect(nav.className).toContain("sm:gap-x-[clamp(3rem,8vw,8rem)]");
 		expect(nav.className).not.toContain("text-center");
 		const headings = within(nav).getAllByRole("heading", { level: 2 });
 		for (const heading of headings) expect(heading.parentElement?.className).toContain("text-left");

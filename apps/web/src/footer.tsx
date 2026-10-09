@@ -265,10 +265,10 @@ export function Footer() {
 			<div className="pt-32">
 				<Logo />
 			</div>
-			{/* The map of the site: columns spread from the left margin to the right one with equal gaps, each with its pages left aligned. */}
+			{/* The map of the site: columns together on the left, from the margin, each with its pages left aligned. */}
 			<nav
 				aria-label="Sitemap"
-				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 sm:flex sm:justify-between"
+				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 sm:flex sm:justify-start sm:gap-x-[clamp(3rem,8vw,8rem)]"
 			>
 				{SITEMAP.map((column) => (
 					<div key={column.title} className="text-left">
