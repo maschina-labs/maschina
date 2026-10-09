@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Showcase } from "./showcase.tsx";
 
@@ -33,6 +33,77 @@ describe("the showcase", () => {
 		const { container } = render(<Showcase />);
 		expect(container.querySelector("video, canvas, iframe")).toBeNull();
 		expect(container.innerHTML).not.toMatch(/animate-/);
+	});
+
+	it("stands out from the black: a light square frame around the picture, and no glow underneath", () => {
+		const { container } = render(<Showcase />);
+		const frame = container.querySelector("[data-frame]") as HTMLElement;
+		expect(frame).not.toBeNull();
+		expect(frame.contains(screen.getByRole("img"))).toBe(true);
+		expect(frame.className).toContain("bg-white/[0.18]");
+		// A thin edge, 2px: enough to lift it off the black, not a bezel.
+		expect(frame.className).toContain("p-0.5");
+		expect(frame.className).not.toMatch(/\bp-(1|2|3|4)\b/);
+		// The glow under it is gone.
+		expect(container.innerHTML).not.toMatch(/shadow-/);
+	});
+
+	describe("the tilt", () => {
+		const place = (top: number, height = 945) => {
+			Object.defineProperty(window, "innerHeight", { value: height, configurable: true });
+			const tilt = document.querySelector("[data-tilt]") as HTMLElement;
+			tilt.getBoundingClientRect = () => ({ top }) as DOMRect;
+			fireEvent.scroll(window);
+			return Number.parseFloat(tilt.style.getPropertyValue("--tilt"));
+		};
+
+		it("leans back while it is still below the fold, and lies flat once it has come into view", () => {
+			render(<Showcase />);
+			// Just entering at the bottom of the screen: fully leaned back.
+			expect(place(945)).toBe(1);
+			expect(place(2000)).toBe(1);
+			// Well up the screen: flat.
+			expect(place(945 * 0.15)).toBe(0);
+			expect(place(0)).toBe(0);
+			expect(place(-300)).toBe(0);
+		});
+
+		it("comes in smoothly in between, following the scroll", () => {
+			render(<Showcase />);
+			const halfway = place(945 * 0.15 + (945 * 0.85) / 2);
+			expect(halfway).toBeCloseTo(0.5, 5);
+			const nearer = place(945 * 0.4);
+			expect(nearer).toBeLessThan(halfway);
+			expect(nearer).toBeGreaterThan(0);
+		});
+
+		it("is a perspective tilt about the bottom edge, read from one variable, flat if the variable is missing", () => {
+			render(<Showcase />);
+			const tilt = document.querySelector("[data-tilt]") as HTMLElement;
+			expect(tilt.className).toContain("perspective(");
+			// A gentle lean: 6 degrees back at most, and 3% smaller.
+			expect(tilt.className).toContain("rotateX(calc(var(--tilt)*6deg))");
+			expect(tilt.className).toContain("scale(calc(1-var(--tilt)*0.03))");
+			expect(tilt.className).toContain("origin-bottom");
+			expect(tilt.className).toContain("[--tilt:0]");
+		});
+
+		it("does not tilt for anyone who asked for less motion", () => {
+			const original = window.matchMedia;
+			window.matchMedia = ((query: string) => ({
+				matches: query.includes("reduce"),
+				media: query,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				onchange: null,
+				dispatchEvent: () => false,
+			})) as typeof window.matchMedia;
+			render(<Showcase />);
+			expect(place(2000)).toBeNaN();
+			window.matchMedia = original;
+		});
 	});
 
 	it("fills the width between the page margins, on black, with square corners", () => {
