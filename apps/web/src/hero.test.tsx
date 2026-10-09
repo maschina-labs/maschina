@@ -93,7 +93,7 @@ describe("the hero", () => {
 		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
 	});
 
-	it("paints the headline in silver and pearl with a sheen, and a soft bloom behind it", () => {
+	it("paints the headline in silver with a sheen, and a soft bloom behind it", () => {
 		render(<Hero authUrl={AUTH} />);
 		const { className } = screen.getByRole("heading", { level: 1 });
 		// A gradient clipped to the letters, so the words themselves are the color.
@@ -103,6 +103,8 @@ describe("the hero", () => {
 		// The bloom is a glow that follows the letters' shape, not a box.
 		expect(className).toContain("drop-shadow(");
 		expect(className).not.toContain("animate-");
+		// Silver only: no pink or violet hue in the gradient or the glow.
+		expect(className).not.toMatch(/_(300|325)[)_/]/);
 	});
 
 	it("lights the letters under the cursor, and lets go when it leaves", () => {
@@ -155,8 +157,9 @@ describe("the hero", () => {
 			.parentElement as HTMLElement;
 		expect(line.className).toContain("mt-4");
 		expect(buttons.className).toContain("mt-14");
-		// The block sits a little above the middle of the screen.
-		expect(section.className).toContain("pb-40");
+		// The block sits a little below the middle of the screen.
+		expect(section.className).toContain("pt-32");
+		expect(section.className).toContain("pb-16");
 	});
 
 	it("keeps the proof line at the foot of the screen, off the stack", () => {
@@ -173,7 +176,7 @@ describe("the hero", () => {
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
-			"clamp(2.25rem,5.4vw,6rem)",
+			"clamp(2.5rem,6.4vw,7.5rem)",
 		);
 	});
 
