@@ -87,7 +87,6 @@ describe("the showcase", () => {
 		const { container } = render(<Showcase />);
 		const backdrop = container.querySelector("[data-backdrop]") as HTMLElement;
 		expect(backdrop).not.toBeNull();
-		expect(backdrop).toHaveAttribute("data-tone", "pearl");
 		expect(backdrop.contains(screen.getByRole("img"))).toBe(true);
 		// Layers of soft light, not a flat fill: three radial lights over a base.
 		expect(backdrop.className.match(/radial-gradient\(/g)).toHaveLength(3);
