@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Showcase } from "./showcase.tsx";
 
@@ -31,125 +31,29 @@ describe("the showcase", () => {
 		expect(caption.className).toContain("text-center");
 	});
 
-	it("is a plain picture: no video, no canvas, no animation, and nothing that moves with the scroll", () => {
+	it("is a plain, still picture: no video, no canvas, no tilt, no shine, nothing that moves with the scroll or the mouse", () => {
 		const { container } = render(<Showcase />);
 		expect(container.querySelector("video, canvas, iframe")).toBeNull();
-		expect(container.querySelector("[data-tilt]")).toBeNull();
-		expect(container.innerHTML).not.toMatch(/animate-|will-change/);
+		expect(container.querySelector("[data-tilt], [data-shine], [data-picture]")).toBeNull();
+		expect(container.innerHTML).not.toMatch(
+			/animate-|will-change|perspective|rotate|--tx|--ty|transition-/,
+		);
 	});
 
-	describe("the lean toward the mouse", () => {
-		const box = { left: 100, top: 100, width: 1000, height: 600 };
-		const setup = () => {
-			render(<Showcase />);
-			const backdrop = document.querySelector("[data-backdrop]") as HTMLElement;
-			backdrop.getBoundingClientRect = () => box as DOMRect;
-			// The picture and its shine sit in one wrapper, which is what leans.
-			const picture = document.querySelector("[data-picture]") as HTMLElement;
-			const read = (name: string) => picture.style.getPropertyValue(name);
-			return { backdrop, picture, read };
-		};
-
-		it("leans toward the cursor on both axes, so all four corners move", () => {
-			const { backdrop, read } = setup();
-			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
-			// The top right corner: all the way right, all the way up.
-			expect(read("--tx")).toBe("1");
-			expect(read("--ty")).toBe("-1");
-			fireEvent.pointerMove(backdrop, { clientX: 100, clientY: 700 });
-			expect(read("--tx")).toBe("-1");
-			expect(read("--ty")).toBe("1");
-			fireEvent.pointerMove(backdrop, { clientX: 600, clientY: 400 });
-			expect(Number(read("--tx"))).toBe(0);
-			expect(Number(read("--ty"))).toBe(0);
-			fireEvent.pointerMove(backdrop, { clientX: 850, clientY: 250 });
-			expect(Number(read("--tx"))).toBeCloseTo(0.5, 5);
-			expect(Number(read("--ty"))).toBeCloseTo(-0.5, 5);
-		});
-
-		it("never goes past full lean, wherever the cursor is", () => {
-			const { backdrop, read } = setup();
-			fireEvent.pointerMove(backdrop, { clientX: 5000, clientY: -900 });
-			expect(read("--tx")).toBe("1");
-			expect(read("--ty")).toBe("-1");
-		});
-
-		it("comes back level when the cursor leaves", () => {
-			const { backdrop, read } = setup();
-			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
-			fireEvent.pointerLeave(backdrop);
-			expect(read("--tx")).toBe("0");
-			expect(read("--ty")).toBe("0");
-		});
-
-		it("ignores a finger", () => {
-			const { backdrop, read } = setup();
-			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100, pointerType: "touch" });
-			expect(read("--tx")).toBe("");
-		});
-
-		it("does not lean for anyone who asked for less motion", () => {
-			const original = window.matchMedia;
-			window.matchMedia = ((query: string) => ({
-				matches: query.includes("reduce"),
-				media: query,
-				addEventListener: () => {},
-				removeEventListener: () => {},
-				addListener: () => {},
-				removeListener: () => {},
-				onchange: null,
-				dispatchEvent: () => false,
-			})) as typeof window.matchMedia;
-			const { backdrop, read } = setup();
-			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
-			window.matchMedia = original;
-			expect(read("--tx")).toBe("");
-		});
-
-		it("is lit like a lamp is shining on it: a broad soft band of light that slides across as the picture leans, not a glow around the cursor", () => {
-			const { backdrop, picture, read } = setup();
-			const shine = picture.querySelector("[data-shine]") as HTMLElement;
-			const band = shine.querySelector("[data-band]") as HTMLElement;
-			expect(shine).toHaveAttribute("aria-hidden", "true");
-			expect(shine.className).toContain("pointer-events-none");
-			expect(shine.className).toContain("overflow-hidden");
-			expect(picture.contains(shine)).toBe(true);
-			// Nothing here is drawn around the cursor.
-			expect(picture.innerHTML).not.toMatch(/radial-gradient|--sx|--sy|--shine/);
-			// A wide, slanted, soft-edged band, always there at a low strength...
-			expect(band.className).toContain(
-				"linear-gradient(100deg,transparent,oklch(1_0_0/0.1)_50%,transparent)",
-			);
-			expect(band.className).toContain("-skew-x-12");
-			// ...whose position is read from the same lean, so it slides as the picture turns, and eases with it.
-			expect(band.className).toContain("translateX(calc(25%+var(--tx)*60%))");
-			expect(band.className).toContain("transition-transform");
-			expect(band.className).toContain("duration-200");
-			expect(band.className).toContain("motion-reduce:transition-none");
-			// And a gentle falloff across the whole picture, lighter toward the top left where the lamp is.
-			const falloff = shine.querySelector("[data-falloff]") as HTMLElement;
-			expect(falloff.className).toContain("bg-gradient-to-br");
-			expect(falloff.className).toContain("from-white/[0.05]");
-			expect(falloff.className).toContain("to-black/[0.1]");
-			// The cursor only turns the picture; it sets no position of its own for the light.
-			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
-			expect(read("--sx")).toBe("");
-			expect(read("--shine")).toBe("");
-			expect(read("--tx")).toBe("1");
-		});
-
-		it("is a light lean: 3 degrees at most each way, eased, about the picture's own middle", () => {
-			const { picture } = setup();
-			expect(picture.className).toContain("[--tx:0]");
-			expect(picture.className).toContain("[--ty:0]");
-			expect(picture.className).toContain(
-				"[transform:perspective(1400px)_rotateX(calc(var(--ty)*-3deg))_rotateY(calc(var(--tx)*3deg))]",
-			);
-			expect(picture.className).toContain("transition-transform");
-			expect(picture.className).toContain("duration-200");
-			expect(picture.className).toContain("ease-out");
-			expect(picture.className).toContain("motion-reduce:transition-none");
-		});
+	it("is very sharp: a 2624 pixel file for most screens and a 5248 pixel one for the densest, chosen by the browser", () => {
+		render(<Showcase />);
+		const image = screen.getByRole("img");
+		expect(image).toHaveAttribute("src", "/showcase/dashboard.jpg");
+		expect(image.getAttribute("srcset")).toBe(
+			"/showcase/dashboard.jpg 2624w, /showcase/dashboard-4x.jpg 5248w",
+		);
+		// How wide it is shown: about 900 pixels on a laptop, 1300 on a very wide screen, and most of the width on a phone.
+		expect(image.getAttribute("sizes")).toBe(
+			"(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw",
+		);
+		for (const file of ["dashboard.jpg", "dashboard-4x.jpg"]) {
+			expect(existsSync(resolve(publicDir, "showcase", file))).toBe(true);
+		}
 	});
 
 	it("sits centered in a backdrop of its own: a wide panel of soft pearl and silver light, with room all around", () => {
@@ -184,7 +88,7 @@ describe("the showcase", () => {
 
 	it("lifts the picture off the backdrop with an ordinary dark drop shadow, not a glow", () => {
 		render(<Showcase />);
-		const { className } = document.querySelector("[data-picture]") as HTMLElement;
+		const { className } = screen.getByRole("img");
 		expect(className).toMatch(/shadow-\[[^\]]*oklch\(0_0_0\/0\.\d+\)\]/);
 		expect(className).toContain("relative");
 	});
