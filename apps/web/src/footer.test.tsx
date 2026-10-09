@@ -94,21 +94,26 @@ describe("the footer", () => {
 		expect(size(box)).toBe(size(status));
 	});
 
-	it("has Maschina on X and GitHub on the left, as square boxes the height of the status", () => {
+	it("has Maschina on X, GitHub and YouTube on the left, as square boxes the height of the status", () => {
 		render(<Footer />);
 		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		const x = screen.getByRole("link", { name: "Maschina on X" });
 		const github = screen.getByRole("link", { name: "Maschina on GitHub" });
 		expect(x).toHaveAttribute("href", "https://x.com/maschinalabs");
 		expect(github).toHaveAttribute("href", "https://github.com/maschina-labs/maschina");
+		const youtube = screen.getByRole("link", { name: "Maschina on YouTube" });
+		expect(youtube).toHaveAttribute("href", "https://www.youtube.com/@MaschinaLabs");
 		const left = x.parentElement as HTMLElement;
 		expect(left).toBe(github.parentElement);
+		expect(left).toBe(youtube.parentElement);
+		// In this order: X, GitHub, YouTube.
+		expect([...left.children]).toEqual([x, github, youtube]);
 		expect(left).toHaveAttribute("data-left");
 		expect(left.className).toContain("sm:col-start-1");
 		expect(left.className).toContain("sm:justify-self-start");
 		// The left comes first in the line, then the copyright, then the right.
 		expect(row.firstElementChild).toBe(left);
-		for (const link of [x, github]) {
+		for (const link of [x, github, youtube]) {
 			expect(link.className).toContain("size-9");
 			expect(link.className).not.toMatch(/rounded/);
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
