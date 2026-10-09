@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "./logo.tsx";
 import { usePresence } from "./presence.ts";
+import { SITEMAP } from "./sitemap.ts";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
@@ -260,10 +261,40 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
-			<div className="mb-auto pt-32">
+		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter)">
+			<div className="pt-32">
 				<Logo />
 			</div>
+			{/* The map of the site: columns spread edge to edge between the page margins, each one centered. */}
+			<nav
+				aria-label="Sitemap"
+				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 text-center sm:grid-cols-4 sm:justify-items-center"
+			>
+				{SITEMAP.map((column) => (
+					<div key={column.title}>
+						<h2 className="text-[13px] text-neutral-500">{column.title}</h2>
+						<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
+							{column.items.map((item) =>
+								item.href ? (
+									<li key={item.label}>
+										<a
+											href={item.href}
+											className="text-neutral-300 transition-colors hover:text-neutral-100"
+										>
+											{item.label}
+										</a>
+									</li>
+								) : (
+									<li key={item.label} className="text-neutral-600">
+										{item.label}
+										<span className="ml-2 text-[11px]">Soon</span>
+									</li>
+								),
+							)}
+						</ul>
+					</div>
+				))}
+			</nav>
 			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (

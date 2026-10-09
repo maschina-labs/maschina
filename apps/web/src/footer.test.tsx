@@ -28,9 +28,8 @@ describe("the footer", () => {
 		expect(home).toHaveAttribute("href", "/");
 		expect(home.querySelectorAll("img")).toHaveLength(2);
 		for (const image of home.querySelectorAll("img")) expect(image).toHaveAttribute("alt", "");
-		// It is the first thing in the footer, pushed up to the top, with the rest at the foot.
+		// It is the first thing in the footer, at the top.
 		expect(footer.firstElementChild?.contains(home)).toBe(true);
-		expect(footer.firstElementChild?.className).toContain("mb-auto");
 		expect(footer.firstElementChild?.className).toContain("pt-32");
 	});
 
@@ -58,6 +57,47 @@ describe("the footer", () => {
 		expect(tx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
 		await waitFor(() => expect(rx).toHaveAttribute("data-on", "true"));
 		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
+	});
+
+	it("has the sitemap: four columns spread across the full width, each centered", () => {
+		render(<Footer />);
+		const footer = screen.getByRole("contentinfo");
+		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
+		expect(
+			within(nav)
+				.getAllByRole("heading", { level: 2 })
+				.map((heading) => heading.textContent),
+		).toEqual(["Product", "Developers", "Company", "Legal"]);
+		expect(nav.className).toContain("w-full");
+		expect(nav.className).toContain("sm:grid-cols-4");
+		expect(nav.className).toContain("sm:justify-items-center");
+		expect(nav.className).toContain("text-center");
+		expect(nav.innerHTML).not.toMatch(/rounded/);
+		expect(within(nav).getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
+		expect(within(nav).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+	});
+
+	it("shows the pages that are not built as dimmed text tagged Soon, never as links", () => {
+		render(<Footer />);
+		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
+		expect(nav.queryByRole("link", { name: /Marketplace/ })).toBeNull();
+		const item = nav.getByText("Marketplace").closest("li") as HTMLElement;
+		expect(item).toHaveTextContent("Soon");
+		expect(item.className).toMatch(/text-neutral-(600|700)/);
+	});
+
+	it("puts the sitemap between the logo and the copyright line", () => {
+		render(<Footer />);
+		const footer = screen.getByRole("contentinfo");
+		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
+		const logo = within(footer).getByRole("link", { name: "Maschina, home" })
+			.parentElement as HTMLElement;
+		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const order = [...footer.children];
+		expect(order.indexOf(logo)).toBeLessThan(order.indexOf(nav));
+		expect(order.indexOf(nav)).toBeLessThan(order.indexOf(line));
+		// It takes the free room between them, so it sits in the middle of the screen.
+		expect(nav.className).toContain("my-auto");
 	});
 
 	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {
@@ -330,13 +370,14 @@ describe("the footer", () => {
 		expect(className).toContain("justify-end");
 	});
 
-	it("sits above the hero, with its own edge, so it rolls up over it", () => {
+	it("sits above the hero, so it rolls up over it", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
 		expect(className).toContain("relative");
 		expect(className).toContain("z-10");
-		expect(className).toContain("border-t");
 		expect(className).toContain("bg-black");
+		// No hairline along its top edge.
+		expect(className).not.toMatch(/\bborder/);
 	});
 
 	it("carries the wordmark, named once for screen readers", () => {
