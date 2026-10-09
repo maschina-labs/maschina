@@ -8,8 +8,8 @@ const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
 	{ label: "Developers", href: "/developers", dropdown: true },
 	{ label: "Live record", href: "/live", dropdown: false },
-	{ label: "Pricing", href: "/pricing", dropdown: false },
 	{ label: "Company", href: "/company", dropdown: true },
+	{ label: "Pricing", href: "/pricing", dropdown: false },
 ];
 
 /** How far the page has to scroll before the header takes its background. */

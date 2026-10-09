@@ -35,8 +35,8 @@ describe("the header", () => {
 			"Product",
 			"Developers",
 			"Live record",
-			"Pricing",
 			"Company",
+			"Pricing",
 		]);
 	});
 
