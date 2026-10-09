@@ -1,0 +1,15 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const css = readFileSync(resolve(here, "styles.css"), "utf8");
+
+describe("the page margin", () => {
+	// One margin for the whole site, so the header, every section and the footer line up on the same edges,
+	// deep on a wide screen and still sensible on a phone.
+	it("is one shared value that grows with the screen and stops at a limit", () => {
+		expect(css).toMatch(/--gutter:\s*clamp\(/);
+	});
+});

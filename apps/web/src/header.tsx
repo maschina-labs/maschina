@@ -24,24 +24,27 @@ export function Header({ authUrl }: { authUrl: string }) {
 	return (
 		<header
 			data-detached={detached}
-			className={`fixed inset-x-0 top-0 z-40 transition-[padding] duration-300 ease-out ${detached ? "p-3 sm:p-4" : "p-0"}`}
+			className={`fixed inset-x-0 top-0 z-40 transition-[padding] duration-300 ease-out ${detached ? "px-(--gutter) pt-3 sm:pt-4" : "p-0"}`}
 		>
 			<div
-				className={`flex items-center justify-between transition-[padding,background-color] duration-300 ease-out ${detached ? "bg-[oklch(0.19_0.006_285)] px-4 py-3 sm:px-5" : "bg-transparent px-6 py-6 sm:px-[4vw]"}`}
+				className={`flex items-center justify-between transition-[padding,background-color] duration-300 ease-out ${detached ? "bg-[oklch(0.19_0.006_285)] px-3 py-2.5 sm:px-5 sm:py-3" : "bg-transparent px-(--gutter) py-6"}`}
 			>
 				<a href="/" aria-label="Maschina, home">
-					<img src="/brand/wordmark.svg" alt="Maschina" className="h-5 w-auto sm:h-6" />
+					<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-6" />
 				</a>
-				<nav aria-label="Account" className="flex items-center gap-3 text-[14px]">
+				<nav
+					aria-label="Account"
+					className="flex items-center gap-2 text-[13px] sm:gap-3 sm:text-[14px]"
+				>
 					<a
 						href={`${authUrl}/sign-in`}
-						className="bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+						className="bg-white/[0.13] px-3 py-2 text-neutral-200 sm:px-4 transition-colors hover:bg-white/[0.18]"
 					>
 						Sign in
 					</a>
 					<a
 						href={`${authUrl}/sign-up`}
-						className="bg-[oklch(0.93_0.02_300)] px-4 py-2 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+						className="bg-[oklch(0.93_0.02_300)] px-3 py-2 text-black sm:px-4 transition-colors hover:bg-[oklch(0.98_0.015_300)]"
 					>
 						Sign up
 					</a>

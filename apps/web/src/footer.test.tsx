@@ -5,6 +5,11 @@ import { Footer } from "./footer.tsx";
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
+	it("keeps to the shared page margin", () => {
+		render(<Footer />);
+		expect(screen.getByRole("contentinfo").className).toContain("px-(--gutter)");
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();

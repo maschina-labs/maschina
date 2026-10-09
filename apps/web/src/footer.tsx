@@ -52,7 +52,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
+		<footer className="relative w-full overflow-hidden px-(--gutter)">
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"

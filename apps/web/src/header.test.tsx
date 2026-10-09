@@ -46,6 +46,11 @@ describe("the header", () => {
 		expect(header).toHaveAttribute("data-detached", "false");
 	});
 
+	it("keeps to the shared page margin", () => {
+		const { container } = render(<Header authUrl="https://auth.maschina.dev" />);
+		expect(container.innerHTML).toContain("px-(--gutter)");
+	});
+
 	it("has no rounded corners anywhere", () => {
 		const { container } = render(<Header authUrl="https://auth.maschina.dev" />);
 		expect(container.innerHTML).not.toMatch(/rounded/);

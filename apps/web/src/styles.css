@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * The page margin: one value for the whole site, so the header, every section and the footer sit on the same
+ * edges. It is 24px on a phone, grows with the screen from there, and stops at 224px on a very wide one.
+ */
+:root {
+	--gutter: clamp(1.5rem, 15vw - 4rem, 14rem);
+}
+
 body {
 	@apply bg-black;
 }
