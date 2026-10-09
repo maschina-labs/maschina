@@ -22,6 +22,12 @@ const CLOSE_DELAY_MS = 180;
 const LINK =
 	"text-[14px] text-[oklch(0.74_0.012_285)] transition-colors hover:text-[oklch(0.96_0.018_300)]";
 
+/** A row in the phone menu, and the links that unfold under it. */
+const ROW =
+	"block py-3.5 font-display text-[1.375rem] leading-tight tracking-[-0.015em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
+const SUB =
+	"block font-display text-[1.125rem] leading-tight text-[oklch(0.7_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
+
 const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
@@ -52,6 +58,7 @@ function Caret({ open }: { open: boolean }) {
  */
 export function Header({ authUrl }: { authUrl: string }) {
 	const [open, setOpen] = useState(false);
+	const [section, setSection] = useState<string | null>(null);
 	const [active, setActive] = useState<string | null>(null);
 	const [scrolled, setScrolled] = useState(
 		() => typeof window !== "undefined" && window.scrollY > SCROLLED_AT,
@@ -68,13 +75,15 @@ export function Header({ authUrl }: { authUrl: string }) {
 	useEffect(() => () => clearTimeout(closing.current), []);
 
 	useEffect(() => {
-		if (!active) return;
+		if (!active && !open) return;
 		const onKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") setActive(null);
+			if (event.key !== "Escape") return;
+			setActive(null);
+			setOpen(false);
 		};
 		document.addEventListener("keydown", onKey);
 		return () => document.removeEventListener("keydown", onKey);
-	}, [active]);
+	}, [active, open]);
 
 	const stay = () => clearTimeout(closing.current);
 	const show = (label: string) => {
@@ -96,21 +105,24 @@ export function Header({ authUrl }: { authUrl: string }) {
 
 	return (
 		<>
-			{menu ? (
+			{menu || open ? (
 				<div
 					data-backdrop
 					aria-hidden="true"
-					onClick={hideNow}
-					className="fixed inset-0 z-30 hidden bg-black/60 lg:block"
+					onClick={() => {
+						hideNow();
+						setOpen(false);
+					}}
+					className={`fixed inset-0 z-30 bg-black/60 ${menu ? "hidden lg:block" : "lg:hidden"}`}
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
 			<header
 				onMouseEnter={stay}
 				onMouseLeave={hideSoon}
-				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu ? "bg-black" : "bg-transparent"}`}
+				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu || open ? "bg-black" : "bg-transparent"}`}
 			>
-				<div className="grid grid-cols-[1fr_auto_1fr] items-center px-(--gutter) py-6">
+				<div className="grid grid-cols-[1fr_auto_1fr] items-center px-(--gutter) py-4">
 					<a href="/" aria-label="Maschina, home" className="justify-self-start">
 						<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-5" />
 					</a>
@@ -145,13 +157,13 @@ export function Header({ authUrl }: { authUrl: string }) {
 							href={signIn}
 							className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] lg:inline-block"
 						>
-							Sign in
+							Log in
 						</a>
 						<a
 							href={signUp}
 							className="hidden bg-[oklch(0.93_0.02_300)] px-4 py-2 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] lg:inline-block"
 						>
-							Sign up
+							Try Maschina
 						</a>
 						{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 						<button
@@ -228,25 +240,76 @@ export function Header({ authUrl }: { authUrl: string }) {
 					<nav
 						id="pages-menu"
 						aria-label="Pages, menu"
-						className="mx-(--gutter) flex flex-col gap-1 bg-[oklch(0.19_0.006_285)] p-2 lg:hidden"
+						className="absolute inset-x-0 top-full flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto bg-black px-(--gutter) pt-2 pb-8 lg:hidden"
 					>
-						{PAGES.map((page) => (
-							<a key={page.label} href={page.href} className={`${LINK} px-3 py-3`}>
-								{page.label}
-							</a>
-						))}
-						<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
+						{PAGES.map((page) =>
+							page.dropdown ? (
+								<div key={page.label}>
+									<button
+										type="button"
+										aria-expanded={section === page.label}
+										onClick={() => setSection((now) => (now === page.label ? null : page.label))}
+										className={`${ROW} flex w-full items-center justify-between`}
+									>
+										{page.label}
+										<Caret open={section === page.label} />
+									</button>
+									{section === page.label && MENUS[page.label] ? (
+										<div className="flex flex-col gap-5 pb-4 pl-1">
+											<ul className="flex flex-col gap-3">
+												{MENUS[page.label]?.main.map((item) => (
+													<li key={item.label}>
+														{item.href ? (
+															<a href={item.href} className={SUB}>
+																{item.label}
+															</a>
+														) : (
+															<span
+																aria-disabled="true"
+																className={`${SUB} cursor-default opacity-40`}
+															>
+																{item.label}
+																<span className="ml-2.5 align-middle font-sans text-[11px] text-neutral-400">
+																	Soon
+																</span>
+															</span>
+														)}
+													</li>
+												))}
+											</ul>
+											<ul className="flex flex-col gap-2.5">
+												{MENUS[page.label]?.aside.map((item) => (
+													<li key={item.label}>
+														<a
+															href={item.href}
+															className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-200"
+														>
+															{item.label}
+														</a>
+													</li>
+												))}
+											</ul>
+										</div>
+									) : null}
+								</div>
+							) : (
+								<a key={page.label} href={page.href} className={ROW}>
+									{page.label}
+								</a>
+							),
+						)}
+						<div className="mt-4 grid grid-cols-2 gap-2 text-[14px]">
 							<a
 								href={signIn}
 								className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"
 							>
-								Sign in
+								Log in
 							</a>
 							<a
 								href={signUp}
 								className="bg-[oklch(0.93_0.02_300)] px-4 py-3 text-center text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
 							>
-								Sign up
+								Try Maschina
 							</a>
 						</div>
 					</nav>

@@ -15,14 +15,14 @@ describe("the header", () => {
 		);
 	});
 
-	it("leads to sign in and sign up, wherever auth lives", () => {
+	it("leads to log in and sign up, wherever auth lives", () => {
 		render(<Header authUrl="http://localhost:3001" />);
 		const header = within(screen.getByRole("banner"));
-		expect(header.getByRole("link", { name: "Sign in" })).toHaveAttribute(
+		expect(header.getByRole("link", { name: "Log in" })).toHaveAttribute(
 			"href",
 			"http://localhost:3001/sign-in",
 		);
-		expect(header.getByRole("link", { name: "Sign up" })).toHaveAttribute(
+		expect(header.getByRole("link", { name: "Try Maschina" })).toHaveAttribute(
 			"href",
 			"http://localhost:3001/sign-up",
 		);
@@ -170,7 +170,7 @@ describe("the header", () => {
 		expect(header.className).toContain("bg-black");
 	});
 
-	it("folds the pages into a menu on a phone, and opens and closes it", () => {
+	it("opens the same kind of dropdown on a phone: full width, joined to the header", () => {
 		render(<Header authUrl={AUTH} />);
 		const menu = screen.getByRole("button", { name: "Menu" });
 		expect(menu).toHaveAttribute("aria-expanded", "false");
@@ -178,18 +178,77 @@ describe("the header", () => {
 
 		fireEvent.click(menu);
 		expect(menu).toHaveAttribute("aria-expanded", "true");
-		const open = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		const panel = screen.getByRole("navigation", { name: "Pages, menu" });
+		expect(panel.className).toContain("inset-x-0");
+		expect(screen.getByRole("banner").className).toContain("bg-black");
+		const open = within(panel);
 		expect(open.getByRole("link", { name: "Live record" })).toBeInTheDocument();
-		expect(open.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `${AUTH}/sign-in`);
-		expect(open.getByRole("link", { name: "Sign up" })).toHaveAttribute("href", `${AUTH}/sign-up`);
+		expect(open.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
+		expect(open.getByRole("link", { name: "Log in" })).toHaveAttribute("href", `${AUTH}/sign-in`);
+		expect(open.getByRole("link", { name: "Try Maschina" })).toHaveAttribute(
+			"href",
+			`${AUTH}/sign-up`,
+		);
 
 		fireEvent.click(menu);
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
-	it("shows sign in and sign up as buttons only on a wide screen", () => {
+	it("expands each group in place on a phone, one at a time, with the same links as the desktop", () => {
 		render(<Header authUrl={AUTH} />);
-		for (const name of ["Sign in", "Sign up"]) {
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		for (const name of ["Product", "Developers", "Company"]) {
+			expect(panel.getByRole("button", { name })).toHaveAttribute("aria-expanded", "false");
+		}
+		expect(panel.queryByRole("link", { name: "Overview" })).toBeNull();
+
+		fireEvent.click(panel.getByRole("button", { name: "Product" }));
+		expect(panel.getByRole("button", { name: "Product" })).toHaveAttribute("aria-expanded", "true");
+		for (const name of ["Overview", "Security", "Live record", "Changelog"]) {
+			expect(panel.getAllByRole("link", { name }).length).toBeGreaterThan(0);
+		}
+		for (const name of ["Marketplace", "Network", "Mobile"]) {
+			expect(panel.queryByRole("link", { name: new RegExp(name) })).toBeNull();
+			expect(panel.getByText(name).closest("[aria-disabled]")).toHaveAttribute(
+				"aria-disabled",
+				"true",
+			);
+		}
+
+		fireEvent.click(panel.getByRole("button", { name: "Developers" }));
+		expect(panel.getByRole("button", { name: "Product" })).toHaveAttribute(
+			"aria-expanded",
+			"false",
+		);
+		expect(panel.queryByRole("link", { name: "Overview" })).toBeNull();
+		expect(panel.getByRole("link", { name: "Docs" })).toBeInTheDocument();
+		expect(panel.getByRole("link", { name: "MCP server" })).toBeInTheDocument();
+
+		fireEvent.click(panel.getByRole("button", { name: "Developers" }));
+		expect(panel.queryByRole("link", { name: "Docs" })).toBeNull();
+	});
+
+	it("dims the page behind the phone menu, and a click on it closes the menu", () => {
+		const { container } = render(<Header authUrl={AUTH} />);
+		expect(container.querySelector("[data-backdrop]")).toBeNull();
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const backdrop = container.querySelector("[data-backdrop]") as HTMLElement;
+		expect(backdrop).toHaveAttribute("aria-hidden", "true");
+		fireEvent.click(backdrop);
+		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
+	});
+
+	it("closes the phone menu on Escape", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		fireEvent.keyDown(document, { key: "Escape" });
+		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
+	});
+
+	it("shows log in and try Maschina as buttons only on a wide screen", () => {
+		render(<Header authUrl={AUTH} />);
+		for (const name of ["Log in", "Try Maschina"]) {
 			const link = within(screen.getByRole("banner")).getByRole("link", { name });
 			expect(link.className).toContain("hidden");
 			expect(link.className).toContain("lg:inline-block");
