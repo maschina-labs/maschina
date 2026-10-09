@@ -106,7 +106,7 @@ function Light({ label, count, color }: { label: string; count: number; color: s
 		return () => clearTimeout(off);
 	}, [count]);
 	return (
-		<span data-lit={lit} className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+		<span data-on={lit} className="flex items-center gap-1.5 text-[11px] text-neutral-500">
 			<span aria-hidden="true" className={`size-2 ${lit ? color : "bg-neutral-700"}`} />
 			<span>{label}</span>
 		</span>

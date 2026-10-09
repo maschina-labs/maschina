@@ -27,11 +27,11 @@ describe("the footer", () => {
 		const tx = status.getByText("TX").parentElement as HTMLElement;
 		const rx = status.getByText("RX").parentElement as HTMLElement;
 		// The first check goes out as soon as the page is up.
-		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "true"));
-		await waitFor(() => expect(rx).toHaveAttribute("data-lit", "true"));
+		await waitFor(() => expect(tx).toHaveAttribute("data-on", "true"));
+		await waitFor(() => expect(rx).toHaveAttribute("data-on", "true"));
 		// Each is a short blink, not a state that stays on.
-		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "false"));
-		await waitFor(() => expect(rx).toHaveAttribute("data-lit", "false"));
+		await waitFor(() => expect(tx).toHaveAttribute("data-on", "false"));
+		await waitFor(() => expect(rx).toHaveAttribute("data-on", "false"));
 	});
 
 	it("never lights RX when nothing comes back", async () => {
@@ -45,10 +45,10 @@ describe("the footer", () => {
 		const status = within(screen.getByRole("status"));
 		const tx = status.getByText("TX").parentElement as HTMLElement;
 		const rx = status.getByText("RX").parentElement as HTMLElement;
-		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "true"));
-		expect(rx).toHaveAttribute("data-lit", "false");
+		await waitFor(() => expect(tx).toHaveAttribute("data-on", "true"));
+		expect(rx).toHaveAttribute("data-on", "false");
 		await within(screen.getByRole("status")).findByText("API unreachable");
-		expect(rx).toHaveAttribute("data-lit", "false");
+		expect(rx).toHaveAttribute("data-on", "false");
 	});
 
 	it("says so when the stop switch is on", async () => {
