@@ -86,6 +86,15 @@ describe("the footer", () => {
 		expect(mark.style.transform).toBe("rotate(720deg)");
 	});
 
+	it("maps the site in five columns, legal among them", () => {
+		render(<Footer />);
+		for (const name of ["Product", "Build", "Company", "Machines", "Legal"]) {
+			expect(screen.getByRole("navigation", { name })).toBeInTheDocument();
+		}
+		const legal = screen.getByRole("navigation", { name: "Legal" });
+		expect(within(legal).getByRole("link", { name: "Risk disclosure" })).toBeInTheDocument();
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();

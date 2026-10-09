@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { COLUMNS } from "./sitemap.ts";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
@@ -121,7 +122,7 @@ function Mark() {
 			alt="Maschina mark"
 			onPointerEnter={() => !still && setTurns((count) => count + 1)}
 			style={{ transform: `rotate(${turns * 360}deg)` }}
-			className="mb-10 size-8 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+			className="size-8 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
 		/>
 	);
 }
@@ -145,7 +146,30 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
-			<Mark />
+			<div className="flex flex-col gap-14 pb-16 lg:flex-row lg:items-start lg:justify-between">
+				<Mark />
+				<div className="grid grid-cols-2 gap-x-10 gap-y-12 sm:grid-cols-5 sm:gap-x-16">
+					{COLUMNS.map((column) => (
+						<nav key={column.name} aria-label={column.name} className="flex flex-col gap-7">
+							<span className="text-[12px] text-[oklch(0.55_0.01_285)] uppercase tracking-[0.22em]">
+								{column.name}
+							</span>
+							<ul className="flex flex-col gap-4">
+								{column.links.map((link) => (
+									<li key={link.label}>
+										<a
+											href={link.href}
+											className="text-[16px] text-[oklch(0.8_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
+										>
+											{link.label}
+										</a>
+									</li>
+								))}
+							</ul>
+						</nav>
+					))}
+				</div>
+			</div>
 			<div className="flex flex-col items-center gap-5 py-6 text-[13px] text-neutral-500 lg:grid lg:grid-cols-[1fr_auto_1fr]">
 				<div className="flex items-center gap-5 lg:justify-self-start">
 					{SOCIALS.map((social) => (
