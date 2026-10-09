@@ -41,10 +41,13 @@ describe("the hero", () => {
 	it("has two buttons under the headline: start for free, and the docs", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
-		expect(hero.getAllByRole("link").map((link) => link.textContent)).toEqual([
-			"Start for free",
-			"Read the docs",
-		]);
+		// The two buttons come first; the proof line's link is after them.
+		expect(
+			hero
+				.getAllByRole("link")
+				.slice(0, 2)
+				.map((link) => link.textContent),
+		).toEqual(["Start for free", "Read the docs"]);
 		const start = hero.getByRole("link", { name: "Start for free" });
 		expect(start).toHaveAttribute("href", `${AUTH}/sign-up`);
 		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("aria-hidden", "true");
@@ -58,13 +61,40 @@ describe("the hero", () => {
 		expect(docs.querySelector("[data-chip]")).toBeNull();
 	});
 
-	it("has nothing else on it: no line under the headline, nothing floating", () => {
-		const { container } = render(<Hero authUrl={AUTH} />);
+	it("says what it does under the headline, in one quiet line", () => {
+		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		expect(section.textContent).toBe(
-			"The operating system for autonomous capital.Start for freeRead the docs",
+		const heading = within(section).getByRole("heading", { level: 1 });
+		const line = within(section).getByText("AI decides. Maschina decides what it's allowed to do.");
+		expect(line.tagName).toBe("P");
+		expect(line.className).toContain("z-20");
+		// Straight after the headline, before the buttons.
+		expect(heading.nextElementSibling).toBe(line);
+		expect(line.nextElementSibling).toBe(
+			within(section).getByRole("link", { name: "Start for free" }).parentElement,
 		);
+	});
+
+	it("ends with one proof line that links to the live record", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		const proof = within(section).getByRole("link", {
+			name: "Range Finder has traded real money on Solana since September 28.",
+		});
+		expect(proof).toHaveAttribute("href", "/live");
+		expect(section.lastElementChild).toBe(proof.parentElement);
+	});
+
+	it("has nothing else on it: nothing floating", () => {
+		const { container } = render(<Hero authUrl={AUTH} />);
 		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
+	});
+
+	it("has a bigger headline than before", () => {
+		render(<Hero authUrl={AUTH} />);
+		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
+			"clamp(2.25rem,5.4vw,6rem)",
+		);
 	});
 
 	it("draws the silver and pearl ribbon, dark and calm, filling the section", async () => {

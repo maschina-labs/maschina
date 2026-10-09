@@ -38,9 +38,12 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-black"
 				/>
 			</div>
-			<h1 className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2rem,4.6vw,5rem)] text-[oklch(0.97_0.012_300)] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
+			<h1 className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2.25rem,5.4vw,6rem)] text-[oklch(0.97_0.012_300)] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
 				The operating system for autonomous capital.
 			</h1>
+			<p className="relative z-20 mt-6 max-w-[34ch] text-[clamp(1rem,1.4vw,1.25rem)] text-neutral-400 leading-snug [text-wrap:balance]">
+				AI decides. Maschina decides what it's allowed to do.
+			</p>
 			<div className="relative z-20 mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
 				<TryButton
 					href={`${authUrl}/sign-up`}
@@ -56,6 +59,11 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					Read the docs
 				</a>
 			</div>
+			<p className="relative z-20 mt-8 text-[13px] text-neutral-500">
+				<a href="/live" className="transition-colors hover:text-neutral-300">
+					Range Finder has traded real money on Solana since September 28.
+				</a>
+			</p>
 		</section>
 	);
 }
