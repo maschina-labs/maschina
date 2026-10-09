@@ -10,6 +10,23 @@ describe("the footer", () => {
 		expect(screen.getByRole("contentinfo").className).toContain("px-(--gutter)");
 	});
 
+	it("is a full screen with the wordmark at the foot of it", () => {
+		render(<Footer />);
+		const { className } = screen.getByRole("contentinfo");
+		expect(className).toContain("min-h-dvh");
+		expect(className).toContain("flex-col");
+		expect(className).toContain("justify-end");
+	});
+
+	it("sits above the hero, with its own edge, so it rolls up over it", () => {
+		render(<Footer />);
+		const { className } = screen.getByRole("contentinfo");
+		expect(className).toContain("relative");
+		expect(className).toContain("z-10");
+		expect(className).toContain("border-t");
+		expect(className).toContain("bg-black");
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();

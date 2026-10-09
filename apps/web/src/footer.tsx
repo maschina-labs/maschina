@@ -34,6 +34,7 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
+/** A full screen, with the wordmark at the foot of it. It sits above the pinned hero and rolls up over it. */
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
@@ -52,7 +53,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative w-full overflow-hidden px-(--gutter)">
+		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"
