@@ -1,10 +1,19 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "./footer.tsx";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
+	it("says who owns it", () => {
+		render(<Footer />);
+		expect(
+			within(screen.getByRole("contentinfo")).getByText(
+				"© 2026 Maschina Labs. All rights reserved.",
+			),
+		).toBeInTheDocument();
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();

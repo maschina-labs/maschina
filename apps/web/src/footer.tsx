@@ -53,6 +53,9 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
+			<p className="pb-6 text-[13px] text-neutral-500">
+				© 2026 Maschina Labs. All rights reserved.
+			</p>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"
