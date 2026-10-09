@@ -49,6 +49,8 @@
 		"stack": "node scripts/git/stack.mjs new",
 		"restack": "node scripts/git/stack.mjs restack",
 		"app": "pnpm --filter @maschina/app dev",
+		"auth": "pnpm --filter @maschina/auth-app dev",
+		"docs": "pnpm --filter @maschina/docs dev",
 		"web": "pnpm --filter @maschina/web dev",
 		"gateway": "pnpm --filter @maschina/gateway dev",
 		"orchestrator": "pnpm --filter @maschina/orchestrator dev",

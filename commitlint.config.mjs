@@ -9,6 +9,7 @@ export default {
 			[
 				"web",
 				"app",
+				"docs",
 				"gateway",
 				"orchestrator",
 				"signer",
