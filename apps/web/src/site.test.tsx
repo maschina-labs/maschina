@@ -11,13 +11,17 @@ describe("the front page", () => {
 		);
 	});
 
-	it("has the hero, what it is built with, the app showcase, the live record, for builders, the questions, the closing section, then the footer", () => {
+	it("has the hero, what it is built with, the app showcase, the explaining sections, the live record, for builders, the questions, the closing section, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
 		const names = [
 			"Maschina",
 			"Built with",
 			"The app",
+			"How it works",
+			"Inside the app",
+			"Safety",
+			"Customize",
 			"Live record",
 			"For builders",
 			"Questions",
