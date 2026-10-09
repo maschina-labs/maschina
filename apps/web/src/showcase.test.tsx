@@ -28,6 +28,23 @@ describe("the showcase", () => {
 		expect(image).toHaveAttribute("fetchpriority", "low");
 	});
 
+	it("opens with the section's title above the picture: short, centered, in the pearl gradient with the thin outline", () => {
+		render(<Showcase />);
+		const heading = screen.getByRole("heading", { level: 2, name: "Everything in one place." });
+		const picture = screen.getByRole("img");
+		expect(
+			heading.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+		for (const part of [
+			"text-center",
+			"bg-clip-text",
+			"[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]",
+			"pb-[0.14em]",
+			"-mb-[0.14em]",
+		])
+			expect(heading.className).toContain(part);
+	});
+
 	it("says plainly that it is sample data, centered under the picture", () => {
 		render(<Showcase />);
 		const caption = screen.getByText("The Maschina app, shown with sample data.");

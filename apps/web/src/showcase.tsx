@@ -1,7 +1,7 @@
 import { Backdrop } from "./backdrop.tsx";
 
 /**
- * A real screenshot of the app, right under the hero: the dashboard home screen, with the chart, the machine
+ * A short title, then a real screenshot of the app, right under the hero: the dashboard home screen, with the chart, the machine
  * that is running, its latest decision and the vault. It is a still picture, taken from the app running locally
  * with its built-in sample data, so it says so under the picture; nothing here is a real person's trades or
  * results. Square corners, like everything else.
@@ -16,8 +16,14 @@ import { Backdrop } from "./backdrop.tsx";
  */
 export function Showcase() {
 	return (
-		<section aria-label="The app" className="relative bg-black px-(--gutter) pt-8 pb-24">
-			<figure>
+		<section
+			aria-label="The app"
+			className="relative flex flex-col items-center bg-black px-(--gutter) pt-8 pb-12"
+		>
+			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
+				Everything in one place.
+			</h2>
+			<figure className="mt-16 w-full">
 				<Backdrop>
 					<img
 						src="/showcase/dashboard.jpg"

@@ -1,9 +1,9 @@
 import { Closing } from "./closing.tsx";
 import { Faq } from "./faq.tsx";
+import { Features } from "./features.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
-import { Mosaic } from "./mosaic.tsx";
 import { Showcase } from "./showcase.tsx";
 
 /**
@@ -17,7 +17,7 @@ export function Site({ authUrl }: { authUrl: string }) {
 			<main>
 				<Hero authUrl={authUrl} />
 				<Showcase />
-				<Mosaic />
+				<Features />
 				<Faq />
 				<Closing authUrl={authUrl} />
 			</main>
