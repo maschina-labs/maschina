@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
 
@@ -90,17 +90,46 @@ const SHOWN_AS = {
 	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
 } as const;
 
-/** A square dot and a word, read from the API's own status check every minute. */
+/** How long a light stays on for each piece of traffic: a blink, not a state. */
+const BLINK_MS = 220;
+
+/**
+ * One light and its label. It goes on each time `count` goes up, which is each time a real request leaves or
+ * a real answer arrives, and off again a moment later.
+ */
+function Light({ label, count, color }: { label: string; count: number; color: string }) {
+	const [lit, setLit] = useState(false);
+	useEffect(() => {
+		if (count === 0) return;
+		setLit(true);
+		const off = setTimeout(() => setLit(false), BLINK_MS);
+		return () => clearTimeout(off);
+	}, [count]);
+	return (
+		<span data-lit={lit} className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+			<span aria-hidden="true" className={`size-2 ${lit ? color : "bg-neutral-700"}`} />
+			<span>{label}</span>
+		</span>
+	);
+}
+
+/**
+ * A square dot and a word, read from the API's own status check, and two lights that blink with the traffic
+ * to it: TX as the request goes out, RX as the answer comes back. Nothing here is animated for show.
+ */
 function StatusMark() {
-	const status = useStatus();
+	const { status, tx, rx } = useStatus();
 	const shown = SHOWN_AS[status.state];
 	return (
 		<div
 			role="status"
-			className="flex h-9 w-max items-center gap-2.5 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
+			className="flex h-9 w-max items-center gap-3 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
 		>
 			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
 			<span>{shown.label}</span>
+			<span aria-hidden="true" className="h-4 w-px bg-white/10" />
+			<Light label="TX" count={tx} color="bg-[oklch(0.82_0.16_85)]" />
+			<Light label="RX" count={rx} color="bg-[oklch(0.8_0.2_145)]" />
 		</div>
 	);
 }

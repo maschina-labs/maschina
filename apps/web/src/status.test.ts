@@ -36,4 +36,30 @@ describe("reading whether Maschina is up", () => {
 		});
 		expect(await readStatus("https://api.test", fetch)).toEqual({ state: "down" });
 	});
+
+	it("reports a send before the request goes out, and a receive when any answer comes back", async () => {
+		const seen: string[] = [];
+		const fetch = vi.fn(async () => {
+			seen.push("request");
+			return new Response("{}", { status: 503 });
+		});
+		await readStatus("https://api.test", fetch, {
+			onSend: () => seen.push("tx"),
+			onReceive: () => seen.push("rx"),
+		});
+		// Even an error answer is a receive: something came back over the wire.
+		expect(seen).toEqual(["tx", "request", "rx"]);
+	});
+
+	it("reports no receive when nothing comes back", async () => {
+		const seen: string[] = [];
+		const fetch = vi.fn(async () => {
+			throw new TypeError("network");
+		});
+		await readStatus("https://api.test", fetch, {
+			onSend: () => seen.push("tx"),
+			onReceive: () => seen.push("rx"),
+		});
+		expect(seen).toEqual(["tx"]);
+	});
 });

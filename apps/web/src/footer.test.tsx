@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "./footer.tsx";
 
@@ -19,6 +19,36 @@ describe("the footer", () => {
 		const status = screen.getByRole("status");
 		expect(status).toHaveTextContent("Checking");
 		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
+	});
+
+	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {
+		render(<Footer />);
+		const status = within(screen.getByRole("status"));
+		const tx = status.getByText("TX").parentElement as HTMLElement;
+		const rx = status.getByText("RX").parentElement as HTMLElement;
+		// The first check goes out as soon as the page is up.
+		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "true"));
+		await waitFor(() => expect(rx).toHaveAttribute("data-lit", "true"));
+		// Each is a short blink, not a state that stays on.
+		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "false"));
+		await waitFor(() => expect(rx).toHaveAttribute("data-lit", "false"));
+	});
+
+	it("never lights RX when nothing comes back", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => {
+				throw new TypeError("network");
+			}),
+		);
+		render(<Footer />);
+		const status = within(screen.getByRole("status"));
+		const tx = status.getByText("TX").parentElement as HTMLElement;
+		const rx = status.getByText("RX").parentElement as HTMLElement;
+		await waitFor(() => expect(tx).toHaveAttribute("data-lit", "true"));
+		expect(rx).toHaveAttribute("data-lit", "false");
+		await within(screen.getByRole("status")).findByText("API unreachable");
+		expect(rx).toHaveAttribute("data-lit", "false");
 	});
 
 	it("says so when the stop switch is on", async () => {
