@@ -72,14 +72,14 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				<TryButton
 					href={`${authUrl}/sign-up`}
 					label="Start for free"
-					className="flex h-10 pr-1.5 pl-5 sm:inline-flex"
+					className="flex h-9 pr-1 pl-5 sm:inline-flex"
 					labelClassName="flex-1 text-left"
 					chipClassName="size-7"
 					glint
 				/>
 				<a
 					href="/docs"
-					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 h-10 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18]"
 				>
 					<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />
 					Read the docs

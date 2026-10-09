@@ -193,10 +193,11 @@ describe("the hero", () => {
 		const docs = hero.getByRole("link", { name: "Read the docs" });
 		// The chip keeps its size; the button shrinks around it to a thin pearl edge.
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
-		expect(start.className).toContain("h-10");
-		expect(start.className).toContain("pr-1.5");
+		expect(start.className).toContain("h-9");
+		expect(start.className).toContain("pr-1");
+		expect(start.className).not.toContain("pr-1.5");
 		expect(start.className).not.toMatch(/\bpy-/);
-		expect(docs.className).toContain("h-10");
+		expect(docs.className).toContain("h-9");
 		expect(docs.className).not.toMatch(/\bpy-/);
 	});
 

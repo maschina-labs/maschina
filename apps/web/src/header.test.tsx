@@ -305,6 +305,15 @@ describe("the header", () => {
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
+	it("wraps the Try Maschina button closely around its chip: 4px of pearl all around", () => {
+		render(<Header authUrl={AUTH} />);
+		const link = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });
+		expect(link.className).toContain("py-1 ");
+		expect(link.className).toContain("pr-1 ");
+		expect(link.className).not.toContain("py-1.5");
+		expect(link.querySelector("[data-chip]")?.className).toContain("size-6");
+	});
+
 	it("holds a small square chip with a right chevron inside the button, beside Try Maschina", () => {
 		render(<Header authUrl={AUTH} />);
 		const link = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });

@@ -293,7 +293,7 @@ export function Header({
 						</a>
 						<TryButton
 							href={signUp}
-							className="hidden py-1.5 pr-1.5 pl-4 xl:inline-flex"
+							className="hidden py-1 pr-1 pl-4 xl:inline-flex"
 							labelClassName=""
 							chipClassName="size-6"
 							glint
