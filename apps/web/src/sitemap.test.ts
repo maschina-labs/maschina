@@ -58,9 +58,43 @@ describe("the sitemap", () => {
 		for (const item of all) expect(item.external).toBe(item.href?.startsWith("https://") ?? false);
 	});
 
-	it("has the legal pages", () => {
+	it("has the legal pages, including the risk disclosure and the license", () => {
 		const legal = SITEMAP.find((column) => column.title === "Legal")?.items;
-		expect(legal?.map((item) => item.label)).toEqual(["Terms", "Privacy"]);
-		expect(legal?.map((item) => item.href)).toEqual(["/terms", "/privacy"]);
+		expect(legal?.map((item) => item.label)).toEqual([
+			"Terms",
+			"Privacy",
+			"Risk disclosure",
+			"Acceptable use",
+			"License",
+			"Security disclosure",
+		]);
+		expect(legal?.map((item) => item.href)).toEqual([
+			"/terms",
+			"/privacy",
+			"/risk",
+			"/acceptable-use",
+			"/license",
+			"/disclosure",
+		]);
+	});
+
+	it("has the product, developer and company pages that are still to be written", () => {
+		const find = (column: string) => SITEMAP.find((c) => c.title === column)?.items ?? [];
+		const hrefOf = (column: string, label: string) =>
+			find(column).find((item) => item.label === label)?.href;
+		expect(hrefOf("Product", "How it works")).toBe("/how-it-works");
+		expect(hrefOf("Product", "Machines")).toBe("/machines");
+		expect(hrefOf("Developers", "Quickstart")).toBe("/quickstart");
+		expect(hrefOf("Developers", "Examples")).toBe("/examples");
+		expect(hrefOf("Company", "Careers")).toBe("/careers");
+		expect(hrefOf("Company", "Support")).toBe("/support");
+		expect(hrefOf("Company", "Brand assets")).toBe("/brand");
+	});
+
+	it("reads Overview, how it works and machines first in Product, and Docs then Quickstart in Developers", () => {
+		const labels = (column: string) =>
+			SITEMAP.find((c) => c.title === column)?.items.map((i) => i.label);
+		expect(labels("Product")?.slice(0, 3)).toEqual(["Overview", "How it works", "Machines"]);
+		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "Quickstart"]);
 	});
 });

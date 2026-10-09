@@ -110,8 +110,12 @@ describe("the footer", () => {
 			const link = nav.getByRole("link", { name });
 			expect(link.querySelector("svg")).toHaveAttribute("data-arrow", "external");
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
-			// The arrows are white.
-			expect(link.querySelector("svg")?.getAttribute("class")).toContain("text-white");
+			// The arrow takes its color from the link: gray like the words, and light with them on hover.
+			const arrow = link.querySelector("svg");
+			expect(arrow?.getAttribute("class")).not.toMatch(/\btext-/);
+			expect(arrow).toHaveAttribute("stroke", "currentColor");
+			expect(link.className).toContain("text-neutral-500");
+			expect(link.className).toContain("hover:text-white");
 		}
 		for (const link of nav.getAllByRole("link")) {
 			const external = link.getAttribute("href")?.startsWith("https://") ?? false;

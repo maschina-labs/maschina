@@ -285,7 +285,7 @@ export function Footer() {
 													<svg
 														viewBox="0 0 12 12"
 														data-arrow="external"
-														className="ml-1.5 inline size-3 text-white"
+														className="ml-1.5 inline size-3"
 														fill="none"
 														stroke="currentColor"
 														strokeWidth={1.25}

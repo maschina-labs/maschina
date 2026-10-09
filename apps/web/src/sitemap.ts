@@ -27,15 +27,22 @@ const taken = new Set<string>();
 const menu = (name: string) => MENUS[name];
 
 /**
- * The footer's map of the site, built from the header's own menus so the two cannot drift apart. Pricing is a
- * page of its own in the header, so it is added to Product here. Legal is new: the pages every launch needs.
+ * The footer's map of the site, built from the header's own menus so the two cannot drift apart, with the
+ * pages that only the footer lists added in place. Pricing is a page of its own in the header, so it is added
+ * to Product here. Every page here is one to be written; the ones with no address show as Soon.
  */
+const [overview, ...moreProduct] = menu("Product")?.main ?? [];
+const [docs, ...moreDevelopers] = menu("Developers")?.main ?? [];
+
 export const SITEMAP: Column[] = [
 	{
 		title: "Product",
 		items: once(
 			[
-				...(menu("Product")?.main ?? []),
+				...(overview ? [overview] : []),
+				{ label: "How it works", href: "/how-it-works" },
+				{ label: "Machines", href: "/machines" },
+				...moreProduct,
 				{ label: "Pricing", href: "/pricing" },
 				...(menu("Product")?.aside ?? []),
 			],
@@ -44,11 +51,29 @@ export const SITEMAP: Column[] = [
 	},
 	{
 		title: "Developers",
-		items: once([...(menu("Developers")?.main ?? []), ...(menu("Developers")?.aside ?? [])], taken),
+		items: once(
+			[
+				...(docs ? [docs] : []),
+				{ label: "Quickstart", href: "/quickstart" },
+				...moreDevelopers,
+				{ label: "Examples", href: "/examples" },
+				...(menu("Developers")?.aside ?? []),
+			],
+			taken,
+		),
 	},
 	{
 		title: "Company",
-		items: once([...(menu("Company")?.main ?? []), ...(menu("Company")?.aside ?? [])], taken),
+		items: once(
+			[
+				...(menu("Company")?.main ?? []),
+				{ label: "Careers", href: "/careers" },
+				{ label: "Support", href: "/support" },
+				{ label: "Brand assets", href: "/brand" },
+				...(menu("Company")?.aside ?? []),
+			],
+			taken,
+		),
 	},
 	{
 		title: "Legal",
@@ -56,6 +81,10 @@ export const SITEMAP: Column[] = [
 			[
 				{ label: "Terms", href: "/terms" },
 				{ label: "Privacy", href: "/privacy" },
+				{ label: "Risk disclosure", href: "/risk" },
+				{ label: "Acceptable use", href: "/acceptable-use" },
+				{ label: "License", href: "/license" },
+				{ label: "Security disclosure", href: "/disclosure" },
 			],
 			taken,
 		),
