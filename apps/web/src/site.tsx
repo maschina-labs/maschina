@@ -1,3 +1,4 @@
+import { Builders } from "./builders.tsx";
 import { Closing } from "./closing.tsx";
 import { Faq } from "./faq.tsx";
 import { Footer } from "./footer.tsx";
@@ -7,7 +8,7 @@ import { Marquee } from "./marquee.tsx";
 import { Showcase } from "./showcase.tsx";
 
 /**
- * The front pages, built one piece at a time: the header, the hero, the app showcase, the questions, the closing section, and the footer, as
+ * The front pages, built one piece at a time: the header, the hero, the app showcase, for builders, the questions, the closing section, and the footer, as
  * plain sections one after the other. What goes between them comes later.
  */
 export function Site({ authUrl }: { authUrl: string }) {
@@ -18,6 +19,7 @@ export function Site({ authUrl }: { authUrl: string }) {
 				<Hero authUrl={authUrl} />
 				<Marquee />
 				<Showcase />
+				<Builders />
 				<Faq />
 				<Closing authUrl={authUrl} />
 			</main>
