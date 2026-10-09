@@ -23,7 +23,7 @@
 # Area
 - name: web
   color: c5def5
-  description: apps/web
+  description: apps/app and apps/web
 - name: api
   color: c5def5
   description: services/gateway

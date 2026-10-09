@@ -1,4 +1,4 @@
-# @maschina/web
+# @maschina/app
 
 The web app. The first place owners create, fund, talk to and stop their machines.
 
@@ -8,7 +8,7 @@ The web app. The first place owners create, fund, talk to and stop their machine
 - Wallet connection arrives with the first real screens.
 
 ```bash
-pnpm web      # http://localhost:3000
+pnpm app      # http://localhost:3002
 ```
 
 Deploys to Vercel as a static site.

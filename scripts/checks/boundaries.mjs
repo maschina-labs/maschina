@@ -57,6 +57,7 @@ export const RULES = [
 			[
 				"services/daemon",
 				"services/bots",
+				"apps/app",
 				"apps/web",
 				"packages/core",
 				"packages/rules",

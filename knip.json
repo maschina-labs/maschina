@@ -5,7 +5,7 @@
 		".": {
 			"entry": ["scripts/**/*.mjs"]
 		},
-		"apps/web": {
+		"apps/app": {
 			"entry": ["src/worker.ts", "src/dev/seed-boot.ts"]
 		},
 		"packages/integration-tests": {

@@ -13,7 +13,7 @@
 			"!**/migrations/meta",
 			"!**/dist",
 			"!packages/ui/src/beautifui/css",
-			"!apps/web/public/**/*.svg"
+			"!apps/*/public/**/*.svg"
 		]
 	},
 	"formatter": {

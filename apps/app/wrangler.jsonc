@@ -1,5 +1,5 @@
 // How Cloudflare serves the web app. The deploy command points at this file explicitly
-// (`npx wrangler deploy --config apps/web/wrangler.jsonc`), because run from the root of a monorepo,
+// (`npx wrangler deploy --config apps/app/wrangler.jsonc`), because run from the root of a monorepo,
 // wrangler cannot tell which app it is meant to deploy.
 //
 // A small Worker sits in front of the built files for one reason: the licensed fonts live in a private

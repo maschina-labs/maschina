@@ -8,6 +8,7 @@ export default {
 			"always",
 			[
 				"web",
+				"app",
 				"gateway",
 				"orchestrator",
 				"signer",
@@ -27,7 +28,6 @@ export default {
 				"sdk",
 				"ui",
 				"field",
-				"site",
 				"auth",
 				"config",
 				"testing",

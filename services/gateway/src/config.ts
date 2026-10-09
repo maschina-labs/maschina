@@ -25,9 +25,9 @@ export function loadConfig(source?: EnvSource) {
 			 * check it against the page's own origin, which includes the port in development, so this is
 			 * a host rather than a hostname.
 			 */
-			GATEWAY_DOMAIN: z.string().min(1).default("localhost:3000"),
+			GATEWAY_DOMAIN: z.string().min(1).default("localhost:3002"),
 			/** Where the app lives, shown in the message so a person sees what they are signing into. */
-			GATEWAY_APP_URL: env.url().default("http://localhost:3000"),
+			GATEWAY_APP_URL: env.url().default("http://localhost:3002"),
 			/**
 			 * The parent domain the session cookie is scoped to, so the app and the API share it. Left
 			 * unset in development, where there is no shared parent and no https.
