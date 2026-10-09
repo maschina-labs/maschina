@@ -22,6 +22,10 @@ describe("the showcase", () => {
 		expect(image).toHaveAttribute("width", "2838");
 		expect(image).toHaveAttribute("height", "1800");
 		expect(image).toHaveAttribute("decoding", "async");
+		// It sits below the first screen, and is a very large picture: it is fetched and decoded only when the reader
+		// is getting near it, so it never competes with the hero's animation while the page is opening.
+		expect(image).toHaveAttribute("loading", "lazy");
+		expect(image).toHaveAttribute("fetchpriority", "low");
 	});
 
 	it("says plainly that it is sample data, centered under the picture", () => {

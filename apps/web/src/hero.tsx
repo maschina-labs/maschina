@@ -19,20 +19,6 @@ export function Hero({ authUrl }: { authUrl: string }) {
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => setReady(true), []);
-	const section = useRef<HTMLElement>(null);
-	const [onScreen, setOnScreen] = useState(true);
-
-	// The ribbon only moves while the hero is on screen: once it has scrolled away it holds still, so a page
-	// with more on it costs nothing for what nobody can see. Where the browser cannot tell, it just moves.
-	useEffect(() => {
-		const node = section.current;
-		if (!node || typeof IntersectionObserver === "undefined") return;
-		const watcher = new IntersectionObserver(([entry]) =>
-			setOnScreen(Boolean(entry?.isIntersecting)),
-		);
-		watcher.observe(node);
-		return () => watcher.disconnect();
-	}, []);
 	const heading = useRef<HTMLHeadingElement>(null);
 
 	// The light on the letters follows the mouse by setting two properties directly: moving the cursor never
@@ -53,7 +39,6 @@ export function Hero({ authUrl }: { authUrl: string }) {
 
 	return (
 		<section
-			ref={section}
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
@@ -63,12 +48,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				{ready ? (
 					<Suspense fallback={null}>
 						<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
-							<Ribbon
-								position="absolute"
-								field="ribbon"
-								motion={onScreen ? "calm" : "off"}
-								mode="dark"
-							/>
+							<Ribbon position="absolute" field="ribbon" motion="calm" mode="dark" />
 						</div>
 					</Suspense>
 				) : null}
@@ -81,7 +61,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			</div>
 			<h1
 				ref={heading}
-				className="relative z-20 -mb-[0.14em] max-w-[18ch] pb-[0.14em] font-display font-normal text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
+				className="relative z-20 -mb-[0.14em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] max-w-[18ch] pb-[0.14em] font-display font-normal text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
 			>
 				The operating system for autonomous capital.
 			</h1>

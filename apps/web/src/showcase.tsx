@@ -38,6 +38,8 @@ export function Showcase() {
 						width={2838}
 						height={1800}
 						decoding="async"
+						loading="lazy"
+						fetchPriority="low"
 						className="relative block h-auto w-full shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
 					/>
 				</div>
