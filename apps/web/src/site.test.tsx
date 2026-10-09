@@ -11,16 +11,15 @@ describe("the front page", () => {
 		);
 	});
 
-	it("has the hero, then the app showcase, then how it works, then the closing section, then the footer", () => {
+	it("has the hero, the app showcase, how it works, for builders, the closing section, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
-		const hero = within(main).getByRole("region", { name: "Maschina" });
-		const app = within(main).getByRole("region", { name: "The app" });
-		const how = within(main).getByRole("region", { name: "How it works" });
-		const closing = within(main).getByRole("region", { name: "Get started" });
-		expect(hero.nextElementSibling).toBe(app);
-		expect(app.nextElementSibling).toBe(how);
-		expect(how.nextElementSibling).toBe(closing);
+		const names = ["Maschina", "The app", "How it works", "For builders", "Get started"];
+		const sections = names.map((name) => within(main).getByRole("region", { name }));
+		for (const [index, section] of sections.entries()) {
+			const next = sections[index + 1];
+			if (next) expect(section.nextElementSibling).toBe(next);
+		}
 		// Plain sections, one after the other: nothing is pinned and nothing rolls over anything.
 		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});

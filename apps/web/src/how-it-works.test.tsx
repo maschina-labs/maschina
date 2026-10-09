@@ -1,10 +1,14 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HowItWorks } from "./how-it-works.tsx";
 
 // Each line is a claim about the product, so each is pinned here: changing one means checking it is true.
-const LEAD = "An AI proposes the trade. Maschina decides if it happens.";
-const REST = "Rules checked before anything is signed. Every trade settles where anyone can check.";
+const SENTENCES = [
+	"An AI proposes the trade.",
+	"The rules decide if it happens.",
+	"Only the signer can sign it.",
+	"Every trade settles where anyone can check.",
+] as const;
 const STEPS = [
 	{
 		title: "The AI proposes.",
@@ -28,46 +32,148 @@ const STEPS = [
 	},
 ] as const;
 
-const strip = () => screen.getByRole("list", { name: "The four steps" });
-const tiles = () => [...strip().children] as HTMLElement[];
+const GRADIENT =
+	"linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)";
+
+const buttons = () => SENTENCES.map((name) => screen.getByRole("button", { name }));
+const panels = () => [...document.querySelectorAll("[data-slide]")] as HTMLElement[];
 
 describe("how it works", () => {
-	it("opens with one large two-tone sentence that carries the whole message", () => {
+	it("opens with one large sentence made of four clickable sentences, one for each step", () => {
 		render(<HowItWorks />);
-		const heading = screen.getByRole("heading", { level: 2, name: `${LEAD} ${REST}` });
-		const [lead, rest] = heading.querySelectorAll("span");
-		expect(lead).toHaveTextContent(LEAD);
-		expect(rest).toHaveTextContent(REST);
-		// White first, then the rest in gray, like the hero's line under its headline.
-		expect(lead?.className).toContain("text-white");
-		expect(rest?.className).toContain("text-neutral-500");
-		expect(heading.className).toMatch(/text-\[clamp\(2rem,4vw,4rem\)\]/);
+		const heading = screen.getByRole("heading", { level: 2 });
+		expect(heading.textContent).toBe(SENTENCES.join(" "));
+		expect(heading.className).toMatch(/text-\[clamp\(1\.75rem,3vw,3rem\)\]/);
+		// The sentences run on as a paragraph, not one to a line.
+		for (const button of buttons()) expect(button.className).toContain("inline");
+		for (const button of buttons()) expect(heading.contains(button)).toBe(true);
+		expect(buttons().map((button) => button.textContent)).toEqual([...SENTENCES]);
 	});
 
-	it("has no label above it: the sentence is the introduction", () => {
+	it("fits on one screen: the section is a screen tall at most, and the slide is short enough to sit under the sentences", () => {
 		render(<HowItWorks />);
-		const section = screen.getByRole("region", { name: "How it works" });
-		expect(within(section).queryByText(/^How it works$/)).toBeNull();
+		const { className } = screen.getByRole("region", { name: "How it works" });
+		expect(className).toContain("min-h-dvh");
+		expect(className).toContain("flex-col");
+		expect(className).toContain("justify-center");
+		expect(className).toContain("py-[clamp(4rem,10dvh,7rem)]");
+		const poster = panels()[0]?.querySelector("[data-poster]") as HTMLElement;
+		expect(poster.className).toContain("h-[min(34dvh,22rem)]");
+		expect(poster.className).not.toContain("aspect-");
+		expect(screen.getByRole("heading", { level: 2 }).nextElementSibling?.className).toContain(
+			"mt-12",
+		);
 	});
 
-	it("has four posters in a strip, in order, each with its number, its title, what it does and two chips", () => {
+	it("has a clear order of importance: the sentences, then what the step does, then its label and chips", () => {
 		render(<HowItWorks />);
-		expect(tiles()).toHaveLength(4);
+		const slide = panels()[0] as HTMLElement;
+		const label = within(slide).getByRole("heading", { level: 3, hidden: true });
+		const text = slide.querySelector("p") as HTMLElement;
+		// The explanation is the big line of the slide; the title is only a small label above it.
+		expect(text.className).toContain("text-[clamp(1.25rem,2vw,1.75rem)]");
+		expect(text.className).toContain("leading-[1.4]");
+		expect(label.className).toContain("text-[13px]");
+		expect(label.className).toContain("uppercase");
+		expect(label.className).toContain("text-neutral-400");
+		expect(label.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// The poster holds only the colour and the number: the title is not repeated inside it.
+		expect(slide.querySelector("[data-poster] h3")).toBeNull();
+	});
+
+	it("starts on the first step, with its sentence lit in the same silver and pearl gradient as the hero's headline", () => {
+		render(<HowItWorks />);
+		const [first, ...others] = buttons();
+		expect(first).toHaveAttribute("aria-pressed", "true");
+		// The gradient is a background image clipped to the letters, as in the hero. A `background` shorthand would
+		// reset the clip and paint a solid block over the words.
+		expect(first?.className).toContain(`bg-[${GRADIENT}]`);
+		expect(first?.className).not.toContain("[background:");
+		expect(first?.className).toContain("bg-clip-text");
+		expect(first?.className).toContain("text-transparent");
+		// Regular weight, the same as the hero: nothing here is bold.
+		expect(first?.className).toContain("font-normal");
+		expect(first?.className).not.toContain("font-medium");
+		for (const button of others) {
+			expect(button).toHaveAttribute("aria-pressed", "false");
+			// The others are gray, and warm up a little under the cursor.
+			expect(button.className).toContain("text-neutral-500");
+			expect(button.className).toContain("hover:text-neutral-300");
+			expect(button.className).toContain("font-normal");
+			expect(button.className).not.toContain("bg-clip-text");
+		}
+	});
+
+	it("brings you to another slide when you click a sentence, and lights that sentence instead", () => {
+		render(<HowItWorks />);
+		fireEvent.click(screen.getByRole("button", { name: SENTENCES[2] }));
+		expect(screen.getByRole("button", { name: SENTENCES[2] })).toHaveAttribute(
+			"aria-pressed",
+			"true",
+		);
+		expect(screen.getByRole("button", { name: SENTENCES[2] }).className).toContain("bg-clip-text");
+		expect(screen.getByRole("button", { name: SENTENCES[0] })).toHaveAttribute(
+			"aria-pressed",
+			"false",
+		);
+		expect(screen.getByRole("button", { name: SENTENCES[0] }).className).not.toContain(
+			"bg-clip-text",
+		);
+		const shown = panels().filter((panel) => !panel.hasAttribute("inert"));
+		expect(shown).toHaveLength(1);
+		expect(within(shown[0] as HTMLElement).getByRole("heading", { level: 3 })).toHaveTextContent(
+			"The signer signs.",
+		);
+	});
+
+	it("has four slides, one for each sentence, each with its number, title, what it does and two chips", () => {
+		render(<HowItWorks />);
+		expect(panels()).toHaveLength(4);
 		for (const [index, step] of STEPS.entries()) {
-			const tile = tiles()[index] as HTMLElement;
-			expect(within(tile).getByRole("heading", { level: 3, name: step.title })).toBeInTheDocument();
-			expect(tile).toHaveTextContent(step.text);
-			expect(tile).toHaveTextContent(`0${index + 1}`);
-			const chips = within(tile)
-				.getAllByRole("listitem")
-				.map((chip) => chip.textContent);
+			const slide = panels()[index] as HTMLElement;
+			expect(
+				within(slide).getByRole("heading", { level: 3, hidden: true, name: step.title }),
+			).toBeInTheDocument();
+			expect(slide).toHaveTextContent(step.text);
+			expect(slide).toHaveTextContent(`0${index + 1}`);
+			const chips = [...slide.querySelectorAll("[data-chip]")].map((chip) => chip.textContent);
 			expect(chips).toEqual([...step.chips]);
 		}
 	});
 
-	it("gives each poster a bold flat color of its own, like a set of posters: violet, silver, cyan and green", () => {
+	it("shows only the slide you are on: the others are faded out, hidden from readers and out of the keyboard's way", () => {
 		render(<HowItWorks />);
-		const posters = tiles().map((tile) => tile.querySelector("[data-poster]") as HTMLElement);
+		const [first, ...rest] = panels();
+		expect(first?.className).toContain("opacity-100");
+		expect(first).not.toHaveAttribute("inert");
+		expect(first).not.toHaveAttribute("aria-hidden");
+		for (const slide of rest) {
+			expect(slide.className).toContain("opacity-0");
+			expect(slide.className).toContain("pointer-events-none");
+			expect(slide).toHaveAttribute("inert");
+			expect(slide).toHaveAttribute("aria-hidden", "true");
+		}
+		// They sit on top of each other and fade, so the section does not change height.
+		for (const slide of panels()) {
+			expect(slide.className).toContain("col-start-1");
+			expect(slide.className).toContain("row-start-1");
+			expect(slide.className).toContain("transition-opacity");
+			expect(slide.className).toContain("motion-reduce:transition-none");
+		}
+	});
+
+	it("ties each sentence to its slide, so assistive technology knows what it controls", () => {
+		render(<HowItWorks />);
+		for (const [index, button] of buttons().entries()) {
+			const controls = button.getAttribute("aria-controls");
+			expect(controls).toBeTruthy();
+			expect(panels()[index]?.id).toBe(controls);
+		}
+	});
+
+	it("gives each slide a bold flat color of its own: violet, silver, cyan and green, with a large outlined number", () => {
+		render(<HowItWorks />);
+		const posters = panels().map((slide) => slide.querySelector("[data-poster]") as HTMLElement);
 		const surfaces = [
 			"oklch(0.58_0.22_295)",
 			"oklch(0.88_0.015_260)",
@@ -76,68 +182,8 @@ describe("how it works", () => {
 		];
 		for (const [index, surface] of surfaces.entries()) {
 			expect(posters[index]?.className).toContain(`bg-[${surface}]`);
-		}
-		// Words are white on the violet and black on the three light ones.
-		expect(posters[0]?.className).toContain("text-white");
-		for (const poster of posters.slice(1)) expect(poster.className).toContain("text-black");
-		for (const poster of posters) expect(poster.className).toContain("aspect-[4/5]");
-	});
-
-	it("is a strip that slides sideways, snapping tile by tile, starting at the page margin, with the next one peeking in", () => {
-		render(<HowItWorks />);
-		expect(strip().className).toContain("flex");
-		expect(strip().className).toContain("overflow-x-auto");
-		expect(strip().className).toContain("snap-x");
-		expect(strip().className).toContain("pl-(--gutter)");
-		expect(strip().className).toContain("pr-(--gutter)");
-		// No scrollbar on the strip itself: the arrows and the touch scroll are the controls.
-		expect(strip().className).toContain("[scrollbar-width:none]");
-		for (const tile of tiles()) {
-			expect(tile.className).toContain("w-[min(78vw,28rem)]");
-			expect(tile.className).toContain("shrink-0");
-			expect(tile.className).toContain("snap-start");
-		}
-	});
-
-	it("has arrows to move along it one poster at a time, off at either end", () => {
-		render(<HowItWorks />);
-		const previous = screen.getByRole("button", { name: "Previous step" });
-		const next = screen.getByRole("button", { name: "Next step" });
-		const list = strip();
-		const scrollBy = vi.fn();
-		const lastLeft = () => (scrollBy.mock.lastCall?.[0] as { left: number } | undefined)?.left ?? 0;
-		list.scrollBy = scrollBy as unknown as typeof list.scrollBy;
-		const measure = (scrollLeft: number) => {
-			for (const [name, value] of Object.entries({
-				scrollLeft,
-				scrollWidth: 2000,
-				clientWidth: 1000,
-			})) {
-				Object.defineProperty(list, name, { value, configurable: true });
-			}
-			fireEvent.scroll(list);
-		};
-		measure(0);
-		expect(previous).toBeDisabled();
-		expect(next).toBeEnabled();
-		fireEvent.click(next);
-		expect(scrollBy).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: "smooth" }));
-		expect(lastLeft()).toBeGreaterThan(0);
-		measure(500);
-		expect(previous).toBeEnabled();
-		fireEvent.click(previous);
-		expect(lastLeft()).toBeLessThan(0);
-		measure(1000);
-		expect(next).toBeDisabled();
-		// Squares with a chevron, like the other buttons.
-		expect(previous.className).not.toMatch(/rounded/);
-		expect(previous.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
-	});
-
-	it("puts a large outlined number in each poster, as the footer's wordmark is outlined, hidden from readers", () => {
-		render(<HowItWorks />);
-		for (const [index, tile] of tiles().entries()) {
-			const number = tile.querySelector("[data-number]") as HTMLElement;
+			expect(posters[index]?.className).toContain(index === 0 ? "text-white" : "text-black");
+			const number = posters[index]?.querySelector("[data-number]") as HTMLElement;
 			expect(number).toHaveAttribute("aria-hidden", "true");
 			expect(number).toHaveTextContent(String(index + 1));
 			expect(number.className).toContain("text-transparent");
@@ -145,14 +191,89 @@ describe("how it works", () => {
 		}
 	});
 
+	it("has no arrows: the sentences are the controls", () => {
+		render(<HowItWorks />);
+		expect(screen.queryByRole("button", { name: /previous step|next step/i })).toBeNull();
+	});
+
+	describe("autoplay", () => {
+		beforeEach(() => vi.useFakeTimers());
+		afterEach(() => vi.useRealTimers());
+		const pressed = () =>
+			buttons().findIndex((button) => button.getAttribute("aria-pressed") === "true");
+		const wait = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
+
+		it("moves on by itself every few seconds, round to the first again", () => {
+			render(<HowItWorks />);
+			expect(pressed()).toBe(0);
+			wait(6500);
+			expect(pressed()).toBe(1);
+			wait(6500);
+			expect(pressed()).toBe(2);
+			wait(6500);
+			expect(pressed()).toBe(3);
+			wait(6500);
+			expect(pressed()).toBe(0);
+		});
+
+		it("holds still while the cursor is over the section, and carries on when it leaves", () => {
+			render(<HowItWorks />);
+			const section = screen.getByRole("region", { name: "How it works" });
+			fireEvent.mouseEnter(section);
+			wait(30000);
+			expect(pressed()).toBe(0);
+			fireEvent.mouseLeave(section);
+			wait(6500);
+			expect(pressed()).toBe(1);
+		});
+
+		it("holds still while something inside it has the keyboard's focus", () => {
+			render(<HowItWorks />);
+			const section = screen.getByRole("region", { name: "How it works" });
+			fireEvent.focus(buttons()[0] as HTMLElement);
+			wait(30000);
+			expect(pressed()).toBe(0);
+			fireEvent.blur(buttons()[0] as HTMLElement);
+			expect(section).toBeInTheDocument();
+			wait(6500);
+			expect(pressed()).toBe(1);
+		});
+
+		it("starts its count again after you choose a sentence, so the slide you chose is not whisked away", () => {
+			render(<HowItWorks />);
+			wait(5000);
+			fireEvent.click(buttons()[2] as HTMLElement);
+			wait(5000);
+			expect(pressed()).toBe(2);
+			wait(1600);
+			expect(pressed()).toBe(3);
+		});
+
+		it("does not play for anyone who asked for less motion", () => {
+			const original = window.matchMedia;
+			window.matchMedia = ((query: string) => ({
+				matches: query.includes("reduce"),
+				media: query,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				onchange: null,
+				dispatchEvent: () => false,
+			})) as typeof window.matchMedia;
+			render(<HowItWorks />);
+			wait(60000);
+			window.matchMedia = original;
+			expect(pressed()).toBe(0);
+		});
+	});
+
 	it("keeps to the page margin, on black, square, and names no vendor and no partner", () => {
 		const { container } = render(<HowItWorks />);
 		const { className } = screen.getByRole("region", { name: "How it works" });
 		expect(className).toContain("bg-black");
+		expect(className).toContain("px-(--gutter)");
 		expect(container.innerHTML).not.toMatch(/rounded/);
 		expect(container.textContent ?? "").not.toMatch(/turnkey|helius|jupiter|anthropic|partner/i);
-		expect(screen.getByRole("heading", { level: 2 }).parentElement?.className).toContain(
-			"px-(--gutter)",
-		);
 	});
 });

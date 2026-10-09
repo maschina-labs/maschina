@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 /**
- * The four steps between an idea and a settled trade, as four posters in a strip. Every line is a claim about
- * the product and has to be true: the machine holds no keys, the budget ledger is not the machine's to edit,
- * only the signer can ask for a signature, the wallet's policy only pays the owner, and trades settle on
- * Solana. No vendor is named. Each poster is a bold flat color of its own.
+ * The four steps between an idea and a settled trade. The headline is the control: each of its four sentences
+ * is one step, and clicking one brings you to that step's slide and lights the sentence in the same silver and
+ * pearl gradient as the hero's headline, while the others stay gray. Every line is a claim about the product and
+ * has to be true: the machine holds no keys, the budget ledger is not the machine's to edit, only the signer can
+ * ask for a signature, the wallet's policy only pays the owner, and trades settle on Solana. No vendor is named.
+ * Each slide has a bold flat color of its own.
  */
 const STEPS = [
 	{
+		sentence: "An AI proposes the trade.",
 		title: "The AI proposes.",
 		text: "Your machine reads the market and proposes a trade. It holds no keys and cannot move money.",
 		chips: ["Holds no keys", "Cannot move money"],
@@ -15,6 +18,7 @@ const STEPS = [
 		stroke: "[-webkit-text-stroke:2px_oklch(1_0_0/0.28)]",
 	},
 	{
+		sentence: "The rules decide if it happens.",
 		title: "The rules decide.",
 		text: "Budgets live in a ledger the machine cannot edit. Every limit is checked before anything is signed.",
 		chips: ["Budget ledger", "Checked before signing"],
@@ -22,6 +26,7 @@ const STEPS = [
 		stroke: "[-webkit-text-stroke:2px_oklch(0_0_0/0.16)]",
 	},
 	{
+		sentence: "Only the signer can sign it.",
 		title: "The signer signs.",
 		text: "Only the signer can ask for a signature, and the wallet's policy only ever pays the owner.",
 		chips: ["Signer only", "Pays the owner only"],
@@ -29,6 +34,7 @@ const STEPS = [
 		stroke: "[-webkit-text-stroke:2px_oklch(0_0_0/0.2)]",
 	},
 	{
+		sentence: "Every trade settles where anyone can check.",
 		title: "The record keeps it.",
 		text: "Every trade settles on Solana, where anyone can check it.",
 		chips: ["Settles on Solana", "Open to anyone"],
@@ -37,124 +43,123 @@ const STEPS = [
 	},
 ] as const;
 
-/** A poster's width and the gap beside it, used to move one poster at a time when the width cannot be read. */
-const POSTER = 448;
-const GAP = 12;
-
-function Arrow({ direction }: { direction: "left" | "right" }) {
-	return (
-		<svg
-			viewBox="0 0 12 12"
-			className="size-3"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth={1.5}
-			strokeLinecap="square"
-			aria-hidden="true"
-		>
-			<path d={direction === "right" ? "M4.5 2.5 8 6 4.5 9.5" : "M7.5 2.5 4 6l3.5 3.5"} />
-		</svg>
-	);
-}
+/** How long each step stays up before the next one lights, when nobody is using the section. */
+const PLAY_MS = 6500;
 
 export function HowItWorks() {
-	const list = useRef<HTMLOListElement>(null);
-	const [edge, setEdge] = useState({ start: true, end: true });
+	const base = useId();
+	const section = useRef<HTMLElement>(null);
+	const [current, setCurrent] = useState(0);
+	const [hovered, setHovered] = useState(false);
+	const [focused, setFocused] = useState(false);
+	const [visible, setVisible] = useState(true);
+	const held = hovered || focused;
 
-	// Whether there is more to see on either side, so an arrow with nowhere to go is off.
-	const measure = () => {
-		const strip = list.current;
-		if (!strip) return;
-		setEdge({
-			start: strip.scrollLeft <= 1,
-			end: strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 1,
-		});
-	};
-
+	// Only play while the section is actually on screen, so nothing runs where nobody can see it.
 	useEffect(() => {
-		measure();
-		window.addEventListener("resize", measure);
-		return () => window.removeEventListener("resize", measure);
+		const node = section.current;
+		if (!node || typeof IntersectionObserver === "undefined") return;
+		const watcher = new IntersectionObserver(
+			([entry]) => setVisible(Boolean(entry?.isIntersecting)),
+			{
+				threshold: 0.4,
+			},
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
 	}, []);
 
-	const move = (direction: 1 | -1) => {
-		const poster = list.current?.firstElementChild as HTMLElement | null | undefined;
-		list.current?.scrollBy({
-			left: direction * ((poster?.offsetWidth || POSTER) + GAP),
-			behavior: "smooth",
-		});
-	};
-
-	const arrow =
-		"grid size-11 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.12] disabled:text-neutral-700 disabled:hover:bg-white/[0.07]";
+	// It plays by itself: each step stays up a few seconds and then the next lights, round to the first again.
+	// It waits while the cursor is over the section or something in it has the keyboard's focus, starts its count
+	// again whenever the step changes (so a step you chose is not whisked away), and does not play at all for
+	// anyone who asked for less motion.
+	useEffect(() => {
+		if (held || !visible) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		const timer = setTimeout(() => setCurrent((now) => (now + 1) % STEPS.length), PLAY_MS);
+		return () => clearTimeout(timer);
+	}, [current, held, visible]);
 
 	return (
-		<section aria-label="How it works" className="relative bg-black py-28">
-			<div className="flex flex-col gap-10 px-(--gutter) lg:flex-row lg:items-end lg:justify-between">
-				<h2 className="max-w-[40ch] font-display font-normal text-[clamp(2rem,4vw,4rem)] leading-[1.02] tracking-[-0.035em]">
-					<span className="text-white">
-						An AI proposes the trade. Maschina decides if it happens.
-					</span>{" "}
-					<span className="text-neutral-500">
-						Rules checked before anything is signed. Every trade settles where anyone can check.
-					</span>
-				</h2>
-				<div className="flex shrink-0 gap-3">
-					<button
-						type="button"
-						aria-label="Previous step"
-						disabled={edge.start}
-						onClick={() => move(-1)}
-						className={arrow}
-					>
-						<Arrow direction="left" />
-					</button>
-					<button
-						type="button"
-						aria-label="Next step"
-						disabled={edge.end}
-						onClick={() => move(1)}
-						className={arrow}
-					>
-						<Arrow direction="right" />
-					</button>
-				</div>
-			</div>
-			<ol
-				ref={list}
-				aria-label="The four steps"
-				onScroll={measure}
-				className="mt-16 flex snap-x snap-mandatory scroll-pl-(--gutter) gap-3 overflow-x-auto pr-(--gutter) pl-(--gutter) [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-			>
+		<section
+			ref={section}
+			aria-label="How it works"
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}
+			onFocus={() => setFocused(true)}
+			onBlur={() => setFocused(false)}
+			className="relative flex min-h-dvh flex-col justify-center bg-black px-(--gutter) py-[clamp(4rem,10dvh,7rem)]"
+		>
+			<h2 className="max-w-[44ch] font-display text-[clamp(1.75rem,3vw,3rem)] leading-[1.14] tracking-[-0.025em]">
 				{STEPS.map((step, index) => (
-					<li key={step.title} className="w-[min(78vw,28rem)] shrink-0 snap-start">
-						<div
-							data-poster
-							className={`relative flex aspect-[4/5] flex-col justify-between overflow-hidden p-6 ${step.poster}`}
+					<span key={step.sentence} className="mr-[0.22em]">
+						{index > 0 ? " " : null}
+						<button
+							type="button"
+							aria-pressed={current === index}
+							aria-controls={`${base}-${index}`}
+							onClick={() => setCurrent(index)}
+							className={`inline cursor-pointer text-left font-normal transition-colors duration-300 motion-reduce:transition-none ${
+								current === index
+									? "bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] text-transparent"
+									: "text-neutral-500 hover:text-neutral-300"
+							}`}
 						>
-							<span
-								data-number
-								aria-hidden="true"
-								className={`pointer-events-none absolute -right-6 -bottom-20 select-none font-display text-[24rem] text-transparent leading-none ${step.stroke}`}
-							>
-								{index + 1}
-							</span>
-							<span className="relative text-[13px] tabular-nums">0{index + 1}</span>
-							<h3 className="relative max-w-[10ch] font-display font-normal text-[clamp(2.25rem,3.4vw,3.25rem)] leading-[1] tracking-[-0.035em]">
-								{step.title}
-							</h3>
-						</div>
-						<p className="mt-4 text-[15px] text-neutral-400 leading-snug">{step.text}</p>
-						<ul className="mt-4 flex flex-wrap gap-2">
-							{step.chips.map((chip) => (
-								<li key={chip} className="bg-white/[0.07] px-3 py-1.5 text-[13px] text-neutral-300">
-									{chip}
-								</li>
-							))}
-						</ul>
-					</li>
+							{step.sentence}
+						</button>
+					</span>
 				))}
-			</ol>
+			</h2>
+
+			<div className="mt-12 grid">
+				{STEPS.map((step, index) => {
+					const shown = current === index;
+					return (
+						<div
+							key={step.title}
+							id={`${base}-${index}`}
+							data-slide
+							{...(shown ? {} : { inert: true, "aria-hidden": true })}
+							className={`col-start-1 row-start-1 grid gap-8 transition-opacity duration-500 motion-reduce:transition-none lg:grid-cols-2 ${
+								shown ? "opacity-100" : "pointer-events-none opacity-0"
+							}`}
+						>
+							<div
+								data-poster
+								className={`relative h-[min(34dvh,22rem)] overflow-hidden p-6 sm:p-8 ${step.poster}`}
+							>
+								<span
+									data-number
+									aria-hidden="true"
+									className={`pointer-events-none absolute -right-4 -bottom-16 select-none font-display text-[20rem] text-transparent leading-none ${step.stroke}`}
+								>
+									{index + 1}
+								</span>
+								<span className="relative text-[13px] tabular-nums">0{index + 1}</span>
+							</div>
+							<div className="flex flex-col justify-center">
+								<h3 className="text-[13px] text-neutral-400 uppercase tracking-[0.08em]">
+									{step.title}
+								</h3>
+								<p className="mt-5 max-w-[30ch] text-[clamp(1.25rem,2vw,1.75rem)] text-neutral-200 leading-[1.4] tracking-[-0.005em]">
+									{step.text}
+								</p>
+								<ul className="mt-8 flex flex-wrap gap-2">
+									{step.chips.map((chip) => (
+										<li
+											key={chip}
+											data-chip
+											className="bg-white/[0.07] px-3 py-1.5 text-[13px] text-neutral-300"
+										>
+											{chip}
+										</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					);
+				})}
+			</div>
 		</section>
 	);
 }
