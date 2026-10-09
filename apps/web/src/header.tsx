@@ -31,6 +31,43 @@ const SUB =
 const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
+/**
+ * The main call to action: the pearl button with a square black chip fused to its right, an arrow pointing
+ * up and to the right in white. The chip is part of the link, so the whole thing is one click, and the
+ * arrow is decoration (the name stays "Try Maschina").
+ */
+function TryButton({
+	href,
+	className,
+	labelClassName,
+}: {
+	href: string;
+	className: string;
+	labelClassName: string;
+}) {
+	return (
+		<a
+			href={href}
+			className={`items-stretch bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${className}`}
+		>
+			<span className={labelClassName}>Try Maschina</span>
+			<span data-chip className="grid w-9 place-items-center bg-black text-white">
+				<svg
+					viewBox="0 0 12 12"
+					className="size-3"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth={1.5}
+					strokeLinecap="square"
+					aria-hidden="true"
+				>
+					<path d="M3 9l6-6M4 3h5v5" />
+				</svg>
+			</span>
+		</a>
+	);
+}
+
 function Caret({ open }: { open: boolean }) {
 	return (
 		<svg
@@ -159,12 +196,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 						>
 							Log in
 						</a>
-						<a
-							href={signUp}
-							className="hidden bg-[oklch(0.93_0.02_300)] px-4 py-2 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] lg:inline-block"
-						>
-							Try Maschina
-						</a>
+						<TryButton href={signUp} className="hidden lg:inline-flex" labelClassName="px-4 py-2" />
 						{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 						<button
 							type="button"
@@ -305,12 +337,11 @@ export function Header({ authUrl }: { authUrl: string }) {
 							>
 								Log in
 							</a>
-							<a
+							<TryButton
 								href={signUp}
-								className="bg-[oklch(0.93_0.02_300)] px-4 py-3 text-center text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
-							>
-								Try Maschina
-							</a>
+								className="flex"
+								labelClassName="flex-1 px-4 py-3 text-center"
+							/>
 						</div>
 					</nav>
 				) : null}

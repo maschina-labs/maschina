@@ -246,12 +246,31 @@ describe("the header", () => {
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
+	it("puts a square chip with an up-right arrow on the right of Try Maschina, as part of the button", () => {
+		render(<Header authUrl={AUTH} />);
+		const link = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });
+		const chip = link.querySelector("[data-chip]");
+		expect(chip).not.toBeNull();
+		expect(chip?.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(chip?.className).not.toMatch(/rounded/);
+		// The chip is the last thing in the button, so it sits on the right, and it adds no words to its name.
+		expect(link.lastElementChild).toBe(chip);
+	});
+
+	it("has the same chip on the phone menu's button", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		const link = panel.getByRole("link", { name: "Try Maschina" });
+		expect(link.querySelector("[data-chip]")).not.toBeNull();
+	});
+
 	it("shows log in and try Maschina as buttons only on a wide screen", () => {
 		render(<Header authUrl={AUTH} />);
 		for (const name of ["Log in", "Try Maschina"]) {
 			const link = within(screen.getByRole("banner")).getByRole("link", { name });
 			expect(link.className).toContain("hidden");
-			expect(link.className).toContain("lg:inline-block");
+			expect(link.className).toMatch(/lg:inline-(block|flex)/);
 		}
 	});
 
