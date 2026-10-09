@@ -4,12 +4,12 @@ import { Site } from "./site.tsx";
 
 describe("the front page", () => {
 	it("gives the page a full screen of room, so there is something to scroll through", () => {
-		render(<Site authUrl="https://auth.maschina.dev" />);
+		render(<Site />);
 		expect(screen.getByRole("main", { name: "Maschina" }).className).toContain("min-h-[200dvh]");
 	});
 
 	it("is blank above the footer until its design lands", () => {
-		render(<Site authUrl="https://auth.maschina.dev" />);
+		render(<Site />);
 		const page = screen.getByRole("main", { name: "Maschina" });
 		expect(page).toBeEmptyDOMElement();
 	});
