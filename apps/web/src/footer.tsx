@@ -66,10 +66,11 @@ export function Footer() {
 							y2="0"
 							gradientUnits="userSpaceOnUse"
 						>
-							<stop offset="0" stopColor="oklch(0.86 0.09 20)" />
-							<stop offset="0.35" stopColor="oklch(0.88 0.1 85)" />
-							<stop offset="0.65" stopColor="oklch(0.84 0.08 230)" />
-							<stop offset="1" stopColor="oklch(0.86 0.09 160)" />
+							{/* Silver and pearl, the theme's own hues (the field's city palette), brighter for a hairline. */}
+							<stop offset="0" stopColor="oklch(0.84 0.025 260)" />
+							<stop offset="0.35" stopColor="oklch(0.96 0.03 300)" />
+							<stop offset="0.65" stopColor="oklch(0.88 0.04 325)" />
+							<stop offset="1" stopColor="oklch(0.9 0.03 285)" />
 						</linearGradient>
 						<radialGradient id="spot-fade">
 							<stop offset="0" stopColor="white" />
