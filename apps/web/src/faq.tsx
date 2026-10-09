@@ -43,12 +43,15 @@ export function Faq() {
 	const [open, setOpen] = useState<number | null>(null);
 
 	return (
-		<section aria-label="Questions" className="relative bg-black px-(--gutter) py-32">
-			<div className="grid gap-16 lg:grid-cols-[1fr_1.6fr] lg:gap-24">
-				<h2 className="font-display font-normal text-[clamp(2rem,4vw,3.5rem)] text-white leading-[1.05] tracking-[-0.03em]">
-					Questions, answered.
-				</h2>
-				<ul className="flex flex-col">
+		<section
+			aria-label="Questions"
+			className="relative flex flex-col items-center bg-black px-(--gutter) py-32"
+		>
+			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
+				Questions, answered.
+			</h2>
+			<div className="mt-16 flex w-full justify-center">
+				<ul className="flex w-full max-w-3xl flex-col">
 					{QUESTIONS.map((item, index) => {
 						const shown = open === index;
 						return (
@@ -58,7 +61,7 @@ export function Faq() {
 									aria-expanded={shown}
 									aria-controls={`${base}-${index}`}
 									onClick={() => setOpen(shown ? null : index)}
-									className="flex w-full cursor-pointer items-center justify-between gap-6 px-6 py-5 text-left transition-colors hover:bg-white/[0.04] motion-reduce:transition-none"
+									className="flex w-full cursor-pointer items-center justify-between gap-6 px-6 py-5 text-left"
 								>
 									<span className="text-[clamp(1.125rem,1.6vw,1.375rem)] text-white tracking-[-0.01em]">
 										{item.question}

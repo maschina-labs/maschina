@@ -40,6 +40,43 @@ describe("the questions", () => {
 		).toBeInTheDocument();
 	});
 
+	it("is centered: the title on top, the questions stacked in one column underneath it", () => {
+		render(<Faq />);
+		const section = screen.getByRole("region", { name: "Questions" });
+		const heading = screen.getByRole("heading", { level: 2 });
+		const list = screen.getByRole("list");
+		expect(section.className).toContain("flex-col");
+		expect(section.className).toContain("items-center");
+		expect(heading.className).toContain("text-center");
+		expect(heading.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// One column, centered, a comfortable reading width.
+		expect(list.className).toContain("w-full");
+		expect(list.className).toContain("max-w-3xl");
+		expect(list.className).toContain("flex-col");
+		expect(section.className).not.toMatch(/lg:grid-cols|lg:flex-row/);
+	});
+
+	it("has the title in the hero's pearl gradient with its thin outline, with room below for the letters' tails", () => {
+		render(<Faq />);
+		const { className } = screen.getByRole("heading", { level: 2 });
+		expect(className).toContain("bg-clip-text");
+		expect(className).toContain("text-transparent");
+		expect(className).toContain(
+			"linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)",
+		);
+		expect(className).toContain("[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]");
+		expect(className).toContain("pb-[0.14em]");
+		expect(className).toContain("-mb-[0.14em]");
+	});
+
+	it("has no hover highlight on the questions, shut or open", () => {
+		render(<Faq />);
+		for (const trigger of triggers()) expect(trigger.className).not.toMatch(/hover:/);
+		fireEvent.click(triggers()[0] as HTMLElement);
+		expect(triggers()[0]?.className).not.toMatch(/hover:/);
+		expect(triggers()[0]?.closest("li")?.className).not.toMatch(/hover:/);
+	});
+
 	it("has six questions, in order, each a button that opens a short answer", () => {
 		render(<Faq />);
 		expect(triggers()).toHaveLength(QUESTIONS.length);
