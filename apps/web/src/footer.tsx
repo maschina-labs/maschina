@@ -267,12 +267,12 @@ export function Footer() {
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
 				<nav
 					aria-label="Sitemap"
-					className="grid grid-cols-2 gap-x-6 gap-y-12 sm:flex sm:gap-x-[clamp(3rem,8vw,8rem)]"
+					className="grid grid-cols-2 gap-x-6 gap-y-10 sm:flex sm:gap-x-[clamp(2rem,5vw,6rem)]"
 				>
 					{SITEMAP.map((column) => (
 						<div key={column.title} className="text-left">
 							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
-							<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
+							<ul className="mt-4 flex flex-col gap-2 text-[15px]">
 								{column.items.map((item) =>
 									item.href ? (
 										<li key={item.label}>

@@ -67,7 +67,7 @@ describe("the footer", () => {
 		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
 	});
 
-	it("has the sitemap: four columns on the right, with the pages in each left aligned", () => {
+	it("has the sitemap: five columns on the right, with the pages in each left aligned", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
@@ -75,11 +75,11 @@ describe("the footer", () => {
 			within(nav)
 				.getAllByRole("heading", { level: 2 })
 				.map((heading) => heading.textContent),
-		).toEqual(["Product", "Developers", "Company", "Legal"]);
+		).toEqual(["Product", "Developers", "Resources", "Company", "Legal"]);
 		// The columns sit together at the right end of the row, up to the margin, with an even gap between
 		// them. Inside each column the pages are left aligned.
 		expect(nav.className).toContain("sm:flex");
-		expect(nav.className).toContain("sm:gap-x-[clamp(3rem,8vw,8rem)]");
+		expect(nav.className).toContain("sm:gap-x-[clamp(2rem,5vw,6rem)]");
 		expect(nav.className).not.toContain("text-center");
 		const headings = within(nav).getAllByRole("heading", { level: 2 });
 		for (const heading of headings) expect(heading.parentElement?.className).toContain("text-left");

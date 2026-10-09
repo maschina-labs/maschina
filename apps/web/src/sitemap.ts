@@ -29,7 +29,8 @@ const menu = (name: string) => MENUS[name];
 /**
  * The footer's map of the site, built from the header's own menus so the two cannot drift apart, with the
  * pages that only the footer lists added in place. Pricing is a page of its own in the header, so it is added
- * to Product here. Every page here is one to be written; the ones with no address show as Soon.
+ * to Product here. The menus' small links (the live record, the changelog, GitHub, status, the AI files) are
+ * gathered under Resources. Every page here is one to be written; the ones with no address show as Soon.
  */
 const [overview, ...moreProduct] = menu("Product")?.main ?? [];
 const [docs, ...moreDevelopers] = menu("Developers")?.main ?? [];
@@ -44,7 +45,6 @@ export const SITEMAP: Column[] = [
 				{ label: "Machines", href: "/machines" },
 				...moreProduct,
 				{ label: "Pricing", href: "/pricing" },
-				...(menu("Product")?.aside ?? []),
 			],
 			taken,
 		),
@@ -57,10 +57,13 @@ export const SITEMAP: Column[] = [
 				{ label: "Quickstart", href: "/quickstart" },
 				...moreDevelopers,
 				{ label: "Examples", href: "/examples" },
-				...(menu("Developers")?.aside ?? []),
 			],
 			taken,
 		),
+	},
+	{
+		title: "Resources",
+		items: once([...(menu("Product")?.aside ?? []), ...(menu("Developers")?.aside ?? [])], taken),
 	},
 	{
 		title: "Company",

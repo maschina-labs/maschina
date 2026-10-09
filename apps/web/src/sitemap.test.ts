@@ -5,12 +5,30 @@ import { SITEMAP } from "./sitemap.ts";
 const all = SITEMAP.flatMap((column) => column.items);
 
 describe("the sitemap", () => {
-	it("has four columns, in this order", () => {
+	it("has five columns, in this order", () => {
 		expect(SITEMAP.map((column) => column.title)).toEqual([
 			"Product",
 			"Developers",
+			"Resources",
 			"Company",
 			"Legal",
+		]);
+	});
+
+	it("keeps every column short enough to read at a glance: eight links at most", () => {
+		for (const column of SITEMAP) expect(column.items.length).toBeLessThanOrEqual(8);
+	});
+
+	it("gathers the ways in and the things to check under Resources, from the menus' small links", () => {
+		const labels = SITEMAP.find((c) => c.title === "Resources")?.items.map((i) => i.label);
+		expect(labels).toEqual([
+			"Live record",
+			"Changelog",
+			"GitHub",
+			"Status",
+			"AI index",
+			"Skill file",
+			"MCP server",
 		]);
 	});
 
