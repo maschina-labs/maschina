@@ -55,40 +55,6 @@ function Magnifier() {
 	);
 }
 
-/** Only languages the site is written in are offered. English, until a translation is real. */
-const LANGUAGES = [{ code: "en", name: "English" }];
-
-/** A square box with a globe in it. Click it for the list of languages. */
-function Language() {
-	return (
-		<label className="relative grid size-9 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18]">
-			<svg
-				viewBox="0 0 24 24"
-				className="size-4"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<circle cx="12" cy="12" r="9" />
-				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
-			</svg>
-			{/* The real, native list, laid invisibly over the globe, so the globe is all that shows. */}
-			<select
-				aria-label="Language"
-				defaultValue="en"
-				className="absolute inset-0 size-full cursor-pointer appearance-none opacity-0"
-			>
-				{LANGUAGES.map((language) => (
-					<option key={language.code} value={language.code} className="bg-black">
-						{language.name}
-					</option>
-				))}
-			</select>
-		</label>
-	);
-}
-
 /**
  * The main call to action: the pearl button with a small square black chip inset beside the words, an arrow
  * pointing up and to the right in white. The chip is smaller than the button, so pearl shows all around it.
@@ -307,9 +273,6 @@ export function Header({
 						</div>
 					</div>
 					<div className="flex items-center gap-3 text-[14px]">
-						<div data-tools className="hidden items-center gap-2 xl:flex">
-							<Language />
-						</div>
 						<a
 							href={signIn}
 							className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] xl:inline-block"
@@ -516,7 +479,6 @@ export function Header({
 								<Magnifier />
 								Search
 							</button>
-							<Language />
 						</div>
 						<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
 							<a

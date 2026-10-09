@@ -2,7 +2,7 @@
  * What each dropdown holds. The big links on the left are the pages; the small ones beside them are the
  * way on. A link with no address is not built yet: it shows dimmed and tagged Soon, and is never a link.
  */
-export type Item = { label: string; href?: string };
+type Item = { label: string; href?: string };
 
 export type Menu = {
 	/** The small gray line above the big links. */

@@ -45,8 +45,8 @@ describe("the header", () => {
 		const pages = screen.getByRole("navigation", { name: "Pages" });
 		const left = screen.getByRole("link", { name: "Maschina, home" }).parentElement as HTMLElement;
 		expect(left.contains(pages)).toBe(true);
-		const tools = screen.getByRole("banner").querySelector("[data-tools]") as HTMLElement;
-		expect(left.contains(tools)).toBe(false);
+		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
+		expect(left.contains(logIn)).toBe(false);
 	});
 
 	it("puts the search by itself right after the pages: just the icon, in no box", () => {
@@ -55,7 +55,6 @@ describe("the header", () => {
 		const search = within(screen.getByRole("banner")).getByRole("button", { name: "Search" });
 		expect(search.previousElementSibling).toBe(pages);
 		expect(pages.lastElementChild?.textContent).toBe("Pricing");
-		expect(search.closest("[data-tools]")).toBeNull();
 		expect(search.className).not.toMatch(/\bbg-/);
 		expect(search.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 	});
@@ -291,27 +290,11 @@ describe("the header", () => {
 		expect(link.querySelector("[data-chip]")).not.toBeNull();
 	});
 
-	it("has a language box that is just a globe, in the header on a wide screen and in the phone menu", () => {
+	it("has no language control: the site is only in English, so there is nothing to choose", () => {
 		render(<Header authUrl={AUTH} />);
-		const header = within(screen.getByRole("banner"));
-		const language = header.getByRole("combobox", { name: "Language" });
-		// Only the languages the site is written in are offered: English.
-		expect(
-			within(language)
-				.getAllByRole("option")
-				.map((option) => option.textContent),
-		).toEqual(["English"]);
-		const box = language.closest("label") as HTMLElement;
-		expect(box.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
-		expect(box.className).toContain("size-9");
-		expect(box.className).not.toMatch(/rounded/);
-		// The list is the real, native one, laid invisibly over the globe, so the globe is all that shows.
-		expect(language.className).toContain("opacity-0");
-		expect(language.closest("[data-tools]")?.className).toContain("xl:flex");
-
+		expect(screen.queryByRole("combobox", { name: "Language" })).toBeNull();
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
-		expect(panel.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
+		expect(screen.queryByRole("combobox", { name: "Language" })).toBeNull();
 	});
 
 	it("has a search button that opens a panel under the header, with the cursor in it", () => {
