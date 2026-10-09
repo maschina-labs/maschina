@@ -40,7 +40,7 @@ const LANGUAGES = [{ code: "en", name: "English" }];
 
 function Language() {
 	return (
-		<label className="relative flex items-center gap-2 bg-white/[0.07] py-2 pr-8 pl-3 text-neutral-300 transition-colors hover:bg-white/[0.11]">
+		<label className="relative flex h-9 items-center gap-2 bg-white/[0.07] pr-8 pl-3 text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.11]">
 			<svg
 				viewBox="0 0 24 24"
 				className="size-[14px]"
@@ -97,7 +97,7 @@ function StatusMark() {
 	return (
 		<div
 			role="status"
-			className="flex w-max items-center gap-2.5 bg-white/[0.07] px-3 py-2 text-[13px] text-neutral-300"
+			className="flex h-9 w-max items-center gap-2.5 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
 		>
 			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
 			<span>{shown.label}</span>

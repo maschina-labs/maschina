@@ -51,6 +51,19 @@ describe("the footer", () => {
 		).toEqual(["English"]);
 	});
 
+	it("makes the status and the language boxes the same height, and the same size of text", () => {
+		render(<Footer />);
+		const status = screen.getByRole("status");
+		const language = screen.getByRole("combobox", { name: "Language" });
+		const box = language.closest("label") as HTMLElement;
+		const height = (element: HTMLElement) =>
+			element.className.match(/(?:^|\s)(h-\d+)(?:\s|$)/)?.[1];
+		expect(height(status)).toBeDefined();
+		expect(height(box)).toBe(height(status));
+		const size = (element: HTMLElement) => element.className.match(/text-\[\d+px\]/)?.[0];
+		expect(size(box)).toBe(size(status));
+	});
+
 	it("puts the status and the language together on the right of the line with the copyright", () => {
 		render(<Footer />);
 		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
