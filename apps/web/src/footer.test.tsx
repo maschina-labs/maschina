@@ -1,100 +1,10 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { Footer } from "./footer.tsx";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
-	// The status dot asks the API. Each test stands one in, so nothing here reaches the network.
-	beforeEach(() => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
-		);
-	});
-
-	it("shows whether Maschina is up, from the API's own check", async () => {
-		render(<Footer />);
-		const status = screen.getByRole("status");
-		expect(status).toHaveTextContent("Checking");
-		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
-	});
-
-	it("says so when the stop switch is on", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(
-				async () =>
-					new Response(
-						JSON.stringify({
-							status: "ok",
-							halt: { reason: "upgrading", since: "2026-10-09T00:00:00Z" },
-						}),
-						{ status: 200 },
-					),
-			),
-		);
-		render(<Footer />);
-		expect(
-			await within(screen.getByRole("status")).findByText("Machines paused"),
-		).toBeInTheDocument();
-	});
-
-	it("says who owns it, in the year it is now", () => {
-		vi.useFakeTimers({ now: new Date("2031-03-01T12:00:00Z"), toFake: ["Date"] });
-		render(<Footer />);
-		expect(
-			within(screen.getByRole("contentinfo")).getByText(
-				"© 2031 Maschina Labs. All rights reserved.",
-			),
-		).toBeInTheDocument();
-		vi.useRealTimers();
-	});
-
-	it("leads to Maschina on X and GitHub", () => {
-		render(<Footer />);
-		const footer = within(screen.getByRole("contentinfo"));
-		expect(footer.getByRole("link", { name: "Maschina on X" })).toHaveAttribute(
-			"href",
-			"https://x.com/maschinalabs",
-		);
-		expect(footer.getByRole("link", { name: "Maschina on GitHub" })).toHaveAttribute(
-			"href",
-			"https://github.com/maschina-labs/maschina",
-		);
-	});
-
-	it("offers a language, and only the ones that exist", () => {
-		render(<Footer />);
-		const language = screen.getByRole("combobox", { name: "Language" });
-		expect(
-			within(language)
-				.getAllByRole("option")
-				.map((option) => option.textContent),
-		).toEqual(["English"]);
-	});
-
-	it("turns the mark a full turn forward on each hover, and never back", () => {
-		render(<Footer />);
-		const mark = screen.getByRole("img", { name: "Maschina mark" });
-		expect(mark.style.transform).toBe("rotate(0deg)");
-		fireEvent.pointerEnter(mark);
-		expect(mark.style.transform).toBe("rotate(360deg)");
-		fireEvent.pointerLeave(mark);
-		expect(mark.style.transform).toBe("rotate(360deg)");
-		fireEvent.pointerEnter(mark);
-		expect(mark.style.transform).toBe("rotate(720deg)");
-	});
-
-	it("maps the site in five columns, legal among them", () => {
-		render(<Footer />);
-		for (const name of ["Product", "Build", "Company", "Machines", "Legal"]) {
-			expect(screen.getByRole("navigation", { name })).toBeInTheDocument();
-		}
-		const legal = screen.getByRole("navigation", { name: "Legal" });
-		expect(within(legal).getByRole("link", { name: "Risk disclosure" })).toBeInTheDocument();
-	});
-
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();

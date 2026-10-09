@@ -1,7 +1,4 @@
-import { useRef, useState } from "react";
-import { COLUMNS } from "./sitemap.ts";
-import { SOCIALS } from "./socials.ts";
-import { useStatus } from "./status.ts";
+import { useRef } from "react";
 import { WORDMARK } from "./wordmark.ts";
 
 /** How much of the wordmark shows above the bottom of the page: about three quarters of the letters. */
@@ -37,96 +34,6 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
-/** Only languages the site is written in are offered. English, until a translation is real. */
-const LANGUAGES = [{ code: "en", name: "English" }];
-
-function Language() {
-	return (
-		<label className="relative flex items-center gap-2 bg-white/[0.13] py-2 pr-8 pl-3 text-neutral-200 transition-colors hover:bg-white/[0.18]">
-			<svg
-				viewBox="0 0 24 24"
-				className="size-[14px]"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<circle cx="12" cy="12" r="9" />
-				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
-			</svg>
-			<select
-				aria-label="Language"
-				defaultValue="en"
-				className="cursor-pointer appearance-none bg-transparent text-neutral-300 outline-none"
-			>
-				{LANGUAGES.map((language) => (
-					<option
-						key={language.code}
-						value={language.code}
-						label={language.code.toUpperCase()}
-						className="bg-black"
-					>
-						{language.name}
-					</option>
-				))}
-			</select>
-			<svg
-				viewBox="0 0 24 24"
-				className="pointer-events-none absolute right-3 size-[12px]"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<path d="m6 9 6 6 6-6" />
-			</svg>
-		</label>
-	);
-}
-
-/** What each state says, and its color: the app's own live and stop signals, grey while unknown. */
-const SHOWN_AS = {
-	checking: { label: "Checking", color: "bg-neutral-600" },
-	up: { label: "All systems normal", color: "bg-[oklch(0.8_0.2_145)]" },
-	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
-	down: { label: "API unreachable", color: "bg-[oklch(0.6_0.24_25)]" },
-} as const;
-
-/** A square dot and a word, read from the API's own status check every minute. */
-function StatusMark() {
-	const status = useStatus();
-	const shown = SHOWN_AS[status.state];
-	return (
-		<div
-			role="status"
-			className="flex w-max items-center gap-2.5 bg-white/[0.13] px-3 py-2 text-[13px] text-neutral-200"
-		>
-			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
-			<span>{shown.label}</span>
-		</div>
-	);
-}
-
-/**
- * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
- * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
- * their system for less motion.
- */
-function Mark() {
-	const [turns, setTurns] = useState(0);
-	const still =
-		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-	return (
-		<img
-			src="/brand/favicon.svg"
-			alt="Maschina mark"
-			onPointerEnter={() => !still && setTurns((count) => count + 1)}
-			style={{ transform: `rotate(${turns * 360}deg)` }}
-			className="size-8 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-		/>
-	);
-}
-
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
@@ -146,56 +53,6 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
-			<div className="flex flex-col gap-14 pb-16 lg:flex-row lg:items-start lg:justify-between">
-				<Mark />
-				<div className="grid grid-cols-2 gap-x-10 gap-y-12 sm:grid-cols-5 sm:gap-x-16">
-					{COLUMNS.map((column) => (
-						<nav key={column.name} aria-label={column.name} className="flex flex-col gap-7">
-							<span className="text-[12px] text-[oklch(0.55_0.01_285)] uppercase tracking-[0.22em]">
-								{column.name}
-							</span>
-							<ul className="flex flex-col gap-4">
-								{column.links.map((link) => (
-									<li key={link.label}>
-										<a
-											href={link.href}
-											className="text-[16px] text-[oklch(0.8_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
-										>
-											{link.label}
-										</a>
-									</li>
-								))}
-							</ul>
-						</nav>
-					))}
-				</div>
-			</div>
-			<div className="flex flex-col items-center gap-5 py-6 text-[13px] text-neutral-500 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-				<div className="flex items-center gap-5 lg:justify-self-start">
-					{SOCIALS.map((social) => (
-						<a
-							key={social.label}
-							href={social.href}
-							className="transition-colors hover:text-neutral-100"
-						>
-							<span className="sr-only">{social.label}</span>
-							<svg
-								viewBox="0 0 24 24"
-								className="size-[18px]"
-								fill="currentColor"
-								aria-hidden="true"
-							>
-								<path d={social.icon} />
-							</svg>
-						</a>
-					))}
-				</div>
-				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
-				<div className="flex items-center gap-3 lg:justify-self-end">
-					<StatusMark />
-					<Language />
-				</div>
-			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"
