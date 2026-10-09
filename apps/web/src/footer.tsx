@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { COLUMNS, LEGAL } from "./sitemap.ts";
+import { COLUMNS, LEGAL, SOCIALS } from "./sitemap.ts";
+import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
 
 /** How much of the wordmark shows above the bottom of the page: about three quarters of the letters. */
@@ -35,6 +36,68 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
+/** Only languages the site is written in are offered. English, until a translation is real. */
+const LANGUAGES = [{ code: "en", name: "English" }];
+
+function Language() {
+	return (
+		<label className="relative flex items-center gap-2 border border-white/10 py-1.5 pr-8 pl-3 transition-colors hover:border-white/25">
+			<svg
+				viewBox="0 0 24 24"
+				className="size-[14px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<circle cx="12" cy="12" r="9" />
+				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+			</svg>
+			<select
+				aria-label="Language"
+				defaultValue="en"
+				className="cursor-pointer appearance-none bg-transparent text-neutral-400 outline-none"
+			>
+				{LANGUAGES.map((language) => (
+					<option key={language.code} value={language.code} className="bg-black">
+						{language.name}
+					</option>
+				))}
+			</select>
+			<svg
+				viewBox="0 0 24 24"
+				className="pointer-events-none absolute right-3 size-[12px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<path d="m6 9 6 6 6-6" />
+			</svg>
+		</label>
+	);
+}
+
+/** What each state says, and its color: the app's own live and stop signals, grey while unknown. */
+const SHOWN_AS = {
+	checking: { label: "Checking", color: "bg-neutral-600" },
+	up: { label: "All systems normal", color: "bg-[oklch(0.8_0.2_145)]" },
+	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
+	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
+} as const;
+
+/** A square dot and a word, read from the API's own status check every minute. */
+function StatusMark() {
+	const status = useStatus();
+	const shown = SHOWN_AS[status.state];
+	return (
+		<div role="status" className="flex items-center gap-2">
+			<span aria-hidden="true" className={`size-1.5 ${shown.color}`} />
+			<span>{shown.label}</span>
+		</div>
+	);
+}
+
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
@@ -54,38 +117,69 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
-			<div className="grid grid-cols-2 gap-x-8 gap-y-10 pt-20 pb-14 sm:grid-cols-4">
-				{COLUMNS.map((column) => (
-					<nav key={column.name} aria-label={column.name} className="flex flex-col gap-4">
-						<span className="text-[13px] text-neutral-200">{column.name}</span>
-						<ul className="flex flex-col gap-3">
-							{column.links.map((link) => (
-								<li key={link.label}>
-									<a
-										href={link.href}
-										className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-100"
-									>
-										{link.label}
-									</a>
-								</li>
-							))}
-						</ul>
-					</nav>
-				))}
-			</div>
-			<div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 pb-6 text-[13px] text-neutral-500">
-				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
-				<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
-					{LEGAL.map((link) => (
-						<a
-							key={link.label}
-							href={link.href}
-							className="transition-colors hover:text-neutral-100"
-						>
-							{link.label}
-						</a>
+			<div className="flex flex-col gap-14 pt-20 pb-16 lg:flex-row lg:justify-between">
+				<div className="flex flex-col gap-6">
+					<img src="/brand/favicon.svg" alt="Maschina mark" className="size-8" />
+					<p className="max-w-[28ch] text-[14px] text-neutral-400 leading-relaxed">
+						The operating system for autonomous capital.
+					</p>
+					<div className="flex items-center gap-5 text-neutral-500">
+						{SOCIALS.map((social) => (
+							<a
+								key={social.label}
+								href={social.href}
+								className="transition-colors hover:text-neutral-100"
+							>
+								<span className="sr-only">{social.label}</span>
+								<svg
+									viewBox="0 0 24 24"
+									className="size-[18px]"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path d={social.icon} />
+								</svg>
+							</a>
+						))}
+					</div>
+				</div>
+				<div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 sm:gap-x-20">
+					{COLUMNS.map((column) => (
+						<nav key={column.name} aria-label={column.name} className="flex flex-col gap-4">
+							<span className="text-[13px] text-neutral-200">{column.name}</span>
+							<ul className="flex flex-col gap-3">
+								{column.links.map((link) => (
+									<li key={link.label}>
+										<a
+											href={link.href}
+											className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-100"
+										>
+											{link.label}
+										</a>
+									</li>
+								))}
+							</ul>
+						</nav>
 					))}
-				</nav>
+				</div>
+			</div>
+			<div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-white/[0.06] border-t py-6 text-[13px] text-neutral-500">
+				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
+				<div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+					<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
+						{LEGAL.map((link) => (
+							<a
+								key={link.label}
+								href={link.href}
+								className="transition-colors hover:text-neutral-100"
+							>
+								{link.label}
+							</a>
+						))}
+					</nav>
+					<StatusMark />
+					<Language />
+				</div>
 			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
