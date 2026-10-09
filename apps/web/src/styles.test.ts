@@ -61,10 +61,3 @@ describe("the status blink", () => {
 		expect(css).toMatch(/@keyframes blink/);
 	});
 });
-
-describe("the built with marquee", () => {
-	it("defines a slow, seamless slide: one full row to the left, over and over", () => {
-		expect(css).toMatch(/--animate-marquee:\s*marquee\s+\d+s\s+linear\s+infinite/);
-		expect(css).toMatch(/@keyframes marquee[\s\S]*?translate3d\(-50%/);
-	});
-});

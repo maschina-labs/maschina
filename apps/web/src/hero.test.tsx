@@ -186,6 +186,20 @@ describe("the hero", () => {
 		}
 	});
 
+	it("has buttons that wrap closely around the chip, both the same height", () => {
+		render(<Hero authUrl={AUTH} />);
+		const hero = within(screen.getByRole("region", { name: "Maschina" }));
+		const start = hero.getByRole("link", { name: "Start for free" });
+		const docs = hero.getByRole("link", { name: "Read the docs" });
+		// The chip keeps its size; the button shrinks around it to a thin pearl edge.
+		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
+		expect(start.className).toContain("h-10");
+		expect(start.className).toContain("pr-1.5");
+		expect(start.className).not.toMatch(/\bpy-/);
+		expect(docs.className).toContain("h-10");
+		expect(docs.className).not.toMatch(/\bpy-/);
+	});
+
 	it("stays pinned to the top, so the next section rolls up over it", () => {
 		render(<Hero authUrl={AUTH} />);
 		const { className } = screen.getByRole("region", { name: "Maschina" });

@@ -48,20 +48,6 @@ body {
 	@apply bg-black;
 }
 
-/* A slow slide of one full row to the left, over and over: the built with strip repeats its row, so the end
-   joins the start. Moved with transform only, so the browser does it without redrawing anything. */
-@theme {
-	--animate-marquee: marquee 50s linear infinite;
-	@keyframes marquee {
-		from {
-			transform: translate3d(0, 0, 0);
-		}
-		to {
-			transform: translate3d(-50%, 0, 0);
-		}
-	}
-}
-
 /* A hard on and off blink for the status light, like a link light on a network port. */
 @theme {
 	--animate-blink: blink 1.6s steps(1, end) infinite;
