@@ -34,8 +34,8 @@ describe("the header", () => {
 		expect(pages.getAllByRole("link").map((link) => link.textContent)).toEqual([
 			"Product",
 			"Developers",
-			"Live record",
 			"Company",
+			"Live record",
 			"Pricing",
 		]);
 	});

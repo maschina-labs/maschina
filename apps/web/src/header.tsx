@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
 	{ label: "Developers", href: "/developers", dropdown: true },
-	{ label: "Live record", href: "/live", dropdown: false },
 	{ label: "Company", href: "/company", dropdown: true },
+	{ label: "Live record", href: "/live", dropdown: false },
 	{ label: "Pricing", href: "/pricing", dropdown: false },
 ];
 
