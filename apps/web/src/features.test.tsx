@@ -6,21 +6,21 @@ import { describe, expect, it } from "vitest";
 import { Features } from "./features.tsx";
 
 const publicDir = resolve(dirname(fileURLToPath(import.meta.url)), "../public");
+// Each section has its own kind of background, so no two neighbors look alike.
 const FEATURES = [
-	["portfolio", "See the whole portfolio at a glance."],
-	["decisions", "Every decision is written down."],
-	["activity", "Everything it does, in order."],
-	["insights", "Know how it is really doing."],
-	["manager", "Ask your manager."],
+	["portfolio", "See the whole portfolio at a glance.", "mesh"],
+	["decisions", "Every decision is written down.", "particles"],
+	["manager", "Ask your manager.", "ribbon"],
+	["machines", "Make it yours.", "mesh"],
 ] as const;
 
 const articles = () =>
 	within(screen.getByRole("region", { name: "Inside the app" })).getAllByRole("article");
 
 describe("the feature sections", () => {
-	it("explains five screens of the app, one section each, in this order", () => {
+	it("explains four screens of the app, one full page each, in this order", () => {
 		render(<Features />);
-		expect(articles()).toHaveLength(5);
+		expect(articles()).toHaveLength(4);
 		for (const [index, [name, title]] of FEATURES.entries()) {
 			const article = articles()[index] as HTMLElement;
 			expect(within(article).getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
@@ -29,35 +29,46 @@ describe("the feature sections", () => {
 				`/showcase/feature-${name}.jpg`,
 			);
 			expect(existsSync(resolve(publicDir, "showcase", `feature-${name}.jpg`))).toBe(true);
+			expect(article.className).toContain("min-h-dvh");
+			expect(article.className).toContain("overflow-hidden");
 		}
 	});
 
-	it("says each thing in a heading and one short gray line, nothing more", () => {
+	it("gives each section its own kind of background, drawn behind everything and hidden from assistive technology", () => {
 		render(<Features />);
-		for (const article of articles()) {
+		for (const [index, [, , kind]] of FEATURES.entries()) {
+			const article = articles()[index] as HTMLElement;
+			const background = article.querySelector("[data-background]") as HTMLElement;
+			expect(background).toHaveAttribute("data-background", kind);
+			expect(background).toHaveAttribute("aria-hidden", "true");
+			expect(background.className).toContain("pointer-events-none");
+			expect(background.className).toContain("absolute");
+		}
+		const kinds = FEATURES.map(([, , kind]) => kind);
+		for (const [index, kind] of kinds.entries()) expect(kinds[index + 1]).not.toBe(kind);
+	});
+
+	it("says each thing in a heading and one short gray line, with the words alternating left and centered", () => {
+		render(<Features />);
+		for (const [index, article] of articles().entries()) {
 			expect(article.querySelectorAll("p")).toHaveLength(1);
 			expect((article.querySelector("p")?.textContent ?? "").length).toBeLessThanOrEqual(160);
 			expect(article.querySelector("p")?.className).toContain("text-neutral-400");
 			expect(article.querySelectorAll("a, button, svg, [data-marker]")).toHaveLength(0);
+			const words = article.querySelector("h3")?.parentElement as HTMLElement;
+			expect(words.className).toContain(index % 2 === 0 ? "text-left" : "text-center");
 		}
 	});
 
-	it("shows each screen large, beside its text on a wide screen, and swaps sides every other section", () => {
+	it("is honest that rearranging your own screens is coming, and claims nothing that is not built", () => {
 		render(<Features />);
-		for (const [index, article] of articles().entries()) {
-			// The wide column always belongs to the picture, whichever side it is on.
-			expect(article.className).toContain(
-				index % 2 === 0
-					? "lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
-					: "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]",
-			);
-			const picture = within(article).getByRole("img").parentElement as HTMLElement;
-			expect(picture.className).toContain(index % 2 === 0 ? "lg:order-2" : "lg:order-1");
-		}
+		const text = articles()[3]?.textContent ?? "";
+		expect(text).toMatch(/coming soon/i);
+		expect(text).not.toMatch(/\bany\b|unlimited|anything you/i);
 	});
 
-	it("loads the pictures only as you near them, with their size declared", () => {
-		render(<Features />);
+	it("shows each whole screen, uncropped, as large as the page allows, with its size declared and no panel or outline", () => {
+		const { container } = render(<Features />);
 		for (const image of screen.getAllByRole("img")) {
 			expect(image).toHaveAttribute("loading", "lazy");
 			expect(image).toHaveAttribute("decoding", "async");
@@ -65,17 +76,30 @@ describe("the feature sections", () => {
 			expect(image).toHaveAttribute("width", "2400");
 			expect(image).toHaveAttribute("height", "1500");
 			expect(image.getAttribute("alt")).toMatch(/screen of the Maschina app/);
+			expect(image.className).toContain("w-full");
+			expect(image.className).not.toMatch(/border|outline|ring|object-cover/);
+			expect(image.className).toMatch(/shadow-\[[^\]]*oklch\(0_0_0\/0\.\d+\)\]/);
 		}
+		expect(container.innerHTML).not.toMatch(/bg-white\/\[0\.04\]|rounded/);
 	});
 
-	it("is square and still on black, with each picture running to the edge of its panel and no outline", () => {
+	it("sits on black between the page margins, still apart from the backgrounds, naming no vendor or partner", () => {
 		const { container } = render(<Features />);
 		const { className } = screen.getByRole("region", { name: "Inside the app" });
 		expect(className).toContain("bg-black");
-		expect(className).toContain("px-(--gutter)");
-		for (const image of screen.getAllByRole("img"))
-			expect(image.className).not.toMatch(/border|outline|ring/);
-		expect(container.innerHTML).not.toMatch(/rounded|animate-|transition-|hover:/);
+		expect(container.innerHTML).not.toMatch(/transition-|hover:/);
 		expect(container.textContent ?? "").not.toMatch(/turnkey|helius|jupiter|anthropic|partner/i);
+	});
+
+	it("starts the ribbon only when its section is near the screen, never while the page opens", () => {
+		// jsdom has no way to say what is on screen, so nothing that draws may start.
+		const { container } = render(<Features />);
+		// The only canvas is the particles'; the ribbon's WebGL one is not there.
+		const canvases = container.querySelectorAll("canvas");
+		expect(canvases).toHaveLength(1);
+		expect(canvases[0]?.closest("[data-background]")).toHaveAttribute(
+			"data-background",
+			"particles",
+		);
 	});
 });
