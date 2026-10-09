@@ -84,6 +84,19 @@ const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const signature = (next: () => number) =>
 	Array.from({ length: 88 }, () => B58[Math.floor(next() * 58)]).join("");
 
+const REFUSALS = [
+	"today's spending would pass the daily cap",
+	"the price moved more than the 0.5% the machine allows",
+	"the trade was larger than the most it may spend at once",
+	"that token is not on the list it may trade",
+];
+
+const WAITS = [
+	"waiting: the price is still inside its range",
+	"waiting: it already holds what its budget allows",
+	"waiting: the market is too thin to trade safely",
+];
+
 const now = Date.now();
 const DAY = 86_400_000;
 let counter = 0;
@@ -120,6 +133,9 @@ function build(plan: Plan, index: number) {
 		const move = plan.edge + (next() - 0.5) * 0.03;
 		price = price * (1 + (next() - 0.5) * 0.02);
 		const back = Math.round(spend * (1 + move));
+		// The quote promised a figure and the fill lands a hair either side of it, a few basis points at most.
+		const quotedBuy = Math.round(bought * (1 + (0.0004 - next() * 0.0008)));
+		const quotedSell = Math.round(back * (1 + (0.0003 - next() * 0.0007)));
 		const buyId = id("t");
 		const sellId = id("t");
 		events.push(
@@ -127,7 +143,12 @@ function build(plan: Plan, index: number) {
 				id: id("e"),
 				type: "trade.intended",
 				occurredAt: at(buyAt),
-				payload: { tradeId: buyId, inputMint: USDC, outputMint: SOL },
+				payload: {
+					tradeId: buyId,
+					inputMint: USDC,
+					outputMint: SOL,
+					quotedOutputAmount: String(quotedBuy),
+				},
 			},
 			{
 				id: id("e"),
@@ -146,7 +167,15 @@ function build(plan: Plan, index: number) {
 				id: id("e"),
 				type: "trade.refused",
 				occurredAt: at(buyAt + step * 0.3),
-				payload: { reason: "today's spending would pass the daily cap" },
+				payload: { reason: REFUSALS[Math.floor(next() * REFUSALS.length)] },
+			});
+		// Runs where it looked at the market and chose to wait: most of what a patient machine does.
+		if (next() < 0.6)
+			events.push({
+				id: id("e"),
+				type: "run.skipped",
+				occurredAt: at(buyAt + step * 0.45),
+				payload: { detail: WAITS[Math.floor(next() * WAITS.length)] },
 			});
 		const sellAt = buyAt + step * 0.6;
 		events.push(
@@ -154,7 +183,12 @@ function build(plan: Plan, index: number) {
 				id: id("e"),
 				type: "trade.intended",
 				occurredAt: at(sellAt),
-				payload: { tradeId: sellId, inputMint: SOL, outputMint: USDC },
+				payload: {
+					tradeId: sellId,
+					inputMint: SOL,
+					outputMint: USDC,
+					quotedOutputAmount: String(quotedSell),
+				},
 			},
 			{
 				id: id("e"),
@@ -193,8 +227,9 @@ function build(plan: Plan, index: number) {
 		budget: { granted, reserved: "0", settled: "0", available: granted },
 		result: {
 			realised: String(Math.round(realized)),
-			position: "0",
-			basis: "0",
+			// One machine is mid-trade, holding some SOL it paid more for than today's price, so its notes have something to say.
+			position: index === 0 ? "400000000" : "0",
+			basis: index === 0 ? "47000000" : "0",
 			feesLamports: String(plan.trips * 2 * 5_000),
 			trades: plan.trips * 2,
 			roundTrips: plan.trips,
