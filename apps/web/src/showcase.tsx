@@ -36,7 +36,7 @@ export function Showcase() {
 						className="relative block h-auto w-full shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
 					/>
 				</div>
-				<figcaption className="mt-5 text-[13px] text-neutral-500">
+				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
 					The Maschina app, shown with sample data.
 				</figcaption>
 			</figure>

@@ -24,9 +24,11 @@ describe("the showcase", () => {
 		expect(image).toHaveAttribute("decoding", "async");
 	});
 
-	it("says plainly that it is sample data", () => {
+	it("says plainly that it is sample data, centered under the picture", () => {
 		render(<Showcase />);
-		expect(screen.getByText("The Maschina app, shown with sample data.")).toBeInTheDocument();
+		const caption = screen.getByText("The Maschina app, shown with sample data.");
+		expect(caption.tagName).toBe("FIGCAPTION");
+		expect(caption.className).toContain("text-center");
 	});
 
 	it("is a plain, static picture: no video, no canvas, no animation, no tilt, nothing that moves with the scroll", () => {
