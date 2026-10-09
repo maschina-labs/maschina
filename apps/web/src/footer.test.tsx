@@ -1,17 +1,19 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Footer } from "./footer.tsx";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
-	it("says who owns it", () => {
+	it("says who owns it, in the year it is now", () => {
+		vi.useFakeTimers({ now: new Date("2031-03-01T12:00:00Z"), toFake: ["Date"] });
 		render(<Footer />);
 		expect(
 			within(screen.getByRole("contentinfo")).getByText(
-				"© 2026 Maschina Labs. All rights reserved.",
+				"© 2031 Maschina Labs. All rights reserved.",
 			),
 		).toBeInTheDocument();
+		vi.useRealTimers();
 	});
 
 	it("carries the wordmark, named once for screen readers", () => {
