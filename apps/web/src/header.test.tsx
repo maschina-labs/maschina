@@ -521,16 +521,11 @@ describe("the header", () => {
 
 		scrollTo(120);
 		expect(amount()).toBe("1");
-		// Solid black at the top of the bar, easing out to nothing well below it, with the blur on the same
-		// curve: one smooth ramp, so there is no edge anywhere. The ramp is a mask on a black, blurred layer, so
-		// the black and the blur always fade together (two separate fades would multiply into a quick drop).
+		// A hard black bar: solid black, exactly the height of the bar, with a straight bottom edge. Nothing under
+		// it fades and nothing is blurred; it only comes in as the page scrolls, from clear to black.
 		expect(fade().className).toContain("bg-black");
-		expect(fade().className).not.toContain("bg-gradient");
-		expect(fade().className).toContain("h-[calc(100%+5rem)]");
-		expect(fade().className).toContain(
-			"[mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)]",
-		);
-		expect(fade().className).toContain("backdrop-blur-[calc(var(--fade)*12px)]");
+		expect(fade().className).toContain("inset-0");
+		expect(fade().className).not.toMatch(/bg-gradient|mask-image|backdrop-blur|h-\[calc/);
 		expect(fade().className).toContain("-z-10");
 		expect(fade().className).toContain("absolute");
 		expect(header.firstElementChild).toBe(fade());
@@ -545,12 +540,10 @@ describe("the header", () => {
 		expect(amount()).toBe("0");
 	});
 
-	it("builds the fade and the blur up as you scroll: a little at first, all of it once the bar has gone by", () => {
+	it("comes in as black as you scroll: a little at first, all of it once the bar has gone by", () => {
 		render(<Header authUrl={AUTH} />);
 		const fade = screen.getByRole("banner").querySelector("[data-fade]") as HTMLElement;
-		// Both the black and the blur follow the same amount, so one scroll position sets both.
 		expect(fade.className).toContain("opacity-(--fade)");
-		expect(fade.className).toContain("backdrop-blur-[calc(var(--fade)*12px)]");
 		expect(fade.className).not.toContain("transition-");
 		const at = (y: number) => {
 			Object.defineProperty(window, "scrollY", { value: y, configurable: true });

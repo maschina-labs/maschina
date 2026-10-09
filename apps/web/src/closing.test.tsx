@@ -61,4 +61,31 @@ describe("the closing section", () => {
 		expect(container.innerHTML).not.toMatch(/animate-/);
 		expect(container.innerHTML).not.toMatch(/rounded/);
 	});
+
+	it("has stage lights along its bottom edge, shining up from the seam with the footer onto the buttons", () => {
+		const { container } = render(<Closing authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Get started" });
+		const lights = container.querySelector("[data-stage-lights]") as HTMLElement;
+		expect(lights).toHaveAttribute("aria-hidden", "true");
+		expect(lights.className).toContain("pointer-events-none");
+		expect(lights.className).toContain("absolute");
+		expect(lights.className).toContain("inset-x-0");
+		expect(lights.className).toContain("bottom-0");
+		expect(section.className).toContain("overflow-hidden");
+		// Four soft cones, each angled up from a point on the bottom edge, over a low glow along the edge.
+		expect(lights.className.match(/conic-gradient\(from_[-\d.]+deg_at_\d+%_100%/g)).toHaveLength(4);
+		expect(lights.className).toMatch(/radial-gradient\([^)]*at_50%_100%/);
+		// The light is gentle (no stop is stronger than 16% white) and fades out as it rises, so it never reaches
+		// the words.
+		const strengths = [...lights.className.matchAll(/oklch\([\d._]+\/0\.(\d+)\)/g)].map((m) =>
+			Number(`0.${m[1]}`),
+		);
+		expect(strengths.length).toBeGreaterThanOrEqual(5);
+		for (const strength of strengths) expect(strength).toBeLessThanOrEqual(0.16);
+		expect(lights.className).toContain("[mask-image:linear-gradient(to_top,black,transparent)]");
+		expect(lights.className).toMatch(/h-\[\d+%\]/);
+		// It sits behind the headline and the buttons, and does not move.
+		expect(lights.className).not.toMatch(/animate-|transition-/);
+		expect(screen.getByRole("heading", { level: 2 }).className).toContain("relative");
+	});
 });

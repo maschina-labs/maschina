@@ -231,15 +231,15 @@ export function Header({
 				className="fixed inset-x-0 top-0 z-40"
 			>
 				{/*
-				 * Behind the bar, two layers. Once the page scrolls the bar is black at its top and fades to
-				 * nothing well below its foot, with a blur that fades out too, so the page softens under it. While a dropdown, the search or the phone menu
+				 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to solid black, with
+				 * a hard bottom edge. While a dropdown, the search or the phone menu
 				 * is open it fills in solid, so the panel and the bar read as one piece.
 				 */}
 				<div
 					ref={fade}
 					data-fade
 					aria-hidden="true"
-					className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+5rem)] [--fade:0] bg-black opacity-(--fade) backdrop-blur-[calc(var(--fade)*12px)] [mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)]"
+					className="pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black opacity-(--fade)"
 				/>
 				<div
 					data-solid
