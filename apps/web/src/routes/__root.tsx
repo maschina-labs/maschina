@@ -1,11 +1,10 @@
+import { cityTint, FogBackground, FoggedGlass, Grain } from "@maschina/field";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Deck, sectionIndex } from "../components/deck.tsx";
 import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
-import { cityTint, FogBackground } from "../components/fog-background.tsx";
-import { FoggedGlass, Grain } from "../components/fogged-glass.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
 import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";

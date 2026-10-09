@@ -1,5 +1,8 @@
+import type { Field, Motion, Palette } from "@maschina/field";
 import { useEffect, useState } from "react";
-import type { Palette } from "../components/fog-background.tsx";
+
+export type { Field, Motion };
+
 import { preview } from "./preview.ts";
 
 /**
@@ -253,9 +256,6 @@ export type Mode = "dark" | "light";
  */
 export type PaletteId = "maschina" | BrandId;
 export type ModeChoice = Mode | "system";
-export type Field = "mesh" | "ribbon" | "particles" | "towers";
-/** How much the background moves: smoothly, calmly (a fraction of the work), or not at all. */
-export type Motion = "full" | "calm" | "off";
 export type Choice = {
 	palette: PaletteId;
 	mode: ModeChoice;

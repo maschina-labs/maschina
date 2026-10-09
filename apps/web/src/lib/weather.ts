@@ -7,28 +7,9 @@ import { preview } from "./preview.ts";
  * glass; snow, cloud, fog and lightning happen in the city behind it.
  */
 
-type Rain = "none" | "drizzle" | "rain" | "heavy";
+import { CLEAR, type Weather } from "@maschina/field";
 
-export type Weather = {
-	rain: Rain;
-	/** 0 none to 1 a blizzard. */
-	snow: number;
-	/** 0 clear to 1 overcast: the city's glow dims under it. */
-	cloud: number;
-	/** 0 clear to 1 thick: the city goes further away. */
-	fog: number;
-	lightning: boolean;
-	hail: boolean;
-};
-
-export const CLEAR: Weather = {
-	rain: "none",
-	snow: 0,
-	cloud: 0,
-	fog: 0,
-	lightning: false,
-	hail: false,
-};
+export { CLEAR, type Weather };
 
 /** The forecast's WMO weather code, as the city shows it. */
 export function weatherOf(code: number): Weather {

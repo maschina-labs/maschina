@@ -1,6 +1,6 @@
+import { fogCanvas } from "@maschina/field";
 import { useEffect, useRef, useState } from "react";
 import type { Weather } from "../lib/weather.ts";
-import { fogCanvas } from "./fog-background.tsx";
 
 /**
  * Rain on the window. The city stays where it is, behind the glass; this is the glass in front of it,

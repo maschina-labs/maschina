@@ -2,10 +2,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import type { ShaderMaterial } from "three";
 import { Vector2, Vector3 } from "three";
-import type { Field, Motion } from "../lib/theme.ts";
-import type { Tower } from "../lib/towers.ts";
-import { CLEAR, type Weather } from "../lib/weather.ts";
 import { Towers } from "./towers-scene.tsx";
+import { CLEAR, type Field, type Motion, type Tower, type Weather } from "./types.ts";
 
 /**
  * The field behind the terminal: city light through a fogged window, far out of focus. Dark olive at

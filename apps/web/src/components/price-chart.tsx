@@ -1,3 +1,4 @@
+import { rgbaOf } from "@maschina/field";
 import {
 	CandlestickSeries,
 	ColorType,
@@ -14,7 +15,6 @@ import {
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import { type Candle, fetchCandles, streamCandles } from "../lib/candles.ts";
-import { rgbaOf } from "../lib/chart-tone.ts";
 import { useTheme } from "../lib/theme.ts";
 import { candleTime, type Trade } from "../lib/trades.ts";
 

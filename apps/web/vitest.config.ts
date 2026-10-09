@@ -20,10 +20,8 @@ export default mergeConfig(
 			"src/test/**",
 			// Made-up data for looking at the app while developing; never in a build (vite.config.ts).
 			"src/dev/**",
-			// GPU drawing: the fog shader and the rain on the glass. A test browser has no WebGL to draw
+			// GPU drawing: the rain on the glass. A test browser has no WebGL to draw
 			// them with; they are checked by rendering them in a real browser (TECH_DEBT.md).
-			"src/components/towers-scene.tsx",
-			"src/components/fog-background.tsx",
 			"src/components/rain-glass.tsx",
 		],
 	}),
