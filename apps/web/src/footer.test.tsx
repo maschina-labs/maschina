@@ -71,21 +71,59 @@ describe("the footer", () => {
 		).toBeInTheDocument();
 	});
 
-	it("offers a language, and only the ones that exist", () => {
+	it("opens a popover above the language button, with only the languages that exist", () => {
 		render(<Footer />);
-		const language = screen.getByRole("combobox", { name: "Language" });
-		expect(
-			within(language)
-				.getAllByRole("option")
-				.map((option) => option.textContent),
-		).toEqual(["English"]);
+		const button = screen.getByRole("button", { name: "Language" });
+		expect(button).toHaveTextContent("EN");
+		expect(button).toHaveAttribute("aria-haspopup", "listbox");
+		expect(button).toHaveAttribute("aria-expanded", "false");
+		expect(screen.queryByRole("listbox")).toBeNull();
+		fireEvent.click(button);
+		expect(button).toHaveAttribute("aria-expanded", "true");
+		const list = screen.getByRole("listbox", { name: "Language" });
+		const options = within(list).getAllByRole("option");
+		expect(options.map((option) => option.textContent)).toEqual(["English"]);
+		expect(options[0]).toHaveAttribute("aria-selected", "true");
+		// The footer is at the foot of the page, so it opens upward, square, and tied to the box.
+		expect(list.parentElement?.className).toContain("bottom-full");
+		expect(list.parentElement?.className).toContain("right-0");
+		expect(list.parentElement?.innerHTML).not.toMatch(/rounded/);
+	});
+
+	it("closes the popover on Escape, on a click elsewhere, and on choosing a language", async () => {
+		render(<Footer />);
+		const button = screen.getByRole("button", { name: "Language" });
+		const closed = () => waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+		fireEvent.click(button);
+		fireEvent.keyDown(document, { key: "Escape" });
+		await closed();
+		expect(button).toHaveAttribute("aria-expanded", "false");
+		fireEvent.click(button);
+		fireEvent.pointerDown(document.body);
+		await closed();
+		fireEvent.click(button);
+		fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "English" }));
+		await closed();
+		// Focus goes back to the button, so keyboard use carries on from where it was.
+		expect(button).toHaveFocus();
+	});
+
+	it("does not close when the click is inside the popover or on the button itself", () => {
+		render(<Footer />);
+		const button = screen.getByRole("button", { name: "Language" });
+		fireEvent.click(button);
+		fireEvent.pointerDown(button);
+		fireEvent.pointerDown(screen.getByRole("listbox"));
+		expect(screen.getByRole("listbox")).toBeInTheDocument();
+		// A second click on the button is what closes it.
+		fireEvent.click(button);
+		expect(button).toHaveAttribute("aria-expanded", "false");
 	});
 
 	it("makes the status and the language boxes the same height, and the same size of text", () => {
 		render(<Footer />);
 		const status = screen.getByRole("status");
-		const language = screen.getByRole("combobox", { name: "Language" });
-		const box = language.closest("label") as HTMLElement;
+		const box = screen.getByRole("button", { name: "Language" });
 		const height = (element: HTMLElement) =>
 			element.className.match(/(?:^|\s)(h-\d+)(?:\s|$)/)?.[1];
 		expect(height(status)).toBeDefined();
@@ -125,7 +163,7 @@ describe("the footer", () => {
 		render(<Footer />);
 		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		const right = screen.getByRole("status").parentElement as HTMLElement;
-		expect(right).toBe(screen.getByRole("combobox", { name: "Language" }).closest("[data-right]"));
+		expect(right).toBe(screen.getByRole("button", { name: "Language" }).closest("[data-right]"));
 		expect(row.contains(right)).toBe(true);
 		expect(right.className).toContain("sm:justify-self-end");
 		// The copyright is still centered, between them.

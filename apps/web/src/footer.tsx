@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { usePresence } from "./presence.ts";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
@@ -39,47 +40,106 @@ function Outline({ stroke }: { stroke: string }) {
 /** Only languages the site is written in are offered. English, until a translation is real. */
 const LANGUAGES = [{ code: "en", name: "English" }];
 
+/** How long the popover takes to leave, so it fades away rather than blinking out. */
+const POPOVER_EXIT_MS = 180;
+
 function Language() {
+	const [open, setOpen] = useState(false);
+	const [chosen, setChosen] = useState("en");
+	const root = useRef<HTMLDivElement>(null);
+	const button = useRef<HTMLButtonElement>(null);
+	const popover = usePresence(
+		open,
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : POPOVER_EXIT_MS,
+	);
+
+	// Escape and a press anywhere outside close it. Neither listens while it is shut.
+	useEffect(() => {
+		if (!open) return;
+		const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+		const onPress = (event: PointerEvent) => {
+			if (!root.current?.contains(event.target as Node)) setOpen(false);
+		};
+		document.addEventListener("keydown", onKey);
+		document.addEventListener("pointerdown", onPress);
+		return () => {
+			document.removeEventListener("keydown", onKey);
+			document.removeEventListener("pointerdown", onPress);
+		};
+	}, [open]);
+
 	return (
-		<label className="relative flex h-9 items-center gap-2 bg-white/[0.07] pr-8 pl-3 text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.11]">
-			<svg
-				viewBox="0 0 24 24"
-				className="size-[14px]"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<circle cx="12" cy="12" r="9" />
-				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
-			</svg>
-			<select
+		<div ref={root} className="relative">
+			<button
+				ref={button}
+				type="button"
 				aria-label="Language"
-				defaultValue="en"
-				className="cursor-pointer appearance-none bg-transparent text-neutral-300 outline-none"
+				aria-haspopup="listbox"
+				aria-expanded={open}
+				onClick={() => setOpen((now) => !now)}
+				className="flex h-9 items-center gap-2 bg-white/[0.07] pr-3 pl-3 text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.11]"
 			>
-				{LANGUAGES.map((language) => (
-					<option
-						key={language.code}
-						value={language.code}
-						label={language.code.toUpperCase()}
-						className="bg-black"
-					>
-						{language.name}
-					</option>
-				))}
-			</select>
-			<svg
-				viewBox="0 0 24 24"
-				className="pointer-events-none absolute right-3 size-[12px]"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<path d="m6 9 6 6 6-6" />
-			</svg>
-		</label>
+				<svg
+					viewBox="0 0 24 24"
+					className="size-[14px]"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth={1.5}
+					aria-hidden="true"
+				>
+					<circle cx="12" cy="12" r="9" />
+					<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+				</svg>
+				<span>{chosen.toUpperCase()}</span>
+				<svg
+					viewBox="0 0 24 24"
+					className={`size-[12px] transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+					fill="none"
+					stroke="currentColor"
+					strokeWidth={1.5}
+					aria-hidden="true"
+				>
+					<path d="m6 9 6 6 6-6" />
+				</svg>
+			</button>
+			{popover.mounted ? (
+				<div
+					className={`absolute right-0 bottom-full z-10 mb-2 w-44 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+				>
+					<div role="listbox" aria-label="Language" className="flex flex-col p-1">
+						{LANGUAGES.map((language) => (
+							<button
+								key={language.code}
+								type="button"
+								role="option"
+								aria-selected={chosen === language.code}
+								onClick={() => {
+									setChosen(language.code);
+									setOpen(false);
+									button.current?.focus();
+								}}
+								className="flex items-center justify-between px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
+							>
+								<span>{language.name}</span>
+								{chosen === language.code ? (
+									<svg
+										viewBox="0 0 24 24"
+										className="size-[14px]"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth={1.75}
+										strokeLinecap="square"
+										aria-hidden="true"
+									>
+										<path d="m5 12.5 4.5 4.5L19 7.5" />
+									</svg>
+								) : null}
+							</button>
+						))}
+					</div>
+				</div>
+			) : null}
+		</div>
 	);
 }
 
