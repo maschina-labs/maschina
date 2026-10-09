@@ -4,7 +4,7 @@ import { Site } from "./site.tsx";
 
 describe("the front page", () => {
 	it("is blank above the footer until its design lands", () => {
-		render(<Site />);
+		render(<Site authUrl="https://auth.maschina.dev" />);
 		const page = screen.getByRole("main", { name: "Maschina" });
 		expect(page).toBeEmptyDOMElement();
 	});
