@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Showcase } from "./showcase.tsx";
 
@@ -31,11 +31,118 @@ describe("the showcase", () => {
 		expect(caption.className).toContain("text-center");
 	});
 
-	it("is a plain, static picture: no video, no canvas, no animation, no tilt, nothing that moves with the scroll", () => {
+	it("is a plain picture: no video, no canvas, no animation, and nothing that moves with the scroll", () => {
 		const { container } = render(<Showcase />);
 		expect(container.querySelector("video, canvas, iframe")).toBeNull();
 		expect(container.querySelector("[data-tilt]")).toBeNull();
-		expect(container.innerHTML).not.toMatch(/animate-|perspective|rotate|will-change/);
+		expect(container.innerHTML).not.toMatch(/animate-|will-change/);
+	});
+
+	describe("the lean toward the mouse", () => {
+		const box = { left: 100, top: 100, width: 1000, height: 600 };
+		const setup = () => {
+			render(<Showcase />);
+			const backdrop = document.querySelector("[data-backdrop]") as HTMLElement;
+			backdrop.getBoundingClientRect = () => box as DOMRect;
+			// The picture and its shine sit in one wrapper, which is what leans.
+			const picture = document.querySelector("[data-picture]") as HTMLElement;
+			const read = (name: string) => picture.style.getPropertyValue(name);
+			return { backdrop, picture, read };
+		};
+
+		it("leans toward the cursor on both axes, so all four corners move", () => {
+			const { backdrop, read } = setup();
+			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
+			// The top right corner: all the way right, all the way up.
+			expect(read("--tx")).toBe("1");
+			expect(read("--ty")).toBe("-1");
+			fireEvent.pointerMove(backdrop, { clientX: 100, clientY: 700 });
+			expect(read("--tx")).toBe("-1");
+			expect(read("--ty")).toBe("1");
+			fireEvent.pointerMove(backdrop, { clientX: 600, clientY: 400 });
+			expect(Number(read("--tx"))).toBe(0);
+			expect(Number(read("--ty"))).toBe(0);
+			fireEvent.pointerMove(backdrop, { clientX: 850, clientY: 250 });
+			expect(Number(read("--tx"))).toBeCloseTo(0.5, 5);
+			expect(Number(read("--ty"))).toBeCloseTo(-0.5, 5);
+		});
+
+		it("never goes past full lean, wherever the cursor is", () => {
+			const { backdrop, read } = setup();
+			fireEvent.pointerMove(backdrop, { clientX: 5000, clientY: -900 });
+			expect(read("--tx")).toBe("1");
+			expect(read("--ty")).toBe("-1");
+		});
+
+		it("comes back level when the cursor leaves", () => {
+			const { backdrop, read } = setup();
+			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
+			fireEvent.pointerLeave(backdrop);
+			expect(read("--tx")).toBe("0");
+			expect(read("--ty")).toBe("0");
+		});
+
+		it("ignores a finger", () => {
+			const { backdrop, read } = setup();
+			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100, pointerType: "touch" });
+			expect(read("--tx")).toBe("");
+		});
+
+		it("does not lean for anyone who asked for less motion", () => {
+			const original = window.matchMedia;
+			window.matchMedia = ((query: string) => ({
+				matches: query.includes("reduce"),
+				media: query,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				onchange: null,
+				dispatchEvent: () => false,
+			})) as typeof window.matchMedia;
+			const { backdrop, read } = setup();
+			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
+			window.matchMedia = original;
+			expect(read("--tx")).toBe("");
+		});
+
+		it("moves a light shine across the picture with the cursor, and fades it out when the cursor leaves", () => {
+			const { backdrop, picture, read } = setup();
+			const shine = picture.querySelector("[data-shine]") as HTMLElement;
+			expect(shine).toHaveAttribute("aria-hidden", "true");
+			expect(shine.className).toContain("pointer-events-none");
+			expect(shine.className).toContain("absolute");
+			expect(picture.contains(shine)).toBe(true);
+			// A faint white highlight, centered on the cursor, and off until the cursor arrives.
+			expect(shine.className).toContain(
+				"radial-gradient(circle_at_var(--sx)_var(--sy),oklch(1_0_0/0.09),transparent_45%)",
+			);
+			expect(shine.className).toContain("opacity-(--shine)");
+			expect(picture.className).toContain("[--shine:0]");
+			expect(shine.className).toContain("transition-opacity");
+			fireEvent.pointerMove(backdrop, { clientX: 1100, clientY: 100 });
+			expect(read("--sx")).toBe("100%");
+			expect(read("--sy")).toBe("0%");
+			expect(read("--shine")).toBe("1");
+			fireEvent.pointerMove(backdrop, { clientX: 600, clientY: 400 });
+			expect(read("--sx")).toBe("50%");
+			expect(read("--sy")).toBe("50%");
+			fireEvent.pointerLeave(backdrop);
+			expect(read("--shine")).toBe("0");
+		});
+
+		it("is a light lean: 3 degrees at most each way, eased, about the picture's own middle", () => {
+			const { picture } = setup();
+			expect(picture.className).toContain("[--tx:0]");
+			expect(picture.className).toContain("[--ty:0]");
+			expect(picture.className).toContain(
+				"[transform:perspective(1400px)_rotateX(calc(var(--ty)*-3deg))_rotateY(calc(var(--tx)*3deg))]",
+			);
+			expect(picture.className).toContain("transition-transform");
+			expect(picture.className).toContain("duration-200");
+			expect(picture.className).toContain("ease-out");
+			expect(picture.className).toContain("motion-reduce:transition-none");
+		});
 	});
 
 	it("sits centered in a backdrop of its own: a wide panel of soft pearl and silver light, with room all around", () => {
@@ -70,7 +177,7 @@ describe("the showcase", () => {
 
 	it("lifts the picture off the backdrop with an ordinary dark drop shadow, not a glow", () => {
 		render(<Showcase />);
-		const { className } = screen.getByRole("img");
+		const { className } = document.querySelector("[data-picture]") as HTMLElement;
 		expect(className).toMatch(/shadow-\[[^\]]*oklch\(0_0_0\/0\.\d+\)\]/);
 		expect(className).toContain("relative");
 	});
