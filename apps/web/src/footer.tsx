@@ -149,8 +149,9 @@ function Language() {
 									setOpen(false);
 									button.current?.focus();
 								}}
-								className="flex items-center gap-3 px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
+								className="flex items-center justify-between gap-3 px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
 							>
+								<span>{language.name}</span>
 								<span
 									data-box
 									className={`grid size-4 shrink-0 place-items-center border ${chosen === language.code ? "border-transparent bg-[oklch(0.93_0.02_300)] text-black" : "border-white/25"}`}
@@ -169,7 +170,6 @@ function Language() {
 										</svg>
 									) : null}
 								</span>
-								<span>{language.name}</span>
 							</button>
 						))}
 					</div>
@@ -186,6 +186,9 @@ const SHOWN_AS = {
 	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
 	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
 } as const;
+
+/** Green, like the activity light on a network port. The label says which direction it is. */
+const ACTIVITY = "bg-[oklch(0.8_0.2_145)]";
 
 /** How long a light stays on for each piece of traffic: a blink, not a state. */
 const BLINK_MS = 220;
@@ -225,8 +228,8 @@ function StatusMark() {
 			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
 			<span>{shown.label}</span>
 			<span aria-hidden="true" className="h-4 w-px bg-white/10" />
-			<Light label="TX" count={tx} color="bg-[oklch(0.82_0.16_85)]" />
-			<Light label="RX" count={rx} color="bg-[oklch(0.8_0.2_145)]" />
+			<Light label="TX" count={tx} color={ACTIVITY} />
+			<Light label="RX" count={rx} color={ACTIVITY} />
 		</div>
 	);
 }
@@ -251,6 +254,12 @@ export function Footer() {
 
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
+			<div className="mb-auto pt-32">
+				<a href="/" aria-label="Maschina, home" className="flex w-fit items-center">
+					<img src="/brand/favicon.svg" alt="" className="size-5 shrink-0" />
+					<img src="/brand/word.svg" alt="" className="ml-1.5 h-5 w-auto" />
+				</a>
+			</div>
 			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (

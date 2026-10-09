@@ -21,6 +21,30 @@ describe("the footer", () => {
 		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
 	});
 
+	it("has the logo at the top left, linking home, above everything else in the footer", () => {
+		render(<Footer />);
+		const footer = screen.getByRole("contentinfo");
+		const home = within(footer).getByRole("link", { name: "Maschina, home" });
+		expect(home).toHaveAttribute("href", "/");
+		expect(home.querySelectorAll("img")).toHaveLength(2);
+		for (const image of home.querySelectorAll("img")) expect(image).toHaveAttribute("alt", "");
+		// It is the first thing in the footer, pushed up to the top, with the rest at the foot.
+		expect(footer.firstElementChild?.contains(home)).toBe(true);
+		expect(footer.firstElementChild?.className).toContain("mb-auto");
+		expect(footer.firstElementChild?.className).toContain("pt-32");
+	});
+
+	it("lights TX and RX green, like the activity light on a network port", async () => {
+		render(<Footer />);
+		const status = within(screen.getByRole("status"));
+		const tx = status.getByText("TX").parentElement as HTMLElement;
+		const rx = status.getByText("RX").parentElement as HTMLElement;
+		await waitFor(() => expect(tx).toHaveAttribute("data-on", "true"));
+		expect(tx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
+		await waitFor(() => expect(rx).toHaveAttribute("data-on", "true"));
+		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
+	});
+
 	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {
 		render(<Footer />);
 		const status = within(screen.getByRole("status"));
@@ -111,7 +135,7 @@ describe("the footer", () => {
 		expect(list.parentElement?.innerHTML).not.toMatch(/rounded/);
 	});
 
-	it("puts a small square box before each language, with a check in the one that is chosen", () => {
+	it("puts a small square box at the right of each language, with a check in the one that is chosen", () => {
 		render(<Footer />);
 		fireEvent.click(screen.getByRole("button", { name: "Language" }));
 		const list = screen.getByRole("listbox", { name: "Language" });
@@ -119,8 +143,8 @@ describe("the footer", () => {
 		for (const option of options) {
 			const box = option.querySelector("[data-box]") as HTMLElement;
 			expect(box).not.toBeNull();
-			// The box comes first, inside the option, so the whole row is one thing to click.
-			expect(option.firstElementChild).toBe(box);
+			// The box is on the right, at the end of the row, inside the option: the whole row is one click.
+			expect(option.lastElementChild).toBe(box);
 			expect(box.className).not.toMatch(/rounded/);
 			const chosen = option.getAttribute("aria-selected") === "true";
 			expect(box.querySelector("svg") !== null).toBe(chosen);
@@ -238,7 +262,7 @@ describe("the footer", () => {
 		// It comes before the wordmark, so it sits above it.
 		const logo = screen.getByRole("img", { name: "Maschina" }).parentElement as HTMLElement;
 		const row = line.parentElement as HTMLElement;
-		expect(footer.firstElementChild).toBe(row);
+		expect(footer.contains(row)).toBe(true);
 		expect(row.nextElementSibling).toBe(logo);
 	});
 
