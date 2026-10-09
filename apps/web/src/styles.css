@@ -73,3 +73,13 @@ body {
 		}
 	}
 }
+
+/* The built-with names drift left by exactly one run of themselves, then start over, so the loop never shows a seam. */
+@theme {
+	--animate-marquee: marquee 90s linear infinite;
+	@keyframes marquee {
+		to {
+			transform: translate3d(-50%, 0, 0);
+		}
+	}
+}
