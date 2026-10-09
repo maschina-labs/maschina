@@ -1,4 +1,3 @@
-import { Builders } from "./builders.tsx";
 import { Closing } from "./closing.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
@@ -16,7 +15,6 @@ export function Site({ authUrl }: { authUrl: string }) {
 			<main>
 				<Hero authUrl={authUrl} />
 				<Showcase />
-				<Builders />
 				<Closing />
 			</main>
 			<Footer />
