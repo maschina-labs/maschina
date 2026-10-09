@@ -143,6 +143,15 @@ describe("the footer", () => {
 		expect(row.className).toContain("my-auto");
 	});
 
+	it("gives the sitemap room to breathe: space above and below the row, and between the pages", () => {
+		render(<Footer />);
+		const nav = screen.getByRole("navigation", { name: "Sitemap" });
+		expect((nav.parentElement as HTMLElement).className).toContain("py-24");
+		expect(within(nav).getAllByRole("list")[0]?.className).toContain("gap-2.5");
+		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		expect(line.className).toContain("pb-8");
+	});
+
 	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {
 		render(<Footer />);
 		const status = within(screen.getByRole("status"));

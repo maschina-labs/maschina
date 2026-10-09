@@ -262,7 +262,7 @@ export function Footer() {
 
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter) pt-32">
-			<div className="my-auto flex w-full flex-col gap-12 py-16 sm:flex-row sm:items-start sm:justify-between">
+			<div className="my-auto flex w-full flex-col gap-12 py-24 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
 				<nav
@@ -272,7 +272,7 @@ export function Footer() {
 					{SITEMAP.map((column) => (
 						<div key={column.title} className="text-left">
 							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
-							<ul className="mt-4 flex flex-col gap-2 text-[15px]">
+							<ul className="mt-5 flex flex-col gap-2.5 text-[15px]">
 								{column.items.map((item) =>
 									item.href ? (
 										<li key={item.label}>
@@ -309,7 +309,7 @@ export function Footer() {
 					))}
 				</nav>
 			</div>
-			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+			<div className="flex flex-col items-center gap-4 pb-8 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (
 						<a
