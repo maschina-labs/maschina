@@ -11,10 +11,18 @@ describe("the front page", () => {
 		);
 	});
 
-	it("has the hero, what it is built with, the app showcase, for builders, the questions, the closing section, then the footer", () => {
+	it("has the hero, what it is built with, the app showcase, the live record, for builders, the questions, the closing section, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
-		const names = ["Maschina", "Built with", "The app", "For builders", "Questions", "Get started"];
+		const names = [
+			"Maschina",
+			"Built with",
+			"The app",
+			"Live record",
+			"For builders",
+			"Questions",
+			"Get started",
+		];
 		const sections = names.map((name) => within(main).getByRole("region", { name }));
 		for (const [index, section] of sections.entries()) {
 			const next = sections[index + 1];

@@ -8,7 +8,7 @@ export type Status =
 	| { state: "down" };
 
 /** Where the API lives: api.maschina.dev, or the local gateway while developing (.env). */
-const API = import.meta.env.VITE_GATEWAY_URL ?? "https://api.maschina.dev";
+export const API = import.meta.env.VITE_GATEWAY_URL ?? "https://api.maschina.dev";
 
 /** How often the footer asks again while the page is open. Short enough that the TX and RX lights breathe. */
 const EVERY_MS = 10_000;
