@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
@@ -41,7 +41,7 @@ const LANGUAGES = [{ code: "en", name: "English" }];
 
 function Language() {
 	return (
-		<label className="relative flex items-center gap-2 bg-white/[0.07] py-2 pr-8 pl-3 text-neutral-300 transition-colors hover:bg-white/[0.11]">
+		<label className="relative flex items-center gap-2 bg-white/[0.13] py-2 pr-8 pl-3 text-neutral-200 transition-colors hover:bg-white/[0.18]">
 			<svg
 				viewBox="0 0 24 24"
 				className="size-[14px]"
@@ -88,7 +88,7 @@ const SHOWN_AS = {
 	checking: { label: "Checking", color: "bg-neutral-600" },
 	up: { label: "All systems normal", color: "bg-[oklch(0.8_0.2_145)]" },
 	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
-	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
+	down: { label: "API unreachable", color: "bg-[oklch(0.6_0.24_25)]" },
 } as const;
 
 /** A square dot and a word, read from the API's own status check every minute. */
@@ -98,11 +98,31 @@ function StatusMark() {
 	return (
 		<div
 			role="status"
-			className="flex w-max items-center gap-2.5 bg-white/[0.07] px-3 py-2 text-[13px] text-neutral-300"
+			className="flex w-max items-center gap-2.5 bg-white/[0.13] px-3 py-2 text-[13px] text-neutral-200"
 		>
 			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
 			<span>{shown.label}</span>
 		</div>
+	);
+}
+
+/**
+ * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
+ * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
+ * their system for less motion.
+ */
+function Mark() {
+	const [turns, setTurns] = useState(0);
+	const still =
+		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	return (
+		<img
+			src="/brand/favicon.svg"
+			alt="Maschina mark"
+			onPointerEnter={() => !still && setTurns((count) => count + 1)}
+			style={{ transform: `rotate(${turns * 360}deg)` }}
+			className="mb-10 size-8 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+		/>
 	);
 }
 
@@ -125,6 +145,7 @@ export function Footer() {
 
 	return (
 		<footer className="relative w-full overflow-hidden px-6 sm:px-[4vw]">
+			<Mark />
 			<div className="flex flex-col items-center gap-5 py-6 text-[13px] text-neutral-500 lg:grid lg:grid-cols-[1fr_auto_1fr]">
 				<div className="flex items-center gap-5 lg:justify-self-start">
 					{SOCIALS.map((social) => (

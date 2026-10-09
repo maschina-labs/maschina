@@ -74,6 +74,18 @@ describe("the footer", () => {
 		).toEqual(["English"]);
 	});
 
+	it("turns the mark a full turn forward on each hover, and never back", () => {
+		render(<Footer />);
+		const mark = screen.getByRole("img", { name: "Maschina mark" });
+		expect(mark.style.transform).toBe("rotate(0deg)");
+		fireEvent.pointerEnter(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+		fireEvent.pointerLeave(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+		fireEvent.pointerEnter(mark);
+		expect(mark.style.transform).toBe("rotate(720deg)");
+	});
+
 	it("carries the wordmark, named once for screen readers", () => {
 		render(<Footer />);
 		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();
