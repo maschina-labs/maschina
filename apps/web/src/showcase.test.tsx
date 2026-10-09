@@ -19,8 +19,8 @@ describe("the showcase", () => {
 		expect(image.getAttribute("alt")).toMatch(/home screen/);
 		expect(image.getAttribute("alt")).toMatch(/chart/);
 		// Its size is declared, so the page does not jump as it loads.
-		expect(image).toHaveAttribute("width", "2624");
-		expect(image).toHaveAttribute("height", "1640");
+		expect(image).toHaveAttribute("width", "2838");
+		expect(image).toHaveAttribute("height", "1800");
 		expect(image).toHaveAttribute("decoding", "async");
 	});
 
@@ -40,12 +40,12 @@ describe("the showcase", () => {
 		);
 	});
 
-	it("is very sharp: a 2624 pixel file for most screens and a 5248 pixel one for the densest, chosen by the browser", () => {
+	it("is very sharp: a 2838 pixel file for most screens and a 5676 pixel one for the densest, chosen by the browser", () => {
 		render(<Showcase />);
 		const image = screen.getByRole("img");
 		expect(image).toHaveAttribute("src", "/showcase/dashboard.jpg");
 		expect(image.getAttribute("srcset")).toBe(
-			"/showcase/dashboard.jpg 2624w, /showcase/dashboard-4x.jpg 5248w",
+			"/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w",
 		);
 		// How wide it is shown: about 900 pixels on a laptop, 1300 on a very wide screen, and most of the width on a phone.
 		expect(image.getAttribute("sizes")).toBe(
@@ -54,6 +54,12 @@ describe("the showcase", () => {
 		for (const file of ["dashboard.jpg", "dashboard-4x.jpg"]) {
 			expect(existsSync(resolve(publicDir, "showcase", file))).toBe(true);
 		}
+	});
+
+	it("has no window frame or title bar around the picture: just the picture", () => {
+		const { container } = render(<Showcase />);
+		expect(container.querySelector("[data-window], [data-titlebar], [data-control]")).toBeNull();
+		expect(screen.getByRole("img").parentElement).toBe(container.querySelector("[data-backdrop]"));
 	});
 
 	it("sits centered in a backdrop of its own: a wide panel of soft pearl and silver light, with room all around", () => {
