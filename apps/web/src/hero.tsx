@@ -9,7 +9,7 @@ const Ribbon = lazy(() =>
 );
 
 /**
- * The first screen: the silver and
+ * The first screen, pinned to the top so the next section rolls up over it: the silver and
  * pearl ribbon is behind the headline, with one line saying what it does, two buttons (start for free, the
  * docs) and one proof line linking to the live record. The floating pieces were tried and taken out (the last
  * version with them is in the history). The ribbon fades in once it has loaded. Its layers are decoration, so
@@ -42,7 +42,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
-			className="relative flex h-dvh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-16 text-center"
+			className="sticky top-0 z-0 flex h-dvh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-16 text-center"
 		>
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 				{ready ? (

@@ -1,5 +1,22 @@
 import { Glint } from "./glint.tsx";
 
+/** The two looks: pearl for dark backgrounds, and black for light ones, where pearl would vanish. */
+const LOOK = {
+	pearl: {
+		button:
+			"bg-[oklch(0.93_0.02_300)] text-black shadow-[inset_0_0_0_1px_oklch(1_0_0/0.95),0_0_0_1px_oklch(0.74_0.035_290/0.8)] hover:bg-[oklch(0.98_0.015_300)]",
+		chip: "bg-black text-white",
+		glint:
+			"bg-[linear-gradient(90deg,transparent,oklch(0.78_0.04_290/0.5)_36%,oklch(1_0_0)_50%,oklch(0.78_0.04_290/0.5)_64%,transparent)]",
+	},
+	dark: {
+		button:
+			"bg-black text-white shadow-[inset_0_0_0_1px_oklch(1_0_0/0.18),0_0_0_1px_oklch(0.3_0.01_285)] hover:bg-[oklch(0.2_0.01_285)]",
+		chip: "bg-[oklch(0.93_0.02_300)] text-black",
+		glint: "bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.35)_50%,transparent)]",
+	},
+} as const;
+
 /**
  * The main call to action: the pearl button with a small square black chip inset beside the words, a chevron
  * pointing right in white. The chip is smaller than the button, so pearl shows all around it.
@@ -13,6 +30,7 @@ export function TryButton({
 	chipClassName,
 	label = "Try Maschina",
 	glint = false,
+	tone = "pearl",
 }: {
 	href: string;
 	className: string;
@@ -21,19 +39,20 @@ export function TryButton({
 	label?: string;
 	/** A sweep of light on hover. */
 	glint?: boolean;
+	/** Pearl on a dark page, black on a light one. */
+	tone?: "pearl" | "dark";
 }) {
+	const look = LOOK[tone];
 	return (
 		<a
 			href={href}
-			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black shadow-[inset_0_0_0_1px_oklch(1_0_0/0.95),0_0_0_1px_oklch(0.74_0.035_290/0.8)] transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
+			className={`items-center gap-3 transition-colors ${look.button} ${glint ? "group relative overflow-hidden " : ""}${className}`}
 		>
 			<span className={labelClassName}>{label}</span>
-			{glint ? (
-				<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(0.78_0.04_290/0.5)_36%,oklch(1_0_0)_50%,oklch(0.78_0.04_290/0.5)_64%,transparent)]" />
-			) : null}
+			{glint ? <Glint tone={look.glint} /> : null}
 			<span
 				data-chip
-				className={`relative z-10 grid place-items-center bg-black text-white ${chipClassName}`}
+				className={`relative z-10 grid place-items-center ${look.chip} ${chipClassName}`}
 			>
 				<svg
 					viewBox="0 0 12 12"

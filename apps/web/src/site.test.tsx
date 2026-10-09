@@ -11,14 +11,14 @@ describe("the front page", () => {
 		);
 	});
 
-	it("pins the hero to the top, so the footer rolls up over it", () => {
+	it("has the hero, then the closing call to action, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
-		const { className } = screen.getByRole("main");
-		expect(className).toContain("sticky");
-		expect(className).toContain("top-0");
-		expect(className).toContain("z-0");
-		// Pinned by the page, not the hero: both the hero and the footer sit inside the same page.
-		expect(screen.getByRole("main").nextElementSibling).toBe(screen.getByRole("contentinfo"));
+		const main = screen.getByRole("main");
+		const hero = within(main).getByRole("region", { name: "Maschina" });
+		const closing = within(main).getByRole("region", { name: "Get started" });
+		expect(hero.nextElementSibling).toBe(closing);
+		// The hero is pinned inside the main, so the closing section rolls up over it; the footer follows.
+		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});
 
 	it("has the header, then the hero with its headline, and ends with the footer", () => {

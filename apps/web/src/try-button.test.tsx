@@ -50,4 +50,16 @@ describe("the try button", () => {
 		expect(tokens).not.toContain("transition-transform");
 		expect(glint?.className).toContain("pointer-events-none");
 	});
+
+	it("has a dark version for light backgrounds: black, with a pearl chip", () => {
+		render(<TryButton {...props} tone="dark" glint />);
+		const link = screen.getByRole("link");
+		expect(link.className).toContain("bg-black");
+		expect(link.className).toContain("text-white");
+		expect(link.className).not.toContain("bg-[oklch(0.93_0.02_300)]");
+		const chip = link.querySelector("[data-chip]") as HTMLElement;
+		expect(chip.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(chip.className).toContain("text-black");
+		expect(chip.className).not.toContain("bg-black");
+	});
 });
