@@ -1,16 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Site } from "./site.tsx";
 
 describe("the front page", () => {
 	it("gives the page a full screen of room, so there is something to scroll through", () => {
 		render(<Site />);
-		expect(screen.getByRole("main", { name: "Maschina" }).className).toContain("min-h-[200dvh]");
+		expect(screen.getByRole("main").className).toContain("min-h-[200dvh]");
 	});
 
-	it("is blank above the footer until its design lands", () => {
+	it("opens with the hero and ends with the footer", () => {
 		render(<Site />);
-		const page = screen.getByRole("main", { name: "Maschina" });
-		expect(page).toBeEmptyDOMElement();
+		expect(within(screen.getByRole("main")).getByRole("heading", { level: 1 })).toBeInTheDocument();
+		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 	});
 });
