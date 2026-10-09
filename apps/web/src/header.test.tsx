@@ -5,14 +5,31 @@ import { Header } from "./header.tsx";
 const AUTH = "https://auth.maschina.dev";
 
 describe("the header", () => {
-	it("is the wordmark, and it leads home", () => {
+	it("is the mark and the word, and it leads home", () => {
 		render(<Header authUrl={AUTH} />);
 		const home = within(screen.getByRole("banner")).getByRole("link", { name: "Maschina, home" });
 		expect(home).toHaveAttribute("href", "/");
-		expect(within(home).getByRole("img", { name: "Maschina" })).toHaveAttribute(
-			"src",
-			"/brand/wordmark.svg",
-		);
+		expect(home.querySelector("[data-mark]")).toHaveAttribute("src", "/brand/favicon.svg");
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("src", "/brand/word.svg");
+	});
+
+	it("turns the mark a full turn forward each time the cursor arrives, and never back", () => {
+		render(<Header authUrl={AUTH} />);
+		const mark = screen.getByRole("banner").querySelector("[data-mark]") as HTMLElement;
+		expect(mark.style.transform).toBe("rotate(0deg)");
+		fireEvent.pointerEnter(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+		fireEvent.pointerLeave(mark);
+		expect(mark.style.transform).toBe("rotate(360deg)");
+		fireEvent.pointerEnter(mark);
+		expect(mark.style.transform).toBe("rotate(720deg)");
+	});
+
+	it("has Log in as plain text, in no box, like the pages", () => {
+		render(<Header authUrl={AUTH} />);
+		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
+		expect(logIn.className).not.toMatch(/\bbg-/);
+		expect(logIn.className).toContain("hidden");
 	});
 
 	it("leads to log in and sign up, wherever auth lives", () => {
@@ -444,18 +461,53 @@ describe("the header", () => {
 		expect(screen.getByRole("banner").className).toContain("fixed");
 	});
 
-	it("gets a solid background once the page scrolls, so nothing runs through it", () => {
+	it("is one attached bar at the top: nothing behind the left or the right", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header.className).not.toContain("bg-black");
+		expect(header).toHaveAttribute("data-detached", "false");
+		for (const side of ["left", "right"]) {
+			const group = header.querySelector(`[data-group="${side}"]`) as HTMLElement;
+			expect(group.className).not.toMatch(/\bbg-/);
+		}
+		const word = header.querySelector("[data-word]") as HTMLElement;
+		expect(word.className).toContain("grid-cols-[1fr]");
+	});
 
+	it("splits into two sections once the page scrolls: the mark and the pages, and the buttons", () => {
+		render(<Header authUrl={AUTH} />);
+		const header = screen.getByRole("banner");
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
-		expect(header.className).toContain("bg-black");
+		expect(header).toHaveAttribute("data-detached", "true");
+		// Each section is a solid box of its own, and the bar between them lets the page show through.
+		for (const side of ["left", "right"]) {
+			const group = header.querySelector(`[data-group="${side}"]`) as HTMLElement;
+			expect(group.className).toMatch(/\bbg-/);
+			expect(group.className).not.toMatch(/rounded/);
+		}
+		expect(header.className).not.toContain("bg-black");
+		// The word slides away and the mark stays, with the pages beside it.
+		const left = header.querySelector('[data-group="left"]') as HTMLElement;
+		expect((header.querySelector("[data-word]") as HTMLElement).className).toContain(
+			"grid-cols-[0fr]",
+		);
+		expect(left.querySelector("[data-mark]")).not.toBeNull();
+		expect(within(left).getByRole("navigation", { name: "Pages" })).toBeInTheDocument();
+		const right = header.querySelector('[data-group="right"]') as HTMLElement;
+		expect(within(right).getByRole("link", { name: "Log in" })).toBeInTheDocument();
+		expect(within(right).getByRole("link", { name: "Try Maschina" })).toBeInTheDocument();
 
 		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
 		fireEvent.scroll(window);
-		expect(header.className).not.toContain("bg-black");
+		expect(header).toHaveAttribute("data-detached", "false");
+	});
+
+	it("keeps the sections solid black behind an open dropdown, so the panel and the bar read as one", () => {
+		render(<Header authUrl={AUTH} />);
+		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
+		fireEvent.scroll(window);
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
+		expect(screen.getByRole("banner").className).toContain("bg-black");
 	});
 
 	it("keeps to the shared page margin, with no rounded corners", () => {

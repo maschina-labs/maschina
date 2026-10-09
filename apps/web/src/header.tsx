@@ -112,9 +112,34 @@ function Caret({ open }: { open: boolean }) {
 }
 
 /**
- * The top of the page: the wordmark on the left, the pages in the middle, the way in on the right. It is
- * attached to the top edge and sticky: it stays on screen as the page scrolls, and takes a solid black
- * background once it does, so nothing passes through the links. Every box is square, like the rest of Maschina.
+ * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
+ * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
+ * their system for less motion.
+ */
+function Mark() {
+	const [turns, setTurns] = useState(0);
+	const still =
+		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	return (
+		<img
+			data-mark
+			src="/brand/favicon.svg"
+			alt=""
+			onPointerEnter={() => !still && setTurns((count) => count + 1)}
+			style={{ transform: `rotate(${turns * 360}deg)` }}
+			className="size-4 shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:size-5"
+		/>
+	);
+}
+
+/** The solid surface the two sections stand on once the header splits. */
+const SECTION = "bg-[oklch(0.19_0.006_285)]";
+
+/**
+ * The top of the page: the mark and the word on the left with the pages beside them, the way in on the
+ * right. At the top it is one attached bar. Scroll, and it splits into two sections that stand on their own,
+ * one holding the mark (the word slides away) with the pages, the other holding the buttons, with the page
+ * showing through between them. Every box is square, like the rest of Maschina.
  *
  * Product, Developers and Company open a full-width dropdown under the bar when the cursor rests on them,
  * and by click or Escape for keyboards and touch. The page dims behind it. On a phone the pages fold into a
@@ -227,12 +252,26 @@ export function Header({
 			<header
 				onMouseEnter={stay}
 				onMouseLeave={hideSoon}
-				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu || open || searching ? "bg-black" : "bg-transparent"}`}
+				data-detached={scrolled}
+				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${menu || open || searching ? "bg-black" : "bg-transparent"}`}
 			>
-				<div className="flex items-center justify-between px-(--gutter) py-4">
-					<div className="flex items-center gap-10">
-						<a href="/" aria-label="Maschina, home">
-							<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-5" />
+				<div
+					className={`flex items-center justify-between px-(--gutter) transition-[padding] duration-300 ${scrolled ? "py-3" : "py-4"}`}
+				>
+					<div
+						data-group="left"
+						className={`flex items-center transition-[padding,background-color,gap] duration-300 ${scrolled ? `gap-6 px-3 py-1.5 ${SECTION}` : "gap-10"}`}
+					>
+						<a href="/" aria-label="Maschina, home" className="flex items-center">
+							<Mark />
+							<span
+								data-word
+								className={`grid transition-[grid-template-columns,opacity,margin] duration-300 ${scrolled ? "ml-0 grid-cols-[0fr] opacity-0" : "ml-1.5 grid-cols-[1fr] opacity-100"}`}
+							>
+								<span className="overflow-hidden">
+									<img src="/brand/word.svg" alt="" className="h-4 w-auto max-w-none sm:h-5" />
+								</span>
+							</span>
 						</a>
 						<div className="hidden items-center gap-5 xl:flex">
 							<nav aria-label="Pages" className="flex items-center gap-7">
@@ -272,11 +311,11 @@ export function Header({
 							</button>
 						</div>
 					</div>
-					<div className="flex items-center gap-3 text-[14px]">
-						<a
-							href={signIn}
-							className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] xl:inline-block"
-						>
+					<div
+						data-group="right"
+						className={`flex items-center gap-3 text-[14px] transition-[padding,background-color] duration-300 ${scrolled ? `xl:bg-[oklch(0.19_0.006_285)] xl:p-1.5` : ""}`}
+					>
+						<a href={signIn} className={`${LINK} hidden px-2 py-2 xl:inline-block`}>
 							Log in
 						</a>
 						<TryButton
