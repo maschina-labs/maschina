@@ -1,3 +1,5 @@
+import { Glint } from "./glint.tsx";
+
 /**
  * The main call to action: the pearl button with a small square black chip inset beside the words, a chevron
  * pointing right in white. The chip is smaller than the button, so pearl shows all around it.
@@ -10,18 +12,22 @@ export function TryButton({
 	labelClassName,
 	chipClassName,
 	label = "Try Maschina",
+	glint = false,
 }: {
 	href: string;
 	className: string;
 	labelClassName: string;
 	chipClassName: string;
 	label?: string;
+	/** A sweep of light on hover. Off in the header, where the button stays plain. */
+	glint?: boolean;
 }) {
 	return (
 		<a
 			href={href}
-			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${className}`}
+			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
 		>
+			{glint ? <Glint tone="via-white" /> : null}
 			<span className={labelClassName}>{label}</span>
 			<span data-chip className={`grid place-items-center bg-black text-white ${chipClassName}`}>
 				<svg

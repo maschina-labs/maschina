@@ -173,6 +173,16 @@ describe("the hero", () => {
 		expect(proof.className).toContain("z-20");
 	});
 
+	it("puts a glint on both buttons, without changing what they are called", () => {
+		render(<Hero authUrl={AUTH} />);
+		const hero = within(screen.getByRole("region", { name: "Maschina" }));
+		for (const name of ["Start for free", "Read the docs"]) {
+			const link = hero.getByRole("link", { name });
+			expect(link.querySelector("[data-glint]")).toHaveAttribute("aria-hidden", "true");
+			expect(link.className).toContain("overflow-hidden");
+		}
+	});
+
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(

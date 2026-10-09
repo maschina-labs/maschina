@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Glint } from "./glint.tsx";
 import { TryButton } from "./try-button.tsx";
 
 // The ribbon is WebGL and pulls in three.js, which is heavy: it loads after the page is on screen, so the
@@ -73,11 +74,13 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					className="flex py-2 pr-2 pl-5 sm:inline-flex"
 					labelClassName="flex-1 text-left"
 					chipClassName="size-7"
+					glint
 				/>
 				<a
 					href="/docs"
-					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
 				>
+					<Glint tone="via-white/25" />
 					Read the docs
 				</a>
 			</div>
