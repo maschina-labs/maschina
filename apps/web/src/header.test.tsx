@@ -28,11 +28,29 @@ describe("the header", () => {
 		);
 	});
 
-	it("lists the pages a stranger needs", () => {
+	it("lists the pages in the agreed order", () => {
 		render(<Header authUrl={AUTH} />);
 		const pages = within(screen.getByRole("navigation", { name: "Pages" }));
-		for (const page of ["Machines", "Security", "Live record", "Developers", "Pricing"]) {
-			expect(pages.getByRole("link", { name: page })).toBeInTheDocument();
+		expect(pages.getAllByRole("link").map((link) => link.textContent)).toEqual([
+			"Product",
+			"Developers",
+			"Live record",
+			"Pricing",
+			"Company",
+		]);
+	});
+
+	it("marks the pages that will open a dropdown with a caret, and only those", () => {
+		render(<Header authUrl={AUTH} />);
+		const pages = within(screen.getByRole("navigation", { name: "Pages" }));
+		for (const name of ["Product", "Developers", "Company"]) {
+			expect(pages.getByRole("link", { name }).querySelector("svg")).toHaveAttribute(
+				"aria-hidden",
+				"true",
+			);
+		}
+		for (const name of ["Live record", "Pricing"]) {
+			expect(pages.getByRole("link", { name }).querySelector("svg")).toBeNull();
 		}
 	});
 
@@ -45,7 +63,7 @@ describe("the header", () => {
 		fireEvent.click(menu);
 		expect(menu).toHaveAttribute("aria-expanded", "true");
 		const open = within(screen.getByRole("navigation", { name: "Pages, menu" }));
-		expect(open.getByRole("link", { name: "Security" })).toBeInTheDocument();
+		expect(open.getByRole("link", { name: "Live record" })).toBeInTheDocument();
 		expect(open.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `${AUTH}/sign-in`);
 		expect(open.getByRole("link", { name: "Sign up" })).toHaveAttribute("href", `${AUTH}/sign-up`);
 

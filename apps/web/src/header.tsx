@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 
-/** The pages a stranger needs to understand and trust Maschina. The rest belong in the footer. */
+/**
+ * The header's pages, in order. The ones with a dropdown (Product, Developers, Company) carry a caret; Live
+ * record and Pricing are single pages. The dropdowns themselves come next.
+ */
 const PAGES = [
-	{ label: "Machines", href: "/machines" },
-	{ label: "Security", href: "/security" },
-	{ label: "Live record", href: "/live" },
-	{ label: "Developers", href: "/developers" },
-	{ label: "Pricing", href: "/pricing" },
+	{ label: "Product", href: "/product", dropdown: true },
+	{ label: "Developers", href: "/developers", dropdown: true },
+	{ label: "Live record", href: "/live", dropdown: false },
+	{ label: "Pricing", href: "/pricing", dropdown: false },
+	{ label: "Company", href: "/company", dropdown: true },
 ];
 
 /** How far the page has to scroll before the header takes its background. */
@@ -47,8 +50,25 @@ export function Header({ authUrl }: { authUrl: string }) {
 				</a>
 				<nav aria-label="Pages" className="hidden items-center gap-7 lg:flex">
 					{PAGES.map((page) => (
-						<a key={page.label} href={page.href} className={LINK}>
+						<a
+							key={page.label}
+							href={page.href}
+							className={`${LINK} inline-flex items-center gap-1.5`}
+						>
 							{page.label}
+							{page.dropdown ? (
+								<svg
+									viewBox="0 0 12 12"
+									className="size-2.5"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth={1.5}
+									strokeLinecap="square"
+									aria-hidden="true"
+								>
+									<path d="M2.5 4.5 6 8l3.5-3.5" />
+								</svg>
+							) : null}
 						</a>
 					))}
 				</nav>
