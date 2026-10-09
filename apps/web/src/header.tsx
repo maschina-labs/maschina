@@ -229,7 +229,7 @@ export function Header({
 						setOpen(false);
 						setSearching(false);
 					}}
-					className={`fixed inset-0 z-30 bg-black/60 transition-opacity duration-300 ease-out motion-reduce:transition-none ${backdrop.visible ? "opacity-100" : "opacity-0"} ${backdropFor.current === "dropdown" ? "hidden xl:block" : backdropFor.current === "menu" ? "xl:hidden" : ""} ${backdrop.closing ? "pointer-events-none" : ""}`}
+					className={`fixed inset-0 z-30 bg-black/30 backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-300 ease-out motion-reduce:transition-none ${backdrop.visible ? "opacity-100" : "opacity-0"} ${backdropFor.current === "dropdown" ? "hidden xl:block" : backdropFor.current === "menu" ? "xl:hidden" : ""} ${backdrop.closing ? "pointer-events-none" : ""}`}
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}

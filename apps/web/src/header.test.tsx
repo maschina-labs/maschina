@@ -198,6 +198,16 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Product" })).toBeNull();
 	});
 
+	it("blurs the page behind an open panel like frosted glass, with only a light tint over it", () => {
+		const { container } = render(<Header authUrl={AUTH} />);
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
+		const { className } = container.querySelector("[data-backdrop]") as HTMLElement;
+		expect(className).toContain("backdrop-blur-xl");
+		// The tint is light: the blur does the work, not a dark overlay.
+		expect(className).toContain("bg-black/30");
+		expect(className).not.toContain("bg-black/60");
+	});
+
 	it("takes a solid background while a dropdown is open, so the two read as one piece", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
