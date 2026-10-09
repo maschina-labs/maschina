@@ -67,6 +67,9 @@ describe("the hero", () => {
 		const heading = within(section).getByRole("heading", { level: 1 });
 		const line = within(section).getByText("AI decides. Maschina decides what it's allowed to do.");
 		expect(line.tagName).toBe("P");
+		// One line on anything wider than a phone: no width cap, no balancing into two.
+		expect(line.className).toContain("sm:whitespace-nowrap");
+		expect(line.className).not.toContain("max-w-");
 		expect(line.className).toContain("z-20");
 		// Straight after the headline, before the buttons.
 		expect(heading.nextElementSibling).toBe(line);

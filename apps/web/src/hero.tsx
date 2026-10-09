@@ -41,7 +41,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			<h1 className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2.25rem,5.4vw,6rem)] text-transparent bg-clip-text bg-[linear-gradient(105deg,oklch(0.8_0.025_260)_0%,oklch(0.95_0.03_300)_28%,oklch(1_0.008_300)_44%,oklch(0.9_0.04_325)_60%,oklch(0.82_0.03_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.92_0.05_300/0.3))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
 				The operating system for autonomous capital.
 			</h1>
-			<p className="relative z-20 mt-6 max-w-[34ch] text-[clamp(1rem,1.4vw,1.25rem)] text-neutral-400 leading-snug [text-wrap:balance]">
+			<p className="relative z-20 mt-6 text-[clamp(1rem,1.4vw,1.25rem)] text-neutral-400 leading-snug sm:whitespace-nowrap">
 				AI decides. Maschina decides what it's allowed to do.
 			</p>
 			<div className="relative z-20 mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
