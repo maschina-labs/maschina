@@ -91,7 +91,10 @@ function StatusMark() {
 	const status = useStatus();
 	const shown = SHOWN_AS[status.state];
 	return (
-		<div role="status" className="flex items-center gap-2">
+		<div
+			role="status"
+			className="flex w-max items-center gap-2 border border-white/10 px-3 py-1.5 text-[13px] text-neutral-400"
+		>
 			<span aria-hidden="true" className={`size-1.5 ${shown.color}`} />
 			<span>{shown.label}</span>
 		</div>
@@ -123,25 +126,6 @@ export function Footer() {
 					<p className="max-w-[28ch] text-[14px] text-neutral-400 leading-relaxed">
 						The operating system for autonomous capital.
 					</p>
-					<div className="flex items-center gap-5 text-neutral-500">
-						{SOCIALS.map((social) => (
-							<a
-								key={social.label}
-								href={social.href}
-								className="transition-colors hover:text-neutral-100"
-							>
-								<span className="sr-only">{social.label}</span>
-								<svg
-									viewBox="0 0 24 24"
-									className="size-[18px]"
-									fill="currentColor"
-									aria-hidden="true"
-								>
-									<path d={social.icon} />
-								</svg>
-							</a>
-						))}
-					</div>
 				</div>
 				<div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 sm:gap-x-20">
 					{COLUMNS.map((column) => (
@@ -163,23 +147,40 @@ export function Footer() {
 					))}
 				</div>
 			</div>
-			<div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-white/[0.06] border-t py-6 text-[13px] text-neutral-500">
-				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
-				<div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-					<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
-						{LEGAL.map((link) => (
-							<a
-								key={link.label}
-								href={link.href}
-								className="transition-colors hover:text-neutral-100"
+			<div className="flex flex-col items-center gap-5 border-white/[0.06] border-t py-6 text-[13px] text-neutral-500 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+				<div className="flex items-center gap-5 lg:justify-self-start">
+					{SOCIALS.map((social) => (
+						<a
+							key={social.label}
+							href={social.href}
+							className="transition-colors hover:text-neutral-100"
+						>
+							<span className="sr-only">{social.label}</span>
+							<svg
+								viewBox="0 0 24 24"
+								className="size-[18px]"
+								fill="currentColor"
+								aria-hidden="true"
 							>
-								{link.label}
-							</a>
-						))}
-					</nav>
-					<StatusMark />
+								<path d={social.icon} />
+							</svg>
+						</a>
+					))}
 					<Language />
+					<StatusMark />
 				</div>
+				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
+				<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2 lg:justify-self-end">
+					{LEGAL.map((link) => (
+						<a
+							key={link.label}
+							href={link.href}
+							className="transition-colors hover:text-neutral-100"
+						>
+							{link.label}
+						</a>
+					))}
+				</nav>
 			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
