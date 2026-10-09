@@ -199,9 +199,20 @@ describe("search", () => {
 		await section("Home");
 		fireEvent.keyDown(document.body, { key: "k", metaKey: true });
 		const box = await screen.findByRole("textbox", { name: "Search" });
-		fireEvent.change(box, { target: { value: "papers" } });
+		fireEvent.change(box, { target: { value: "settings" } });
 		fireEvent.keyDown(box, { key: "Enter" });
-		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/papers"));
+		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/settings"));
+	});
+
+	it("no longer offers the papers: they left the app on 2026-10-09", async () => {
+		renderAt("/");
+		await section("Home");
+		fireEvent.keyDown(document.body, { key: "k", metaKey: true });
+		const box = await screen.findByRole("textbox", { name: "Search" });
+		fireEvent.change(box, { target: { value: "papers" } });
+		expect(screen.queryByRole("option", { name: /Papers/ })).toBeNull();
+		expect(screen.queryByText("Papers")).toBeNull();
+		fireEvent.keyDown(box, { key: "Escape" });
 	});
 
 	it("finds your machines by name, and closes with Escape", async () => {

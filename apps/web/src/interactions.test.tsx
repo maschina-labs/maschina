@@ -96,8 +96,8 @@ describe("closing a screen", () => {
 	});
 
 	it("so does the back button", async () => {
-		const { router } = renderAt("/papers");
-		await screen.findByRole("dialog", { name: "Papers" });
+		const { router } = renderAt("/settings");
+		await screen.findByRole("dialog", { name: "Settings" });
 		fireEvent.click(screen.getByRole("button", { name: "Back" }));
 		await vi.waitFor(() => expect(router.state.location.pathname).toBe("/"));
 	});

@@ -73,7 +73,6 @@ export function SearchField({ onClose }: { onClose: () => void }) {
 		})),
 		{ id: "new", group: "Actions", label: "New machine", run: go("/new") },
 		{ id: "settings", group: "Actions", label: "Settings", run: go("/settings") },
-		{ id: "papers", group: "Pages", label: "Papers", run: go("/papers") },
 		{ id: "alerts", group: "Actions", label: "Alerts", run: go("/settings/alerts") },
 		{
 			id: "idle",

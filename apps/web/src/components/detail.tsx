@@ -28,7 +28,6 @@ import {
 } from "./money-screens.tsx";
 import { NewMachineScreen } from "./new-machine-screen.tsx";
 import { NewsReader } from "./news.tsx";
-import { PapersScreen } from "./papers-screen.tsx";
 import {
 	CreatorScreen,
 	JoinScreen,
@@ -85,7 +84,6 @@ export function titleFor(path: string): string {
 		[/^\/news\/[^/]+(\/|$)/, "News"],
 		[/^\/sign-in(\/|$)/, "Sign in"],
 		[/^\/welcome(\/|$)/, "Welcome"],
-		[/^\/papers(\/|$)/, "Papers"],
 		[/^\/invite(\/|$)/, "Invite"],
 		[/^\/feedback(\/|$)/, "Feedback"],
 		[/^\/get-a-wallet(\/|$)/, "Get a wallet"],
@@ -251,7 +249,6 @@ export function Detail({ back }: { back: string }) {
  */
 const SCREENS: Record<string, () => ReactNode> = {
 	"New machine": () => <NewMachineScreen />,
-	Papers: () => <PapersScreen />,
 	Settings: () => <SettingsScreen />,
 	Alerts: () => <AlertsScreen />,
 	Keys: () => <KeysScreen />,
