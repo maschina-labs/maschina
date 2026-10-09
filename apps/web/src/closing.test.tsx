@@ -5,14 +5,19 @@ import { Closing } from "./closing.tsx";
 const AUTH = "https://auth.maschina.dev";
 
 describe("the closing section", () => {
-	it("says one thing and has two buttons", () => {
+	it("asks you to build your first machine, says it can be tried on paper first, and has two buttons", () => {
 		render(<Closing authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Get started" });
-		expect(
-			within(section).getByRole("heading", { level: 2, name: "Try a machine on paper first." }),
-		).toBeInTheDocument();
-		// Nothing else to read: the heading and the buttons.
-		expect(section.querySelectorAll("p")).toHaveLength(0);
+		const heading = within(section).getByRole("heading", {
+			level: 2,
+			name: "Build your first machine.",
+		});
+		const subtext = within(section).getByText("Test it on paper first, with no money at risk.");
+		// Nothing else to read: the headline, one short line under it, and the buttons.
+		expect(section.querySelectorAll("p")).toHaveLength(1);
+		expect(heading.nextElementSibling).toBe(subtext);
+		expect(subtext.className).toContain("text-neutral-400");
+		expect(subtext.className).toContain("mt-5");
 		expect(within(section).getByRole("link", { name: "Start for free" })).toHaveAttribute(
 			"href",
 			`${AUTH}/sign-up`,
