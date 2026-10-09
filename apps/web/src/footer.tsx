@@ -54,6 +54,9 @@ export function Footer() {
 
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
+			<p className="pb-6 text-center text-[13px] text-neutral-500">
+				© {new Date().getFullYear()} Maschina Labs. All rights reserved.
+			</p>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"

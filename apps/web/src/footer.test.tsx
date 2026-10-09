@@ -1,10 +1,25 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "./footer.tsx";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
+	afterEach(() => vi.useRealTimers());
+
+	it("has the copyright centered above the wordmark, with the current year", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2031-03-04T12:00:00Z"));
+		render(<Footer />);
+		const footer = screen.getByRole("contentinfo");
+		const line = screen.getByText("© 2031 Maschina Labs. All rights reserved.");
+		expect(line.className).toContain("text-center");
+		// It comes before the wordmark, so it sits above it.
+		const logo = screen.getByRole("img", { name: "Maschina" }).parentElement as HTMLElement;
+		expect(footer.firstElementChild).toBe(line);
+		expect(line.nextElementSibling).toBe(logo);
+	});
+
 	it("keeps to the shared page margin", () => {
 		render(<Footer />);
 		expect(screen.getByRole("contentinfo").className).toContain("px-(--gutter)");
