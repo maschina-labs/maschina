@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+/** A fine film grain, drawn by the browser from a tiny SVG filter: no image file to load, and nothing for the graphics card. */
+const GRAIN =
+	"url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
 
 /**
  * A real screenshot of the app, right under the hero: the dashboard home screen, with the chart, the machine
@@ -6,67 +8,33 @@ import { useEffect, useRef } from "react";
  * with its built-in sample data, so it says so under the picture; nothing here is a real person's trades or
  * results. Square corners, like everything else.
  *
- * It stands out from the black by light, not by a border: a soft spotlight behind its top and a faint sheen
- * across its top edge, and nothing underneath it. As the page scrolls it tilts in: leaned back
- * while it is still below the fold, and flat by the time it is well into view. The lean is one variable, set
- * straight on the element as the page scrolls, so scrolling never re-renders anything. It does not tilt for
- * anyone who asked for less motion.
+ * It floats in the middle of a backdrop of its own, a wide panel of soft pearl, violet and silver-blue light with
+ * a fine grain, and room all around it. The backdrop is plain CSS (gradients and a grain filter), so it costs the
+ * graphics card nothing, and it is where the page gets some color. The picture has an ordinary dark drop shadow
+ * to lift it off the light, and nothing glows. It does not move with the scroll.
  */
 export function Showcase() {
-	const tilt = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-		const update = () => {
-			const node = tilt.current;
-			if (!node) return;
-			const height = window.innerHeight;
-			// Fully leaned back when its top is at the bottom of the screen, flat once it is 15% from the top.
-			const amount = (node.getBoundingClientRect().top - height * 0.15) / (height * 0.85);
-			node.style.setProperty("--tilt", String(Math.min(1, Math.max(0, amount))));
-		};
-		update();
-		window.addEventListener("scroll", update, { passive: true });
-		window.addEventListener("resize", update);
-		return () => {
-			window.removeEventListener("scroll", update);
-			window.removeEventListener("resize", update);
-		};
-	}, []);
-
 	return (
-		<section
-			aria-label="The app"
-			className="relative overflow-hidden bg-black px-(--gutter) pt-8 pb-24"
-		>
-			{/* A soft light behind the top of the picture, so the dark panel reads against a lit backdrop. */}
-			<div
-				data-spotlight
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-x-0 top-0 h-[75%] bg-[radial-gradient(ellipse_60%_80%_at_50%_0%,oklch(0.78_0.05_285/0.22),transparent_70%)]"
-			/>
-			<figure className="relative">
+		<section aria-label="The app" className="relative bg-black px-(--gutter) pt-8 pb-24">
+			<figure>
 				<div
-					ref={tilt}
-					data-tilt
-					className="origin-bottom [--tilt:0] [transform:perspective(1600px)_rotateX(calc(var(--tilt)*6deg))_scale(calc(1-var(--tilt)*0.03))] will-change-transform"
+					data-backdrop
+					className="relative overflow-hidden bg-[radial-gradient(120%_90%_at_12%_8%,oklch(0.86_0.07_300),transparent_60%),radial-gradient(100%_80%_at_88%_18%,oklch(0.8_0.06_235),transparent_60%),radial-gradient(120%_100%_at_50%_105%,oklch(0.7_0.1_320),transparent_65%)] bg-[oklch(0.6_0.04_275)] p-[clamp(1.25rem,7vw,7rem)]"
 				>
-					<div className="relative">
-						<img
-							src="/showcase/dashboard.jpg"
-							alt="The home screen of the Maschina app: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine."
-							width={2624}
-							height={1640}
-							decoding="async"
-							className="block h-auto w-full"
-						/>
-						{/* A faint sheen across the top edge, like light catching a glass panel. */}
-						<div
-							data-sheen
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-white/[0.08] to-transparent"
-						/>
-					</div>
+					<div
+						data-grain
+						aria-hidden="true"
+						style={{ backgroundImage: GRAIN }}
+						className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay"
+					/>
+					<img
+						src="/showcase/dashboard.jpg"
+						alt="The home screen of the Maschina app: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine."
+						width={2624}
+						height={1640}
+						decoding="async"
+						className="relative block h-auto w-full shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
+					/>
 				</div>
 				<figcaption className="mt-5 text-[13px] text-neutral-500">
 					The Maschina app, shown with sample data.

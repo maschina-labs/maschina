@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Showcase } from "./showcase.tsx";
 
@@ -29,99 +29,42 @@ describe("the showcase", () => {
 		expect(screen.getByText("The Maschina app, shown with sample data.")).toBeInTheDocument();
 	});
 
-	it("is a plain, static picture: no video, no canvas, no animation", () => {
+	it("is a plain, static picture: no video, no canvas, no animation, no tilt, nothing that moves with the scroll", () => {
 		const { container } = render(<Showcase />);
 		expect(container.querySelector("video, canvas, iframe")).toBeNull();
-		expect(container.innerHTML).not.toMatch(/animate-/);
+		expect(container.querySelector("[data-tilt]")).toBeNull();
+		expect(container.innerHTML).not.toMatch(/animate-|perspective|rotate|will-change/);
 	});
 
-	it("has no border or frame around the picture, and no glow underneath it", () => {
+	it("sits centered in a backdrop of its own: a wide panel of soft pearl, violet and silver-blue light, with room all around", () => {
 		const { container } = render(<Showcase />);
-		expect(container.querySelector("[data-frame]")).toBeNull();
-		expect(screen.getByRole("img").parentElement?.className ?? "").not.toMatch(
-			/\bp-|border|ring|outline|bg-white/,
-		);
-		expect(container.innerHTML).not.toMatch(/shadow-/);
+		const backdrop = container.querySelector("[data-backdrop]") as HTMLElement;
+		expect(backdrop).not.toBeNull();
+		expect(backdrop.contains(screen.getByRole("img"))).toBe(true);
+		// Layers of soft light, not a flat fill: three radial lights over a base.
+		expect(backdrop.className.match(/radial-gradient\(/g)).toHaveLength(3);
+		expect(backdrop.className).toContain("oklch(0.86_0.07_300)");
+		expect(backdrop.className).toContain("oklch(0.8_0.06_235)");
+		// Room around the picture, growing with the screen, so it floats in the middle.
+		expect(backdrop.className).toContain("p-[clamp(1.25rem,7vw,7rem)]");
+		expect(backdrop.className).toContain("overflow-hidden");
+		expect(backdrop.className).not.toMatch(/rounded/);
 	});
 
-	it("stands out by light instead: a soft spotlight behind the top of it, and a faint sheen across its top edge", () => {
+	it("has a fine grain over the backdrop, drawn by the browser: no image file, no graphics card", () => {
 		const { container } = render(<Showcase />);
-		const spotlight = container.querySelector("[data-spotlight]") as HTMLElement;
-		const sheen = container.querySelector("[data-sheen]") as HTMLElement;
-		for (const layer of [spotlight, sheen]) {
-			expect(layer).toHaveAttribute("aria-hidden", "true");
-			expect(layer.className).toContain("pointer-events-none");
-			expect(layer.className).toContain("absolute");
-		}
-		// The spotlight is behind, wide and low in strength, and starts at the top, so nothing glows below it.
-		expect(spotlight.className).toContain("radial-gradient(ellipse");
-		expect(spotlight.className).toContain("at_50%_0%");
-		expect(spotlight.className).toContain("top-0");
-		expect(spotlight.className).not.toContain("bottom-");
-		expect(spotlight.className).toMatch(/oklch\([^)]*\/0\.(1|2)\d?\)/);
-		// The sheen sits on the picture and is only on its top part.
-		expect(sheen.className).toContain("bg-gradient-to-b");
-		expect(sheen.className).toContain("from-white/[0.08]");
-		expect(sheen.className).toContain("to-transparent");
-		expect(sheen.parentElement).toBe(screen.getByRole("img").parentElement);
+		const grain = container.querySelector("[data-grain]") as HTMLElement;
+		expect(grain).toHaveAttribute("aria-hidden", "true");
+		expect(grain.className).toContain("pointer-events-none");
+		expect(grain.className).toContain("absolute");
+		expect(grain.style.backgroundImage).toContain("feTurbulence");
 	});
 
-	describe("the tilt", () => {
-		const place = (top: number, height = 945) => {
-			Object.defineProperty(window, "innerHeight", { value: height, configurable: true });
-			const tilt = document.querySelector("[data-tilt]") as HTMLElement;
-			tilt.getBoundingClientRect = () => ({ top }) as DOMRect;
-			fireEvent.scroll(window);
-			return Number.parseFloat(tilt.style.getPropertyValue("--tilt"));
-		};
-
-		it("leans back while it is still below the fold, and lies flat once it has come into view", () => {
-			render(<Showcase />);
-			// Just entering at the bottom of the screen: fully leaned back.
-			expect(place(945)).toBe(1);
-			expect(place(2000)).toBe(1);
-			// Well up the screen: flat.
-			expect(place(945 * 0.15)).toBe(0);
-			expect(place(0)).toBe(0);
-			expect(place(-300)).toBe(0);
-		});
-
-		it("comes in smoothly in between, following the scroll", () => {
-			render(<Showcase />);
-			const halfway = place(945 * 0.15 + (945 * 0.85) / 2);
-			expect(halfway).toBeCloseTo(0.5, 5);
-			const nearer = place(945 * 0.4);
-			expect(nearer).toBeLessThan(halfway);
-			expect(nearer).toBeGreaterThan(0);
-		});
-
-		it("is a perspective tilt about the bottom edge, read from one variable, flat if the variable is missing", () => {
-			render(<Showcase />);
-			const tilt = document.querySelector("[data-tilt]") as HTMLElement;
-			expect(tilt.className).toContain("perspective(");
-			// A gentle lean: 6 degrees back at most, and 3% smaller.
-			expect(tilt.className).toContain("rotateX(calc(var(--tilt)*6deg))");
-			expect(tilt.className).toContain("scale(calc(1-var(--tilt)*0.03))");
-			expect(tilt.className).toContain("origin-bottom");
-			expect(tilt.className).toContain("[--tilt:0]");
-		});
-
-		it("does not tilt for anyone who asked for less motion", () => {
-			const original = window.matchMedia;
-			window.matchMedia = ((query: string) => ({
-				matches: query.includes("reduce"),
-				media: query,
-				addEventListener: () => {},
-				removeEventListener: () => {},
-				addListener: () => {},
-				removeListener: () => {},
-				onchange: null,
-				dispatchEvent: () => false,
-			})) as typeof window.matchMedia;
-			render(<Showcase />);
-			expect(place(2000)).toBeNaN();
-			window.matchMedia = original;
-		});
+	it("lifts the picture off the backdrop with an ordinary dark drop shadow, not a glow", () => {
+		render(<Showcase />);
+		const { className } = screen.getByRole("img");
+		expect(className).toMatch(/shadow-\[[^\]]*oklch\(0_0_0\/0\.\d+\)\]/);
+		expect(className).toContain("relative");
 	});
 
 	it("fills the width between the page margins, on black, with square corners", () => {
@@ -129,8 +72,6 @@ describe("the showcase", () => {
 		const { className } = screen.getByRole("region", { name: "The app" });
 		expect(className).toContain("px-(--gutter)");
 		expect(className).toContain("bg-black");
-		expect(screen.getByRole("img").className).toContain("w-full");
-		expect(screen.getByRole("img").className).toContain("h-auto");
 		expect(container.innerHTML).not.toMatch(/rounded/);
 	});
 });
