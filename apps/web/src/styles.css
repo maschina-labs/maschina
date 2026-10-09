@@ -49,37 +49,28 @@ body {
 }
 
 /*
- * Square scrollbars, track and thumb, for the page and for anything that scrolls inside it. They are drawn
- * with the webkit rules, which Chrome and Safari use, and are invisible at rest: scrollbars.ts marks what is
- * scrolling with data-scrolling, and only then do the track and thumb show. Setting scrollbar-color as well
- * would make Chrome use that instead and bring the rounded thumb back, so it is set only where the webkit
- * rules do not exist.
+ * Square scrollbars, track and thumb, for the page and for anything that scrolls inside it: a normal scrollbar
+ * that is always there, with nothing rounded. The webkit rules are what Chrome and Safari draw. Setting
+ * scrollbar-color as well would make Chrome use that instead and bring the rounded thumb back, so it is set
+ * only where the webkit rules do not exist.
  */
 ::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
+	width: 12px;
+	height: 12px;
 }
 ::-webkit-scrollbar-track {
-	background: transparent;
-	border-radius: 0;
-}
-::-webkit-scrollbar-thumb {
-	background: transparent;
-	border-radius: 0;
-}
-::-webkit-scrollbar-corner {
-	background: transparent;
-}
-[data-scrolling]::-webkit-scrollbar-track {
 	background: oklch(0.13 0.006 285);
 	border-radius: 0;
 }
-[data-scrolling]::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
 	background: oklch(0.38 0.01 285);
 	border-radius: 0;
 }
-[data-scrolling]::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
 	background: oklch(0.52 0.012 285);
+}
+::-webkit-scrollbar-corner {
+	background: oklch(0.13 0.006 285);
 }
 @supports not selector(::-webkit-scrollbar) {
 	* {

@@ -40,29 +40,28 @@ describe("motion", () => {
 });
 
 describe("scrollbars", () => {
-	// Every box on the site is square, and the scrollbar is one too: the track and the thumb, for the page and
-	// for anything that scrolls inside it (such as the language list).
+	// Every box on the site is square, and the scrollbar is one too: a normal scrollbar that is always there,
+	// with a visible track and thumb, both square, for the page and for anything that scrolls inside it.
 	const rule = (selector: string) =>
 		css.match(new RegExp(`${selector.replace(/[()[\]]/g, "\\$&")}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
 
 	it("has a square track and a square thumb", () => {
 		expect(rule("::-webkit-scrollbar-track")).toMatch(/border-radius:\s*0/);
 		expect(rule("::-webkit-scrollbar-thumb")).toMatch(/border-radius:\s*0/);
-		expect(css).toMatch(/\[data-scrolling\]::-webkit-scrollbar-thumb[^}]*border-radius:\s*0/);
-		expect(css).toMatch(/\[data-scrolling\]::-webkit-scrollbar-track[^}]*border-radius:\s*0/);
 	});
 
-	it("is invisible until something scrolls, and shows only while it does", () => {
-		// As on a Mac: no track and no thumb at rest, both there while scrolling.
-		expect(rule("::-webkit-scrollbar-track")).toMatch(/background:\s*transparent/);
-		expect(rule("::-webkit-scrollbar-thumb")).toMatch(/background:\s*transparent/);
-		expect(css).toMatch(/\[data-scrolling\]::-webkit-scrollbar-thumb\s*\{[^}]*background:\s*oklch/);
-		expect(css).toMatch(/\[data-scrolling\]::-webkit-scrollbar-track\s*\{[^}]*background:\s*oklch/);
+	it("shows the track and the thumb all the time, and lights the thumb on hover", () => {
+		expect(rule("::-webkit-scrollbar-track")).toMatch(/background:\s*oklch/);
+		expect(rule("::-webkit-scrollbar-thumb")).toMatch(/background:\s*oklch/);
+		expect(rule("::-webkit-scrollbar-thumb:hover")).toMatch(/background:\s*oklch/);
+		// Nothing hides it until something scrolls.
+		expect(css).not.toMatch(/data-scrolling/);
+		expect(css).not.toMatch(/scrollbar-width:\s*none/);
 	});
 
 	it("has a width, and a square corner where two scrollbars meet", () => {
 		expect(rule("::-webkit-scrollbar")).toMatch(/width:\s*\d+px/);
-		expect(rule("::-webkit-scrollbar-corner")).toMatch(/background:/);
+		expect(rule("::-webkit-scrollbar-corner")).toMatch(/background:\s*oklch/);
 	});
 
 	it("keeps the standard scrollbar properties for browsers without the webkit ones", () => {
