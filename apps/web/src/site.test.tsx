@@ -1,8 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Site } from "./site.tsx";
 
 describe("the front page", () => {
+	// The footer's status mark asks the API: stand one in, so this test never reaches the network.
+	beforeEach(() => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
+		);
+	});
+
 	it("pins the hero to the top, so the footer rolls up over it", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const { className } = screen.getByRole("main");

@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
 
 /** How much of the wordmark shows above the bottom of the page: about three quarters of the letters. */
@@ -34,6 +35,76 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
+/** Only languages the site is written in are offered. English, until a translation is real. */
+const LANGUAGES = [{ code: "en", name: "English" }];
+
+function Language() {
+	return (
+		<label className="relative flex items-center gap-2 bg-white/[0.07] py-2 pr-8 pl-3 text-neutral-300 transition-colors hover:bg-white/[0.11]">
+			<svg
+				viewBox="0 0 24 24"
+				className="size-[14px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<circle cx="12" cy="12" r="9" />
+				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+			</svg>
+			<select
+				aria-label="Language"
+				defaultValue="en"
+				className="cursor-pointer appearance-none bg-transparent text-neutral-300 outline-none"
+			>
+				{LANGUAGES.map((language) => (
+					<option
+						key={language.code}
+						value={language.code}
+						label={language.code.toUpperCase()}
+						className="bg-black"
+					>
+						{language.name}
+					</option>
+				))}
+			</select>
+			<svg
+				viewBox="0 0 24 24"
+				className="pointer-events-none absolute right-3 size-[12px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<path d="m6 9 6 6 6-6" />
+			</svg>
+		</label>
+	);
+}
+
+/** What each state says, and its color: the app's own live and stop signals, grey while unknown. */
+const SHOWN_AS = {
+	checking: { label: "Checking", color: "bg-neutral-600" },
+	up: { label: "All systems normal", color: "bg-[oklch(0.8_0.2_145)]" },
+	paused: { label: "Machines paused", color: "bg-[oklch(0.82_0.16_85)]" },
+	down: { label: "API unreachable", color: "bg-[oklch(0.65_0.21_35)]" },
+} as const;
+
+/** A square dot and a word, read from the API's own status check every minute. */
+function StatusMark() {
+	const status = useStatus();
+	const shown = SHOWN_AS[status.state];
+	return (
+		<div
+			role="status"
+			className="flex w-max items-center gap-2.5 bg-white/[0.07] px-3 py-2 text-[13px] text-neutral-300"
+		>
+			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
+			<span>{shown.label}</span>
+		</div>
+	);
+}
+
 /** A full screen, with the wordmark at the foot of it. It sits above the pinned hero and rolls up over it. */
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
@@ -54,9 +125,15 @@ export function Footer() {
 
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
-			<p className="pb-6 text-center text-[13px] text-neutral-500">
-				© {new Date().getFullYear()} Maschina Labs. All rights reserved.
-			</p>
+			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+				<p className="text-center text-[13px] text-neutral-500 sm:col-start-2">
+					© {new Date().getFullYear()} Maschina Labs. All rights reserved.
+				</p>
+				<div data-right className="flex items-center gap-3 sm:col-start-3 sm:justify-self-end">
+					<StatusMark />
+					<Language />
+				</div>
+			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg
 					role="img"

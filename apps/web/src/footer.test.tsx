@@ -1,11 +1,68 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "./footer.tsx";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
 describe("the footer", () => {
+	// The status mark asks the API. Each test stands one in, so nothing here reaches the network.
+	beforeEach(() => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
+		);
+	});
 	afterEach(() => vi.useRealTimers());
+
+	it("shows whether Maschina is up, from the API's own check", async () => {
+		render(<Footer />);
+		const status = screen.getByRole("status");
+		expect(status).toHaveTextContent("Checking");
+		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
+	});
+
+	it("says so when the stop switch is on", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(
+				async () =>
+					new Response(
+						JSON.stringify({
+							status: "ok",
+							halt: { reason: "upgrading", since: "2026-10-09T00:00:00Z" },
+						}),
+						{ status: 200 },
+					),
+			),
+		);
+		render(<Footer />);
+		expect(
+			await within(screen.getByRole("status")).findByText("Machines paused"),
+		).toBeInTheDocument();
+	});
+
+	it("offers a language, and only the ones that exist", () => {
+		render(<Footer />);
+		const language = screen.getByRole("combobox", { name: "Language" });
+		expect(
+			within(language)
+				.getAllByRole("option")
+				.map((option) => option.textContent),
+		).toEqual(["English"]);
+	});
+
+	it("puts the status and the language together on the right of the line with the copyright", () => {
+		render(<Footer />);
+		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const right = screen.getByRole("status").parentElement as HTMLElement;
+		expect(right).toBe(screen.getByRole("combobox", { name: "Language" }).closest("[data-right]"));
+		expect(row.contains(right)).toBe(true);
+		expect(right.className).toContain("sm:justify-self-end");
+		// The copyright is still centered, between them.
+		expect(screen.getByText(/All rights reserved/).className).toContain("text-center");
+		expect(row.className).toContain("sm:grid-cols-[1fr_auto_1fr]");
+		expect(row.innerHTML).not.toMatch(/rounded/);
+	});
 
 	it("has the copyright centered above the wordmark, with the current year", () => {
 		vi.useFakeTimers();
@@ -16,8 +73,9 @@ describe("the footer", () => {
 		expect(line.className).toContain("text-center");
 		// It comes before the wordmark, so it sits above it.
 		const logo = screen.getByRole("img", { name: "Maschina" }).parentElement as HTMLElement;
-		expect(footer.firstElementChild).toBe(line);
-		expect(line.nextElementSibling).toBe(logo);
+		const row = line.parentElement as HTMLElement;
+		expect(footer.firstElementChild).toBe(row);
+		expect(row.nextElementSibling).toBe(logo);
 	});
 
 	it("keeps to the shared page margin", () => {
