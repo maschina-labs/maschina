@@ -51,17 +51,11 @@ describe("the hero", () => {
 		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("data-arrow", "chevron");
 		const docs = hero.getByRole("link", { name: "Read the docs" });
 		expect(docs).toHaveAttribute("href", "/docs");
-		// The docs are plain text, in no box: only the main button is a box.
-		expect(docs.className).not.toMatch(/\bbg-/);
-		// A bare right chevron after the words: no chip, no box around it.
-		expect(docs.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
-		expect(docs.querySelector("svg")).toHaveAttribute("data-arrow", "chevron");
+		// The docs are a box of their own, a quiet gray one, with no arrow: only the main button has a chip.
+		expect(docs.className).toMatch(/\bbg-white\/\[0\.13\]/);
+		expect(docs.className).not.toMatch(/rounded/);
+		expect(docs.querySelector("svg")).toBeNull();
 		expect(docs.querySelector("[data-chip]")).toBeNull();
-		// Measured: the words sit about half a pixel below the middle of their box, so the chevron is nudged
-		// down to line up with them, not with the box (and a hair more, by eye).
-		expect(docs.querySelector("svg")?.getAttribute("class")).toContain("translate-y-[1px]");
-		expect(docs.querySelector("svg")?.getAttribute("class")).toContain("size-3.5");
-		expect(docs.lastElementChild?.tagName.toLowerCase()).toBe("svg");
 	});
 
 	it("has nothing else on it: no line under the headline, nothing floating", () => {

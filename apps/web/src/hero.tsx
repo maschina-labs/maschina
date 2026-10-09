@@ -51,21 +51,9 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				/>
 				<a
 					href="/docs"
-					className="inline-flex items-center justify-center gap-1.5 px-3 py-3 text-[oklch(0.78_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
+					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
 				>
 					Read the docs
-					<svg
-						viewBox="0 0 12 12"
-						data-arrow="chevron"
-						className="size-3.5 translate-y-[1px]"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={1.5}
-						strokeLinecap="square"
-						aria-hidden="true"
-					>
-						<path d="M4.5 2.5 8 6 4.5 9.5" />
-					</svg>
 				</a>
 			</div>
 		</section>
