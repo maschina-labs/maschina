@@ -57,7 +57,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					<svg
 						viewBox="0 0 12 12"
 						data-arrow="chevron"
-						className="size-3"
+						className="size-3.5 translate-y-[1px]"
 						fill="none"
 						stroke="currentColor"
 						strokeWidth={1.5}

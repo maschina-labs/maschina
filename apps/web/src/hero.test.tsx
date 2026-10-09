@@ -31,6 +31,11 @@ describe("the hero", () => {
 			name: "The operating system for autonomous capital.",
 		});
 		expect(heading.className).toContain("z-20");
+		// The buttons and the docs are centered under the headline too, on a phone as well.
+		const hero = within(section);
+		const buttons = hero.getByRole("link", { name: "Start for free" }).parentElement as HTMLElement;
+		expect(buttons.className).toContain("sm:justify-center");
+		expect(hero.getByRole("link", { name: "Read the docs" }).className).toContain("justify-center");
 	});
 
 	it("has two buttons under the headline: start for free, and the docs", () => {
@@ -52,6 +57,10 @@ describe("the hero", () => {
 		expect(docs.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		expect(docs.querySelector("svg")).toHaveAttribute("data-arrow", "chevron");
 		expect(docs.querySelector("[data-chip]")).toBeNull();
+		// Measured: the words sit about half a pixel below the middle of their box, so the chevron is nudged
+		// down to line up with them, not with the box (and a hair more, by eye).
+		expect(docs.querySelector("svg")?.getAttribute("class")).toContain("translate-y-[1px]");
+		expect(docs.querySelector("svg")?.getAttribute("class")).toContain("size-3.5");
 		expect(docs.lastElementChild?.tagName.toLowerCase()).toBe("svg");
 	});
 
