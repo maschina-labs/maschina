@@ -90,6 +90,18 @@ describe("the hero", () => {
 		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
 	});
 
+	it("paints the headline in silver and pearl with a sheen, and a soft bloom behind it", () => {
+		render(<Hero authUrl={AUTH} />);
+		const { className } = screen.getByRole("heading", { level: 1 });
+		// A gradient clipped to the letters, so the words themselves are the color.
+		expect(className).toContain("bg-clip-text");
+		expect(className).toContain("text-transparent");
+		expect(className).toContain("bg-[linear-gradient(");
+		// The bloom is a glow that follows the letters' shape, not a box.
+		expect(className).toContain("drop-shadow(");
+		expect(className).not.toContain("animate-");
+	});
+
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
