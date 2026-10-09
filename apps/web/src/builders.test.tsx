@@ -6,11 +6,11 @@ import { SOCIALS } from "./socials.ts";
 const section = () => screen.getByRole("region", { name: "For builders" });
 
 describe("the section for builders", () => {
-	it("has a left aligned headline in the pearl gradient with the thin outline, like the other headlines", () => {
+	it("has a centered headline in the pearl gradient with the thin outline, like the other headlines", () => {
 		render(<Builders />);
 		const heading = within(section()).getByRole("heading", { level: 2, name: "Read every line." });
 		for (const part of [
-			"text-left",
+			"text-center",
 			"bg-clip-text",
 			"text-transparent",
 			"[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]",
@@ -18,7 +18,7 @@ describe("the section for builders", () => {
 			"-mb-[0.14em]",
 		])
 			expect(heading.className).toContain(part);
-		expect(heading.className).not.toContain("text-center");
+		expect(heading.className).not.toContain("text-left");
 	});
 
 	it("says one true thing in one gray line: the code is source-available", () => {
@@ -29,7 +29,7 @@ describe("the section for builders", () => {
 			"Maschina is source-available. Read the code and see exactly what a machine can and cannot do.",
 		);
 		expect(lines[0]?.className).toContain("text-neutral-400");
-		expect(lines[0]?.className).toContain("text-left");
+		expect(lines[0]?.className).toContain("text-center");
 	});
 
 	it("has two buttons, the code and the docs, the same two kinds as the hero's", () => {
@@ -51,7 +51,7 @@ describe("the section for builders", () => {
 		);
 	});
 
-	it("sits left aligned between the page margins on black, still and square", () => {
+	it("sits centered between the page margins on black, still and square", () => {
 		const { container } = render(<Builders />);
 		expect(section().className).toContain("bg-black");
 		expect(section().className).toContain("px-(--gutter)");
