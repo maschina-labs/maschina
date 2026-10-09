@@ -221,9 +221,6 @@ importers:
       '@phosphor-icons/react':
         specifier: 2.1.10
         version: 2.1.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@react-three/fiber':
-        specifier: 9.7.0
-        version: 9.7.0(@types/react@19.3.0)(immer@11.1.18)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.185.1)
       '@sentry/react':
         specifier: 'catalog:'
         version: 10.74.0(react@19.3.0)
@@ -251,9 +248,6 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
-      three:
-        specifier: 0.185.1
-        version: 0.185.1
       topojson-client:
         specifier: 3.1.0
         version: 3.1.0
@@ -288,9 +282,6 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
-      '@types/three':
-        specifier: 0.185.4
-        version: 0.185.4
       '@types/topojson-client':
         specifier: 3.1.5
         version: 3.1.5
