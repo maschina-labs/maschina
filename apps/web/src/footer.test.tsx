@@ -1,0 +1,40 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { Footer } from "./footer.tsx";
+
+const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
+
+describe("the footer", () => {
+	it("carries the wordmark, named once for screen readers", () => {
+		render(<Footer />);
+		expect(screen.getByRole("img", { name: "Maschina" })).toBeInTheDocument();
+	});
+
+	it("draws the wordmark once, as outlines, with a lit copy for the cursor", () => {
+		const { container } = render(<Footer />);
+		expect(container.querySelectorAll("[data-layer]")).toHaveLength(2);
+		// The mark and eight letters.
+		expect(container.querySelectorAll("[data-layer] path")).toHaveLength(18);
+	});
+
+	it("lights the edges under the cursor, and lets them fade when it leaves", () => {
+		const { container } = render(<Footer />);
+		const svg = screen.getByRole("img", { name: "Maschina" });
+		const [x = 0, y = 0, width = 1, height = 1] = (svg.getAttribute("viewBox") ?? "")
+			.split(" ")
+			.map(Number);
+		svg.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 1000, height: 1000 * (height / width) }) as DOMRect;
+		const lit = container.querySelector("[data-lit]") as SVGGElement;
+
+		expect(lit.style.opacity).toBe("0");
+		// The middle of the drawing, in screen pixels, is the middle of the drawing in its own units.
+		fireEvent.pointerMove(svg, { clientX: 500, clientY: 500 * (height / width) });
+		expect(Number(spot(container).getAttribute("cx"))).toBeCloseTo(x + width / 2);
+		expect(Number(spot(container).getAttribute("cy"))).toBeCloseTo(y + height / 2);
+		expect(lit.style.opacity).toBe("1");
+
+		fireEvent.pointerLeave(svg);
+		expect(lit.style.opacity).toBe("0");
+	});
+});
