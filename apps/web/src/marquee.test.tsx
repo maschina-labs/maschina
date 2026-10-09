@@ -52,12 +52,17 @@ describe("the marquee of what it is built with", () => {
 		expect(track.className).toContain("w-max");
 	});
 
-	it("fades out at both edges, on black, square", () => {
+	it("stays inside the page margins: the names are clipped at the same edges as every other section, and fade out there", () => {
 		const { container } = render(<Marquee />);
 		const section = screen.getByRole("region", { name: "Built with" });
 		expect(section.className).toContain("bg-black");
-		expect(section.className).toContain("overflow-hidden");
-		expect(section.className).toContain("[mask-image:linear-gradient(to_right,transparent");
+		expect(section.className).toContain("px-(--gutter)");
+		// The clip and the fade are on the inner window, not on the full width section, so nothing drifts into the margin.
+		expect(section.className).not.toContain("overflow-hidden");
+		expect(section.className).not.toContain("mask-image");
+		const window = section.firstElementChild as HTMLElement;
+		expect(window.className).toContain("overflow-hidden");
+		expect(window.className).toContain("[mask-image:linear-gradient(to_right,transparent");
 		expect(container.innerHTML).not.toMatch(/rounded|hover:/);
 	});
 
