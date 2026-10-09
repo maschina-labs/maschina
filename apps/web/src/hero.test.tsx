@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Hero } from "./hero.tsx";
 
@@ -103,6 +103,48 @@ describe("the hero", () => {
 		// The bloom is a glow that follows the letters' shape, not a box.
 		expect(className).toContain("drop-shadow(");
 		expect(className).not.toContain("animate-");
+	});
+
+	it("lights the letters under the cursor, and lets go when it leaves", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		const heading = screen.getByRole("heading", { level: 1 });
+		heading.getBoundingClientRect = () =>
+			({ left: 100, top: 200, width: 1000, height: 200 }) as DOMRect;
+		expect(heading.className).toContain("radial-gradient(circle_");
+		// The spot is placed relative to the headline, as a share of its size.
+		fireEvent.pointerMove(section, { clientX: 600, clientY: 300 });
+		expect(heading.style.getPropertyValue("--mx")).toBe("50%");
+		expect(heading.style.getPropertyValue("--my")).toBe("50%");
+		fireEvent.pointerMove(section, { clientX: 100, clientY: 200 });
+		expect(heading.style.getPropertyValue("--mx")).toBe("0%");
+		fireEvent.pointerLeave(section);
+		expect(heading.style.getPropertyValue("--mx")).toBe("");
+		expect(heading.style.getPropertyValue("--my")).toBe("");
+	});
+
+	it("does not follow a finger, or anyone who asked for less motion", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		const heading = screen.getByRole("heading", { level: 1 });
+		heading.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 1000, height: 200 }) as DOMRect;
+		fireEvent.pointerMove(section, { clientX: 500, clientY: 100, pointerType: "touch" });
+		expect(heading.style.getPropertyValue("--mx")).toBe("");
+		const original = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			matches: query.includes("reduce"),
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			addListener: () => {},
+			removeListener: () => {},
+			onchange: null,
+			dispatchEvent: () => false,
+		})) as typeof window.matchMedia;
+		fireEvent.pointerMove(section, { clientX: 500, clientY: 100 });
+		window.matchMedia = original;
+		expect(heading.style.getPropertyValue("--mx")).toBe("");
 	});
 
 	it("has a bigger headline than before", () => {

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { TryButton } from "./try-button.tsx";
 
 // The ribbon is WebGL and pulls in three.js, which is heavy: it loads after the page is on screen, so the
@@ -17,10 +17,29 @@ export function Hero({ authUrl }: { authUrl: string }) {
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => setReady(true), []);
+	const heading = useRef<HTMLHeadingElement>(null);
+
+	// The light on the letters follows the mouse by setting two properties directly: moving the cursor never
+	// re-renders the page. A finger and anyone who asked for less motion get the still sheen instead.
+	const follow = (event: React.PointerEvent<HTMLElement>) => {
+		const node = heading.current;
+		if (!node || event.pointerType === "touch") return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		const box = node.getBoundingClientRect();
+		if (box.width === 0 || box.height === 0) return;
+		node.style.setProperty("--mx", `${((event.clientX - box.left) / box.width) * 100}%`);
+		node.style.setProperty("--my", `${((event.clientY - box.top) / box.height) * 100}%`);
+	};
+	const leave = () => {
+		heading.current?.style.removeProperty("--mx");
+		heading.current?.style.removeProperty("--my");
+	};
 
 	return (
 		<section
 			aria-label="Maschina"
+			onPointerMove={follow}
+			onPointerLeave={leave}
 			className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-(--gutter) pt-24 pb-16 text-center"
 		>
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -38,7 +57,10 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-black"
 				/>
 			</div>
-			<h1 className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2.25rem,5.4vw,6rem)] text-transparent bg-clip-text bg-[linear-gradient(105deg,oklch(0.8_0.025_260)_0%,oklch(0.95_0.03_300)_28%,oklch(1_0.008_300)_44%,oklch(0.9_0.04_325)_60%,oklch(0.82_0.03_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.92_0.05_300/0.3))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
+			<h1
+				ref={heading}
+				className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2.25rem,5.4vw,6rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.8_0.025_260)_0%,oklch(0.95_0.03_300)_28%,oklch(1_0.008_300)_44%,oklch(0.9_0.04_325)_60%,oklch(0.82_0.03_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.92_0.05_300/0.3))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
+			>
 				The operating system for autonomous capital.
 			</h1>
 			<p className="relative z-20 mt-6 text-[clamp(1rem,1.4vw,1.25rem)] text-neutral-400 leading-snug sm:whitespace-nowrap">
