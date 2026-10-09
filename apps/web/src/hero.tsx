@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { TryButton } from "./try-button.tsx";
 
 // The ribbon is WebGL and pulls in three.js, which is heavy: it loads after the page is on screen, so the
 // page never waits for it.
@@ -7,12 +8,12 @@ const Ribbon = lazy(() =>
 );
 
 /**
- * The first screen: the silver and pearl ribbon behind the headline, and nothing else, for now. The line under
- * it, the buttons and the floating pieces were tried and taken out (the last version with them is in the
- * history); they come back one at a time. The ribbon layers are decoration, so they are hidden from
- * assistive technology.
+ * The first screen: the silver and pearl ribbon behind the headline, and three quick ways in under it: start
+ * for free, read the docs, and see the live record. The line under the headline and the floating pieces were
+ * tried and taken out (the last version with them is in the history); they come back one at a time. The
+ * ribbon layers are decoration, so they are hidden from assistive technology.
  */
-export function Hero() {
+export function Hero({ authUrl }: { authUrl: string }) {
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => setReady(true), []);
@@ -38,6 +39,27 @@ export function Hero() {
 			<h1 className="relative z-20 max-w-[18ch] font-display font-normal text-[clamp(2rem,4.6vw,5rem)] text-[oklch(0.97_0.012_300)] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
 				The operating system for autonomous capital.
 			</h1>
+			<div className="relative z-20 mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
+				<TryButton
+					href={`${authUrl}/sign-up`}
+					label="Start for free"
+					className="flex py-2 pr-2 pl-5 sm:inline-flex"
+					labelClassName="flex-1 text-left"
+					chipClassName="size-7"
+				/>
+				<a
+					href="/docs"
+					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+				>
+					Read the docs
+				</a>
+				<a
+					href="/live"
+					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+				>
+					See the live record
+				</a>
+			</div>
 		</section>
 	);
 }

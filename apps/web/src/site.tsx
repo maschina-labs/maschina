@@ -8,7 +8,7 @@ export function Site({ authUrl }: { authUrl: string }) {
 		<div className="relative flex min-h-dvh flex-col bg-black">
 			<Header authUrl={authUrl} />
 			<main className="min-h-[200dvh] flex-1">
-				<Hero />
+				<Hero authUrl={authUrl} />
 			</main>
 			<Footer />
 		</div>
