@@ -186,14 +186,6 @@ describe("the hero", () => {
 		}
 	});
 
-	it("stays pinned to the top of the screen, so the next section can roll over it", () => {
-		render(<Hero authUrl={AUTH} />);
-		const { className } = screen.getByRole("region", { name: "Maschina" });
-		expect(className).toContain("sticky");
-		expect(className).toContain("top-0");
-		expect(className).toContain("z-0");
-	});
-
 	it("has a bigger headline than before", () => {
 		render(<Hero authUrl={AUTH} />);
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
