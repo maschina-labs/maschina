@@ -33,29 +33,28 @@ describe("the hero", () => {
 		expect(heading.className).toContain("z-20");
 	});
 
-	it("gives three quick ways in, in the order of what most people want first", () => {
+	it("has two buttons under the headline: start for free, and the docs", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
 		expect(hero.getAllByRole("link").map((link) => link.textContent)).toEqual([
 			"Start for free",
 			"Read the docs",
-			"See the live record",
 		]);
 		const start = hero.getByRole("link", { name: "Start for free" });
 		expect(start).toHaveAttribute("href", `${AUTH}/sign-up`);
 		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("aria-hidden", "true");
-		expect(hero.getByRole("link", { name: "Read the docs" })).toHaveAttribute("href", "/docs");
-		expect(hero.getByRole("link", { name: "See the live record" })).toHaveAttribute(
-			"href",
-			"/live",
-		);
+		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("data-arrow", "chevron");
+		const docs = hero.getByRole("link", { name: "Read the docs" });
+		expect(docs).toHaveAttribute("href", "/docs");
+		// The docs are plain text, in no box: only the main button is a box.
+		expect(docs.className).not.toMatch(/\bbg-/);
 	});
 
 	it("has nothing else on it: no line under the headline, nothing floating", () => {
 		const { container } = render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
 		expect(section.textContent).toBe(
-			"The operating system for autonomous capital.Start for freeRead the docsSee the live record",
+			"The operating system for autonomous capital.Start for freeRead the docs",
 		);
 		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
 	});
@@ -67,6 +66,8 @@ describe("the hero", () => {
 		expect(ribbon).toHaveAttribute("data-motion", "calm");
 		expect(ribbon).toHaveAttribute("data-mode", "dark");
 		expect(ribbon).toHaveAttribute("data-position", "absolute");
+		// It fades in once it has loaded, rather than popping.
+		expect(ribbon.parentElement?.className).toContain("animate-fade-in");
 	});
 
 	it("is decoration only: hidden from assistive technology and never in the way of a click", () => {

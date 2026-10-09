@@ -8,10 +8,10 @@ const Ribbon = lazy(() =>
 );
 
 /**
- * The first screen: the silver and pearl ribbon behind the headline, and three quick ways in under it: start
- * for free, read the docs, and see the live record. The line under the headline and the floating pieces were
- * tried and taken out (the last version with them is in the history); they come back one at a time. The
- * ribbon layers are decoration, so they are hidden from assistive technology.
+ * The first screen: the silver and pearl ribbon behind the headline, and two buttons under it: start for
+ * free, and the docs. (The live record is in the header.) The line under the headline and the floating pieces
+ * were tried and taken out (the last version with them is in the history); they come back one at a time. The ribbon fades in once it has loaded. Its layers are decoration,
+ * so they are hidden from assistive technology.
  */
 export function Hero({ authUrl }: { authUrl: string }) {
 	const [ready, setReady] = useState(false);
@@ -26,7 +26,9 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 				{ready ? (
 					<Suspense fallback={null}>
-						<Ribbon position="absolute" field="ribbon" motion="calm" mode="dark" />
+						<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
+							<Ribbon position="absolute" field="ribbon" motion="calm" mode="dark" />
+						</div>
 					</Suspense>
 				) : null}
 				{/* Dimmed so what goes on top of it reads, and melting into the page at the bottom. */}
@@ -49,15 +51,9 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				/>
 				<a
 					href="/docs"
-					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+					className="inline-flex items-center justify-center px-3 py-3 text-[oklch(0.78_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
 				>
 					Read the docs
-				</a>
-				<a
-					href="/live"
-					className="inline-flex items-center justify-center bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
-				>
-					See the live record
 				</a>
 			</div>
 		</section>

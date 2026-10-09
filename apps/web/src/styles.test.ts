@@ -31,3 +31,10 @@ describe("the background package", () => {
 		expect(existsSync(resolve(here, source ?? ""))).toBe(true);
 	});
 });
+
+describe("motion", () => {
+	it("defines the fade the ribbon arrives with, and stops it for reduced motion in the hero", () => {
+		expect(css).toMatch(/--animate-fade-in:\s*fade-in/);
+		expect(css).toMatch(/@keyframes fade-in/);
+	});
+});

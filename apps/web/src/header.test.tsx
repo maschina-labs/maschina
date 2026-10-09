@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./header.tsx";
 
 const AUTH = "https://auth.maschina.dev";
@@ -96,7 +96,7 @@ describe("the header", () => {
 
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const panel = screen.getByRole("region", { name: "Developers" });
-		expect(panel.className).toContain("inset-x-0");
+		expect((panel.parentElement as HTMLElement).className).toContain("inset-x-0");
 		const inside = within(panel);
 		for (const name of ["Docs", "API", "SDK", "Machine spec", "Templates"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
@@ -215,7 +215,8 @@ describe("the header", () => {
 		fireEvent.click(menu);
 		expect(menu).toHaveAttribute("aria-expanded", "true");
 		const panel = screen.getByRole("navigation", { name: "Pages, menu" });
-		expect(panel.className).toContain("inset-x-0");
+		const wrapper = panel.parentElement?.parentElement;
+		expect(wrapper?.className).toContain("inset-x-0");
 		expect(screen.getByRole("banner").className).toContain("bg-black");
 		const open = within(panel);
 		expect(open.getByRole("link", { name: "Live record" })).toBeInTheDocument();
@@ -282,12 +283,13 @@ describe("the header", () => {
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
-	it("holds a small square chip with an up-right arrow inside the button, beside Try Maschina", () => {
+	it("holds a small square chip with a right chevron inside the button, beside Try Maschina", () => {
 		render(<Header authUrl={AUTH} />);
 		const link = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });
 		const chip = link.querySelector("[data-chip]");
 		expect(chip).not.toBeNull();
 		expect(chip?.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(chip?.querySelector("svg")).toHaveAttribute("data-arrow", "chevron");
 		expect(chip?.className).not.toMatch(/rounded/);
 		expect(chip?.className).toContain("bg-black");
 		expect(chip?.className).toContain("text-white");
@@ -319,7 +321,7 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
 		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
 		const panel = screen.getByRole("region", { name: "Search" });
-		expect(panel.className).toContain("inset-x-0");
+		expect((panel.parentElement as HTMLElement).className).toContain("inset-x-0");
 		const box = within(panel).getByRole("searchbox", { name: "Search Maschina" });
 		expect(box).toHaveFocus();
 	});
@@ -492,5 +494,130 @@ describe("the header", () => {
 		const { container } = render(<Header authUrl={AUTH} />);
 		expect(container.innerHTML).toContain("px-(--gutter)");
 		expect(container.innerHTML).not.toMatch(/rounded/);
+	});
+});
+
+describe("the header's motion", () => {
+	// Panels and surfaces move; words never do. Everything slides open and closed instead of blinking.
+	beforeEach(() => vi.useFakeTimers());
+	afterEach(() => vi.useRealTimers());
+
+	const settle = (ms: number) =>
+		act(() => {
+			vi.advanceTimersByTime(ms);
+		});
+	const find = (selector: string) => document.querySelector(selector) as HTMLElement | null;
+
+	it("slides a dropdown down from the header, and back up, instead of blinking", () => {
+		render(<Header authUrl={AUTH} />);
+		const product = screen.getByRole("button", { name: "Product" });
+		fireEvent.mouseEnter(product);
+		const panel = find('[data-panel="dropdown"]') as HTMLElement;
+		// It arrives closed, and opens a frame later, so there is something to slide from.
+		expect(panel).toHaveAttribute("data-state", "closed");
+		expect(panel.className).toContain("grid-rows-[0fr]");
+		settle(30);
+		expect(panel).toHaveAttribute("data-state", "open");
+		expect(panel.className).toContain("grid-rows-[1fr]");
+		expect(panel).not.toHaveAttribute("aria-hidden", "true");
+
+		fireEvent.click(product);
+		// It starts to leave at once, hidden from assistive technology and out of the tab order, but it is
+		// still on screen while it slides away.
+		expect(panel).toHaveAttribute("data-state", "closed");
+		expect(panel).toHaveAttribute("aria-hidden", "true");
+		expect(panel).toHaveAttribute("inert");
+		expect(document.body.contains(panel)).toBe(true);
+		settle(400);
+		expect(document.body.contains(panel)).toBe(false);
+	});
+
+	it("slides the search panel the same way", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Search" }));
+		const panel = find('[data-panel="search"]') as HTMLElement;
+		settle(30);
+		expect(panel).toHaveAttribute("data-state", "open");
+		fireEvent.keyDown(document, { key: "Escape" });
+		expect(panel).toHaveAttribute("data-state", "closed");
+		expect(panel).toHaveAttribute("aria-hidden", "true");
+		expect(document.body.contains(panel)).toBe(true);
+		settle(400);
+		expect(document.body.contains(panel)).toBe(false);
+	});
+
+	it("slides the phone menu the same way", () => {
+		render(<Header authUrl={AUTH} />);
+		const menu = screen.getByRole("button", { name: "Menu" });
+		fireEvent.click(menu);
+		const panel = find('[data-panel="menu"]') as HTMLElement;
+		settle(30);
+		expect(panel).toHaveAttribute("data-state", "open");
+		fireEvent.click(menu);
+		expect(panel).toHaveAttribute("data-state", "closed");
+		expect(panel).toHaveAttribute("inert");
+		settle(400);
+		expect(document.body.contains(panel)).toBe(false);
+	});
+
+	it("fades the dimmed page in and out", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		const backdrop = find("[data-backdrop]") as HTMLElement;
+		expect(backdrop.className).toContain("opacity-0");
+		settle(30);
+		expect(backdrop).toHaveAttribute("data-state", "open");
+		expect(backdrop.className).toContain("opacity-100");
+		fireEvent.keyDown(document, { key: "Escape" });
+		expect(backdrop.className).toContain("opacity-0");
+		settle(400);
+		expect(document.body.contains(backdrop)).toBe(false);
+	});
+
+	it("opens the groups in the phone menu in place, one at a time, instead of popping", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		settle(30);
+		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		const group = (name: string) =>
+			panel
+				.getByRole("button", { name })
+				.parentElement?.querySelector("[data-panel='section']") as HTMLElement;
+		expect(group("Product")).toHaveAttribute("data-state", "closed");
+		fireEvent.click(panel.getByRole("button", { name: "Product" }));
+		expect(group("Product")).toHaveAttribute("data-state", "open");
+		expect(group("Product").className).toContain("grid-rows-[1fr]");
+		fireEvent.click(panel.getByRole("button", { name: "Developers" }));
+		expect(group("Product")).toHaveAttribute("data-state", "closed");
+		expect(group("Product")).toHaveAttribute("aria-hidden", "true");
+		expect(group("Developers")).toHaveAttribute("data-state", "open");
+	});
+
+	it("crossfades the hamburger into a cross, rather than swapping them", () => {
+		render(<Header authUrl={AUTH} />);
+		const menu = screen.getByRole("button", { name: "Menu" });
+		const [bars, cross] = [...menu.querySelectorAll("svg")] as SVGElement[];
+		expect(menu.querySelectorAll("svg")).toHaveLength(2);
+		expect(bars?.getAttribute("class")).toContain("opacity-100");
+		expect(cross?.getAttribute("class")).toContain("opacity-0");
+		fireEvent.click(menu);
+		expect(bars?.getAttribute("class")).toContain("opacity-0");
+		expect(cross?.getAttribute("class")).toContain("opacity-100");
+	});
+
+	it("moves nothing for anyone who asks their system for less motion: panels are gone at once", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			matches: query.includes("reduce"),
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+		})) as unknown as typeof window.matchMedia;
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Search" }));
+		expect(find('[data-panel="search"]')).not.toBeNull();
+		fireEvent.keyDown(document, { key: "Escape" });
+		expect(find('[data-panel="search"]')).toBeNull();
+		window.matchMedia = real;
 	});
 });
