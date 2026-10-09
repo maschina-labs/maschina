@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The backgrounds live in their own package, which Tailwind does not read unless told to. */
+@source "../../../packages/field/src";
 
 /* Söhne for everything people read, Geist Mono for figures, Söhne Breit for the wordmark. */
 @font-face {
