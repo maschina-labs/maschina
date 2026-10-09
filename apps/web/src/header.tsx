@@ -31,6 +31,54 @@ const SUB =
 const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
+/** Only languages the site is written in are offered. English, until a translation is real. */
+const LANGUAGES = [{ code: "en", name: "English" }];
+
+/** A square box showing the language as its short code, with a globe and a caret. */
+function Language() {
+	return (
+		<label className="relative flex items-center gap-2 bg-white/[0.13] py-2 pr-8 pl-3 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.18]">
+			<svg
+				viewBox="0 0 24 24"
+				className="size-[14px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<circle cx="12" cy="12" r="9" />
+				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+			</svg>
+			<select
+				aria-label="Language"
+				defaultValue="en"
+				className="cursor-pointer appearance-none bg-transparent outline-none"
+			>
+				{LANGUAGES.map((language) => (
+					<option
+						key={language.code}
+						value={language.code}
+						label={language.code.toUpperCase()}
+						className="bg-black"
+					>
+						{language.name}
+					</option>
+				))}
+			</select>
+			<svg
+				viewBox="0 0 24 24"
+				className="pointer-events-none absolute right-3 size-[12px]"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={1.5}
+				aria-hidden="true"
+			>
+				<path d="m6 9 6 6 6-6" />
+			</svg>
+		</label>
+	);
+}
+
 /**
  * The main call to action: the pearl button with a small square black chip inset beside the words, an arrow
  * pointing up and to the right in white. The chip is smaller than the button, so pearl shows all around it.
@@ -153,7 +201,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 						hideNow();
 						setOpen(false);
 					}}
-					className={`fixed inset-0 z-30 bg-black/60 ${menu ? "hidden lg:block" : "lg:hidden"}`}
+					className={`fixed inset-0 z-30 bg-black/60 ${menu ? "hidden xl:block" : "xl:hidden"}`}
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
@@ -166,7 +214,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 					<a href="/" aria-label="Maschina, home" className="justify-self-start">
 						<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-5" />
 					</a>
-					<nav aria-label="Pages" className="hidden items-center gap-7 lg:flex">
+					<nav aria-label="Pages" className="hidden items-center gap-7 xl:flex">
 						{PAGES.map((page) =>
 							page.dropdown ? (
 								<button
@@ -193,15 +241,18 @@ export function Header({ authUrl }: { authUrl: string }) {
 						)}
 					</nav>
 					<div className="col-start-3 flex items-center gap-3 justify-self-end text-[14px]">
+						<div data-tools className="hidden items-center gap-2 xl:flex">
+							<Language />
+						</div>
 						<a
 							href={signIn}
-							className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] lg:inline-block"
+							className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] xl:inline-block"
 						>
 							Log in
 						</a>
 						<TryButton
 							href={signUp}
-							className="hidden py-1.5 pr-1.5 pl-4 lg:inline-flex"
+							className="hidden py-1.5 pr-1.5 pl-4 xl:inline-flex"
 							labelClassName=""
 							chipClassName="size-6"
 						/>
@@ -212,7 +263,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 							aria-expanded={open}
 							aria-controls="pages-menu"
 							onClick={() => setOpen((now) => !now)}
-							className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] lg:hidden"
+							className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 						>
 							<svg
 								viewBox="0 0 20 20"
@@ -231,7 +282,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 				{menu && active ? (
 					<section
 						aria-label={active}
-						className="absolute inset-x-0 top-full hidden bg-black px-(--gutter) pt-6 pb-10 lg:block"
+						className="absolute inset-x-0 top-full hidden bg-black px-(--gutter) pt-6 pb-10 xl:block"
 					>
 						<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 							<div className="flex flex-col gap-5">
@@ -280,7 +331,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 					<nav
 						id="pages-menu"
 						aria-label="Pages, menu"
-						className="absolute inset-x-0 top-full flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto bg-black px-(--gutter) pt-2 pb-8 lg:hidden"
+						className="absolute inset-x-0 top-full flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto bg-black px-(--gutter) pt-2 pb-8 xl:hidden"
 					>
 						{PAGES.map((page) =>
 							page.dropdown ? (
@@ -338,7 +389,10 @@ export function Header({ authUrl }: { authUrl: string }) {
 								</a>
 							),
 						)}
-						<div className="mt-4 grid grid-cols-2 gap-2 text-[14px]">
+						<div className="mt-4 flex items-center gap-2">
+							<Language />
+						</div>
+						<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
 							<a
 								href={signIn}
 								className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"

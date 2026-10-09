@@ -271,12 +271,31 @@ describe("the header", () => {
 		expect(link.querySelector("[data-chip]")).not.toBeNull();
 	});
 
+	it("has a language box, in the header on a wide screen and in the phone menu", () => {
+		render(<Header authUrl={AUTH} />);
+		const header = within(screen.getByRole("banner"));
+		const language = header.getByRole("combobox", { name: "Language" });
+		// Only the languages the site is written in are offered: English, shown as EN.
+		expect(
+			within(language)
+				.getAllByRole("option")
+				.map((option) => option.getAttribute("label")),
+		).toEqual(["EN"]);
+		expect(within(language).getByRole("option", { name: "English" })).toBeInTheDocument();
+		expect(language.closest("label")?.className).not.toMatch(/rounded/);
+		expect(language.closest("[data-tools]")?.className).toContain("xl:flex");
+
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		expect(panel.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
+	});
+
 	it("shows log in and try Maschina as buttons only on a wide screen", () => {
 		render(<Header authUrl={AUTH} />);
 		for (const name of ["Log in", "Try Maschina"]) {
 			const link = within(screen.getByRole("banner")).getByRole("link", { name });
 			expect(link.className).toContain("hidden");
-			expect(link.className).toMatch(/lg:inline-(block|flex)/);
+			expect(link.className).toMatch(/xl:inline-(block|flex)/);
 		}
 	});
 
@@ -286,7 +305,7 @@ describe("the header", () => {
 		expect(menu).toHaveAttribute("aria-label", "Menu");
 		expect(menu.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		expect(menu).toHaveTextContent("");
-		expect(menu.className).toContain("lg:hidden");
+		expect(menu.className).toContain("xl:hidden");
 	});
 
 	it("is sticky: it stays at the top of the screen as the page scrolls", () => {
