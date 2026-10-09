@@ -213,11 +213,22 @@ export function Header({
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
-			<header
-				onMouseEnter={stay}
-				onMouseLeave={hideSoon}
-				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || anyPanel ? "bg-black" : "bg-transparent"}`}
-			>
+			<header onMouseEnter={stay} onMouseLeave={hideSoon} className="fixed inset-x-0 top-0 z-40">
+				{/*
+				 * Behind the bar, two layers. Once the page scrolls the bar is black at its top and fades to
+				 * nothing at its foot, so the page shows through. While a dropdown, the search or the phone menu
+				 * is open it fills in solid, so the panel and the bar read as one piece.
+				 */}
+				<div
+					data-fade
+					aria-hidden="true"
+					className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+1rem)] bg-gradient-to-b from-black to-transparent transition-opacity duration-200 motion-reduce:transition-none ${scrolled ? "opacity-100" : "opacity-0"}`}
+				/>
+				<div
+					data-solid
+					aria-hidden="true"
+					className={`pointer-events-none absolute inset-0 -z-10 bg-black transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
+				/>
 				<div className="flex items-center justify-between px-(--gutter) py-4">
 					<div className="flex items-center gap-10">
 						<Logo />

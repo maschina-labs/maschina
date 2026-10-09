@@ -211,9 +211,10 @@ describe("the header", () => {
 	it("takes a solid background while a dropdown is open, so the two read as one piece", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header.className).not.toContain("bg-black");
+		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-0");
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
-		expect(header.className).toContain("bg-black");
+		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-100");
+		expect(header.querySelector("[data-solid]")?.className).toContain("bg-black");
 	});
 
 	it("opens the same kind of dropdown on a phone: full width, joined to the header", () => {
@@ -227,7 +228,9 @@ describe("the header", () => {
 		const panel = screen.getByRole("navigation", { name: "Pages, menu" });
 		const wrapper = panel.parentElement?.parentElement;
 		expect(wrapper?.className).toContain("inset-x-0");
-		expect(screen.getByRole("banner").className).toContain("bg-black");
+		expect(screen.getByRole("banner").querySelector("[data-solid]")?.className).toContain(
+			"opacity-100",
+		);
 		const open = within(panel);
 		expect(open.getByRole("link", { name: "Live record" })).toBeInTheDocument();
 		expect(open.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
@@ -485,23 +488,32 @@ describe("the header", () => {
 		expect(screen.getByRole("banner").className).toContain("fixed");
 	});
 
-	it("stays one attached bar: it takes a solid background as the page scrolls, and never splits", () => {
+	it("stays one attached bar: as the page scrolls it fades from black to nothing, and never splits", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header.className).not.toContain("bg-black");
+		const fade = () => header.querySelector("[data-fade]") as HTMLElement;
+		expect(header.className).not.toMatch(/\bbg-/);
+		expect(fade().className).toContain("opacity-0");
 		expect(header).not.toHaveAttribute("data-detached");
 
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
-		// Nothing runs through the links, and the word stays beside the mark.
-		expect(header.className).toContain("bg-black");
+		// Black at the top of the bar, fading to nothing at its foot, so the page shows through below.
+		expect(fade().className).toContain("opacity-100");
+		expect(fade().className).toContain("bg-gradient-to-b");
+		expect(fade().className).toContain("from-black");
+		expect(fade().className).toContain("to-transparent");
+		expect(fade()).toHaveAttribute("aria-hidden", "true");
+		expect(fade().className).toContain("pointer-events-none");
+		// Still no solid fill while nothing is open.
+		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-0");
 		expect(header).not.toHaveAttribute("data-detached");
 		expect(header.querySelector("[data-group]")).toBeNull();
 		expect(header.querySelector("[data-word] img")).not.toBeNull();
 
 		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
 		fireEvent.scroll(window);
-		expect(header.className).not.toContain("bg-black");
+		expect(fade().className).toContain("opacity-0");
 	});
 
 	it("is solid black behind an open dropdown, so the panel and the bar read as one", () => {
@@ -509,7 +521,9 @@ describe("the header", () => {
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
-		expect(screen.getByRole("banner").className).toContain("bg-black");
+		expect(screen.getByRole("banner").querySelector("[data-solid]")?.className).toContain(
+			"opacity-100",
+		);
 	});
 
 	it("keeps to the shared page margin, with no rounded corners", () => {
