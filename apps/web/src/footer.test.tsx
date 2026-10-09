@@ -83,6 +83,18 @@ describe("the footer", () => {
 		expect(within(nav).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
 	});
 
+	it("has light headers over grayed pages that light up on hover", () => {
+		render(<Footer />);
+		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
+		for (const heading of nav.getAllByRole("heading", { level: 2 })) {
+			expect(heading.className).toContain("text-white");
+		}
+		for (const link of nav.getAllByRole("link")) {
+			expect(link.className).toContain("text-neutral-500");
+			expect(link.className).toContain("hover:text-white");
+		}
+	});
+
 	it("marks the links that leave the site with a small up-right arrow, and no others", () => {
 		render(<Footer />);
 		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));

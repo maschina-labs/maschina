@@ -272,14 +272,14 @@ export function Footer() {
 			>
 				{SITEMAP.map((column) => (
 					<div key={column.title} className="text-left">
-						<h2 className="text-[13px] text-neutral-500">{column.title}</h2>
+						<h2 className="text-[13px] text-white">{column.title}</h2>
 						<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
 							{column.items.map((item) =>
 								item.href ? (
 									<li key={item.label}>
 										<a
 											href={item.href}
-											className="text-neutral-300 transition-colors hover:text-neutral-100"
+											className="text-neutral-500 transition-colors hover:text-white"
 										>
 											{item.label}
 											{item.external ? (
@@ -299,7 +299,7 @@ export function Footer() {
 										</a>
 									</li>
 								) : (
-									<li key={item.label} className="text-neutral-600">
+									<li key={item.label} className="text-neutral-700">
 										{item.label}
 										<span className="ml-2 text-[11px]">Soon</span>
 									</li>
