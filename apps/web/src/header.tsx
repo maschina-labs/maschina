@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MENUS } from "./menus.ts";
 import { search } from "./search.ts";
+import { TryButton } from "./try-button.tsx";
 
 /**
  * The header's pages, in order. The three with a dropdown carry a caret and open a menu from menus.ts; Live
@@ -55,46 +56,6 @@ function Magnifier() {
 	);
 }
 
-/**
- * The main call to action: the pearl button with a small square black chip inset beside the words, an arrow
- * pointing up and to the right in white. The chip is smaller than the button, so pearl shows all around it.
- * It is part of the link, so the whole thing is one click, and the arrow is decoration (the name stays
- * "Try Maschina").
- */
-function TryButton({
-	href,
-	className,
-	labelClassName,
-	chipClassName,
-}: {
-	href: string;
-	className: string;
-	labelClassName: string;
-	chipClassName: string;
-}) {
-	return (
-		<a
-			href={href}
-			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${className}`}
-		>
-			<span className={labelClassName}>Try Maschina</span>
-			<span data-chip className={`grid place-items-center bg-black text-white ${chipClassName}`}>
-				<svg
-					viewBox="0 0 12 12"
-					className="size-3"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					strokeLinecap="square"
-					aria-hidden="true"
-				>
-					<path d="M3 9l6-6M4 3h5v5" />
-				</svg>
-			</span>
-		</a>
-	);
-}
-
 function Caret({ open }: { open: boolean }) {
 	return (
 		<svg
@@ -132,14 +93,11 @@ function Mark() {
 	);
 }
 
-/** The solid surface the two sections stand on once the header splits. */
-const SECTION = "bg-[oklch(0.19_0.006_285)]";
-
 /**
  * The top of the page: the mark and the word on the left with the pages beside them, the way in on the
- * right. At the top it is one attached bar. Scroll, and it splits into two sections that stand on their own,
- * one holding the mark (the word slides away) with the pages, the other holding the buttons, with the page
- * showing through between them. Every box is square, like the rest of Maschina.
+ * right. It is one attached bar, sticky: it stays on screen as the page scrolls, and takes a solid black
+ * background once it does, so nothing passes through the links. Every box is square, like the rest of
+ * Maschina.
  *
  * Product, Developers and Company open a full-width dropdown under the bar when the cursor rests on them,
  * and by click or Escape for keyboards and touch. The page dims behind it. On a phone the pages fold into a
@@ -252,25 +210,14 @@ export function Header({
 			<header
 				onMouseEnter={stay}
 				onMouseLeave={hideSoon}
-				data-detached={scrolled}
-				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${menu || open || searching ? "bg-black" : "bg-transparent"}`}
+				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu || open || searching ? "bg-black" : "bg-transparent"}`}
 			>
-				<div
-					className={`flex items-center justify-between px-(--gutter) transition-[padding] duration-300 ${scrolled ? "py-3" : "py-4"}`}
-				>
-					<div
-						data-group="left"
-						className={`flex items-center transition-[padding,background-color,gap] duration-300 ${scrolled ? `gap-6 px-3 py-1.5 ${SECTION}` : "gap-10"}`}
-					>
+				<div className="flex items-center justify-between px-(--gutter) py-4">
+					<div className="flex items-center gap-10">
 						<a href="/" aria-label="Maschina, home" className="flex items-center">
 							<Mark />
-							<span
-								data-word
-								className={`grid transition-[grid-template-columns,opacity,margin] duration-300 ${scrolled ? "ml-0 grid-cols-[0fr] opacity-0" : "ml-1.5 grid-cols-[1fr] opacity-100"}`}
-							>
-								<span className="overflow-hidden">
-									<img src="/brand/word.svg" alt="" className="h-4 w-auto max-w-none sm:h-5" />
-								</span>
+							<span data-word className="ml-1.5">
+								<img src="/brand/word.svg" alt="" className="h-4 w-auto sm:h-5" />
 							</span>
 						</a>
 						<div className="hidden items-center gap-5 xl:flex">
@@ -311,10 +258,7 @@ export function Header({
 							</button>
 						</div>
 					</div>
-					<div
-						data-group="right"
-						className={`flex items-center gap-3 text-[14px] transition-[padding,background-color] duration-300 ${scrolled ? `xl:bg-[oklch(0.19_0.006_285)] xl:p-1.5` : ""}`}
-					>
+					<div className="flex items-center gap-3 text-[14px]">
 						<a href={signIn} className={`${LINK} hidden px-2 py-2 xl:inline-block`}>
 							Log in
 						</a>

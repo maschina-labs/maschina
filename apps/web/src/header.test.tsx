@@ -461,48 +461,26 @@ describe("the header", () => {
 		expect(screen.getByRole("banner").className).toContain("fixed");
 	});
 
-	it("is one attached bar at the top: nothing behind the left or the right", () => {
+	it("stays one attached bar: it takes a solid background as the page scrolls, and never splits", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header).toHaveAttribute("data-detached", "false");
-		for (const side of ["left", "right"]) {
-			const group = header.querySelector(`[data-group="${side}"]`) as HTMLElement;
-			expect(group.className).not.toMatch(/\bbg-/);
-		}
-		const word = header.querySelector("[data-word]") as HTMLElement;
-		expect(word.className).toContain("grid-cols-[1fr]");
-	});
+		expect(header.className).not.toContain("bg-black");
+		expect(header).not.toHaveAttribute("data-detached");
 
-	it("splits into two sections once the page scrolls: the mark and the pages, and the buttons", () => {
-		render(<Header authUrl={AUTH} />);
-		const header = screen.getByRole("banner");
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
-		expect(header).toHaveAttribute("data-detached", "true");
-		// Each section is a solid box of its own, and the bar between them lets the page show through.
-		for (const side of ["left", "right"]) {
-			const group = header.querySelector(`[data-group="${side}"]`) as HTMLElement;
-			expect(group.className).toMatch(/\bbg-/);
-			expect(group.className).not.toMatch(/rounded/);
-		}
-		expect(header.className).not.toContain("bg-black");
-		// The word slides away and the mark stays, with the pages beside it.
-		const left = header.querySelector('[data-group="left"]') as HTMLElement;
-		expect((header.querySelector("[data-word]") as HTMLElement).className).toContain(
-			"grid-cols-[0fr]",
-		);
-		expect(left.querySelector("[data-mark]")).not.toBeNull();
-		expect(within(left).getByRole("navigation", { name: "Pages" })).toBeInTheDocument();
-		const right = header.querySelector('[data-group="right"]') as HTMLElement;
-		expect(within(right).getByRole("link", { name: "Log in" })).toBeInTheDocument();
-		expect(within(right).getByRole("link", { name: "Try Maschina" })).toBeInTheDocument();
+		// Nothing runs through the links, and the word stays beside the mark.
+		expect(header.className).toContain("bg-black");
+		expect(header).not.toHaveAttribute("data-detached");
+		expect(header.querySelector("[data-group]")).toBeNull();
+		expect(header.querySelector("[data-word] img")).not.toBeNull();
 
 		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
 		fireEvent.scroll(window);
-		expect(header).toHaveAttribute("data-detached", "false");
+		expect(header.className).not.toContain("bg-black");
 	});
 
-	it("keeps the sections solid black behind an open dropdown, so the panel and the bar read as one", () => {
+	it("is solid black behind an open dropdown, so the panel and the bar read as one", () => {
 		render(<Header authUrl={AUTH} />);
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
