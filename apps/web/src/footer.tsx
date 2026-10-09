@@ -265,10 +265,10 @@ export function Footer() {
 			<div className="pt-32">
 				<Logo />
 			</div>
-			{/* The map of the site: columns together on the left, from the margin, each with its pages left aligned. */}
+			{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
 			<nav
 				aria-label="Sitemap"
-				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 sm:flex sm:justify-start sm:gap-x-[clamp(3rem,8vw,8rem)]"
+				className="my-auto grid w-full grid-cols-2 gap-x-6 gap-y-12 py-16 sm:flex sm:justify-end sm:gap-x-[clamp(3rem,8vw,8rem)]"
 			>
 				{SITEMAP.map((column) => (
 					<div key={column.title} className="text-left">
@@ -282,6 +282,20 @@ export function Footer() {
 											className="text-neutral-300 transition-colors hover:text-neutral-100"
 										>
 											{item.label}
+											{item.external ? (
+												<svg
+													viewBox="0 0 12 12"
+													data-arrow="external"
+													className="ml-1.5 inline size-3 text-neutral-500"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth={1.25}
+													strokeLinecap="square"
+													aria-hidden="true"
+												>
+													<path d="M3.5 8.5 8.5 3.5M4 3.5h4.5V8" />
+												</svg>
+											) : null}
 										</a>
 									</li>
 								) : (

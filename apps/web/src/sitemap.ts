@@ -2,21 +2,25 @@ import { MENUS } from "./menus.ts";
 
 type Entry = { label: string; href?: string };
 
-/** One column of the footer's sitemap. A link with no address is not built yet, and shows as Soon. */
-export type Column = { title: string; items: Entry[] };
+/** A link with no address is not built yet and shows as Soon. One with a full address leaves the site. */
+type Link = Entry & { external: boolean };
+
+/** One column of the footer's sitemap. */
+export type Column = { title: string; items: Link[] };
 
 /**
  * Takes an address once: the first column to list a page keeps it, so a page never appears twice. The pages
  * not built yet go last, in the order they were given, so a column reads built pages first.
  */
-function once(items: Entry[], taken: Set<string>): Entry[] {
+function once(items: Entry[], taken: Set<string>): Link[] {
 	const fresh = items.filter((item) => {
 		if (!item.href) return true;
 		if (taken.has(item.href)) return false;
 		taken.add(item.href);
 		return true;
 	});
-	return [...fresh.filter((item) => item.href), ...fresh.filter((item) => !item.href)];
+	const ordered = [...fresh.filter((item) => item.href), ...fresh.filter((item) => !item.href)];
+	return ordered.map((item) => ({ ...item, external: item.href?.startsWith("https://") ?? false }));
 }
 
 const taken = new Set<string>();

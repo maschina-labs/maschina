@@ -52,6 +52,12 @@ describe("the sitemap", () => {
 		}
 	});
 
+	it("knows which links leave the site: those with a full address", () => {
+		const external = all.filter((item) => item.external).map((item) => item.label);
+		expect(external.sort()).toEqual(["GitHub", "X"]);
+		for (const item of all) expect(item.external).toBe(item.href?.startsWith("https://") ?? false);
+	});
+
 	it("has the legal pages", () => {
 		const legal = SITEMAP.find((column) => column.title === "Legal")?.items;
 		expect(legal?.map((item) => item.label)).toEqual(["Terms", "Privacy"]);

@@ -59,7 +59,7 @@ describe("the footer", () => {
 		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
 	});
 
-	it("has the sitemap: four columns on the left, with the pages in each left aligned", () => {
+	it("has the sitemap: four columns on the right, with the pages in each left aligned", () => {
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
@@ -69,11 +69,11 @@ describe("the footer", () => {
 				.map((heading) => heading.textContent),
 		).toEqual(["Product", "Developers", "Company", "Legal"]);
 		expect(nav.className).toContain("w-full");
-		// The columns sit together on the left, starting at the margin, with an even gap between them.
+		// The columns sit together on the right, ending at the margin, with an even gap between them.
 		// Inside each column the pages are left aligned.
 		expect(nav.className).toContain("sm:flex");
-		expect(nav.className).toContain("sm:justify-start");
-		expect(nav.className).not.toContain("sm:justify-between");
+		expect(nav.className).toContain("sm:justify-end");
+		expect(nav.className).not.toContain("sm:justify-start");
 		expect(nav.className).toContain("sm:gap-x-[clamp(3rem,8vw,8rem)]");
 		expect(nav.className).not.toContain("text-center");
 		const headings = within(nav).getAllByRole("heading", { level: 2 });
@@ -81,6 +81,20 @@ describe("the footer", () => {
 		expect(nav.innerHTML).not.toMatch(/rounded/);
 		expect(within(nav).getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
 		expect(within(nav).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+	});
+
+	it("marks the links that leave the site with a small up-right arrow, and no others", () => {
+		render(<Footer />);
+		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
+		for (const name of ["GitHub", "X"]) {
+			const link = nav.getByRole("link", { name });
+			expect(link.querySelector("svg")).toHaveAttribute("data-arrow", "external");
+			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		}
+		for (const link of nav.getAllByRole("link")) {
+			const external = link.getAttribute("href")?.startsWith("https://") ?? false;
+			expect(link.querySelector("svg") !== null).toBe(external);
+		}
 	});
 
 	it("shows the pages that are not built as dimmed text tagged Soon, never as links", () => {
