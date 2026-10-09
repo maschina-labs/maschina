@@ -216,13 +216,13 @@ export function Header({
 			<header onMouseEnter={stay} onMouseLeave={hideSoon} className="fixed inset-x-0 top-0 z-40">
 				{/*
 				 * Behind the bar, two layers. Once the page scrolls the bar is black at its top and fades to
-				 * nothing at its foot, so the page shows through. While a dropdown, the search or the phone menu
+				 * nothing well below its foot, with a blur that fades out too, so the page softens under it. While a dropdown, the search or the phone menu
 				 * is open it fills in solid, so the panel and the bar read as one piece.
 				 */}
 				<div
 					data-fade
 					aria-hidden="true"
-					className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+1rem)] bg-gradient-to-b from-black to-transparent transition-opacity duration-200 motion-reduce:transition-none ${scrolled ? "opacity-100" : "opacity-0"}`}
+					className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+3.5rem)] bg-gradient-to-b from-black to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_50%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent)] transition-opacity duration-200 motion-reduce:transition-none ${scrolled ? "opacity-100" : "opacity-0"}`}
 				/>
 				<div
 					data-solid

@@ -208,6 +208,15 @@ describe("the header", () => {
 		expect(className).not.toContain("bg-black/60");
 	});
 
+	it("keeps the content of the bar where it was: same height and padding, with the blur behind it", () => {
+		render(<Header authUrl={AUTH} />);
+		const header = screen.getByRole("banner");
+		const bar = header.querySelector("[data-fade]")?.nextElementSibling
+			?.nextElementSibling as HTMLElement;
+		expect(bar.className).toContain("py-4");
+		expect(bar.className).toContain("px-(--gutter)");
+	});
+
 	it("takes a solid background while a dropdown is open, so the two read as one piece", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
@@ -503,6 +512,16 @@ describe("the header", () => {
 		expect(fade().className).toContain("bg-gradient-to-b");
 		expect(fade().className).toContain("from-black");
 		expect(fade().className).toContain("to-transparent");
+		// It reaches well below the bar and blurs what is behind it, fading out with the gradient, so the page
+		// softens under the header as it scrolls up. It is a layer behind the bar, so the content does not move.
+		expect(fade().className).toContain("h-[calc(100%+3.5rem)]");
+		expect(fade().className).toContain("backdrop-blur-md");
+		expect(fade().className).toContain(
+			"[mask-image:linear-gradient(to_bottom,black_50%,transparent)]",
+		);
+		expect(fade().className).toContain("-z-10");
+		expect(fade().className).toContain("absolute");
+		expect(header.firstElementChild).toBe(fade());
 		expect(fade()).toHaveAttribute("aria-hidden", "true");
 		expect(fade().className).toContain("pointer-events-none");
 		// Still no solid fill while nothing is open.
