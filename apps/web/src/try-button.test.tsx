@@ -19,6 +19,10 @@ describe("the try button", () => {
 		expect(link.className).toContain("group");
 		expect(glint?.className).toContain("group-hover:translate-x-");
 		expect(glint?.className).toContain("motion-reduce:hidden");
+		// The light passes behind the chip, never over it.
+		const chip = link.querySelector("[data-chip]");
+		expect(chip?.className).toContain("relative");
+		expect(chip?.className).toContain("z-10");
 		// It sweeps in on hover and does not sweep back on leave: only the hover state has a transition.
 		const tokens = glint?.className.split(" ") ?? [];
 		expect(tokens).toContain("group-hover:transition-transform");

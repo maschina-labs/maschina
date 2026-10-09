@@ -29,7 +29,10 @@ export function TryButton({
 		>
 			{glint ? <Glint tone="via-white" /> : null}
 			<span className={labelClassName}>{label}</span>
-			<span data-chip className={`grid place-items-center bg-black text-white ${chipClassName}`}>
+			<span
+				data-chip
+				className={`relative z-10 grid place-items-center bg-black text-white ${chipClassName}`}
+			>
 				<svg
 					viewBox="0 0 12 12"
 					className="size-3"
