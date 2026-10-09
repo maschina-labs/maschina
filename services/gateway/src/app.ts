@@ -9,6 +9,7 @@ import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.t
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
 import { newsRoutes } from "./routes/news.ts";
+import { type PublicRecordDesk, publicRecordRoutes } from "./routes/public-record.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
 
 export type GatewayDeps = {
@@ -28,6 +29,8 @@ export type GatewayDeps = {
 	manager?: ManagerPorts | undefined;
 	/** The headlines from the publishers' feeds. Left out, the news is empty. */
 	news?: NewsDesk | undefined;
+	/** The finished trades of the one machine chosen to be shown to everyone. Left out, the public record is empty. */
+	publicRecord?: PublicRecordDesk | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -58,7 +61,8 @@ function v1(deps: GatewayDeps) {
 		.route("/", machineRoutes(deps.machines))
 		.route("/", authRoutes(deps.auth, deps.cookie))
 		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))
-		.route("/", newsRoutes(deps.news, deps.clock ?? systemClock));
+		.route("/", newsRoutes(deps.news, deps.clock ?? systemClock))
+		.route("/", publicRecordRoutes(deps.publicRecord));
 }
 
 export function buildApp(deps: GatewayDeps) {

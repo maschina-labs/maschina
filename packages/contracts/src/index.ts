@@ -43,3 +43,4 @@ export * from "./auth.ts";
 export * from "./machines.ts";
 export * from "./manager.ts";
 export * from "./news.ts";
+export * from "./public-record.ts";

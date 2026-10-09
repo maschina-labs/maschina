@@ -35,6 +35,7 @@ startServer({
 		halt: gateway.halt,
 		manager: gateway.manager,
 		news: newsDesk({ clock: systemClock }),
+		publicRecord: gateway.publicRecord,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,
