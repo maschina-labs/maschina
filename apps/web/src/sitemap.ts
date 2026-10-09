@@ -37,10 +37,11 @@ export const COLUMNS: { name: string; links: Link[] }[] = [
 			soon,
 		),
 	},
+	{
+		name: "Legal",
+		links: ["Terms", "Privacy", "Risk disclosure", "Security policy", "License"].map(soon),
+	},
 ];
-
-/** The legal pages sit on the copyright line rather than in a column of their own. */
-export const LEGAL: Link[] = ["Terms", "Privacy", "Risk", "Security", "License"].map(soon);
 
 /** Where Maschina is, with each one's icon drawn on a 24 by 24 grid. */
 export const SOCIALS: (Link & { icon: string })[] = [

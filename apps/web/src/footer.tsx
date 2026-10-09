@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { COLUMNS, LEGAL, SOCIALS } from "./sitemap.ts";
+import { COLUMNS, SOCIALS } from "./sitemap.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
 
@@ -41,7 +41,7 @@ const LANGUAGES = [{ code: "en", name: "English" }];
 
 function Language() {
 	return (
-		<label className="relative flex items-center gap-2 border border-white/10 py-1.5 pr-8 pl-3 transition-colors hover:border-white/25">
+		<label className="relative flex items-center gap-2 bg-white/[0.07] py-2 pr-8 pl-3 text-neutral-300 transition-colors hover:bg-white/[0.11]">
 			<svg
 				viewBox="0 0 24 24"
 				className="size-[14px]"
@@ -56,10 +56,15 @@ function Language() {
 			<select
 				aria-label="Language"
 				defaultValue="en"
-				className="cursor-pointer appearance-none bg-transparent text-neutral-400 outline-none"
+				className="cursor-pointer appearance-none bg-transparent text-neutral-300 outline-none"
 			>
 				{LANGUAGES.map((language) => (
-					<option key={language.code} value={language.code} className="bg-black">
+					<option
+						key={language.code}
+						value={language.code}
+						label={language.code.toUpperCase()}
+						className="bg-black"
+					>
 						{language.name}
 					</option>
 				))}
@@ -93,9 +98,9 @@ function StatusMark() {
 	return (
 		<div
 			role="status"
-			className="flex w-max items-center gap-2 border border-white/10 px-3 py-1.5 text-[13px] text-neutral-400"
+			className="flex w-max items-center gap-2.5 bg-white/[0.07] px-3 py-2 text-[13px] text-neutral-300"
 		>
-			<span aria-hidden="true" className={`size-1.5 ${shown.color}`} />
+			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
 			<span>{shown.label}</span>
 		</div>
 	);
@@ -127,7 +132,7 @@ export function Footer() {
 						The operating system for autonomous capital.
 					</p>
 				</div>
-				<div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 sm:gap-x-20">
+				<div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-5 sm:gap-x-16">
 					{COLUMNS.map((column) => (
 						<nav key={column.name} aria-label={column.name} className="flex flex-col gap-4">
 							<span className="text-[13px] text-neutral-200">{column.name}</span>
@@ -166,21 +171,12 @@ export function Footer() {
 							</svg>
 						</a>
 					))}
-					<Language />
-					<StatusMark />
 				</div>
 				<p>© {new Date().getFullYear()} Maschina Labs. All rights reserved.</p>
-				<nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2 lg:justify-self-end">
-					{LEGAL.map((link) => (
-						<a
-							key={link.label}
-							href={link.href}
-							className="transition-colors hover:text-neutral-100"
-						>
-							{link.label}
-						</a>
-					))}
-				</nav>
+				<div className="flex items-center gap-3 lg:justify-self-end">
+					<StatusMark />
+					<Language />
+				</div>
 			</div>
 			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
 				<svg

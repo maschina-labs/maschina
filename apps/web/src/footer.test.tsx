@@ -60,10 +60,10 @@ describe("the footer", () => {
 		expect(within(machines).getByRole("link", { name: "AI index" })).toBeInTheDocument();
 	});
 
-	it("keeps the legal pages on the copyright line", () => {
+	it("gives legal a column of its own", () => {
 		render(<Footer />);
 		const legal = screen.getByRole("navigation", { name: "Legal" });
-		for (const page of ["Terms", "Privacy", "Risk", "Security", "License"]) {
+		for (const page of ["Terms", "Privacy", "Risk disclosure", "Security policy", "License"]) {
 			expect(within(legal).getByRole("link", { name: page })).toBeInTheDocument();
 		}
 	});
