@@ -407,6 +407,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@maschina/field':
+        specifier: workspace:*
+        version: link:../../packages/field
       react:
         specifier: 'catalog:'
         version: 19.3.0

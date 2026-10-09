@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The backgrounds live in their own package, which Tailwind does not read unless told to. */
+@source "../../../packages/field/src";
 
 /* Söhne, the same licensed files the app uses. They are not in the repository: they are served from the
    private bucket in production and copied in for local work (pnpm fonts). */

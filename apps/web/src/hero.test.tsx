@@ -1,5 +1,18 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+// The ribbon is WebGL, which a test browser does not have, so it is stood in for. The field has its own tests.
+vi.mock("@maschina/field", () => ({
+	FogBackground: (props: { field?: string; motion?: string; position?: string }) => (
+		<div
+			data-testid="ribbon"
+			data-field={props.field}
+			data-motion={props.motion}
+			data-position={props.position}
+		/>
+	),
+}));
+
 import { Hero } from "./hero.tsx";
 
 const AUTH = "https://auth.maschina.dev";
@@ -58,5 +71,87 @@ describe("the hero", () => {
 	it("has no rounded corners anywhere", () => {
 		const { container } = render(<Hero authUrl={AUTH} />);
 		expect(container.innerHTML).not.toMatch(/rounded/);
+	});
+
+	it("draws the silver and pearl ribbon behind the words, calmly, once the words are on screen", async () => {
+		render(<Hero authUrl={AUTH} />);
+		// The headline is there at once; the heavy background is loaded afterwards, on its own.
+		expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+		const ribbon = await screen.findByTestId("ribbon");
+		expect(ribbon).toHaveAttribute("data-field", "ribbon");
+		expect(ribbon).toHaveAttribute("data-motion", "calm");
+		expect(ribbon).toHaveAttribute("data-position", "absolute");
+	});
+
+	it("floats the pieces of the operating system around the words, as decoration only", () => {
+		render(<Hero authUrl={AUTH} />);
+		const tiles = screen.getByRole("region", { name: "Maschina" }).querySelectorAll("[data-tile]");
+		expect([...tiles].map((tile) => tile.getAttribute("data-tile"))).toEqual([
+			"Wallet",
+			"Budget",
+			"Rules",
+			"Signer",
+			"Record",
+		]);
+		for (const tile of tiles) {
+			expect(tile).toHaveAttribute("aria-hidden", "true");
+			expect(Number(tile.getAttribute("data-depth"))).toBeGreaterThan(0);
+			expect(tile.className).not.toMatch(/rounded/);
+			expect(tile.textContent?.length).toBeGreaterThan(20);
+		}
+	});
+
+	it("moves the pieces with the cursor, each by its own depth, and settles when it leaves", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		section.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 1000, height: 800 }) as DOMRect;
+
+		fireEvent.pointerMove(section, { clientX: 1000, clientY: 400, pointerType: "mouse" });
+		expect(section.style.getPropertyValue("--px")).toBe("1");
+		expect(section.style.getPropertyValue("--py")).toBe("0");
+		fireEvent.pointerMove(section, { clientX: 250, clientY: 800, pointerType: "mouse" });
+		expect(section.style.getPropertyValue("--px")).toBe("-0.5");
+		expect(section.style.getPropertyValue("--py")).toBe("1");
+
+		fireEvent.pointerLeave(section);
+		expect(section.style.getPropertyValue("--px")).toBe("0");
+		expect(section.style.getPropertyValue("--py")).toBe("0");
+
+		// A finger is not a cursor: touch moves nothing, only scrolling does.
+		fireEvent.pointerMove(section, { clientX: 1000, clientY: 400, pointerType: "touch" });
+		expect(section.style.getPropertyValue("--px")).toBe("0");
+	});
+
+	it("moves the pieces as the page scrolls", () => {
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		Object.defineProperty(window, "scrollY", { value: 300, configurable: true });
+		fireEvent.scroll(window);
+		expect(section.style.getPropertyValue("--sy")).toBe("300");
+		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+		fireEvent.scroll(window);
+		expect(section.style.getPropertyValue("--sy")).toBe("0");
+	});
+
+	it("keeps everything still for anyone who asks their system for less motion", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			matches: query.includes("reduce"),
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+		})) as unknown as typeof window.matchMedia;
+		render(<Hero authUrl={AUTH} />);
+		const section = screen.getByRole("region", { name: "Maschina" });
+		section.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 1000, height: 800 }) as DOMRect;
+		fireEvent.pointerMove(section, { clientX: 1000, clientY: 400, pointerType: "mouse" });
+		Object.defineProperty(window, "scrollY", { value: 300, configurable: true });
+		fireEvent.scroll(window);
+		expect(section.style.getPropertyValue("--px")).toBe("");
+		expect(section.style.getPropertyValue("--sy")).toBe("");
+		window.matchMedia = real;
+		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
 	});
 });
