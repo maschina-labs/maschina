@@ -71,7 +71,7 @@ describe("the footer", () => {
 		).toBeInTheDocument();
 	});
 
-	it("opens a popover above the language button, with only the languages that exist", () => {
+	it("opens a popover above the language button, listing the languages", () => {
 		render(<Footer />);
 		const button = screen.getByRole("button", { name: "Language" });
 		expect(button).toHaveTextContent("EN");
@@ -82,12 +82,68 @@ describe("the footer", () => {
 		expect(button).toHaveAttribute("aria-expanded", "true");
 		const list = screen.getByRole("listbox", { name: "Language" });
 		const options = within(list).getAllByRole("option");
-		expect(options.map((option) => option.textContent)).toEqual(["English"]);
+		const names = options.map((option) => option.textContent);
+		// English first, then the world's most used languages, each under its own name.
+		expect(names[0]).toBe("English");
+		expect(names).toEqual(
+			expect.arrayContaining([
+				"Español",
+				"Français",
+				"Deutsch",
+				"Português",
+				"日本語",
+				"한국어",
+				"العربية",
+				"हिन्दी",
+			]),
+		);
+		expect(new Set(names).size).toBe(names.length);
 		expect(options[0]).toHaveAttribute("aria-selected", "true");
+		expect(
+			options.filter((option) => option.getAttribute("aria-selected") === "true"),
+		).toHaveLength(1);
+		// A long list scrolls inside the popover, not off the screen.
+		expect(list.className).toContain("overflow-y-auto");
+		expect(list.className).toMatch(/max-h-/);
 		// The footer is at the foot of the page, so it opens upward, square, and tied to the box.
 		expect(list.parentElement?.className).toContain("bottom-full");
 		expect(list.parentElement?.className).toContain("right-0");
 		expect(list.parentElement?.innerHTML).not.toMatch(/rounded/);
+	});
+
+	it("puts a small square box before each language, with a check in the one that is chosen", () => {
+		render(<Footer />);
+		fireEvent.click(screen.getByRole("button", { name: "Language" }));
+		const list = screen.getByRole("listbox", { name: "Language" });
+		const options = within(list).getAllByRole("option");
+		for (const option of options) {
+			const box = option.querySelector("[data-box]") as HTMLElement;
+			expect(box).not.toBeNull();
+			// The box comes first, inside the option, so the whole row is one thing to click.
+			expect(option.firstElementChild).toBe(box);
+			expect(box.className).not.toMatch(/rounded/);
+			const chosen = option.getAttribute("aria-selected") === "true";
+			expect(box.querySelector("svg") !== null).toBe(chosen);
+		}
+	});
+
+	it("switches the chosen language, shows its code on the button, and closes", async () => {
+		render(<Footer />);
+		const button = screen.getByRole("button", { name: "Language" });
+		fireEvent.click(button);
+		fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Español" }));
+		await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+		expect(button).toHaveTextContent("ES");
+		fireEvent.click(button);
+		const options = within(screen.getByRole("listbox")).getAllByRole("option");
+		expect(options.find((o) => o.textContent === "Español")).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
+		expect(options.find((o) => o.textContent === "English")).toHaveAttribute(
+			"aria-selected",
+			"false",
+		);
 	});
 
 	it("closes the popover on Escape, on a click elsewhere, and on choosing a language", async () => {

@@ -37,8 +37,35 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
-/** Only languages the site is written in are offered. English, until a translation is real. */
-const LANGUAGES = [{ code: "en", name: "English" }];
+/**
+ * The languages offered, each under its own name, English first. Choosing one is only a choice for now: the
+ * site itself is written in English until the translations exist.
+ */
+const LANGUAGES = [
+	{ code: "en", name: "English" },
+	{ code: "es", name: "Español" },
+	{ code: "fr", name: "Français" },
+	{ code: "de", name: "Deutsch" },
+	{ code: "it", name: "Italiano" },
+	{ code: "pt", name: "Português" },
+	{ code: "nl", name: "Nederlands" },
+	{ code: "pl", name: "Polski" },
+	{ code: "tr", name: "Türkçe" },
+	{ code: "ru", name: "Русский" },
+	{ code: "uk", name: "Українська" },
+	{ code: "ar", name: "العربية" },
+	{ code: "he", name: "עברית" },
+	{ code: "hi", name: "हिन्दी" },
+	{ code: "bn", name: "বাংলা" },
+	{ code: "zh", name: "简体中文" },
+	{ code: "zh-tw", name: "繁體中文" },
+	{ code: "ja", name: "日本語" },
+	{ code: "ko", name: "한국어" },
+	{ code: "id", name: "Bahasa Indonesia" },
+	{ code: "vi", name: "Tiếng Việt" },
+	{ code: "th", name: "ไทย" },
+	{ code: "fil", name: "Filipino" },
+] as const;
 
 /** How long the popover takes to leave, so it fades away rather than blinking out. */
 const POPOVER_EXIT_MS = 180;
@@ -104,9 +131,13 @@ function Language() {
 			</button>
 			{popover.mounted ? (
 				<div
-					className={`absolute right-0 bottom-full z-10 mb-2 w-44 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+					className={`absolute right-0 bottom-full z-10 mb-2 w-56 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
 				>
-					<div role="listbox" aria-label="Language" className="flex flex-col p-1">
+					<div
+						role="listbox"
+						aria-label="Language"
+						className="flex max-h-72 flex-col overflow-y-auto p-1"
+					>
 						{LANGUAGES.map((language) => (
 							<button
 								key={language.code}
@@ -118,22 +149,27 @@ function Language() {
 									setOpen(false);
 									button.current?.focus();
 								}}
-								className="flex items-center justify-between px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
+								className="flex items-center gap-3 px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
 							>
+								<span
+									data-box
+									className={`grid size-4 shrink-0 place-items-center border ${chosen === language.code ? "border-transparent bg-[oklch(0.93_0.02_300)] text-black" : "border-white/25"}`}
+								>
+									{chosen === language.code ? (
+										<svg
+											viewBox="0 0 24 24"
+											className="size-3"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth={3}
+											strokeLinecap="square"
+											aria-hidden="true"
+										>
+											<path d="m5 12.5 4.5 4.5L19 7.5" />
+										</svg>
+									) : null}
+								</span>
 								<span>{language.name}</span>
-								{chosen === language.code ? (
-									<svg
-										viewBox="0 0 24 24"
-										className="size-[14px]"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={1.75}
-										strokeLinecap="square"
-										aria-hidden="true"
-									>
-										<path d="m5 12.5 4.5 4.5L19 7.5" />
-									</svg>
-								) : null}
 							</button>
 						))}
 					</div>
