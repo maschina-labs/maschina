@@ -35,6 +35,7 @@ export function Header({ authUrl }: { authUrl: string }) {
 		return () => window.removeEventListener("scroll", onScroll);
 	}, []);
 	const signIn = `${authUrl}/sign-in`;
+	const signUp = `${authUrl}/sign-up`;
 
 	return (
 		<header
@@ -51,27 +52,39 @@ export function Header({ authUrl }: { authUrl: string }) {
 						</a>
 					))}
 				</nav>
-				<div className="col-start-3 flex items-center gap-2 justify-self-end text-[13px] sm:gap-3 sm:text-[14px]">
+				<div className="col-start-3 flex items-center gap-3 justify-self-end text-[14px]">
 					<a
 						href={signIn}
-						className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] sm:inline-block"
+						className="hidden bg-white/[0.13] px-4 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] lg:inline-block"
 					>
 						Sign in
 					</a>
 					<a
-						href={`${authUrl}/sign-up`}
-						className="bg-[oklch(0.93_0.02_300)] px-3 py-2 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] sm:px-4"
+						href={signUp}
+						className="hidden bg-[oklch(0.93_0.02_300)] px-4 py-2 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] lg:inline-block"
 					>
 						Sign up
 					</a>
+					{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 					<button
 						type="button"
+						aria-label="Menu"
 						aria-expanded={open}
 						aria-controls="pages-menu"
 						onClick={() => setOpen((now) => !now)}
-						className="bg-white/[0.13] px-3 py-2 text-neutral-200 transition-colors hover:bg-white/[0.18] lg:hidden"
+						className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] lg:hidden"
 					>
-						{open ? "Close" : "Menu"}
+						<svg
+							viewBox="0 0 20 20"
+							className="size-5"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth={1.5}
+							strokeLinecap="square"
+							aria-hidden="true"
+						>
+							{open ? <path d="M4 4l12 12M16 4L4 16" /> : <path d="M3 6h14M3 10h14M3 14h14" />}
+						</svg>
 					</button>
 				</div>
 			</div>
@@ -79,16 +92,27 @@ export function Header({ authUrl }: { authUrl: string }) {
 				<nav
 					id="pages-menu"
 					aria-label="Pages, menu"
-					className="mx-(--gutter) flex flex-col bg-[oklch(0.19_0.006_285)] p-2 lg:hidden"
+					className="mx-(--gutter) flex flex-col gap-1 bg-[oklch(0.19_0.006_285)] p-2 lg:hidden"
 				>
 					{PAGES.map((page) => (
 						<a key={page.label} href={page.href} className={`${LINK} px-3 py-3`}>
 							{page.label}
 						</a>
 					))}
-					<a href={signIn} className={`${LINK} px-3 py-3 sm:hidden`}>
-						Sign in
-					</a>
+					<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
+						<a
+							href={signIn}
+							className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"
+						>
+							Sign in
+						</a>
+						<a
+							href={signUp}
+							className="bg-[oklch(0.93_0.02_300)] px-4 py-3 text-center text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+						>
+							Sign up
+						</a>
+					</div>
 				</nav>
 			) : null}
 		</header>

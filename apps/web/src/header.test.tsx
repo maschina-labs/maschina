@@ -47,9 +47,28 @@ describe("the header", () => {
 		const open = within(screen.getByRole("navigation", { name: "Pages, menu" }));
 		expect(open.getByRole("link", { name: "Security" })).toBeInTheDocument();
 		expect(open.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `${AUTH}/sign-in`);
+		expect(open.getByRole("link", { name: "Sign up" })).toHaveAttribute("href", `${AUTH}/sign-up`);
 
 		fireEvent.click(menu);
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
+	});
+
+	it("shows sign in and sign up as buttons only on a wide screen", () => {
+		render(<Header authUrl={AUTH} />);
+		for (const name of ["Sign in", "Sign up"]) {
+			const link = within(screen.getByRole("banner")).getByRole("link", { name });
+			expect(link.className).toContain("hidden");
+			expect(link.className).toContain("lg:inline-block");
+		}
+	});
+
+	it("is a hamburger in a box of its own on a phone: an icon, no words", () => {
+		render(<Header authUrl={AUTH} />);
+		const menu = screen.getByRole("button", { name: "Menu" });
+		expect(menu).toHaveAttribute("aria-label", "Menu");
+		expect(menu.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(menu).toHaveTextContent("");
+		expect(menu.className).toContain("lg:hidden");
 	});
 
 	it("is sticky: it stays at the top of the screen as the page scrolls", () => {
