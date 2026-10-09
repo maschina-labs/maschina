@@ -19,7 +19,7 @@ export function TryButton({
 	labelClassName: string;
 	chipClassName: string;
 	label?: string;
-	/** A sweep of light on hover. Off in the header, where the button stays plain. */
+	/** A sweep of light on hover. */
 	glint?: boolean;
 }) {
 	return (
@@ -27,8 +27,8 @@ export function TryButton({
 			href={href}
 			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
 		>
-			{glint ? <Glint tone="via-white" /> : null}
 			<span className={labelClassName}>{label}</span>
+			{glint ? <Glint tone="via-white" /> : null}
 			<span
 				data-chip
 				className={`relative z-10 grid place-items-center bg-black text-white ${chipClassName}`}
