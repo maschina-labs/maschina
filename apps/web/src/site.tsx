@@ -6,7 +6,7 @@ export function Site({ authUrl }: { authUrl: string }) {
 	return (
 		<div className="flex min-h-dvh flex-col bg-black">
 			<Header authUrl={authUrl} />
-			<main aria-label="Maschina" className="flex-1" />
+			<main aria-label="Maschina" className="min-h-[200dvh] flex-1" />
 			<Footer />
 		</div>
 	);

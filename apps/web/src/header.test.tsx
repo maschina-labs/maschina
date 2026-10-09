@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Header } from "./header.tsx";
 
@@ -25,6 +25,25 @@ describe("the header", () => {
 			"href",
 			"http://localhost:3001/sign-up",
 		);
+	});
+
+	it("stays at the top of the screen as the page scrolls", () => {
+		render(<Header authUrl="https://auth.maschina.dev" />);
+		expect(screen.getByRole("banner").className).toContain("fixed");
+	});
+
+	it("starts attached to the top, detaches once the page scrolls, and attaches again at the top", () => {
+		render(<Header authUrl="https://auth.maschina.dev" />);
+		const header = screen.getByRole("banner");
+		expect(header).toHaveAttribute("data-detached", "false");
+
+		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
+		fireEvent.scroll(window);
+		expect(header).toHaveAttribute("data-detached", "true");
+
+		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+		fireEvent.scroll(window);
+		expect(header).toHaveAttribute("data-detached", "false");
 	});
 
 	it("has no rounded corners anywhere", () => {
