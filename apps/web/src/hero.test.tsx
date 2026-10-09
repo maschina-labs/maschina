@@ -48,6 +48,11 @@ describe("the hero", () => {
 		expect(docs).toHaveAttribute("href", "/docs");
 		// The docs are plain text, in no box: only the main button is a box.
 		expect(docs.className).not.toMatch(/\bbg-/);
+		// A bare right chevron after the words: no chip, no box around it.
+		expect(docs.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(docs.querySelector("svg")).toHaveAttribute("data-arrow", "chevron");
+		expect(docs.querySelector("[data-chip]")).toBeNull();
+		expect(docs.lastElementChild?.tagName.toLowerCase()).toBe("svg");
 	});
 
 	it("has nothing else on it: no line under the headline, nothing floating", () => {
