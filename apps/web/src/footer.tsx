@@ -272,7 +272,7 @@ export function Footer() {
 			>
 				{SITEMAP.map((column) => (
 					<div key={column.title} className="text-left">
-						<h2 className="text-[13px] text-white">{column.title}</h2>
+						<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
 						<ul className="mt-4 flex flex-col gap-2.5 text-[15px]">
 							{column.items.map((item) =>
 								item.href ? (

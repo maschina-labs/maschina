@@ -88,6 +88,9 @@ describe("the footer", () => {
 		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
 		for (const heading of nav.getAllByRole("heading", { level: 2 })) {
 			expect(heading.className).toContain("text-white");
+			// In capitals on screen, but written in sentence case, so the names stay as they are.
+			expect(heading.className).toContain("uppercase");
+			expect(heading.textContent).not.toBe(heading.textContent?.toUpperCase());
 		}
 		for (const link of nav.getAllByRole("link")) {
 			expect(link.className).toContain("text-neutral-500");
