@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Site } from "./site.tsx";
 
 describe("the front page", () => {
-	it("shows the proof section straight after the hero, so its top edge peeks in on a first screen", () => {
+	it("has the proof section straight after the hero", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = within(screen.getByRole("main"));
 		const hero = main.getByRole("region", { name: "Maschina" });

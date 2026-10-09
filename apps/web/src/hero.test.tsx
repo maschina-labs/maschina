@@ -18,13 +18,13 @@ vi.mock("@maschina/field", () => ({
 const AUTH = "https://auth.maschina.dev";
 
 describe("the hero", () => {
-	it("is most of a screen with everything centered in it", () => {
+	it("is a full screen with everything centered in it", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		// Not a full screen: the next section shows under it, as a peek at what comes next.
-		expect(section.className).toContain("h-[84dvh]");
+		// A full screen: nothing of the next section shows until you scroll.
+		expect(section.className).toContain("h-dvh");
 		expect(section.className).toContain("min-h-[36rem]");
-		expect(section.className).not.toContain("min-h-dvh");
+		expect(section.className).not.toContain("84dvh");
 		expect(section.className).toContain("items-center");
 		expect(section.className).toContain("justify-center");
 		expect(section.className).toContain("text-center");
@@ -184,6 +184,14 @@ describe("the hero", () => {
 			expect(link.querySelector("[data-glint]")).toHaveAttribute("aria-hidden", "true");
 			expect(link.className).toContain("overflow-hidden");
 		}
+	});
+
+	it("stays pinned to the top of the screen, so the next section can roll over it", () => {
+		render(<Hero authUrl={AUTH} />);
+		const { className } = screen.getByRole("region", { name: "Maschina" });
+		expect(className).toContain("sticky");
+		expect(className).toContain("top-0");
+		expect(className).toContain("z-0");
 	});
 
 	it("has a bigger headline than before", () => {
