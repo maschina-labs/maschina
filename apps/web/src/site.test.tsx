@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import { Site } from "./site.tsx";
 
 describe("the front page", () => {
-	it("gives the page a full screen of room, so there is something to scroll through", () => {
+	it("shows the proof section straight after the hero, so its top edge peeks in on a first screen", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
-		expect(screen.getByRole("main").className).toContain("min-h-[200dvh]");
+		const main = within(screen.getByRole("main"));
+		const hero = main.getByRole("region", { name: "Maschina" });
+		const proof = main.getByRole("region", { name: "Proof" });
+		expect(hero.nextElementSibling).toBe(proof);
 	});
 
 	it("has the header, then the hero with its headline, and ends with the footer", () => {

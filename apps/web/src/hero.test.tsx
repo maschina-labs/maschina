@@ -18,10 +18,13 @@ vi.mock("@maschina/field", () => ({
 const AUTH = "https://auth.maschina.dev";
 
 describe("the hero", () => {
-	it("is a full screen with everything centered in it", () => {
+	it("is most of a screen with everything centered in it", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		expect(section.className).toContain("min-h-dvh");
+		// Not a full screen: the next section shows under it, as a peek at what comes next.
+		expect(section.className).toContain("h-[84dvh]");
+		expect(section.className).toContain("min-h-[36rem]");
+		expect(section.className).not.toContain("min-h-dvh");
 		expect(section.className).toContain("items-center");
 		expect(section.className).toContain("justify-center");
 		expect(section.className).toContain("text-center");
