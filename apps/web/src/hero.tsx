@@ -81,7 +81,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					href="/docs"
 					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 py-3 text-neutral-200 transition-colors hover:bg-white/[0.18]"
 				>
-					<Glint tone="via-white/25" />
+					<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />
 					Read the docs
 				</a>
 			</div>

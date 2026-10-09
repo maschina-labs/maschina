@@ -25,10 +25,12 @@ export function TryButton({
 	return (
 		<a
 			href={href}
-			className={`items-center gap-3 bg-[linear-gradient(135deg,oklch(0.8_0.02_270),oklch(0.95_0.02_300)_50%,oklch(0.82_0.025_280))] text-black transition-[filter] hover:brightness-105 ${glint ? "group relative overflow-hidden " : ""}${className}`}
+			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black shadow-[inset_0_0_0_1px_oklch(1_0_0/0.95),0_0_0_1px_oklch(0.74_0.035_290/0.8)] transition-colors hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
 		>
 			<span className={labelClassName}>{label}</span>
-			{glint ? <Glint tone="via-white" /> : null}
+			{glint ? (
+				<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(0.78_0.04_290/0.5)_36%,oklch(1_0_0)_50%,oklch(0.78_0.04_290/0.5)_64%,transparent)]" />
+			) : null}
 			<span
 				data-chip
 				className={`relative z-10 grid place-items-center bg-black text-white ${chipClassName}`}

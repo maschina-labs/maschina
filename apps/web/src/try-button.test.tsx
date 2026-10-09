@@ -10,14 +10,25 @@ describe("the try button", () => {
 		expect(screen.getByRole("link").querySelector("[data-glint]")).toBeNull();
 	});
 
-	it("is silver at the edges and pearl in the middle, so a white glint has something to shine against", () => {
+	it("is plain pearl, with a bright outline that makes it look polished", () => {
 		render(<TryButton {...props} glint />);
-		const link = screen.getByRole("link");
-		expect(link.className).toContain("bg-[linear-gradient(");
-		// A flat near-white pearl hid the glint; the button is no longer flat.
-		expect(link.className).not.toContain("bg-[oklch(0.93");
-		expect(link.querySelector("[data-glint]")?.className).toContain("via-white");
-		expect(link.querySelector("[data-glint]")?.className).toContain("blur-");
+		const { className } = screen.getByRole("link");
+		expect(className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(className).not.toContain("linear-gradient");
+		expect(className).toContain("hover:bg-[oklch(0.98_0.015_300)]");
+		// A white line just inside the edge and a silver one just outside it, so the edge catches the light.
+		expect(className).toMatch(/shadow-\[[^\]]*inset[^\]]*\]/);
+		expect(className).toContain("oklch(1_0_0");
+		expect(className).not.toMatch(/rounded/);
+	});
+
+	it("has a glint that shows on pearl: a white core with silver on either side of it", () => {
+		render(<TryButton {...props} glint />);
+		const glint = screen.getByRole("link").querySelector("[data-glint]");
+		expect(glint?.className).toContain("linear-gradient(90deg");
+		expect(glint?.className).toContain("oklch(1_0_0)");
+		expect(glint?.className).toContain("oklch(0.78_0.04_290");
+		expect(glint?.className).toContain("blur-");
 	});
 
 	it("can carry a glint that sweeps across on hover, hidden from assistive technology", () => {
