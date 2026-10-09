@@ -52,11 +52,23 @@ describe("the header", () => {
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
-	it("stays attached to the top of the page, and scrolls away with it", () => {
+	it("is sticky: it stays at the top of the screen as the page scrolls", () => {
+		render(<Header authUrl={AUTH} />);
+		expect(screen.getByRole("banner").className).toContain("fixed");
+	});
+
+	it("gets a solid background once the page scrolls, so nothing runs through it", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header.className).toContain("absolute");
-		expect(header.className).not.toContain("fixed");
+		expect(header.className).not.toContain("bg-black");
+
+		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
+		fireEvent.scroll(window);
+		expect(header.className).toContain("bg-black");
+
+		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+		fireEvent.scroll(window);
+		expect(header.className).not.toContain("bg-black");
 	});
 
 	it("keeps to the shared page margin, with no rounded corners", () => {
