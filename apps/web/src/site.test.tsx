@@ -11,12 +11,14 @@ describe("the front page", () => {
 		);
 	});
 
-	it("has the hero, then the closing call to action, then the footer", () => {
+	it("has the hero, then what it is built with, then the closing section, then the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
 		const hero = within(main).getByRole("region", { name: "Maschina" });
+		const builtWith = within(main).getByRole("region", { name: "Built with" });
 		const closing = within(main).getByRole("region", { name: "Get started" });
-		expect(hero.nextElementSibling).toBe(closing);
+		expect(hero.nextElementSibling).toBe(builtWith);
+		expect(builtWith.nextElementSibling).toBe(closing);
 		// The hero is pinned inside the main, so the closing section rolls up over it; the footer follows.
 		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});

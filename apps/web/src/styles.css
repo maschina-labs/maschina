@@ -48,33 +48,17 @@ body {
 	@apply bg-black;
 }
 
-/*
- * Square scrollbars, track and thumb, for the page and for anything that scrolls inside it: a normal scrollbar
- * that is always there, with nothing rounded. The webkit rules are what Chrome and Safari draw. Setting
- * scrollbar-color as well would make Chrome use that instead and bring the rounded thumb back, so it is set
- * only where the webkit rules do not exist.
- */
-::-webkit-scrollbar {
-	width: 12px;
-	height: 12px;
-}
-::-webkit-scrollbar-track {
-	background: oklch(0.13 0.006 285);
-	border-radius: 0;
-}
-::-webkit-scrollbar-thumb {
-	background: oklch(0.38 0.01 285);
-	border-radius: 0;
-}
-::-webkit-scrollbar-thumb:hover {
-	background: oklch(0.52 0.012 285);
-}
-::-webkit-scrollbar-corner {
-	background: oklch(0.13 0.006 285);
-}
-@supports not selector(::-webkit-scrollbar) {
-	* {
-		scrollbar-color: oklch(0.38 0.01 285) oklch(0.13 0.006 285);
+/* A slow slide of one full row to the left, over and over: the built with strip repeats its row, so the end
+   joins the start. Moved with transform only, so the browser does it without redrawing anything. */
+@theme {
+	--animate-marquee: marquee 50s linear infinite;
+	@keyframes marquee {
+		from {
+			transform: translate3d(0, 0, 0);
+		}
+		to {
+			transform: translate3d(-50%, 0, 0);
+		}
 	}
 }
 

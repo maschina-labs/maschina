@@ -40,37 +40,9 @@ describe("motion", () => {
 });
 
 describe("scrollbars", () => {
-	// Every box on the site is square, and the scrollbar is one too: a normal scrollbar that is always there,
-	// with a visible track and thumb, both square, for the page and for anything that scrolls inside it.
-	const rule = (selector: string) =>
-		css.match(new RegExp(`${selector.replace(/[()[\]]/g, "\\$&")}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
-
-	it("has a square track and a square thumb", () => {
-		expect(rule("::-webkit-scrollbar-track")).toMatch(/border-radius:\s*0/);
-		expect(rule("::-webkit-scrollbar-thumb")).toMatch(/border-radius:\s*0/);
-	});
-
-	it("shows the track and the thumb all the time, and lights the thumb on hover", () => {
-		expect(rule("::-webkit-scrollbar-track")).toMatch(/background:\s*oklch/);
-		expect(rule("::-webkit-scrollbar-thumb")).toMatch(/background:\s*oklch/);
-		expect(rule("::-webkit-scrollbar-thumb:hover")).toMatch(/background:\s*oklch/);
-		// Nothing hides it until something scrolls.
-		expect(css).not.toMatch(/data-scrolling/);
-		expect(css).not.toMatch(/scrollbar-width:\s*none/);
-	});
-
-	it("has a width, and a square corner where two scrollbars meet", () => {
-		expect(rule("::-webkit-scrollbar")).toMatch(/width:\s*\d+px/);
-		expect(rule("::-webkit-scrollbar-corner")).toMatch(/background:\s*oklch/);
-	});
-
-	it("keeps the standard scrollbar properties for browsers without the webkit ones", () => {
-		// Where both are set, Chrome uses the standard ones and ignores the webkit rules above, which would
-		// bring the rounded thumb back. So the standard ones only apply where the webkit ones do not exist.
-		expect(css).toMatch(/@supports not selector\(::-webkit-scrollbar\)\s*\{[^}]*scrollbar-color:/);
-		expect(css.replace(/@supports not selector[\s\S]*?\}\s*\}/, "")).not.toMatch(
-			/scrollbar-color:/,
-		);
+	// The page's scrollbar is the browser's own, for now: nothing here styles it.
+	it("leaves the scrollbar to the browser", () => {
+		expect(css).not.toMatch(/scrollbar/);
 	});
 });
 
@@ -87,5 +59,12 @@ describe("the status blink", () => {
 	it("defines a hard on and off blink, like a link light", () => {
 		expect(css).toMatch(/--animate-blink:\s*blink/);
 		expect(css).toMatch(/@keyframes blink/);
+	});
+});
+
+describe("the built with marquee", () => {
+	it("defines a slow, seamless slide: one full row to the left, over and over", () => {
+		expect(css).toMatch(/--animate-marquee:\s*marquee\s+\d+s\s+linear\s+infinite/);
+		expect(css).toMatch(/@keyframes marquee[\s\S]*?translate3d\(-50%/);
 	});
 });
