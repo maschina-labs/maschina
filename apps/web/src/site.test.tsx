@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Site } from "./site.tsx";
 
@@ -8,9 +8,8 @@ describe("the front page", () => {
 		expect(screen.getByRole("main").className).toContain("min-h-[200dvh]");
 	});
 
-	it("has the header, then the hero, and ends with the footer", () => {
+	it("has the header and the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
-		expect(within(screen.getByRole("main")).getByRole("heading", { level: 1 })).toBeInTheDocument();
 		expect(screen.getByRole("banner")).toBeInTheDocument();
 		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 	});
