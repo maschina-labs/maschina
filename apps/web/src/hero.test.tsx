@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Hero } from "./hero.tsx";
 
 // The ribbon is WebGL, which a test browser does not have, so it is stood in for. The field has its own tests.
@@ -222,6 +222,36 @@ describe("the hero", () => {
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
 			"clamp(2.5rem,6.4vw,7.5rem)",
 		);
+	});
+
+	describe("the ribbon only moves while the hero is on screen", () => {
+		afterEach(() => vi.unstubAllGlobals());
+
+		it("calms and freezes once the hero has scrolled out of view, and moves again when it is back", async () => {
+			let notify: (entries: { isIntersecting: boolean }[]) => void = () => {};
+			vi.stubGlobal(
+				"IntersectionObserver",
+				class {
+					constructor(callback: typeof notify) {
+						notify = callback;
+					}
+					observe() {}
+					disconnect() {}
+				},
+			);
+			render(<Hero authUrl={AUTH} />);
+			const ribbon = await screen.findByTestId("ribbon");
+			expect(ribbon).toHaveAttribute("data-motion", "calm");
+			act(() => notify([{ isIntersecting: false }]));
+			expect(ribbon).toHaveAttribute("data-motion", "off");
+			act(() => notify([{ isIntersecting: true }]));
+			expect(ribbon).toHaveAttribute("data-motion", "calm");
+		});
+
+		it("just moves, as before, where the browser cannot tell what is on screen", async () => {
+			render(<Hero authUrl={AUTH} />);
+			expect(await screen.findByTestId("ribbon")).toHaveAttribute("data-motion", "calm");
+		});
 	});
 
 	it("draws the silver and pearl ribbon, dark and calm, filling the section", async () => {

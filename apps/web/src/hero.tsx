@@ -19,6 +19,20 @@ export function Hero({ authUrl }: { authUrl: string }) {
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => setReady(true), []);
+	const section = useRef<HTMLElement>(null);
+	const [onScreen, setOnScreen] = useState(true);
+
+	// The ribbon only moves while the hero is on screen: once it has scrolled away it holds still, so a page
+	// with more on it costs nothing for what nobody can see. Where the browser cannot tell, it just moves.
+	useEffect(() => {
+		const node = section.current;
+		if (!node || typeof IntersectionObserver === "undefined") return;
+		const watcher = new IntersectionObserver(([entry]) =>
+			setOnScreen(Boolean(entry?.isIntersecting)),
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
+	}, []);
 	const heading = useRef<HTMLHeadingElement>(null);
 
 	// The light on the letters follows the mouse by setting two properties directly: moving the cursor never
@@ -39,6 +53,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 
 	return (
 		<section
+			ref={section}
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
@@ -48,7 +63,12 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				{ready ? (
 					<Suspense fallback={null}>
 						<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
-							<Ribbon position="absolute" field="ribbon" motion="calm" mode="dark" />
+							<Ribbon
+								position="absolute"
+								field="ribbon"
+								motion={onScreen ? "calm" : "off"}
+								mode="dark"
+							/>
 						</div>
 					</Suspense>
 				) : null}
