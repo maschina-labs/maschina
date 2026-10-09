@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
 import { WORDMARK } from "./wordmark.ts";
 
@@ -155,6 +156,20 @@ export function Footer() {
 	return (
 		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter)">
 			<div className="flex flex-col items-center gap-4 pb-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
+					{SOCIALS.map((social) => (
+						<a
+							key={social.label}
+							href={social.href}
+							className="grid size-9 place-items-center bg-white/[0.07] text-neutral-300 transition-colors hover:bg-white/[0.11] hover:text-neutral-100"
+						>
+							<span className="sr-only">{social.label}</span>
+							<svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
+								<path d={social.icon} />
+							</svg>
+						</a>
+					))}
+				</div>
 				<p className="text-center text-[13px] text-neutral-500 sm:col-start-2">
 					© {new Date().getFullYear()} Maschina Labs. All rights reserved.
 				</p>

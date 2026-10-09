@@ -94,6 +94,28 @@ describe("the footer", () => {
 		expect(size(box)).toBe(size(status));
 	});
 
+	it("has Maschina on X and GitHub on the left, as square boxes the height of the status", () => {
+		render(<Footer />);
+		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const x = screen.getByRole("link", { name: "Maschina on X" });
+		const github = screen.getByRole("link", { name: "Maschina on GitHub" });
+		expect(x).toHaveAttribute("href", "https://x.com/maschinalabs");
+		expect(github).toHaveAttribute("href", "https://github.com/maschina-labs/maschina");
+		const left = x.parentElement as HTMLElement;
+		expect(left).toBe(github.parentElement);
+		expect(left).toHaveAttribute("data-left");
+		expect(left.className).toContain("sm:col-start-1");
+		expect(left.className).toContain("sm:justify-self-start");
+		// The left comes first in the line, then the copyright, then the right.
+		expect(row.firstElementChild).toBe(left);
+		for (const link of [x, github]) {
+			expect(link.className).toContain("size-9");
+			expect(link.className).not.toMatch(/rounded/);
+			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		}
+		expect(screen.getByRole("status").className).toContain("h-9");
+	});
+
 	it("puts the status and the language together on the right of the line with the copyright", () => {
 		render(<Footer />);
 		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
