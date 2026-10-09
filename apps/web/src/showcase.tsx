@@ -8,9 +8,9 @@ const GRAIN =
  * with its built-in sample data, so it says so under the picture; nothing here is a real person's trades or
  * results. Square corners, like everything else.
  *
- * It floats in the middle of a backdrop of its own, a wide panel of soft pearl, violet and silver-blue light with
- * a fine grain, and room all around it. The backdrop is plain CSS (gradients and a grain filter), so it costs the
- * graphics card nothing, and it is where the page gets some color. The picture has an ordinary dark drop shadow
+ * It floats in the middle of a backdrop of its own, a wide panel of soft pearl and silver light with a fine
+ * grain, and room all around it, in the quiet colors of the rest of the site. The backdrop is plain CSS
+ * (gradients and a grain filter), so it costs the graphics card nothing. The picture has an ordinary dark drop shadow
  * to lift it off the light, and nothing glows. It does not move with the scroll.
  */
 export function Showcase() {
@@ -19,7 +19,7 @@ export function Showcase() {
 			<figure>
 				<div
 					data-backdrop
-					className="relative overflow-hidden bg-[radial-gradient(120%_90%_at_12%_8%,oklch(0.86_0.07_300),transparent_60%),radial-gradient(100%_80%_at_88%_18%,oklch(0.8_0.06_235),transparent_60%),radial-gradient(120%_100%_at_50%_105%,oklch(0.7_0.1_320),transparent_65%)] bg-[oklch(0.6_0.04_275)] p-[clamp(1.25rem,7vw,7rem)]"
+					className="relative overflow-hidden bg-[radial-gradient(120%_90%_at_12%_8%,oklch(0.9_0.02_300),transparent_60%),radial-gradient(100%_80%_at_88%_18%,oklch(0.82_0.02_250),transparent_60%),radial-gradient(120%_100%_at_50%_105%,oklch(0.72_0.03_300),transparent_65%)] bg-[oklch(0.62_0.015_275)] p-[clamp(1.25rem,7vw,7rem)]"
 				>
 					<div
 						data-grain

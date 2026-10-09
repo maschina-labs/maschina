@@ -36,15 +36,21 @@ describe("the showcase", () => {
 		expect(container.innerHTML).not.toMatch(/animate-|perspective|rotate|will-change/);
 	});
 
-	it("sits centered in a backdrop of its own: a wide panel of soft pearl, violet and silver-blue light, with room all around", () => {
+	it("sits centered in a backdrop of its own: a wide panel of soft pearl and silver light, with room all around", () => {
 		const { container } = render(<Showcase />);
 		const backdrop = container.querySelector("[data-backdrop]") as HTMLElement;
 		expect(backdrop).not.toBeNull();
 		expect(backdrop.contains(screen.getByRole("img"))).toBe(true);
 		// Layers of soft light, not a flat fill: three radial lights over a base.
 		expect(backdrop.className.match(/radial-gradient\(/g)).toHaveLength(3);
-		expect(backdrop.className).toContain("oklch(0.86_0.07_300)");
-		expect(backdrop.className).toContain("oklch(0.8_0.06_235)");
+		expect(backdrop.className).toContain("oklch(0.9_0.02_300)");
+		expect(backdrop.className).toContain("oklch(0.82_0.02_250)");
+		// Quiet: every color in it is nearly gray (chroma 0.04 or less), like the pearl and silver of the site.
+		const chromas = [...backdrop.className.matchAll(/oklch\(([\d.]+)_([\d.]+)_/g)].map((m) =>
+			Number(m[2]),
+		);
+		expect(chromas.length).toBeGreaterThanOrEqual(4);
+		for (const chroma of chromas) expect(chroma).toBeLessThanOrEqual(0.04);
 		// Room around the picture, growing with the screen, so it floats in the middle.
 		expect(backdrop.className).toContain("p-[clamp(1.25rem,7vw,7rem)]");
 		expect(backdrop.className).toContain("overflow-hidden");
