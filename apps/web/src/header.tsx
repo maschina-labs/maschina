@@ -239,7 +239,7 @@ export function Header({
 					ref={fade}
 					data-fade
 					aria-hidden="true"
-					className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+3.5rem)] [--fade:0] bg-gradient-to-b from-black to-transparent opacity-(--fade) backdrop-blur-[calc(var(--fade)*12px)] [mask-image:linear-gradient(to_bottom,black_50%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent)]"
+					className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+5rem)] [--fade:0] bg-black opacity-(--fade) backdrop-blur-[calc(var(--fade)*12px)] [mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)]"
 				/>
 				<div
 					data-solid

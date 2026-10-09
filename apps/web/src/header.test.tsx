@@ -521,16 +521,16 @@ describe("the header", () => {
 
 		scrollTo(120);
 		expect(amount()).toBe("1");
-		// Black at the top of the bar, fading to nothing at its foot, so the page shows through below.
-		expect(fade().className).toContain("bg-gradient-to-b");
-		expect(fade().className).toContain("from-black");
-		expect(fade().className).toContain("to-transparent");
-		// It reaches well below the bar and blurs what is behind it, fading out with the gradient, so the page
-		// softens under the header as it scrolls up. It is a layer behind the bar, so the content does not move.
-		expect(fade().className).toContain("h-[calc(100%+3.5rem)]");
+		// Solid black at the top of the bar, easing out to nothing well below it, with the blur on the same
+		// curve: one smooth ramp, so there is no edge anywhere. The ramp is a mask on a black, blurred layer, so
+		// the black and the blur always fade together (two separate fades would multiply into a quick drop).
+		expect(fade().className).toContain("bg-black");
+		expect(fade().className).not.toContain("bg-gradient");
+		expect(fade().className).toContain("h-[calc(100%+5rem)]");
 		expect(fade().className).toContain(
-			"[mask-image:linear-gradient(to_bottom,black_50%,transparent)]",
+			"[mask-image:linear-gradient(to_bottom,black_0%,black_35%,rgb(0_0_0/0.6)_60%,rgb(0_0_0/0.25)_80%,transparent_100%)]",
 		);
+		expect(fade().className).toContain("backdrop-blur-[calc(var(--fade)*12px)]");
 		expect(fade().className).toContain("-z-10");
 		expect(fade().className).toContain("absolute");
 		expect(header.firstElementChild).toBe(fade());
