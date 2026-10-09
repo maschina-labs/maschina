@@ -40,6 +40,26 @@ describe("the header", () => {
 		]);
 	});
 
+	it("keeps the pages on the left, beside the wordmark", () => {
+		render(<Header authUrl={AUTH} />);
+		const pages = screen.getByRole("navigation", { name: "Pages" });
+		const left = screen.getByRole("link", { name: "Maschina, home" }).parentElement as HTMLElement;
+		expect(left.contains(pages)).toBe(true);
+		const tools = screen.getByRole("banner").querySelector("[data-tools]") as HTMLElement;
+		expect(left.contains(tools)).toBe(false);
+	});
+
+	it("puts the search by itself right after the pages: just the icon, in no box", () => {
+		render(<Header authUrl={AUTH} />);
+		const pages = screen.getByRole("navigation", { name: "Pages" });
+		const search = within(screen.getByRole("banner")).getByRole("button", { name: "Search" });
+		expect(search.previousElementSibling).toBe(pages);
+		expect(pages.lastElementChild?.textContent).toBe("Pricing");
+		expect(search.closest("[data-tools]")).toBeNull();
+		expect(search.className).not.toMatch(/\bbg-/);
+		expect(search.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+	});
+
 	it("opens a dropdown from three of them, and links straight to the other two", () => {
 		render(<Header authUrl={AUTH} />);
 		const pages = within(screen.getByRole("navigation", { name: "Pages" }));
@@ -271,23 +291,131 @@ describe("the header", () => {
 		expect(link.querySelector("[data-chip]")).not.toBeNull();
 	});
 
-	it("has a language box, in the header on a wide screen and in the phone menu", () => {
+	it("has a language box that is just a globe, in the header on a wide screen and in the phone menu", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = within(screen.getByRole("banner"));
 		const language = header.getByRole("combobox", { name: "Language" });
-		// Only the languages the site is written in are offered: English, shown as EN.
+		// Only the languages the site is written in are offered: English.
 		expect(
 			within(language)
 				.getAllByRole("option")
-				.map((option) => option.getAttribute("label")),
-		).toEqual(["EN"]);
-		expect(within(language).getByRole("option", { name: "English" })).toBeInTheDocument();
-		expect(language.closest("label")?.className).not.toMatch(/rounded/);
+				.map((option) => option.textContent),
+		).toEqual(["English"]);
+		const box = language.closest("label") as HTMLElement;
+		expect(box.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(box.className).toContain("size-9");
+		expect(box.className).not.toMatch(/rounded/);
+		// The list is the real, native one, laid invisibly over the globe, so the globe is all that shows.
+		expect(language.className).toContain("opacity-0");
 		expect(language.closest("[data-tools]")?.className).toContain("xl:flex");
 
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
 		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
 		expect(panel.getByRole("combobox", { name: "Language" })).toBeInTheDocument();
+	});
+
+	it("has a search button that opens a panel under the header, with the cursor in it", () => {
+		render(<Header authUrl={AUTH} />);
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		const panel = screen.getByRole("region", { name: "Search" });
+		expect(panel.className).toContain("inset-x-0");
+		const box = within(panel).getByRole("searchbox", { name: "Search Maschina" });
+		expect(box).toHaveFocus();
+	});
+
+	it("narrows the pages as you type, and says so when none match", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		const panel = within(screen.getByRole("region", { name: "Search" }));
+		const box = panel.getByRole("searchbox", { name: "Search Maschina" });
+
+		expect(panel.getAllByRole("link").length).toBeGreaterThan(10);
+		fireEvent.change(box, { target: { value: "spec" } });
+		expect(panel.getByRole("link", { name: /Machine spec/ })).toHaveAttribute("href", "/spec");
+		expect(panel.queryByRole("link", { name: /Docs/ })).toBeNull();
+
+		fireEvent.change(box, { target: { value: "pricing" } });
+		expect(panel.getByRole("link", { name: /Pricing/ })).toHaveAttribute("href", "/pricing");
+
+		fireEvent.change(box, { target: { value: "marketplace" } });
+		expect(panel.queryAllByRole("link")).toHaveLength(0);
+		expect(panel.getByText("No pages match.")).toBeInTheDocument();
+	});
+
+	it("goes to the first result on Enter, and to the one you arrowed to", () => {
+		const navigate = vi.fn();
+		render(<Header authUrl={AUTH} navigate={navigate} />);
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		const box = within(screen.getByRole("region", { name: "Search" })).getByRole("searchbox", {
+			name: "Search Maschina",
+		});
+		fireEvent.change(box, { target: { value: "developers" } });
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).toHaveBeenLastCalledWith("/docs");
+
+		fireEvent.keyDown(box, { key: "ArrowDown" });
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).toHaveBeenLastCalledWith("/api");
+
+		fireEvent.keyDown(box, { key: "ArrowUp" });
+		fireEvent.keyDown(box, { key: "ArrowUp" });
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).toHaveBeenLastCalledWith("/docs");
+	});
+
+	it("does nothing on Enter when nothing matches", () => {
+		const navigate = vi.fn();
+		render(<Header authUrl={AUTH} navigate={navigate} />);
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		const box = within(screen.getByRole("region", { name: "Search" })).getByRole("searchbox", {
+			name: "Search Maschina",
+		});
+		fireEvent.change(box, { target: { value: "zzzz" } });
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).not.toHaveBeenCalled();
+	});
+
+	it("opens and closes with Ctrl or Command K, and closes on Escape", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+		fireEvent.keyDown(document, { key: "k", metaKey: true });
+		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
+		fireEvent.keyDown(document, { key: "Escape" });
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+	});
+
+	it("gives way to the dropdowns, and they to it, so only one panel is ever open", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
+		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
+		expect(screen.queryByRole("region", { name: "Product" })).toBeNull();
+		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
+
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Company" }));
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+		expect(screen.getByRole("region", { name: "Company" })).toBeInTheDocument();
+	});
+
+	it("dims the page behind the search, and a click on it closes the search", () => {
+		const { container } = render(<Header authUrl={AUTH} />);
+		fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+		const backdrop = container.querySelector("[data-backdrop]") as HTMLElement;
+		expect(backdrop).toHaveAttribute("aria-hidden", "true");
+		fireEvent.click(backdrop);
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+	});
+
+	it("can be reached from the phone menu, which makes way for it", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
+		fireEvent.click(panel.getByRole("button", { name: "Search" }));
+		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
+		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
 	});
 
 	it("shows log in and try Maschina as buttons only on a wide screen", () => {

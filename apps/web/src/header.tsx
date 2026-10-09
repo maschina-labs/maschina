@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MENUS } from "./menus.ts";
+import { search } from "./search.ts";
 
 /**
  * The header's pages, in order. The three with a dropdown carry a caret and open a menu from menus.ts; Live
@@ -16,6 +17,12 @@ const PAGES = [
 /** How far the page has to scroll before the header takes its background. */
 const SCROLLED_AT = 8;
 
+/** How many pages the search lists at once. */
+const MAX_HITS = 12;
+
+/** Goes to a page. A function so a test can stand in for the browser's navigation. */
+const go = (href: string) => window.location.assign(href);
+
 /** How long a dropdown waits after the cursor leaves, so crossing a small gap does not close it. */
 const CLOSE_DELAY_MS = 180;
 
@@ -31,16 +38,33 @@ const SUB =
 const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
+function Magnifier() {
+	return (
+		<svg
+			viewBox="0 0 20 20"
+			className="size-4"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth={1.5}
+			strokeLinecap="square"
+			aria-hidden="true"
+		>
+			<circle cx="8.5" cy="8.5" r="5.5" />
+			<path d="M13 13l4 4" />
+		</svg>
+	);
+}
+
 /** Only languages the site is written in are offered. English, until a translation is real. */
 const LANGUAGES = [{ code: "en", name: "English" }];
 
-/** A square box showing the language as its short code, with a globe and a caret. */
+/** A square box with a globe in it. Click it for the list of languages. */
 function Language() {
 	return (
-		<label className="relative flex items-center gap-2 bg-white/[0.13] py-2 pr-8 pl-3 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.18]">
+		<label className="relative grid size-9 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18]">
 			<svg
 				viewBox="0 0 24 24"
-				className="size-[14px]"
+				className="size-4"
 				fill="none"
 				stroke="currentColor"
 				strokeWidth={1.5}
@@ -49,32 +73,18 @@ function Language() {
 				<circle cx="12" cy="12" r="9" />
 				<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
 			</svg>
+			{/* The real, native list, laid invisibly over the globe, so the globe is all that shows. */}
 			<select
 				aria-label="Language"
 				defaultValue="en"
-				className="cursor-pointer appearance-none bg-transparent outline-none"
+				className="absolute inset-0 size-full cursor-pointer appearance-none opacity-0"
 			>
 				{LANGUAGES.map((language) => (
-					<option
-						key={language.code}
-						value={language.code}
-						label={language.code.toUpperCase()}
-						className="bg-black"
-					>
+					<option key={language.code} value={language.code} className="bg-black">
 						{language.name}
 					</option>
 				))}
 			</select>
-			<svg
-				viewBox="0 0 24 24"
-				className="pointer-events-none absolute right-3 size-[12px]"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				aria-hidden="true"
-			>
-				<path d="m6 9 6 6 6-6" />
-			</svg>
 		</label>
 	);
 }
@@ -144,10 +154,20 @@ function Caret({ open }: { open: boolean }) {
  * and by click or Escape for keyboards and touch. The page dims behind it. On a phone the pages fold into a
  * menu. The sign in and sign up pages live on auth.maschina.dev, so where auth is comes in from outside.
  */
-export function Header({ authUrl }: { authUrl: string }) {
+export function Header({
+	authUrl,
+	navigate = go,
+}: {
+	authUrl: string;
+	navigate?: (href: string) => void;
+}) {
 	const [open, setOpen] = useState(false);
 	const [section, setSection] = useState<string | null>(null);
 	const [active, setActive] = useState<string | null>(null);
+	const [searching, setSearching] = useState(false);
+	const [query, setQuery] = useState("");
+	const [highlight, setHighlight] = useState(0);
+	const box = useRef<HTMLInputElement>(null);
 	const [scrolled, setScrolled] = useState(
 		() => typeof window !== "undefined" && window.scrollY > SCROLLED_AT,
 	);
@@ -163,20 +183,49 @@ export function Header({ authUrl }: { authUrl: string }) {
 	useEffect(() => () => clearTimeout(closing.current), []);
 
 	useEffect(() => {
-		if (!active && !open) return;
+		if (!active && !open && !searching) return;
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key !== "Escape") return;
 			setActive(null);
 			setOpen(false);
+			setSearching(false);
 		};
 		document.addEventListener("keydown", onKey);
 		return () => document.removeEventListener("keydown", onKey);
-	}, [active, open]);
+	}, [active, open, searching]);
+
+	// Ctrl or Command K opens the search from anywhere, and closes it again.
+	useEffect(() => {
+		const onKey = (event: KeyboardEvent) => {
+			if (event.key.toLowerCase() !== "k" || !(event.ctrlKey || event.metaKey)) return;
+			event.preventDefault();
+			setActive(null);
+			setOpen(false);
+			setQuery("");
+			setHighlight(0);
+			setSearching((now) => !now);
+		};
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, []);
+
+	useEffect(() => {
+		if (searching) box.current?.focus();
+	}, [searching]);
 
 	const stay = () => clearTimeout(closing.current);
 	const show = (label: string) => {
 		stay();
+		setSearching(false);
 		setActive(label);
+	};
+	const openSearch = () => {
+		stay();
+		setActive(null);
+		setOpen(false);
+		setQuery("");
+		setHighlight(0);
+		setSearching(true);
 	};
 	const hideSoon = () => {
 		stay();
@@ -188,59 +237,74 @@ export function Header({ authUrl }: { authUrl: string }) {
 	};
 
 	const menu = active ? MENUS[active] : undefined;
+	const hits = search(query).slice(0, MAX_HITS);
 	const signIn = `${authUrl}/sign-in`;
 	const signUp = `${authUrl}/sign-up`;
 
 	return (
 		<>
-			{menu || open ? (
+			{menu || open || searching ? (
 				<div
 					data-backdrop
 					aria-hidden="true"
 					onClick={() => {
 						hideNow();
 						setOpen(false);
+						setSearching(false);
 					}}
-					className={`fixed inset-0 z-30 bg-black/60 ${menu ? "hidden xl:block" : "xl:hidden"}`}
+					className={`fixed inset-0 z-30 bg-black/60 ${menu ? "hidden xl:block" : searching ? "" : "xl:hidden"}`}
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
 			<header
 				onMouseEnter={stay}
 				onMouseLeave={hideSoon}
-				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu || open ? "bg-black" : "bg-transparent"}`}
+				className={`fixed inset-x-0 top-0 z-40 transition-colors duration-200 ${scrolled || menu || open || searching ? "bg-black" : "bg-transparent"}`}
 			>
-				<div className="grid grid-cols-[1fr_auto_1fr] items-center px-(--gutter) py-4">
-					<a href="/" aria-label="Maschina, home" className="justify-self-start">
-						<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-5" />
-					</a>
-					<nav aria-label="Pages" className="hidden items-center gap-7 xl:flex">
-						{PAGES.map((page) =>
-							page.dropdown ? (
-								<button
-									key={page.label}
-									type="button"
-									aria-expanded={active === page.label}
-									onMouseEnter={() => show(page.label)}
-									onClick={() => (active === page.label ? hideNow() : show(page.label))}
-									className={`${LINK} inline-flex items-center gap-1.5`}
-								>
-									{page.label}
-									<Caret open={active === page.label} />
-								</button>
-							) : (
-								<a
-									key={page.label}
-									href={page.href}
-									onMouseEnter={hideNow}
-									className={`${LINK} inline-flex items-center`}
-								>
-									{page.label}
-								</a>
-							),
-						)}
-					</nav>
-					<div className="col-start-3 flex items-center gap-3 justify-self-end text-[14px]">
+				<div className="flex items-center justify-between px-(--gutter) py-4">
+					<div className="flex items-center gap-10">
+						<a href="/" aria-label="Maschina, home">
+							<img src="/brand/wordmark.svg" alt="Maschina" className="h-4 w-auto sm:h-5" />
+						</a>
+						<div className="hidden items-center gap-5 xl:flex">
+							<nav aria-label="Pages" className="flex items-center gap-7">
+								{PAGES.map((page) =>
+									page.dropdown ? (
+										<button
+											key={page.label}
+											type="button"
+											aria-expanded={active === page.label}
+											onMouseEnter={() => show(page.label)}
+											onClick={() => (active === page.label ? hideNow() : show(page.label))}
+											className={`${LINK} inline-flex items-center gap-1.5`}
+										>
+											{page.label}
+											<Caret open={active === page.label} />
+										</button>
+									) : (
+										<a
+											key={page.label}
+											href={page.href}
+											onMouseEnter={hideNow}
+											className={`${LINK} inline-flex items-center`}
+										>
+											{page.label}
+										</a>
+									),
+								)}
+							</nav>
+							<button
+								type="button"
+								aria-label="Search"
+								aria-expanded={searching}
+								onClick={() => (searching ? setSearching(false) : openSearch())}
+								className="grid size-8 place-items-center text-[oklch(0.74_0.012_285)] transition-colors hover:text-[oklch(0.96_0.018_300)]"
+							>
+								<Magnifier />
+							</button>
+						</div>
+					</div>
+					<div className="flex items-center gap-3 text-[14px]">
 						<div data-tools className="hidden items-center gap-2 xl:flex">
 							<Language />
 						</div>
@@ -262,7 +326,10 @@ export function Header({ authUrl }: { authUrl: string }) {
 							aria-label="Menu"
 							aria-expanded={open}
 							aria-controls="pages-menu"
-							onClick={() => setOpen((now) => !now)}
+							onClick={() => {
+								setSearching(false);
+								setOpen((now) => !now);
+							}}
 							className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 						>
 							<svg
@@ -325,6 +392,55 @@ export function Header({ authUrl }: { authUrl: string }) {
 								</ul>
 							</div>
 						</div>
+					</section>
+				) : null}
+				{searching ? (
+					<section
+						aria-label="Search"
+						className="absolute inset-x-0 top-full bg-black px-(--gutter) pt-4 pb-10"
+					>
+						<input
+							ref={box}
+							type="search"
+							aria-label="Search Maschina"
+							placeholder="Search Maschina"
+							value={query}
+							onChange={(event) => {
+								setQuery(event.target.value);
+								setHighlight(0);
+							}}
+							onKeyDown={(event) => {
+								if (event.key === "ArrowDown") {
+									event.preventDefault();
+									setHighlight((now) => Math.min(hits.length - 1, now + 1));
+								} else if (event.key === "ArrowUp") {
+									event.preventDefault();
+									setHighlight((now) => Math.max(0, now - 1));
+								} else if (event.key === "Enter") {
+									const hit = hits[highlight];
+									if (hit) navigate(hit.href);
+								}
+							}}
+							className="w-full bg-transparent pb-5 font-display text-[clamp(1.25rem,1.9vw,1.875rem)] text-[oklch(0.9_0.012_285)] tracking-[-0.02em] outline-none placeholder:text-neutral-600"
+						/>
+						{hits.length ? (
+							<ul className="flex flex-col">
+								{hits.map((hit, index) => (
+									<li key={hit.href}>
+										<a
+											href={hit.href}
+											data-active={index === highlight}
+											className={`flex items-baseline justify-between gap-6 px-3 py-2.5 text-[16px] transition-colors ${index === highlight ? "bg-white/[0.08] text-[oklch(0.97_0.018_300)]" : "text-[oklch(0.78_0.012_285)] hover:bg-white/[0.05]"}`}
+										>
+											<span>{hit.label}</span>
+											<span className="text-[13px] text-neutral-500">{hit.section}</span>
+										</a>
+									</li>
+								))}
+							</ul>
+						) : (
+							<p className="px-3 py-2.5 text-[16px] text-neutral-500">No pages match.</p>
+						)}
 					</section>
 				) : null}
 				{open ? (
@@ -390,6 +506,14 @@ export function Header({ authUrl }: { authUrl: string }) {
 							),
 						)}
 						<div className="mt-4 flex items-center gap-2">
+							<button
+								type="button"
+								onClick={openSearch}
+								className="flex items-center gap-2 bg-white/[0.13] px-3 py-2 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.18]"
+							>
+								<Magnifier />
+								Search
+							</button>
 							<Language />
 						</div>
 						<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
