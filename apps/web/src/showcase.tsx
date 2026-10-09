@@ -1,6 +1,4 @@
-/** A fine film grain, drawn by the browser from a tiny SVG filter: no image file to load, and nothing for the graphics card. */
-const GRAIN =
-	"url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
+import { Backdrop } from "./backdrop.tsx";
 
 /**
  * A real screenshot of the app, right under the hero: the dashboard home screen, with the chart, the machine
@@ -20,16 +18,7 @@ export function Showcase() {
 	return (
 		<section aria-label="The app" className="relative bg-black px-(--gutter) pt-8 pb-24">
 			<figure>
-				<div
-					data-backdrop
-					className="relative overflow-hidden bg-[radial-gradient(120%_90%_at_12%_8%,oklch(0.9_0.02_300),transparent_60%),radial-gradient(100%_80%_at_88%_18%,oklch(0.82_0.02_250),transparent_60%),radial-gradient(120%_100%_at_50%_105%,oklch(0.72_0.03_300),transparent_65%)] bg-[oklch(0.62_0.015_275)] p-[clamp(1.25rem,7vw,7rem)]"
-				>
-					<div
-						data-grain
-						aria-hidden="true"
-						style={{ backgroundImage: GRAIN }}
-						className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay"
-					/>
+				<Backdrop>
 					<img
 						src="/showcase/dashboard.jpg"
 						srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
@@ -42,7 +31,7 @@ export function Showcase() {
 						fetchPriority="low"
 						className="relative block h-auto w-full shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
 					/>
-				</div>
+				</Backdrop>
 				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
 					The Maschina app, shown with sample data.
 				</figcaption>
