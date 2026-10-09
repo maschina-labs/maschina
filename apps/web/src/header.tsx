@@ -32,26 +32,29 @@ const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
 /**
- * The main call to action: the pearl button with a square black chip fused to its right, an arrow pointing
- * up and to the right in white. The chip is part of the link, so the whole thing is one click, and the
- * arrow is decoration (the name stays "Try Maschina").
+ * The main call to action: the pearl button with a small square black chip inset beside the words, an arrow
+ * pointing up and to the right in white. The chip is smaller than the button, so pearl shows all around it.
+ * It is part of the link, so the whole thing is one click, and the arrow is decoration (the name stays
+ * "Try Maschina").
  */
 function TryButton({
 	href,
 	className,
 	labelClassName,
+	chipClassName,
 }: {
 	href: string;
 	className: string;
 	labelClassName: string;
+	chipClassName: string;
 }) {
 	return (
 		<a
 			href={href}
-			className={`items-stretch bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${className}`}
+			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] ${className}`}
 		>
 			<span className={labelClassName}>Try Maschina</span>
-			<span data-chip className="grid w-9 place-items-center bg-black text-white">
+			<span data-chip className={`grid place-items-center bg-black text-white ${chipClassName}`}>
 				<svg
 					viewBox="0 0 12 12"
 					className="size-3"
@@ -196,7 +199,12 @@ export function Header({ authUrl }: { authUrl: string }) {
 						>
 							Log in
 						</a>
-						<TryButton href={signUp} className="hidden lg:inline-flex" labelClassName="px-4 py-2" />
+						<TryButton
+							href={signUp}
+							className="hidden py-1.5 pr-1.5 pl-4 lg:inline-flex"
+							labelClassName=""
+							chipClassName="size-6"
+						/>
 						{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 						<button
 							type="button"
@@ -339,8 +347,9 @@ export function Header({ authUrl }: { authUrl: string }) {
 							</a>
 							<TryButton
 								href={signUp}
-								className="flex"
-								labelClassName="flex-1 px-4 py-3 text-center"
+								className="flex py-2 pr-2 pl-4"
+								labelClassName="flex-1 text-center"
+								chipClassName="size-8"
 							/>
 						</div>
 					</nav>

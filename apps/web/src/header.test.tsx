@@ -246,15 +246,21 @@ describe("the header", () => {
 		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
 	});
 
-	it("puts a square chip with an up-right arrow on the right of Try Maschina, as part of the button", () => {
+	it("holds a small square chip with an up-right arrow inside the button, beside Try Maschina", () => {
 		render(<Header authUrl={AUTH} />);
 		const link = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });
 		const chip = link.querySelector("[data-chip]");
 		expect(chip).not.toBeNull();
 		expect(chip?.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		expect(chip?.className).not.toMatch(/rounded/);
-		// The chip is the last thing in the button, so it sits on the right, and it adds no words to its name.
+		expect(chip?.className).toContain("bg-black");
+		expect(chip?.className).toContain("text-white");
+		// Inset in the button, not stretched edge to edge: the pearl shows around it.
+		expect(link.className).toContain("items-center");
+		expect(link.className).not.toContain("items-stretch");
+		// It sits after the words, on the right, and adds none to the button's name.
 		expect(link.lastElementChild).toBe(chip);
+		expect(link.firstElementChild?.textContent).toBe("Try Maschina");
 	});
 
 	it("has the same chip on the phone menu's button", () => {
