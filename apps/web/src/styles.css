@@ -27,6 +27,11 @@
 	--gutter: clamp(1.5rem, 13vw - 3.25rem, 12rem);
 }
 
+html,
+body {
+	overscroll-behavior: none;
+}
+
 body {
 	@apply bg-black;
 }

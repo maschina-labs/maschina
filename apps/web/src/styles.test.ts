@@ -13,3 +13,11 @@ describe("the page margin", () => {
 		expect(css).toMatch(/--gutter:\s*clamp\(/);
 	});
 });
+
+describe("scrolling past the ends", () => {
+	// Pulling the page past its top or bottom on a trackpad bounces it on a Mac, which shows the background
+	// behind a sticky header and breaks the page's edges. It is switched off for the whole page.
+	it("does not bounce, and does not chain to whatever is behind", () => {
+		expect(css).toMatch(/html,\s*body\s*\{[^}]*overscroll-behavior:\s*none/);
+	});
+});
