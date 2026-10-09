@@ -15,12 +15,12 @@ describe("the closing section", () => {
 		expect(container.querySelector("canvas")).toBeNull();
 	});
 
-	it("is dark, like the page, and sits above the pinned hero so it rolls up over it", () => {
+	it("is dark, like the page, and is an ordinary section: it scrolls into view and covers nothing", () => {
 		render(<Closing />);
 		const { className } = screen.getByRole("region", { name: "Get started" });
 		expect(className).toContain("bg-black");
 		expect(className).toContain("relative");
-		expect(className).toContain("z-10");
+		expect(className).not.toContain("z-10");
 		expect(className).toContain("min-h-[80dvh]");
 		expect(className).toContain("px-(--gutter)");
 		expect(className).not.toMatch(/rounded/);

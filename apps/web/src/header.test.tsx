@@ -497,25 +497,28 @@ describe("the header", () => {
 		expect(screen.getByRole("banner").className).toContain("fixed");
 	});
 
-	it("stays one attached bar: as the page scrolls it fades from black to nothing, and never splits", () => {
+	it("stays one attached bar: it fades from black to nothing as the page scrolls, and never splits", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
 		const fade = () => header.querySelector("[data-fade]") as HTMLElement;
+		const amount = () => fade().style.getPropertyValue("--fade");
+		const scrollTo = (y: number) => {
+			Object.defineProperty(window, "scrollY", { value: y, configurable: true });
+			fireEvent.scroll(window);
+		};
 		expect(header.className).not.toMatch(/\bbg-/);
-		expect(fade().className).toContain("opacity-0");
+		expect(amount()).toBe("0");
 		expect(header).not.toHaveAttribute("data-detached");
 
-		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
-		fireEvent.scroll(window);
+		scrollTo(120);
+		expect(amount()).toBe("1");
 		// Black at the top of the bar, fading to nothing at its foot, so the page shows through below.
-		expect(fade().className).toContain("opacity-100");
 		expect(fade().className).toContain("bg-gradient-to-b");
 		expect(fade().className).toContain("from-black");
 		expect(fade().className).toContain("to-transparent");
 		// It reaches well below the bar and blurs what is behind it, fading out with the gradient, so the page
 		// softens under the header as it scrolls up. It is a layer behind the bar, so the content does not move.
 		expect(fade().className).toContain("h-[calc(100%+3.5rem)]");
-		expect(fade().className).toContain("backdrop-blur-md");
 		expect(fade().className).toContain(
 			"[mask-image:linear-gradient(to_bottom,black_50%,transparent)]",
 		);
@@ -526,13 +529,32 @@ describe("the header", () => {
 		expect(fade().className).toContain("pointer-events-none");
 		// Still no solid fill while nothing is open.
 		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-0");
-		expect(header).not.toHaveAttribute("data-detached");
 		expect(header.querySelector("[data-group]")).toBeNull();
 		expect(header.querySelector("[data-word] img")).not.toBeNull();
 
-		Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
-		fireEvent.scroll(window);
-		expect(fade().className).toContain("opacity-0");
+		scrollTo(0);
+		expect(amount()).toBe("0");
+	});
+
+	it("builds the fade and the blur up as you scroll: a little at first, all of it once the bar has gone by", () => {
+		render(<Header authUrl={AUTH} />);
+		const fade = screen.getByRole("banner").querySelector("[data-fade]") as HTMLElement;
+		// Both the black and the blur follow the same amount, so one scroll position sets both.
+		expect(fade.className).toContain("opacity-(--fade)");
+		expect(fade.className).toContain("backdrop-blur-[calc(var(--fade)*12px)]");
+		expect(fade.className).not.toContain("transition-");
+		const at = (y: number) => {
+			Object.defineProperty(window, "scrollY", { value: y, configurable: true });
+			fireEvent.scroll(window);
+			return Number(fade.style.getPropertyValue("--fade"));
+		};
+		expect(at(0)).toBe(0);
+		// The bar is 90px tall here (jsdom has no layout, so the fallback height is used).
+		expect(at(18)).toBeCloseTo(0.2, 5);
+		expect(at(45)).toBeCloseTo(0.5, 5);
+		expect(at(90)).toBe(1);
+		expect(at(400)).toBe(1);
+		expect(at(-30)).toBe(0);
 	});
 
 	it("is solid black behind an open dropdown, so the panel and the bar read as one", () => {

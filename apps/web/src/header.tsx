@@ -18,7 +18,8 @@ const PAGES = [
 ];
 
 /** How far the page has to scroll before the header takes its background. */
-const SCROLLED_AT = 8;
+/** The bar's height when it cannot be measured: the fade is full once the page has scrolled this far. */
+const BAR_HEIGHT = 90;
 
 /** How long a panel takes to slide away, which is how long it stays on screen after it is closed. */
 const EXIT_MS = 240;
@@ -101,16 +102,26 @@ export function Header({
 	const [query, setQuery] = useState("");
 	const [highlight, setHighlight] = useState(0);
 	const box = useRef<HTMLInputElement>(null);
-	const [scrolled, setScrolled] = useState(
-		() => typeof window !== "undefined" && window.scrollY > SCROLLED_AT,
-	);
+	const bar = useRef<HTMLElement>(null);
+	const fade = useRef<HTMLDivElement>(null);
 	const closing = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+	// How much of the fade and the blur is on: none at the top of the page, building as the page scrolls, and
+	// all of it once the page has scrolled the height of the bar. It sets one property on the layer, which the
+	// layer's black and its blur both read, so scrolling never re-renders the page.
 	useEffect(() => {
-		const onScroll = () => setScrolled(window.scrollY > SCROLLED_AT);
-		onScroll();
-		window.addEventListener("scroll", onScroll, { passive: true });
-		return () => window.removeEventListener("scroll", onScroll);
+		const update = () => {
+			const height = bar.current?.offsetHeight || BAR_HEIGHT;
+			const amount = Math.min(1, Math.max(0, window.scrollY / height));
+			fade.current?.style.setProperty("--fade", String(amount));
+		};
+		update();
+		window.addEventListener("scroll", update, { passive: true });
+		window.addEventListener("resize", update);
+		return () => {
+			window.removeEventListener("scroll", update);
+			window.removeEventListener("resize", update);
+		};
 	}, []);
 
 	useEffect(() => () => clearTimeout(closing.current), []);
@@ -213,16 +224,22 @@ export function Header({
 				/>
 			) : null}
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
-			<header onMouseEnter={stay} onMouseLeave={hideSoon} className="fixed inset-x-0 top-0 z-40">
+			<header
+				ref={bar}
+				onMouseEnter={stay}
+				onMouseLeave={hideSoon}
+				className="fixed inset-x-0 top-0 z-40"
+			>
 				{/*
 				 * Behind the bar, two layers. Once the page scrolls the bar is black at its top and fades to
 				 * nothing well below its foot, with a blur that fades out too, so the page softens under it. While a dropdown, the search or the phone menu
 				 * is open it fills in solid, so the panel and the bar read as one piece.
 				 */}
 				<div
+					ref={fade}
 					data-fade
 					aria-hidden="true"
-					className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+3.5rem)] bg-gradient-to-b from-black to-transparent backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_50%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent)] transition-opacity duration-200 motion-reduce:transition-none ${scrolled ? "opacity-100" : "opacity-0"}`}
+					className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+3.5rem)] [--fade:0] bg-gradient-to-b from-black to-transparent opacity-(--fade) backdrop-blur-[calc(var(--fade)*12px)] [mask-image:linear-gradient(to_bottom,black_50%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent)]"
 				/>
 				<div
 					data-solid

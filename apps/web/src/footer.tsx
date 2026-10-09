@@ -242,7 +242,7 @@ function StatusMark() {
 	);
 }
 
-/** A full screen, with the wordmark at the foot of it. It sits above the pinned hero and rolls up over it. */
+/** A full screen, with the wordmark at the foot of it. */
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
@@ -261,7 +261,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative z-10 flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter) pt-32">
+		<footer className="relative flex min-h-dvh w-full flex-col justify-end overflow-hidden bg-black px-(--gutter) pt-32">
 			<div className="my-auto flex w-full flex-col gap-12 py-24 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}

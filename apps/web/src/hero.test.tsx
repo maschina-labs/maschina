@@ -200,12 +200,12 @@ describe("the hero", () => {
 		expect(docs.className).not.toMatch(/\bpy-/);
 	});
 
-	it("stays pinned to the top, so the next section rolls up over it", () => {
+	it("scrolls away with the page: nothing pins it, and nothing rolls over it", () => {
 		render(<Hero authUrl={AUTH} />);
 		const { className } = screen.getByRole("region", { name: "Maschina" });
-		expect(className).toContain("sticky");
-		expect(className).toContain("top-0");
-		expect(className).toContain("z-0");
+		expect(className).not.toMatch(/\bsticky\b/);
+		expect(className).not.toContain("top-0");
+		expect(className).toContain("relative");
 	});
 
 	it("has a bigger headline than before", () => {

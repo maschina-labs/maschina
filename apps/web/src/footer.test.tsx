@@ -424,11 +424,11 @@ describe("the footer", () => {
 		expect(className).toContain("justify-end");
 	});
 
-	it("sits above the hero, so it rolls up over it", () => {
+	it("is an ordinary section on black: it scrolls into view and covers nothing", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
 		expect(className).toContain("relative");
-		expect(className).toContain("z-10");
+		expect(className).not.toContain("z-10");
 		expect(className).toContain("bg-black");
 		// No hairline along its top edge.
 		expect(className).not.toMatch(/\bborder/);

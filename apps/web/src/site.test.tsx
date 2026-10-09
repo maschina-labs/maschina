@@ -17,7 +17,7 @@ describe("the front page", () => {
 		const hero = within(main).getByRole("region", { name: "Maschina" });
 		const closing = within(main).getByRole("region", { name: "Get started" });
 		expect(hero.nextElementSibling).toBe(closing);
-		// The hero is pinned inside the main, so the closing section rolls up over it; the footer follows.
+		// Plain sections, one after the other: nothing is pinned and nothing rolls over anything.
 		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});
 
