@@ -8,6 +8,8 @@ import { WORDMARK } from "./wordmark.ts";
 
 /** How much of the wordmark shows above the bottom of the page: about three quarters of the letters. */
 const SHOWN = 116;
+/** On a phone the screen's bottom cuts the letters a little higher up, so more than half of them shows. */
+const PHONE_SHOWN = 100;
 /** How far the light from the cursor reaches, in the drawing's own units. */
 const REACH = 260;
 
@@ -268,7 +270,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative flex min-h-lvh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16 max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]">
+		<footer className="relative flex min-h-lvh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16">
 			<div className="flex w-full flex-col gap-12 py-12 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
@@ -343,10 +345,10 @@ export function Footer() {
 				style={
 					{
 						"--shown": `${VIEW.width} / ${SHOWN}`,
-						"--full": `${VIEW.width} / ${VIEW.height}`,
+						"--phone": `${VIEW.width} / ${PHONE_SHOWN}`,
 					} as React.CSSProperties
 				}
-				className="relative aspect-(--shown) max-sm:aspect-(--full)"
+				className="relative aspect-(--shown) max-sm:aspect-(--phone)"
 			>
 				<svg
 					role="img"

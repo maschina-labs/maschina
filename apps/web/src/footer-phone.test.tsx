@@ -30,25 +30,21 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("the wordmark at the foot of the page on a phone", () => {
-	it("shows all of the letters on a phone, not three quarters, and keeps the cut off look from a tablet up", () => {
+	it("shows a little over half of the letters on a phone, raised so the screen's bottom cuts them about a third of the way up their height, and keeps its own cut from a tablet up", () => {
 		screenWith({ noHover: false });
 		const { container } = render(<Footer />);
 		const box = container.querySelector("svg[role=img]")?.parentElement as HTMLElement;
 		expect(box.className).toContain("aspect-(--shown)");
-		expect(box.className).toContain("max-sm:aspect-(--full)");
-		const shown = box.style.getPropertyValue("--shown");
-		const full = box.style.getPropertyValue("--full");
-		expect(shown).toBe("1054 / 116");
-		expect(full).toBe("1054 / 175");
+		expect(box.className).toContain("max-sm:aspect-(--phone)");
+		expect(box.style.getPropertyValue("--shown")).toBe("1054 / 116");
+		expect(box.style.getPropertyValue("--phone")).toBe("1054 / 100");
 	});
 
-	it("leaves room under it for the browser's own bottom bar, so that bar never covers the letters", () => {
+	it("runs to the very bottom of the screen, so the bottom of the screen cuts the letters in half and nothing is left under them", () => {
 		screenWith({ noHover: false });
 		const { container } = render(<Footer />);
 		const footer = container.querySelector("footer") as HTMLElement;
-		expect(footer.className).toContain(
-			"max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]",
-		);
+		expect(footer.className).not.toMatch(/(^|\s)(max-sm:)?pb-/);
 	});
 
 	it("lights itself on a screen with no hover: the pearl light is on and sweeps across the letters, again and again", () => {

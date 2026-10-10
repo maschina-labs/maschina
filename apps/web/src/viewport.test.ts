@@ -30,12 +30,9 @@ describe("the browser's bars only ever cover the page; they never resize it or m
 			expect(read(name)).not.toMatch(/h-svh|min-h-svh|70svh/);
 	});
 
-	it("keeps what sits at the foot of the hero and the page clear of a bar that is showing: the gap between lvh and svh is the bar", () => {
+	it("keeps what sits at the foot of the hero clear of a bar that is showing: the gap between lvh and svh is the bar", () => {
 		const read = (name: string) => readFileSync(resolve(here, name), "utf8");
 		expect(read("hero.tsx")).toContain("bottom-[calc(2rem+100lvh-100svh)]");
 		expect(read("hero.tsx")).toContain("pb-[calc(4rem+100lvh-100svh)]");
-		expect(read("footer.tsx")).toContain(
-			"max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]",
-		);
 	});
 });
