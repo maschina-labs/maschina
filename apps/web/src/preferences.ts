@@ -18,7 +18,11 @@ export function savePreference(value: Preference): void {
 	const secure = window.location.protocol === "https:" ? "; Secure" : "";
 	// biome-ignore lint/suspicious/noDocumentCookie: the Cookie Store API is not in every browser yet, and one plain cookie is all this needs
 	document.cookie = `${NAME}=${value}; Max-Age=${YEAR}; Path=/; SameSite=Lax${secure}`;
+	window.dispatchEvent(new Event(PREFERENCE_CHANGED));
 }
+
+/** The event sent when a choice is saved, so what depends on the choice can start or stop at once. */
+export const PREFERENCE_CHANGED = "maschina:preference-changed";
 
 /** The event that opens the toast, sent by the footer's Preferences link and heard by the toast. */
 export const OPEN_PREFERENCES = "maschina:preferences";

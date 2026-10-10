@@ -3,7 +3,7 @@ import { useId, useState } from "react";
 /**
  * Short questions and short answers, opened one at a time. Every answer is a claim about the product and has to
  * be true, and none runs past a couple of lines: nobody wants to read an essay, they want to see their question
- * answered. A machine holds no keys and its wallet only pays the owner; every trade is checked against the
+ * answered. A machine spends only inside the budget and limits its owner set, and Maschina never holds the owner's own wallet keys; every trade is checked against the
  * budget before it is signed; a machine can be made on paper against live prices; Range Finder has traded real
  * money on Solana since September 28; the code is source-available, not open source.
  */
@@ -14,8 +14,9 @@ const QUESTIONS = [
 			"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
 	},
 	{
-		question: "Can it take my money?",
-		answer: "No. A machine holds no keys, and its wallet can only ever pay you.",
+		question: "What can a machine do with my money?",
+		answer:
+			"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
 	},
 	{
 		question: "What if it makes a bad trade?",

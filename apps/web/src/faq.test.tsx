@@ -8,7 +8,10 @@ const QUESTIONS = [
 		"What is Maschina?",
 		"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
 	],
-	["Can it take my money?", "No. A machine holds no keys, and its wallet can only ever pay you."],
+	[
+		"What can a machine do with my money?",
+		"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
+	],
 	[
 		"What if it makes a bad trade?",
 		"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",

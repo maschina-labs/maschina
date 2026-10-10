@@ -53,7 +53,7 @@ export const PRIVACY: LegalDoc = {
 						"Secrets you give us: a key for an AI provider, if you choose to give one, and a link to a Telegram chat, if you set up alerts. We store them sealed, meaning encrypted with a key that is kept apart from the database, and show you only a hint of them. Passwords are different: we never store one, only a one way hash from which it cannot be worked out.",
 						"Your conversations with the manager: what you ask it and what it answers. They are sent to the AI provider whose key you gave us, and may be kept with your account so you can read them again.",
 						"Technical information: your IP address, the type of browser and device, the pages and requests made and when, and error reports. We use it to keep the service running and secure.",
-						"How Maschina is used: which pages and screens you open, what you click, and your device, browser and approximate location from your IP address. This is collected by PostHog, our analytics service, only if you accept optional cookies.",
+						"How Maschina is used: which pages you open and where you came from, and your device, browser and approximate location from your IP address. This is collected by PostHog, our analytics service, only if you accept optional cookies. We do not send it anything you type.",
 						"What you send us: if you write to us, we keep the message and your address so we can answer.",
 					],
 				},
@@ -98,7 +98,7 @@ export const PRIVACY: LegalDoc = {
 					list: [
 						"The sign in cookie keeps you signed in. Scripts on the page cannot read it. It is essential, so it is always on while you are signed in.",
 						"The preferences cookie holds your choice about optional cookies, so we do not ask you again. It is the only cookie that records a choice.",
-						"Analytics cookies, set by PostHog, which tell us how Maschina is used. They are optional: they are set only if you accept optional cookies, and not otherwise.",
+						"The analytics cookie holds a random number, so PostHog can tell a return visit from a new one. It is optional: it is set only if you accept optional cookies, and it is removed if you decline.",
 					],
 				},
 				"You can change your choice at any time with the Preferences link at the bottom of every page. You can also block or delete cookies in your browser, but if you block the sign in cookie you will not be able to sign in.",

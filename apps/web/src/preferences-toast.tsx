@@ -48,8 +48,8 @@ export function PreferencesToast() {
 		>
 			<p className="text-[15px] text-white">Cookie preferences</p>
 			<p className="mt-2 text-[14px] text-neutral-400 leading-snug">
-				Essential cookies keep you signed in and always stay on. Choose whether Maschina may use
-				optional cookies, which are for measuring how the site is used.
+				Essential cookies keep you signed in and always stay on. Optional cookies let us use PostHog
+				to see which pages you open, so we can improve Maschina. Nothing else is turned on.
 			</p>
 			{choice ? <p className="mt-3 text-[13px] text-neutral-500">Your choice: {choice}</p> : null}
 			<div className="mt-5 grid grid-cols-2 gap-2 text-[15px]">

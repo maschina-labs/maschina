@@ -84,6 +84,10 @@ describe("the preferences toast", () => {
 		const toast = screen.getByRole("dialog");
 		expect(toast.textContent).toMatch(/essential cookies/i);
 		expect(toast.textContent).toMatch(/optional cookies/i);
+		// What Accept turns on, named: the analytics the privacy policy describes, and nothing else.
+		expect(toast.textContent).toMatch(/PostHog/);
+		expect(toast.textContent).toMatch(/pages you open/i);
+		expect(toast.textContent).not.toMatch(/advertis/i);
 		expect(toast.textContent ?? "").not.toMatch(
 			new RegExp(`[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]|!`),
 		);
