@@ -1,4 +1,6 @@
 import { BlankPage } from "./blank-page.tsx";
+import { TERMS } from "./legal/terms.ts";
+import { LegalPage } from "./legal.tsx";
 import { titleFor } from "./routes.ts";
 import { Site } from "./site.tsx";
 
@@ -14,6 +16,8 @@ export function App({
 	authUrl: string;
 	path?: string;
 }) {
+	const clean = path.replace(/\/+$/, "") || "/";
+	if (clean === "/terms") return <LegalPage authUrl={authUrl} doc={TERMS} />;
 	const title = titleFor(path);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
 	return <Site authUrl={authUrl} />;
