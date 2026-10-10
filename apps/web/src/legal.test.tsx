@@ -59,9 +59,8 @@ describe("a legal page", () => {
 		const layout = container.querySelector("[data-layout]") as HTMLElement;
 		// The text is on the left, in its reading column, and a small contents on the right.
 		expect(layout.className).toContain("lg:grid-cols-[minmax(0,1fr)_12rem]");
-		// No line between the title and the text, nor under the folded contents on a phone.
+		// No line between the title and the text.
 		expect(layout.className).not.toMatch(/border/);
-		expect(screen.getByText("Contents").closest("details")?.className ?? "").not.toMatch(/border/);
 		const side = screen.getByRole("navigation", { name: "On this page" });
 		expect(side.className).toContain("text-[13px]");
 		expect(side.className).toContain("lg:sticky");
@@ -71,21 +70,42 @@ describe("a legal page", () => {
 		expect(links.map((link) => link.getAttribute("href"))).toEqual(["#one", "#two"]);
 		const text = container.querySelector("[data-text]") as HTMLElement;
 		expect(text.className).toContain("max-w-[50rem]");
-		// On a phone the contents come first, above the text; on a wide screen they sit after it, on the right.
+		// On a wide screen the contents sit after the text, on the right.
 		const sideBox = side.parentElement as HTMLElement;
-		expect(sideBox.className).toContain("order-first");
-		expect(sideBox.className).toContain("lg:order-none");
+		// Hidden altogether below a wide screen: nothing comes first on a phone.
+		expect(sideBox.className).toContain("hidden");
+		expect(sideBox.className).toContain("lg:block");
 		expect(text.compareDocumentPosition(sideBox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 	});
 
-	it("folds the contents into a list at the top on a phone, where there is no room for a side column", () => {
-		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
-		const folded = screen.getByText("Contents").closest("details") as HTMLElement;
-		expect(folded.className).toContain("lg:hidden");
-		expect(within(folded).getAllByRole("link")).toHaveLength(2);
+	it("is just text on a page on a phone: no contents list at all, since there is no room for one", () => {
+		const { container } = render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+		expect(container.querySelector("details")).toBeNull();
+		expect(screen.queryByText("Contents")).toBeNull();
+		// The only contents is the one down the right of a wide screen, and it is hidden below that.
 		const side = screen.getByRole("navigation", { name: "On this page" });
 		expect(side.className).toContain("hidden");
 		expect(side.className).toContain("lg:block");
+		expect(screen.queryByRole("navigation", { name: "Contents" })).toBeNull();
+	});
+
+	it("gives the text the whole width on a phone: no counter, no numbers in the margin, no indent, and bigger type", () => {
+		const { container } = render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+		// The pinned counter and the numbers beside each clause are for a wide screen only (from 768 pixels).
+		const pin = container.querySelector("[data-counter]")?.parentElement as HTMLElement;
+		expect(pin.className).toContain("max-md:hidden");
+		const number = container.querySelector("[data-clause-number]") as HTMLElement;
+		expect(number.className).toContain("max-md:hidden");
+		const row = number.parentElement as HTMLElement;
+		expect(row.className).toContain("max-md:ml-0");
+		expect(row.className).toContain("max-md:block");
+		const heading = screen.getByRole("heading", { level: 2, name: "One" });
+		expect(heading.className).toContain("max-md:pl-0");
+		expect(heading.className).toContain("max-md:text-[1.5rem]");
+		const list = screen.getByText("a").closest("ul") as HTMLElement;
+		expect(list.className).toContain("max-md:ml-0");
+		// The text itself is a size up on a phone, and the lead keeps its size.
+		expect(screen.getByText("Alpha.").className).toContain("max-md:text-[18px]");
 	});
 
 	it("numbers every section, and gives every clause its number as an address, so any part can be pointed to", () => {

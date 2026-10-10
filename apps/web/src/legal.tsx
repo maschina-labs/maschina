@@ -22,7 +22,7 @@ const slug = (heading: string) =>
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-|-$/g, "");
 
-const CLAUSE = "text-[17px] text-neutral-300 leading-[1.7]";
+const CLAUSE = "text-[17px] text-neutral-300 leading-[1.7] max-md:text-[18px]";
 const LINK =
 	"text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white";
 
@@ -152,7 +152,7 @@ function Contents({
  * title, the date, and the first words as a lead; then a hairline, the contents down the left (held in view, with the
  * section you are in lit) and the text in a reading column on the right. Every section is numbered and every clause inside it (1.1, 1.2) has its own number as an address, and a counter
  * pinned at the left shows the clause being read, rolling up to the next like an odometer as the reading goes on. Seventeen pixel type with roomy lines, headings that step up with
- * room above them, square bullets, and nothing else. On a phone the contents fold into a list at the top. The page
+ * room above them, square bullets, and nothing else. On a phone it is just text on a page: no contents, no counter, no numbers in the margin, no indent, and the type a size up. The page
  * margins are the article's own padding and the width is on a box inside it, so the margins never squeeze the text.
  */
 export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) {
@@ -190,7 +190,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								let clause = 0;
 								return (
 									<section key={id} data-section={id} className="scroll-mt-28 pt-14 first:pt-0">
-										<div className="sticky top-28 z-10 h-0">
+										<div className="sticky top-28 z-10 h-0 max-md:hidden">
 											<span
 												data-counter
 												aria-hidden="true"
@@ -229,7 +229,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 										<h2
 											id={id}
 											tabIndex={-1}
-											className="pl-16 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none"
+											className="pl-16 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none max-md:pl-0 max-md:text-[1.5rem]"
 										>
 											{section.heading}
 										</h2>
@@ -238,7 +238,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												return (
 													<ul
 														key={block.list.join("|")}
-														className="mt-4 ml-32 list-[square] space-y-2 pl-5 marker:text-neutral-600"
+														className="mt-4 ml-32 list-[square] space-y-2 pl-5 marker:text-neutral-600 max-md:ml-0"
 													>
 														{block.list.map((item) => (
 															<li key={item} className={`${CLAUSE} pl-1`}>
@@ -253,12 +253,12 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												<div
 													key={typeof block === "string" ? block : flat(block)}
 													data-clause-id={`${sectionIndex + 1}.${clause}`}
-													className="mt-5 ml-16 grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4"
+													className="mt-5 ml-16 grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4 max-md:ml-0 max-md:block"
 												>
 													<span
 														data-clause-number
 														aria-hidden="true"
-														className="pt-[0.45em] text-[13px] text-neutral-600 tabular-nums"
+														className="pt-[0.45em] text-[13px] text-neutral-600 tabular-nums max-md:hidden"
 													>
 														{sectionIndex + 1}.{clause}
 													</span>
@@ -272,13 +272,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								);
 							})}
 						</div>
-						<div className="order-first mb-10 lg:order-none lg:mb-0">
-							<details className="pb-2 lg:hidden">
-								<summary className="cursor-pointer text-[15px] text-white">Contents</summary>
-								<nav aria-label="Contents" className="mt-4 text-[15px]">
-									<Contents doc={doc} current={current} className="flex flex-col" />
-								</nav>
-							</details>
+						<div className="hidden lg:block">
 							<nav
 								aria-label="On this page"
 								className="hidden text-[13px] lg:sticky lg:top-28 lg:block lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto"
