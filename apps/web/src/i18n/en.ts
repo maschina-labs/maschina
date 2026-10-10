@@ -59,6 +59,7 @@ export const en = {
 		"Maschina on YouTube": "Maschina on YouTube",
 	} as Record<string, string>,
 	header: {
+		home: "Maschina, home",
 		pages: "Pages",
 		search: "Search",
 		searchMaschina: "Search Maschina",
@@ -88,6 +89,97 @@ export const en = {
 		declined: "declined",
 		decline: "Decline",
 		accept: "Accept",
+	},
+	home: {
+		hero: {
+			name: "Maschina",
+			headlineTop: "The operating system for",
+			headlineBottom: "autonomous capital.",
+			line: "AI decides. Maschina decides what it's allowed to do.",
+			start: "Start for free",
+			docs: "Read the docs",
+			facts: "Source-available, built on Solana, free to try on paper.",
+		},
+		showcase: {
+			name: "The app",
+			title: "Everything in one place.",
+			alt: "The home screen of the Maschina app, shown full screen: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine.",
+			caption: "The Maschina app, shown with sample data.",
+		},
+		how: {
+			name: "How it works",
+			title: "Give a machine a wallet and a job.",
+			line: "Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves.",
+			primary: "Make a machine",
+			secondary: "Read the docs",
+		},
+		inside: {
+			name: "Inside the app",
+			title: "See every move it makes.",
+			line: "Your portfolio, every decision, every trade, and a manager you can ask, all in one app.",
+			primary: "Try it on paper",
+		},
+		safety: {
+			name: "Safety",
+			title: "The limits are yours.",
+			line: "A machine can only spend what you give it, inside the limits you set. Every trade is checked against them before it is signed.",
+			primary: "Read how it is built",
+		},
+		customize: {
+			name: "Customize",
+			title: "Make it yours.",
+			line: "Set the range, the floor and the limits on every machine. Arranging your own screens and tiles is coming soon.",
+			primary: "Make a machine",
+		},
+		builders: {
+			name: "For builders",
+			title: "Read every line.",
+			line: "Maschina is source-available. Read the code and see exactly what a machine can and cannot do.",
+			view: "View the code",
+			docs: "Read the docs",
+		},
+		faq: {
+			name: "Questions",
+			title: "Before you start.",
+			items: [
+				{
+					question: "What is Maschina?",
+					answer:
+						"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
+				},
+				{
+					question: "What can a machine do with my money?",
+					answer:
+						"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
+				},
+				{
+					question: "What if it makes a bad trade?",
+					answer:
+						"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",
+				},
+				{
+					question: "Do I need money to try it?",
+					answer:
+						"No. Make a machine on paper and watch it trade against live prices without risking anything.",
+				},
+				{
+					question: "Is it live with real money?",
+					answer:
+						"Yes. Range Finder has traded real money on Solana since September 28, and every trade is on chain.",
+				},
+				{
+					question: "Can I read the code?",
+					answer: "Yes. It is source-available: you can read it, but it is not open source.",
+				},
+			],
+		},
+		closing: {
+			name: "Get started",
+			title: "Ready to build your first machine?",
+			line: "Test it on paper first, with no money at risk.",
+			start: "Start for free",
+			docs: "Read the docs",
+		},
 	},
 	language: {
 		label: "Language",

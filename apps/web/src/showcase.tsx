@@ -1,4 +1,5 @@
 import { Backdrop } from "./backdrop.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
 
 /**
  * A short title, then a real screenshot of the app, right under the hero: the dashboard home screen, with the chart, the machine
@@ -19,13 +20,14 @@ import { Backdrop } from "./backdrop.tsx";
  * pixels, and the browser picks between a 2838 pixel file and a 5676 pixel one for the screen it is on.
  */
 export function Showcase() {
+	const m = useMessages().home.showcase;
 	return (
 		<section
-			aria-label="The app"
+			aria-label={m.name}
 			className="relative flex flex-col items-center bg-black px-(--gutter) pt-8 pb-12"
 		>
 			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
-				Everything in one place.
+				{m.title}
 			</h2>
 			<figure className="mt-16 w-full">
 				<Backdrop className="max-sm:-mr-(--gutter) max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
@@ -33,7 +35,7 @@ export function Showcase() {
 						src="/showcase/dashboard.jpg"
 						srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
 						sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
-						alt="The home screen of the Maschina app, shown full screen: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine."
+						alt={m.alt}
 						width={2838}
 						height={1800}
 						decoding="async"
@@ -43,7 +45,7 @@ export function Showcase() {
 					/>
 				</Backdrop>
 				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
-					The Maschina app, shown with sample data.
+					{m.caption}
 				</figcaption>
 			</figure>
 		</section>

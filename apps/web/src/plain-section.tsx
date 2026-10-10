@@ -1,4 +1,5 @@
 import { Glint } from "./glint.tsx";
+import { Link } from "./i18n/link.tsx";
 import { TryButton } from "./try-button.tsx";
 
 /**
@@ -41,13 +42,13 @@ export function PlainSection({
 					glint
 				/>
 				{secondary ? (
-					<a
+					<Link
 						href={secondary.href}
 						className="group relative inline-flex h-9 items-center justify-center overflow-hidden bg-white/[0.13] px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 					>
 						<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />
 						{secondary.label}
-					</a>
+					</Link>
 				) : null}
 			</div>
 		</section>

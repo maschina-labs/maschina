@@ -5,7 +5,7 @@ import type { LocaleCode } from "./locales.ts";
 type Widen<T> = T extends string
 	? string
 	: T extends readonly (infer Item)[]
-		? Widen<Item>[]
+		? readonly Widen<Item>[]
 		: T extends object
 			? { [Key in keyof T]: Widen<T[Key]> }
 			: T;

@@ -1,3 +1,4 @@
+import { useMessages } from "./i18n/use-messages.ts";
 import { DOCS } from "./links.ts";
 import { PlainSection } from "./plain-section.tsx";
 
@@ -9,46 +10,50 @@ import { PlainSection } from "./plain-section.tsx";
  * screens and tiles is not built, so that is said to be coming and nothing more.
  */
 export function HowItWorks({ authUrl }: { authUrl: string }) {
+	const m = useMessages().home.how;
 	return (
 		<PlainSection
-			name="How it works"
-			title="Give a machine a wallet and a job."
-			line="Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves."
-			primary={{ label: "Make a machine", href: `${authUrl}/sign-up` }}
-			secondary={{ label: "Read the docs", href: DOCS }}
+			name={m.name}
+			title={m.title}
+			line={m.line}
+			primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
+			secondary={{ label: m.secondary, href: DOCS }}
 		/>
 	);
 }
 
 export function Features({ authUrl }: { authUrl: string }) {
+	const m = useMessages().home.inside;
 	return (
 		<PlainSection
-			name="Inside the app"
-			title="See every move it makes."
-			line="Your portfolio, every decision, every trade, and a manager you can ask, all in one app."
-			primary={{ label: "Try it on paper", href: `${authUrl}/sign-up` }}
+			name={m.name}
+			title={m.title}
+			line={m.line}
+			primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
 		/>
 	);
 }
 
 export function Safety() {
+	const m = useMessages().home.safety;
 	return (
 		<PlainSection
-			name="Safety"
-			title="It cannot take your money."
-			line="A machine holds no keys, and its wallet can only pay you. Every trade is checked against its limits first."
-			primary={{ label: "Read how it is built", href: DOCS }}
+			name={m.name}
+			title={m.title}
+			line={m.line}
+			primary={{ label: m.primary, href: DOCS }}
 		/>
 	);
 }
 
 export function Customize({ authUrl }: { authUrl: string }) {
+	const m = useMessages().home.customize;
 	return (
 		<PlainSection
-			name="Customize"
-			title="Make it yours."
-			line="Set the range, the floor and the limits on every machine. Arranging your own screens and tiles is coming soon."
-			primary={{ label: "Make a machine", href: `${authUrl}/sign-up` }}
+			name={m.name}
+			title={m.title}
+			line={m.line}
+			primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
 		/>
 	);
 }

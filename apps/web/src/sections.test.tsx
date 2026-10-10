@@ -22,7 +22,7 @@ const SECTIONS = [
 	},
 	{
 		name: "Safety",
-		title: "It cannot take your money.",
+		title: "The limits are yours.",
 		element: <Safety />,
 		links: [["Read how it is built", "https://docs.maschina.dev"]],
 	},

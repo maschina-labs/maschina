@@ -1,12 +1,16 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Closing } from "./closing.tsx";
+import { Faq } from "./faq.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
+import { Hero } from "./hero.tsx";
 import { en } from "./i18n/en.ts";
 import { LocaleContext } from "./i18n/locale-context.tsx";
 import { CATALOGS, type Messages } from "./i18n/messages.ts";
 import { OPEN_PREFERENCES } from "./preferences.ts";
 import { PreferencesToast } from "./preferences-toast.tsx";
+import { HowItWorks } from "./sections.tsx";
 
 const AUTH = "https://auth.maschina.dev";
 
@@ -43,6 +47,29 @@ const pretend: Messages = {
 		title: "Preferencias de cookies",
 		accept: "Aceptar",
 		decline: "Rechazar",
+	},
+	home: {
+		...structuredClone(en.home),
+		hero: {
+			...en.home.hero,
+			headlineTop: "El sistema operativo para",
+			headlineBottom: "el capital autónomo.",
+			docs: "Leer la documentación",
+		},
+		how: {
+			...en.home.how,
+			name: "Cómo funciona",
+			title: "Dale a una máquina una cartera y un trabajo.",
+			primary: "Crear una máquina",
+			secondary: "Leer la documentación",
+		},
+		faq: { ...en.home.faq, name: "Preguntas", title: "Antes de empezar." },
+		closing: {
+			...en.home.closing,
+			name: "Empezar",
+			title: "¿Listo para crear tu primera máquina?",
+			docs: "Leer la documentación",
+		},
 	},
 };
 
@@ -151,5 +178,36 @@ describe("the cookie toast in another language", () => {
 		const toast = screen.getByRole("dialog", { name: "Preferencias de cookies" });
 		expect(within(toast).getByRole("button", { name: "Aceptar" })).toBeInTheDocument();
 		expect(within(toast).getByRole("button", { name: "Rechazar" })).toBeInTheDocument();
+	});
+});
+
+describe("the front page in another language", () => {
+	it("says the hero, a section, the questions and the closing in that language", () => {
+		inSpanish(
+			<>
+				<Hero authUrl={AUTH} />
+				<HowItWorks authUrl={AUTH} />
+				<Faq />
+				<Closing authUrl={AUTH} />
+			</>,
+		);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"El sistema operativo para el capital autónomo.",
+		);
+		const how = within(screen.getByRole("region", { name: "Cómo funciona" }));
+		expect(
+			how.getByRole("heading", { level: 2, name: "Dale a una máquina una cartera y un trabajo." }),
+		).toBeInTheDocument();
+		expect(how.getByRole("link", { name: "Crear una máquina" })).toHaveAttribute(
+			"href",
+			`${AUTH}/sign-up`,
+		);
+		expect(screen.getByRole("region", { name: "Preguntas" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { level: 2, name: "¿Listo para crear tu primera máquina?" }),
+		).toBeInTheDocument();
+		// The docs are another site, so the language is not put in front of them.
+		for (const link of screen.getAllByRole("link", { name: "Leer la documentación" }))
+			expect(link).toHaveAttribute("href", "https://docs.maschina.dev");
 	});
 });

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "./i18n/link.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
 
 /**
  * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
@@ -23,12 +25,13 @@ function Mark() {
 
 /** The mark and the word, linking home. The same size in the header and the footer, on a phone and on a desktop. */
 export function Logo() {
+	const m = useMessages();
 	return (
-		<a href="/" aria-label="Maschina, home" className="flex w-fit items-center">
+		<Link href="/" aria-label={m.header.home} className="flex w-fit items-center">
 			<Mark />
 			<span data-word className="ml-1.5">
 				<img src="/brand/word.svg" alt="" className="h-5 w-auto" />
 			</span>
-		</a>
+		</Link>
 	);
 }

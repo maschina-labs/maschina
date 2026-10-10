@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useMessages } from "./i18n/use-messages.ts";
 
 /**
  * Short questions and short answers, opened one at a time. Every answer is a claim about the product and has to
@@ -7,53 +8,23 @@ import { useId, useState } from "react";
  * budget before it is signed; a machine can be made on paper against live prices; Range Finder has traded real
  * money on Solana since September 28; the code is source-available, not open source.
  */
-const QUESTIONS = [
-	{
-		question: "What is Maschina?",
-		answer:
-			"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
-	},
-	{
-		question: "What can a machine do with my money?",
-		answer:
-			"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
-	},
-	{
-		question: "What if it makes a bad trade?",
-		answer:
-			"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",
-	},
-	{
-		question: "Do I need money to try it?",
-		answer:
-			"No. Make a machine on paper and watch it trade against live prices without risking anything.",
-	},
-	{
-		question: "Is it live with real money?",
-		answer:
-			"Yes. Range Finder has traded real money on Solana since September 28, and every trade is on chain.",
-	},
-	{
-		question: "Can I read the code?",
-		answer: "Yes. It is source-available: you can read it, but it is not open source.",
-	},
-] as const;
 
 export function Faq() {
+	const m = useMessages().home.faq;
 	const base = useId();
 	const [open, setOpen] = useState<number | null>(null);
 
 	return (
 		<section
-			aria-label="Questions"
+			aria-label={m.name}
 			className="relative flex flex-col items-center bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
-				Before you start.
+				{m.title}
 			</h2>
 			<div className="mt-16 flex w-full justify-center">
 				<ul className="flex w-full max-w-3xl flex-col">
-					{QUESTIONS.map((item, index) => {
+					{m.items.map((item, index) => {
 						const shown = open === index;
 						return (
 							<li key={item.question} className="bg-white/[0.04] [&:not(:last-child)]:mb-3">
