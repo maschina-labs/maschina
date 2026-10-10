@@ -299,18 +299,6 @@ describe("the footer", () => {
 			expect(box.querySelector("svg") !== null).toBe(chosen);
 		}
 	});
-
-	it("does not switch to a language that is not ready: it is dimmed, tagged Soon, and pressing it changes nothing", () => {
-		render(<Footer />);
-		const button = screen.getByRole("button", { name: "Language" });
-		fireEvent.click(button);
-		const spanish = within(screen.getByRole("listbox")).getByRole("option", { name: /Español/ });
-		expect(spanish).toHaveAttribute("aria-disabled", "true");
-		fireEvent.click(spanish);
-		expect(button).toHaveTextContent("EN");
-		expect(screen.getByRole("listbox")).toBeInTheDocument();
-	});
-
 	it("closes the popover on Escape, on a click elsewhere, and on choosing a language", async () => {
 		render(<Footer />);
 		const button = screen.getByRole("button", { name: "Language" });

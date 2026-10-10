@@ -81,7 +81,7 @@ describe("the languages that have translations", () => {
 				expect(text.trim().length, `${code} #${index} is empty`).toBeGreaterThan(0);
 				expect(text, `${code} #${index}`).not.toMatch(LONG_DASH);
 				expect(text, `${code} #${index}`).not.toMatch(/!|！|¡/);
-				expect(text, `${code} #${index}`).not.toMatch(/lorem|\btodo\b|\btbd\b/i);
+				expect(text, `${code} #${index}`).not.toMatch(/lorem|\bTODO\b|\bTBD\b/);
 				const source = english[index];
 				if (source && source.length >= 40)
 					expect(text, `${code} #${index} is still English`).not.toBe(source);

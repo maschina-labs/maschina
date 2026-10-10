@@ -34,7 +34,7 @@ describe("the language switcher", () => {
 
 	it("dims the languages that are not ready and tags them Soon, and pressing one changes nothing", () => {
 		const navigate = vi.fn();
-		render(<LanguageSwitcher navigate={navigate} />);
+		render(<LanguageSwitcher available={["en"]} navigate={navigate} />);
 		open();
 		const spanish = option("Español");
 		expect(spanish).toHaveAttribute("aria-disabled", "true");
