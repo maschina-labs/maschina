@@ -12,14 +12,16 @@ beforeEach(() => {
 });
 
 describe("a blank page", () => {
-	it("is the header and the footer with nothing between them", () => {
+	it("is the header and the footer with a full screen of nothing between them", () => {
 		render(<BlankPage authUrl={AUTH} title="Pricing" />);
 		expect(screen.getByRole("banner")).toBeInTheDocument();
 		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 		const main = screen.getByRole("main");
 		// Nothing on it that can be seen: no text, no pictures, no controls.
 		expect(main.querySelectorAll("img, svg, canvas, a, button, p, section")).toHaveLength(0);
-		expect(main.className).toContain("flex-1");
+		// A whole screen of space between them, the full height with the browser's bars gone, so the footer starts below the fold.
+		expect(main.className).toContain("min-h-lvh");
+		expect(main.className).not.toContain("flex-1");
 	});
 
 	it("still has its name, unseen, as the page's one heading, so a reader who cannot see and a search engine know where they are", () => {

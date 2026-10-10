@@ -13,7 +13,7 @@ export function Frame({
 }: {
 	authUrl: string;
 	children: React.ReactNode;
-	/** Added to the main part: a blank page gives it `flex-1` so the footer sits at the bottom of the screen. */
+	/** Added to the main part: a blank page gives it a full screen of height. */
 	className?: string;
 }) {
 	return (
