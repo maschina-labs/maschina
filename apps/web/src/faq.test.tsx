@@ -36,7 +36,7 @@ describe("the questions", () => {
 		render(<Faq />);
 		const section = screen.getByRole("region", { name: "Questions" });
 		expect(
-			within(section).getByRole("heading", { level: 2, name: "Questions, answered." }),
+			within(section).getByRole("heading", { level: 2, name: "Before you start." }),
 		).toBeInTheDocument();
 	});
 
