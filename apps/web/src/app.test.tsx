@@ -116,4 +116,21 @@ describe("the legal pages", () => {
 		render(<App authUrl={AUTH} path="/support" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Support");
 	});
+
+	it("names each page's tab by its short name, then a bar and Maschina, never the long title", () => {
+		for (const [path, tab] of [
+			["/terms", "Terms | Maschina"],
+			["/privacy", "Privacy | Maschina"],
+			["/risk", "Risk disclosure | Maschina"],
+			["/about", "About | Maschina"],
+			["/roadmap", "Roadmap | Maschina"],
+			["/contact", "Contact | Maschina"],
+			["/support", "Support | Maschina"],
+			["/pricing", "Pricing | Maschina"],
+		] as const) {
+			const view = render(<App authUrl={AUTH} path={path} />);
+			expect(document.title, path).toBe(tab);
+			view.unmount();
+		}
+	});
 });

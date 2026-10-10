@@ -36,7 +36,7 @@ describe("a blank page", () => {
 	it("names the browser tab after the page, and puts the name back when it goes", () => {
 		document.title = "Maschina";
 		const view = render(<BlankPage authUrl={AUTH} title="Pricing" />);
-		expect(document.title).toBe("Pricing · Maschina");
+		expect(document.title).toBe("Pricing | Maschina");
 		view.unmount();
 		expect(document.title).toBe("Maschina");
 	});

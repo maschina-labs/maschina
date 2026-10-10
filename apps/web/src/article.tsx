@@ -25,8 +25,17 @@ const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [tex
  * plain headings, pulled quotes and lists. It has none of the legal pages' numbers, counter or contents: it is read
  * once, top to bottom. The page margins are the article's own padding, so they never squeeze the column.
  */
-export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc }) {
-	useTitle(doc.title);
+export function ArticlePage({
+	authUrl,
+	doc,
+	tab,
+}: {
+	authUrl: string;
+	doc: ArticleDoc;
+	/** The short name the browser tab shows, such as "About". Left out, the article's own title. */
+	tab?: string | undefined;
+}) {
+	useTitle(tab ?? doc.title);
 	return (
 		<Frame authUrl={authUrl}>
 			<article className="w-full">

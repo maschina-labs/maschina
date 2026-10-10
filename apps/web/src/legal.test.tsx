@@ -228,7 +228,7 @@ describe("a legal page", () => {
 	it("names the browser tab after the document", () => {
 		document.title = "Maschina";
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
-		expect(document.title).toBe("Example · Maschina");
+		expect(document.title).toBe("Example | Maschina");
 	});
 });
 

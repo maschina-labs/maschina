@@ -4,7 +4,7 @@ import { useEffect } from "react";
 export function useTitle(title: string) {
 	useEffect(() => {
 		const before = document.title;
-		document.title = `${title} · Maschina`;
+		document.title = `${title} | Maschina`;
 		return () => {
 			document.title = before;
 		};

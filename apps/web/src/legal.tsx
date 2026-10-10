@@ -184,8 +184,17 @@ export function Contents({
  * sits further out in the margin, small, rolling like an odometer. The contents are down the right of a very wide
  * screen. Below a wide screen the numbers go, and on a phone it is just text on a page.
  */
-export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) {
-	useTitle(doc.title);
+export function LegalPage({
+	authUrl,
+	doc,
+	tab,
+}: {
+	authUrl: string;
+	doc: LegalDoc;
+	/** The short name the browser tab shows, such as "Terms". Left out, the document's own title. */
+	tab?: string | undefined;
+}) {
+	useTitle(tab ?? doc.title);
 	const ids = doc.sections.map((section) => slug(section.heading));
 	const current = useCurrentSection(ids);
 	const counts = useClauseCounters(doc.sections.length);

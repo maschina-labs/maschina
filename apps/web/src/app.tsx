@@ -45,11 +45,11 @@ export function App({
 }) {
 	const clean = path.replace(/\/+$/, "") || "/";
 	const doc = DOCUMENTS[clean];
-	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
+	if (doc) return <LegalPage authUrl={authUrl} doc={doc} tab={titleFor(clean)} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
 	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
 	const article = ARTICLES[clean];
-	if (article) return <ArticlePage authUrl={authUrl} doc={article} />;
+	if (article) return <ArticlePage authUrl={authUrl} doc={article} tab={titleFor(clean)} />;
 	const title = titleFor(path);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
 	return <Site authUrl={authUrl} />;
