@@ -37,10 +37,21 @@ describe("the pages", () => {
 		}
 	});
 
-	it("sends the status link to a status page of its own, which leaves the site, and has no page of that name here", () => {
+	it("tags the status page Soon until there is one, since it will be run by someone else and there is nothing to link to yet", () => {
 		const status = MENUS["Developers"]?.aside.find((item) => item.label === "Status");
-		expect(status?.href).toBe("https://status.maschina.dev");
+		expect(status).toBeDefined();
+		expect(status?.href).toBeUndefined();
 		expect(ROUTES["/status"]).toBeUndefined();
+	});
+
+	it("sends GitHub to the organization, not to one repository, and the changelog to the changelog on GitHub, which is where it lives", () => {
+		const github = MENUS["Developers"]?.aside.find((item) => item.label === "GitHub");
+		expect(github?.href).toBe("https://github.com/maschina-labs");
+		const changelog = MENUS["Product"]?.aside.find((item) => item.label === "Changelog");
+		expect(changelog?.href).toBe(
+			"https://github.com/maschina-labs/maschina/blob/main/CHANGELOG.md",
+		);
+		expect(ROUTES["/changelog"]).toBeUndefined();
 	});
 
 	it("leaves the MCP server unlinked, tagged Soon, until there is one", () => {

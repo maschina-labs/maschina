@@ -26,9 +26,9 @@ export const SUPPORT: SupportDoc = {
 			href: "/docs",
 		},
 		{
-			title: "Check the status",
-			body: "Whether Maschina is up, and whether machines are paused.",
-			href: "https://status.maschina.dev",
+			title: "Know the risks",
+			body: "What can go wrong with a machine and its money, said plainly.",
+			href: "/risk",
 		},
 		{
 			title: "Report a security problem",

@@ -105,14 +105,16 @@ describe("the header", () => {
 		}
 		expect(inside.getByRole("link", { name: "GitHub" })).toHaveAttribute(
 			"href",
-			"https://github.com/maschina-labs/maschina",
+			"https://github.com/maschina-labs",
 		);
-		for (const name of ["Status", "AI index", "Skill file"]) {
+		for (const name of ["AI index", "Skill file"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
 		// Not built yet: named, tagged Soon, and not a link.
-		expect(inside.queryByRole("link", { name: /MCP server/ })).toBeNull();
-		expect(inside.getByText("MCP server")).toBeInTheDocument();
+		for (const name of ["Status", "MCP server"]) {
+			expect(inside.queryByRole("link", { name: new RegExp(name) })).toBeNull();
+			expect(inside.getByText(name)).toBeInTheDocument();
+		}
 		expect(screen.getByRole("button", { name: "Developers" })).toHaveAttribute(
 			"aria-expanded",
 			"true",

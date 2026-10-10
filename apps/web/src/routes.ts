@@ -16,7 +16,6 @@ export const ROUTES: Record<string, string> = {
 	"/how-it-works": "How it works",
 	"/machines": "Machines",
 	"/pricing": "Pricing",
-	"/changelog": "Changelog",
 	"/papers": "Papers",
 	"/developers": "Developers",
 	"/api": "API",

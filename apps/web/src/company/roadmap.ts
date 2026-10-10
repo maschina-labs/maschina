@@ -70,7 +70,10 @@ export const ROADMAP: ArticleDoc = {
 					"Maschina is early, and it has not been independently audited. No date is set for an audit, and we will not set one until we can keep it. What can go wrong is set out in the ",
 					{ text: "risk disclosure", href: "/risk" },
 					", and what has changed lately is in the ",
-					{ text: "changelog", href: "/changelog" },
+					{
+						text: "changelog",
+						href: "https://github.com/maschina-labs/maschina/blob/main/CHANGELOG.md",
+					},
 					".",
 				],
 			],

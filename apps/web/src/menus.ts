@@ -13,7 +13,8 @@ export type Menu = {
 	aside: Item[];
 };
 
-const REPO = "https://github.com/maschina-labs/maschina";
+const ORG = "https://github.com/maschina-labs";
+const CHANGELOG = "https://github.com/maschina-labs/maschina/blob/main/CHANGELOG.md";
 const X = "https://x.com/maschinalabs";
 
 export const MENUS: Record<string, Menu> = {
@@ -29,7 +30,7 @@ export const MENUS: Record<string, Menu> = {
 		asideTitle: "See it work",
 		aside: [
 			{ label: "Live record", href: "/live" },
-			{ label: "Changelog", href: "/changelog" },
+			{ label: "Changelog", href: CHANGELOG },
 		],
 	},
 	Developers: {
@@ -43,8 +44,9 @@ export const MENUS: Record<string, Menu> = {
 		],
 		asideTitle: "For builders and agents",
 		aside: [
-			{ label: "GitHub", href: REPO },
-			{ label: "Status", href: "https://status.maschina.dev" },
+			{ label: "GitHub", href: ORG },
+			// Tagged Soon until the status page exists: it will be hosted by someone else (Atlassian Statuspage).
+			{ label: "Status" },
 			{ label: "AI index", href: "/llms.txt" },
 			{ label: "Skill file", href: "/SKILL.md" },
 			{ label: "MCP server" },
@@ -55,13 +57,13 @@ export const MENUS: Record<string, Menu> = {
 		main: [
 			{ label: "About", href: "/about" },
 			{ label: "Roadmap", href: "/roadmap" },
-			{ label: "Changelog", href: "/changelog" },
+			{ label: "Changelog", href: CHANGELOG },
 			{ label: "Contact", href: "/contact" },
 		],
 		asideTitle: "Follow",
 		aside: [
 			{ label: "X", href: X },
-			{ label: "GitHub", href: REPO },
+			{ label: "GitHub", href: ORG },
 		],
 	},
 };
