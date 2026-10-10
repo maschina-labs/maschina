@@ -21,10 +21,8 @@ describe("which page an address shows", () => {
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Papers");
 	});
 
-	it("shows a blank page for every address in the table that has no document yet", () => {
+	it("shows a blank page for every address in the table", () => {
 		for (const [path, title] of Object.entries(ROUTES)) {
-			// The legal pages are written out in full; the rest are blank.
-			if (path === "/terms") continue;
 			const view = render(<App authUrl={AUTH} path={path} />);
 			expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
 			expect(screen.getByRole("main").querySelectorAll("section")).toHaveLength(0);
@@ -40,13 +38,5 @@ describe("which page an address shows", () => {
 			);
 			view.unmount();
 		}
-	});
-});
-
-describe("the legal pages", () => {
-	it("shows the terms of service at /terms, as a real document and not a blank page", () => {
-		render(<App authUrl={AUTH} path="/terms" />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Terms of Service");
-		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(10);
 	});
 });
