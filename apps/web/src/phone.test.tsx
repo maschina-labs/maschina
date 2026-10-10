@@ -80,16 +80,15 @@ describe("the header on a phone", () => {
 });
 
 describe("the preview on a phone", () => {
-	it("shows the app bigger than the screen, cropped at the right and bottom, so it can be read", () => {
+	it("shows the app bigger than the screen, cropped at the right only, with its whole height and the whole backdrop showing", () => {
 		render(<Showcase />);
 		const image = screen.getByRole("img");
 		const backdrop = image.closest("[data-backdrop]") as HTMLElement;
-		// A set height, so the bottom is cropped as well as the right, with no padding at the right and bottom for it to end against.
-		expect(backdrop.className).toContain("max-sm:h-[27rem]");
+		// No padding at the right for it to end against, and nothing that cuts the height: the backdrop is as tall as the picture.
 		expect(backdrop.className).toContain("max-sm:pr-0");
-		expect(backdrop.className).toContain("max-sm:pb-0");
+		expect(backdrop.className).not.toMatch(/max-sm:h-|max-sm:pb-0|max-h-/);
 		expect(backdrop.className).toContain("overflow-hidden");
-		// The picture is twice as wide as the room it has, so only the left of it shows, and it keeps its own width from a tablet up.
+		// The picture is twice as wide as the room it has, so about half of it shows, the left half, and it keeps its own width from a tablet up.
 		expect(image.className).toContain("max-sm:w-[200%]");
 		expect(image.className).toContain("max-sm:max-w-none");
 		expect(image.className).toContain("w-full");

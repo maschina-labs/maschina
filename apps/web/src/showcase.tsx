@@ -11,8 +11,9 @@ import { Backdrop } from "./backdrop.tsx";
  * (gradients and a grain filter), so it costs the graphics card nothing. The picture has an ordinary dark drop
  * shadow to lift it off the light, and nothing glows. Nothing moves: no tilt, no shine, no window frame.
  *
- * On a phone the picture is twice as wide as the room it has and the backdrop has a set height with no padding at the
- * right or bottom, so the app is shown big and cropped, the way a phone screen shows an app, instead of a tiny whole.
+ * On a phone the picture is twice as wide as the room it has and the backdrop has no padding at
+ * the right, so about the left half of the app shows, big enough to read, with its whole height and the whole
+ * backdrop around it, instead of a tiny whole.
  *
  * The picture is very sharp: it is the whole app, edge to edge, captured on a 1920 by 1200 screen at three times its
  * pixels, and the browser picks between a 2838 pixel file and a 5676 pixel one for the screen it is on.
@@ -27,7 +28,7 @@ export function Showcase() {
 				Everything in one place.
 			</h2>
 			<figure className="mt-16 w-full">
-				<Backdrop className="max-sm:h-[27rem] max-sm:pr-0 max-sm:pb-0">
+				<Backdrop className="max-sm:pr-0">
 					<img
 						src="/showcase/dashboard.jpg"
 						srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
