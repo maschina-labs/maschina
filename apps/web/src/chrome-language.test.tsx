@@ -1,10 +1,12 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { App } from "./app.tsx";
 import { Closing } from "./closing.tsx";
 import { Faq } from "./faq.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
+import { CONTENTS, contentFor } from "./i18n/content.ts";
 import { en } from "./i18n/en.ts";
 import { LocaleContext } from "./i18n/locale-context.tsx";
 import { CATALOGS, type Messages } from "./i18n/messages.ts";
@@ -209,5 +211,37 @@ describe("the front page in another language", () => {
 		// The docs are another site, so the language is not put in front of them.
 		for (const link of screen.getAllByRole("link", { name: "Leer la documentación" }))
 			expect(link).toHaveAttribute("href", "https://docs.maschina.dev");
+	});
+});
+
+describe("the pages in another language", () => {
+	afterEach(() => {
+		delete CONTENTS["es"];
+	});
+
+	it("shows the page of the address in that language, with its tab named in that language, and keeps the reader in it", () => {
+		const english = contentFor("en");
+		const original = english.documents["/terms"];
+		if (!original) throw new Error("the terms are missing");
+		const terms = { ...original, title: "Condiciones del servicio" };
+		CONTENTS["es"] = { ...english, documents: { ...english.documents, "/terms": terms } };
+		CATALOGS["es"] = { ...pretend, labels: { ...pretend.labels, About: "Acerca de" } };
+		render(<App authUrl={AUTH} path="/es/terms" available={["en", "es"]} />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Condiciones del servicio");
+		expect(document.title).toBe("Condiciones del servicio | Maschina");
+		// The links inside the document keep the language too.
+		const inside = within(screen.getByRole("main")).getAllByRole("link", {
+			name: /privacy|terms|risk/i,
+		});
+		for (const link of inside) {
+			const href = link.getAttribute("href") ?? "";
+			if (href.startsWith("/")) expect(href).toMatch(/^\/es\//);
+		}
+	});
+
+	it("names a blank page's tab in that language", () => {
+		CATALOGS["es"] = { ...pretend, labels: { ...pretend.labels, Pricing: "Precios" } };
+		render(<App authUrl={AUTH} path="/es/pricing" available={["en", "es"]} />);
+		expect(document.title).toBe("Precios | Maschina");
 	});
 });

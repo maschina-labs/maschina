@@ -1,5 +1,7 @@
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
+import { fill } from "./i18n/messages.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import { flat, type Part, Text } from "./legal.tsx";
 import { useTitle } from "./use-title.ts";
 
@@ -35,6 +37,7 @@ export function ArticlePage({
 	/** The short name the browser tab shows, such as "About". Left out, the article's own title. */
 	tab?: string | undefined;
 }) {
+	const m = useMessages().article;
 	useTitle(tab ?? doc.title);
 	return (
 		<Frame authUrl={authUrl}>
@@ -50,7 +53,7 @@ export function ArticlePage({
 							{doc.standfirst}
 						</p>
 						<p className="mt-6 text-[14px] text-neutral-400">
-							By {doc.byline}
+							{fill(m.by, { name: doc.byline })}
 							<span aria-hidden="true"> · </span>
 							<time>{doc.date}</time>
 						</p>

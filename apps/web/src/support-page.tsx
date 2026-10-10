@@ -1,6 +1,7 @@
 import type { SupportDoc } from "./company/support.ts";
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
+import { Link } from "./i18n/link.tsx";
 import { useTitle } from "./use-title.ts";
 
 /**
@@ -30,7 +31,7 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 						className="mx-auto grid w-full max-w-[64rem] auto-rows-fr gap-3 sm:grid-cols-2"
 					>
 						{doc.ways.map((way) => (
-							<a
+							<Link
 								key={way.href}
 								href={way.href}
 								className="group block h-full min-h-44 bg-white/[0.06] p-6 transition-colors hover:bg-white/[0.1]"
@@ -41,7 +42,7 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 								<span className="mt-3 block text-[16px] text-neutral-400 leading-[1.55]">
 									{way.body}
 								</span>
-							</a>
+							</Link>
 						))}
 					</div>
 					<div data-empty className="mx-auto mt-24 w-full max-w-[34rem] text-center">

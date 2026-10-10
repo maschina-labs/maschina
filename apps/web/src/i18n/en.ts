@@ -181,6 +181,59 @@ export const en = {
 			docs: "Read the docs",
 		},
 	},
+	notFound: {
+		code: "404",
+		title: "Page not found",
+		body: "There is nothing at this address. It may have moved, or the link may be wrong.",
+		home: "Go to the front page",
+	},
+	contact: {
+		kicker: "Company",
+		title: "Contact",
+		standfirst: "Tell us what you need, and it goes to the right inbox.",
+		who: "Who is it for",
+		topics: {
+			support: { label: "Support", hint: "Help using Maschina" },
+			billing: { label: "Billing", hint: "A charge or a fee" },
+			legal: { label: "Legal", hint: "Terms, privacy, license" },
+			abuse: { label: "Abuse", hint: "Report a breach of the rules" },
+		},
+		name: "Your name",
+		email: "Your email",
+		message: "Your message",
+		send: "Send message",
+		sending: "Sending",
+		sentTitle: "Message sent.",
+		sentBody: "Replies go to the address you gave.",
+		securityNote: "A security problem? Use the {link} page instead.",
+		securityLink: "security disclosure",
+		problems: {
+			invalid:
+				"Check the fields: the email needs to be a real address, and the message a few words at least.",
+			limit: "Too many messages from this address. Please wait a minute and try again.",
+			unavailable: "Your message cannot be sent right now. Write to support@maschina.dev instead.",
+			network:
+				"Your message cannot be sent right now. Check your connection, or write to support@maschina.dev instead.",
+		},
+	},
+	legal: {
+		label: "Legal",
+		updated: "Last updated {date}",
+		onThisPage: "On this page",
+	},
+	article: {
+		by: "By {name}",
+	},
+	papers: {
+		soon: "Coming soon",
+	},
+	brand: {
+		svg: "SVG",
+		png: "PNG",
+		pack: "Full asset pack",
+		clearspaceWordmark: "x = the height of the wordmark",
+		clearspaceMark: "x = half the height of the mark",
+	},
 	language: {
 		label: "Language",
 		soon: "Soon",

@@ -1,24 +1,16 @@
 import { useEffect } from "react";
-import { type ArticleDoc, ArticlePage } from "./article.tsx";
+import { ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { BrandPage } from "./brand-page.tsx";
-import { ABOUT } from "./company/about.ts";
-import { BRAND } from "./company/brand.ts";
-import { PAPERS } from "./company/papers.ts";
-import { ROADMAP } from "./company/roadmap.ts";
-import { SUPPORT } from "./company/support.ts";
 import { ContactPage } from "./contact-page.tsx";
+import { contentFor } from "./i18n/content.ts";
 import { readLanguage } from "./i18n/language.ts";
 import { LocaleContext } from "./i18n/locale-context.tsx";
 import { AVAILABLE, LOCALES, type LocaleCode, parsePath } from "./i18n/locales.ts";
+import { label } from "./i18n/messages.ts";
 import { redirectFor } from "./i18n/redirect.ts";
-import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
-import { DISCLOSURE } from "./legal/disclosure.ts";
-import { LICENSE } from "./legal/license.ts";
-import { PRIVACY } from "./legal/privacy.ts";
-import { RISK } from "./legal/risk.ts";
-import { TERMS } from "./legal/terms.ts";
-import { type LegalDoc, LegalPage } from "./legal.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
+import { LegalPage } from "./legal.tsx";
 import { NotFoundPage } from "./not-found-page.tsx";
 import { PapersPage } from "./papers-page.tsx";
 import { titleFor } from "./routes.ts";
@@ -31,22 +23,6 @@ import { useMeta } from "./use-meta.ts";
  * on it yet, and a page saying there is none for any other address. The address is a plain argument so a test can stand in
  * for the browser's.
  */
-/** The legal documents, each at its address. They are written out in full; the other pages are blank. */
-const DOCUMENTS: Record<string, LegalDoc> = {
-	"/terms": TERMS,
-	"/privacy": PRIVACY,
-	"/risk": RISK,
-	"/acceptable-use": ACCEPTABLE_USE,
-	"/license": LICENSE,
-	"/disclosure": DISCLOSURE,
-};
-
-/** The company pages, which read like articles, each at its address. */
-const ARTICLES: Record<string, ArticleDoc> = {
-	"/about": ABOUT,
-	"/roadmap": ROADMAP,
-};
-
 /**
  * The addresses that have something on them: the front page, the legal documents, the articles, and the three pages
  * written by hand. The sitemap lists exactly these, and a test keeps the two in step, so a blank page is never offered
@@ -54,8 +30,8 @@ const ARTICLES: Record<string, ArticleDoc> = {
  */
 export const CONTENT_PATHS = [
 	"/",
-	...Object.keys(DOCUMENTS),
-	...Object.keys(ARTICLES),
+	...Object.keys(contentFor("en").documents),
+	...Object.keys(contentFor("en").articles),
 	"/contact",
 	"/support",
 	"/brand",
@@ -63,17 +39,20 @@ export const CONTENT_PATHS = [
 ];
 
 /** The page for an address, with the language already taken off it. */
-function Page({ authUrl, clean }: { authUrl: string; clean: string }) {
-	const doc = DOCUMENTS[clean];
+function Page({ authUrl, clean, locale }: { authUrl: string; clean: string; locale: LocaleCode }) {
+	const m = useMessages();
+	const content = contentFor(locale);
+	const doc = content.documents[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
-	if (clean === "/brand") return <BrandPage authUrl={authUrl} doc={BRAND} />;
-	if (clean === "/papers") return <PapersPage authUrl={authUrl} doc={PAPERS} />;
-	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
-	const article = ARTICLES[clean];
-	if (article) return <ArticlePage authUrl={authUrl} doc={article} tab={titleFor(clean)} />;
+	if (clean === "/brand") return <BrandPage authUrl={authUrl} doc={content.brand} />;
+	if (clean === "/papers") return <PapersPage authUrl={authUrl} doc={content.papers} />;
+	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={content.support} />;
+	const article = content.articles[clean];
+	if (article)
+		return <ArticlePage authUrl={authUrl} doc={article} tab={label(m, titleFor(clean) ?? clean)} />;
 	const title = titleFor(clean);
-	if (title) return <BlankPage authUrl={authUrl} title={title} />;
+	if (title) return <BlankPage authUrl={authUrl} title={label(m, title)} />;
 	if (clean === "/") return <Site authUrl={authUrl} />;
 	return <NotFoundPage authUrl={authUrl} />;
 }
@@ -129,7 +108,7 @@ export function App({
 
 	return (
 		<LocaleContext.Provider value={locale}>
-			<Page authUrl={authUrl} clean={clean} />
+			<Page authUrl={authUrl} clean={clean} locale={locale} />
 		</LocaleContext.Provider>
 	);
 }

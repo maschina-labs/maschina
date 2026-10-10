@@ -1,6 +1,8 @@
 import type { BrandDoc, Logo } from "./company/brand.ts";
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
+import { Link } from "./i18n/link.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
 import { useTitle } from "./use-title.ts";
 
 const KIT = "/brand/kit";
@@ -32,6 +34,7 @@ function Row({
 
 /** One logo on a dark or a light tile, with the files to download under it. */
 function Tile({ logo, tone }: { logo: Logo; tone: "dark" | "light" }) {
+	const m = useMessages().brand;
 	const ink = tone === "dark" ? "white" : "black";
 	const base = `${KIT}/${logo.file}-${ink}`;
 	return (
@@ -46,12 +49,12 @@ function Tile({ logo, tone }: { logo: Logo; tone: "dark" | "light" }) {
 				/>
 			</div>
 			<div className="mt-3 flex gap-2">
-				<a href={`${base}.svg`} download className={BUTTON}>
-					SVG
-				</a>
-				<a href={`${base}.png`} download className={BUTTON}>
-					PNG
-				</a>
+				<Link href={`${base}.svg`} download className={BUTTON}>
+					{m.svg}
+				</Link>
+				<Link href={`${base}.png`} download className={BUTTON}>
+					{m.png}
+				</Link>
 			</div>
 		</div>
 	);
@@ -119,6 +122,7 @@ function Clearspace({
  * typeface and what not to do.
  */
 export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) {
+	const m = useMessages().brand;
 	useTitle(doc.title);
 	return (
 		<Frame authUrl={authUrl}>
@@ -132,7 +136,7 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 						<p className="mt-6 max-w-[40rem] text-[clamp(1.125rem,2vw,1.375rem)] text-neutral-200 leading-[1.45]">
 							{doc.standfirst}
 						</p>
-						<a
+						<Link
 							href={doc.pack}
 							download
 							className="mt-8 inline-flex h-11 items-center gap-3 bg-[oklch(0.93_0.02_300)] px-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
@@ -149,8 +153,8 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 							>
 								<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
 							</svg>
-							Full asset pack
-						</a>
+							{m.pack}
+						</Link>
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pb-24 sm:pb-32`}>
@@ -187,14 +191,14 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 								<Clearspace
 									file="wordmark"
 									label="Wordmark with clearspace"
-									caption="x = the height of the wordmark"
+									caption={m.clearspaceWordmark}
 									across={1284 / 175}
 									down={1}
 								/>
 								<Clearspace
 									file="mark"
 									label="Mark with clearspace"
-									caption="x = half the height of the mark"
+									caption={m.clearspaceMark}
 									across={2}
 									down={2}
 								/>

@@ -510,7 +510,7 @@ export function Header({
 							inert={searchPanel.closing}
 							className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label="Search" className="min-h-0 overflow-hidden bg-black">
+							<section aria-label={m.header.search} className="min-h-0 overflow-hidden bg-black">
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 									<SearchInput
 										ref={box}

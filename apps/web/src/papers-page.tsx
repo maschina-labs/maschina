@@ -1,6 +1,8 @@
 import type { PapersDoc } from "./company/papers.ts";
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
+import { Link } from "./i18n/link.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
 import { useTitle } from "./use-title.ts";
 
 const CARD = "block h-full p-6";
@@ -11,6 +13,7 @@ const CARD = "block h-full p-6";
  * soon and is not a link, so nothing here is dead.
  */
 export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }) {
+	const m = useMessages().papers;
 	useTitle(doc.title);
 	return (
 		<Frame authUrl={authUrl}>
@@ -76,13 +79,13 @@ export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }
 												) : null}
 												{item.href ? null : (
 													<span className="mt-5 inline-block text-[13px] text-neutral-500">
-														Coming soon
+														{m.soon}
 													</span>
 												)}
 											</>
 										);
 										return item.href ? (
-											<a
+											<Link
 												key={item.name}
 												data-item
 												href={item.href}
@@ -91,7 +94,7 @@ export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }
 												className={`${CARD} ${group.compact ? "min-h-36" : "min-h-44"} bg-white/[0.06] transition-colors hover:bg-white/[0.1]`}
 											>
 												{inside}
-											</a>
+											</Link>
 										) : (
 											<div
 												key={item.name}

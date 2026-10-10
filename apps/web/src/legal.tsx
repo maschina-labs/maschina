@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
+import { Link } from "./i18n/link.tsx";
+import { fill } from "./i18n/messages.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
 
@@ -35,7 +38,7 @@ export function Text({ parts }: { parts: Part[] }) {
 		typeof part === "string" ? (
 			<span key={`${index}-${part}`}>{part}</span>
 		) : (
-			<a
+			<Link
 				key={part.href}
 				href={part.href}
 				// A link that leaves the site opens in a new tab and does not hand the new page this one.
@@ -45,7 +48,7 @@ export function Text({ parts }: { parts: Part[] }) {
 				className={LINK}
 			>
 				{part.text}
-			</a>
+			</Link>
 		),
 	);
 }
@@ -161,7 +164,7 @@ export function Contents({
 				const id = slug(section.heading);
 				return (
 					<li key={id}>
-						<a
+						<Link
 							href={`#${id}`}
 							onClick={(event) => jump(event, id)}
 							aria-current={current === id ? "location" : undefined}
@@ -169,7 +172,7 @@ export function Contents({
 						>
 							<span className="w-5 shrink-0 text-neutral-600 tabular-nums">{index + 1}</span>
 							{section.heading}
-						</a>
+						</Link>
 					</li>
 				);
 			})}
@@ -185,6 +188,7 @@ export function Contents({
  * screen. Below a wide screen the numbers go, and on a phone it is just text on a page.
  */
 export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) {
+	const m = useMessages().legal;
 	useTitle(doc.title);
 	const ids = doc.sections.map((section) => slug(section.heading));
 	const current = useCurrentSection(ids);
@@ -199,11 +203,13 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 				<div data-head className={HEAD}>
 					<HeadArt />
 					<div data-head-text className="relative mx-auto w-full max-w-[44rem]">
-						<p className="text-[14px] text-neutral-400">Legal</p>
+						<p className="text-[14px] text-neutral-400">{m.label}</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.5rem)] text-white leading-[0.98] tracking-[-0.04em] [text-wrap:balance]">
 							{doc.title}
 						</h1>
-						<p className="mt-6 text-[14px] text-neutral-400">Last updated {doc.updated}</p>
+						<p className="mt-6 text-[14px] text-neutral-400">
+							{fill(m.updated, { date: doc.updated })}
+						</p>
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
@@ -314,7 +320,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 						</div>
 						<div className="hidden xl:block">
 							<nav
-								aria-label="On this page"
+								aria-label={m.onThisPage}
 								className="hidden text-[13px] xl:sticky xl:top-28 xl:block xl:max-h-[calc(100svh-9rem)] xl:overflow-y-auto"
 							>
 								<Contents doc={doc} current={current} className="flex flex-col" />
