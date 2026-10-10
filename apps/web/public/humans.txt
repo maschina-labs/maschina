@@ -1,0 +1,11 @@
+/* The company */
+Company: Maschina Labs
+Location: Alberta, Canada
+Site: https://maschina.dev
+Code: https://github.com/maschina-labs/maschina
+Contact: https://maschina.dev/contact
+
+/* The site */
+Standards: HTML5, CSS, TypeScript, React, Vite, Tailwind CSS
+Typeface: Sohne, licensed
+Hosting: Cloudflare

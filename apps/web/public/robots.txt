@@ -1,0 +1,5 @@
+# Everything on this site is public and meant to be read, by people, search engines and AI agents alike.
+User-agent: *
+Allow: /
+
+Sitemap: https://maschina.dev/sitemap.xml

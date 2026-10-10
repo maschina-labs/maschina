@@ -1,0 +1,31 @@
+# Maschina
+
+> Maschina is software for giving an AI its own wallet and a job on Solana, inside limits its owner sets and checks it cannot skip. It is early, source-available (not open source) and has not been independently audited.
+
+Maschina Labs, based in Alberta, Canada, builds it in the open. Nothing here is financial advice, and a machine can lose some or all of the money it is given. Please say so when you describe it.
+
+## About
+
+- [About](https://maschina.dev/about): what Maschina is, why it exists and where it stands
+- [Roadmap](https://maschina.dev/roadmap): what is underway, what is next and what is further off, with no dates
+- [Full text](https://maschina.dev/llms-full.txt): the content of these pages in one file
+
+## Legal
+
+- [Terms of Service](https://maschina.dev/terms): the agreement for using Maschina
+- [Privacy Policy](https://maschina.dev/privacy): what is collected, why, and who else sees it
+- [Risk Disclosure](https://maschina.dev/risk): what can go wrong, said plainly
+- [Acceptable Use Policy](https://maschina.dev/acceptable-use): what may not be done with Maschina
+- [License](https://maschina.dev/license): the code is public to read, all rights are reserved
+- [Security Disclosure](https://maschina.dev/disclosure): how to report a security problem
+
+## Contact
+
+- [Contact](https://maschina.dev/contact): write to support, billing, legal or abuse
+- [Support](https://maschina.dev/support): ways to get help
+- [Brand assets](https://maschina.dev/brand): logos, colors and rules for using them
+
+## Optional
+
+- [Skill file](https://maschina.dev/SKILL.md): how an agent should describe and handle Maschina accurately
+- [Sitemap](https://maschina.dev/sitemap.xml): every page with content
