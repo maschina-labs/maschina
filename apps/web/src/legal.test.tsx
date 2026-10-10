@@ -42,23 +42,28 @@ describe("a legal page", () => {
 		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 	});
 
-	it("keeps the page margins on the article and the width on a box inside it, so the margins never squeeze the text", () => {
+	it("keeps the page margins on the article, so the text starts at the left margin and the contents end at the right one", () => {
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const article = screen.getByRole("main").querySelector("article") as HTMLElement;
 		expect(article.className).toContain("px-(--gutter)");
 		expect(article.className).not.toMatch(/max-w-/);
 		const column = article.firstElementChild as HTMLElement;
 		expect(column).toHaveAttribute("data-column");
-		expect(column.className).toContain("mx-auto");
-		expect(column.className).toContain("max-w-[72rem]");
+		// No centered box: the text starts at the page's left margin, in line with the logo, and the contents end at the right margin.
+		expect(column.className).not.toMatch(/mx-auto|max-w-/);
 		expect(column.className).not.toContain("px-");
 	});
 
-	it("puts the contents down the left on a wide screen, held in view while the text is read, and the text in a reading column on the right", () => {
+	it("puts the text in a reading column on the left and a small contents down the right on a wide screen, held in view while the text is read", () => {
 		const { container } = render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const layout = container.querySelector("[data-layout]") as HTMLElement;
-		expect(layout.className).toContain("lg:grid-cols-[15rem_minmax(0,1fr)]");
+		// The text is on the left, in its reading column, and a small contents on the right.
+		expect(layout.className).toContain("lg:grid-cols-[minmax(0,1fr)_12rem]");
+		// No line between the title and the text, nor under the folded contents on a phone.
+		expect(layout.className).not.toMatch(/border/);
+		expect(screen.getByText("Contents").closest("details")?.className ?? "").not.toMatch(/border/);
 		const side = screen.getByRole("navigation", { name: "On this page" });
+		expect(side.className).toContain("text-[13px]");
 		expect(side.className).toContain("lg:sticky");
 		expect(side.className).toContain("lg:top-28");
 		const links = within(side).getAllByRole("link");
@@ -66,6 +71,11 @@ describe("a legal page", () => {
 		expect(links.map((link) => link.getAttribute("href"))).toEqual(["#one", "#two"]);
 		const text = container.querySelector("[data-text]") as HTMLElement;
 		expect(text.className).toContain("max-w-[42rem]");
+		// On a phone the contents come first, above the text; on a wide screen they sit after it, on the right.
+		const sideBox = side.parentElement as HTMLElement;
+		expect(sideBox.className).toContain("order-first");
+		expect(sideBox.className).toContain("lg:order-none");
+		expect(text.compareDocumentPosition(sideBox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 	});
 
 	it("folds the contents into a list at the top on a phone, where there is no room for a side column", () => {

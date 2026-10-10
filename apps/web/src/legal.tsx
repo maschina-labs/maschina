@@ -126,7 +126,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 	return (
 		<Frame authUrl={authUrl}>
 			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
-				<div data-column className="mx-auto w-full max-w-[72rem]">
+				<div data-column className="w-full">
 					<div className="max-w-[48rem]">
 						<p className="text-[14px] text-neutral-500">Legal</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.75rem,7vw,5.5rem)] text-white leading-[0.98] tracking-[-0.04em] [text-wrap:balance]">
@@ -142,24 +142,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 							</p>
 						))}
 					</div>
-					<div
-						data-layout
-						className="mt-16 grid gap-x-16 border-white/10 border-t pt-12 lg:grid-cols-[15rem_minmax(0,1fr)]"
-					>
-						<div>
-							<details className="mb-10 border-white/10 border-b pb-6 lg:hidden">
-								<summary className="cursor-pointer text-[15px] text-white">Contents</summary>
-								<nav aria-label="Contents" className="mt-4 text-[15px]">
-									<Contents doc={doc} current={current} className="flex flex-col" />
-								</nav>
-							</details>
-							<nav
-								aria-label="On this page"
-								className="hidden text-[14px] lg:sticky lg:top-28 lg:block lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto"
-							>
-								<Contents doc={doc} current={current} className="flex flex-col" />
-							</nav>
-						</div>
+					<div data-layout className="mt-20 grid gap-x-16 lg:grid-cols-[minmax(0,1fr)_12rem]">
 						<div data-text className="max-w-[42rem]">
 							{doc.sections.map((section, sectionIndex) => {
 								const id = slug(section.heading);
@@ -215,6 +198,20 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 									</section>
 								);
 							})}
+						</div>
+						<div className="order-first mb-10 lg:order-none lg:mb-0">
+							<details className="pb-2 lg:hidden">
+								<summary className="cursor-pointer text-[15px] text-white">Contents</summary>
+								<nav aria-label="Contents" className="mt-4 text-[15px]">
+									<Contents doc={doc} current={current} className="flex flex-col" />
+								</nav>
+							</details>
+							<nav
+								aria-label="On this page"
+								className="hidden text-[13px] lg:sticky lg:top-28 lg:block lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto"
+							>
+								<Contents doc={doc} current={current} className="flex flex-col" />
+							</nav>
 						</div>
 					</div>
 				</div>
