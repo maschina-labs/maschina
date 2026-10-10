@@ -242,7 +242,7 @@ function StatusMark() {
 	);
 }
 
-/** A full screen, with the wordmark at the foot of it. */
+/** At least a screen, the sitemap near the top, and the line and the wordmark at the foot of it. */
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
@@ -261,8 +261,8 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative flex min-h-svh w-full flex-col justify-end overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-32">
-			<div className="my-auto flex w-full flex-col gap-12 py-24 sm:flex-row sm:items-start sm:justify-between">
+		<footer className="relative flex min-h-svh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16">
+			<div className="flex w-full flex-col gap-12 py-12 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
 				<nav
@@ -309,7 +309,7 @@ export function Footer() {
 					))}
 				</nav>
 			</div>
-			<div className="flex flex-col items-center gap-4 pb-8 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+			<div className="mt-auto flex flex-col items-center gap-4 pb-8 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (
 						<a

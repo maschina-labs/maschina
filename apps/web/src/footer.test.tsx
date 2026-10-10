@@ -37,8 +37,9 @@ describe("the footer", () => {
 		expect(row.className).toContain("sm:flex-row");
 		expect(row.className).toContain("sm:items-start");
 		expect(row.className).toContain("sm:justify-between");
-		// The footer leaves room at the top for the header, which sits over it when it fills the screen.
-		expect(footer.className).toContain("pt-32");
+		// Only a little room at the top: the footer is as tall as its content, not a screen with empty space above it.
+		expect(footer.className).toContain("pt-16");
+		expect(footer.className).not.toContain("pt-32");
 	});
 
 	it("has the same logo as the header, with the mark that turns a full turn each time the cursor arrives", () => {
@@ -140,13 +141,13 @@ describe("the footer", () => {
 		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		const order = [...footer.children];
 		expect(order.indexOf(row)).toBeLessThan(order.indexOf(line));
-		expect(row.className).toContain("my-auto");
+		expect(row.className).not.toContain("my-auto");
 	});
 
 	it("gives the sitemap room to breathe: space above and below the row, and between the pages", () => {
 		render(<Footer />);
 		const nav = screen.getByRole("navigation", { name: "Sitemap" });
-		expect((nav.parentElement as HTMLElement).className).toContain("py-24");
+		expect((nav.parentElement as HTMLElement).className).toContain("py-12");
 		expect(within(nav).getAllByRole("list")[0]?.className).toContain("gap-2.5");
 		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		expect(line.className).toContain("pb-8");
@@ -416,12 +417,14 @@ describe("the footer", () => {
 		expect(screen.getByRole("contentinfo").className).toContain("px-(--gutter)");
 	});
 
-	it("is a full screen with the wordmark at the foot of it", () => {
+	it("is at least a screen tall, with the sitemap near the top and the line and wordmark at the foot, so any spare height sits between them, not above the sitemap", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
 		expect(className).toContain("min-h-svh");
+		expect(className).not.toContain("justify-end");
+		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		expect(line.className).toContain("mt-auto");
 		expect(className).toContain("flex-col");
-		expect(className).toContain("justify-end");
 	});
 
 	it("is an ordinary section on black with a hairline on top: it scrolls into view and covers nothing", () => {
