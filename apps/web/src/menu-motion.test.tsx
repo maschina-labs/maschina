@@ -66,3 +66,31 @@ describe("the phone menu rolls down smoothly", () => {
 		expect(group.className).toContain("duration-[350ms]");
 	});
 });
+
+describe("the search in the phone menu", () => {
+	it("sits at the very top, above Product, as a full width field-like button inside the margins", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		settle(30);
+		const nav = screen.getByRole("navigation", { name: "Pages, menu" });
+		const search = within(nav).getByRole("button", { name: "Search" });
+		const product = within(nav).getByRole("button", { name: "Product" });
+		// First in the list, before every page.
+		expect(nav.firstElementChild).toBe(search);
+		expect(search.compareDocumentPosition(product) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// Full width of the menu, which already keeps to the page margins; no rounding; tall enough to press.
+		expect(search.className).toContain("w-full");
+		expect(search.className).toContain("h-12");
+		expect(search.className).not.toMatch(/rounded/);
+		// It says what it does, and the visible words contain its accessible name.
+		expect(search).toHaveTextContent("Search Maschina");
+		expect(nav.className).toContain("px-(--gutter)");
+	});
+
+	it("is not repeated further down beside the log in buttons", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		const nav = screen.getByRole("navigation", { name: "Pages, menu" });
+		expect(within(nav).getAllByRole("button", { name: "Search" })).toHaveLength(1);
+	});
+});

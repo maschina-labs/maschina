@@ -472,6 +472,16 @@ export function Header({
 									aria-label="Pages, menu"
 									className="flex max-h-[calc(100svh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
 								>
+									{/* The search is the first thing in the phone menu: a full width bar, like a field, above the pages. */}
+									<button
+										type="button"
+										aria-label="Search"
+										onClick={openSearch}
+										className="mb-3 flex h-12 w-full items-center gap-3 bg-white/[0.08] px-4 text-[16px] text-neutral-400 transition-colors hover:bg-white/[0.12]"
+									>
+										<Magnifier />
+										Search Maschina
+									</button>
 									{PAGES.map((page) =>
 										page.dropdown ? (
 											<div key={page.label}>
@@ -540,16 +550,6 @@ export function Header({
 											</a>
 										),
 									)}
-									<div className="mt-4 flex items-center gap-2">
-										<button
-											type="button"
-											onClick={openSearch}
-											className="flex items-center gap-2 bg-white/[0.13] px-3 py-2 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.18]"
-										>
-											<Magnifier />
-											Search
-										</button>
-									</div>
 									<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
 										<a
 											href={signIn}
