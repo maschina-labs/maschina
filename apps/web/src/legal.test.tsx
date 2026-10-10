@@ -467,9 +467,9 @@ describe.each([
 	it("never promises safety it cannot prove, or anything not built", () => {
 		const all = text(doc);
 		expect(all.replace(/not been independently audited/gi, "")).not.toMatch(/\baudited\b/i);
-		expect(all).not.toMatch(
-			/\bfdic\b|insured|risk.free|cannot lose|100% secure|military.grade|unhackable/i,
-		);
+		// It may say money is NOT insured, which is true, and must never say that it is.
+		expect(all.replace(/not (covered|insured)/gi, "")).not.toMatch(/\binsured\b|\bfdic\b/i);
+		expect(all).not.toMatch(/risk.free|cannot lose|100% secure|military.grade|unhackable/i);
 		expect(all).not.toMatch(/open source license/i);
 	});
 

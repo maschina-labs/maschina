@@ -33,7 +33,7 @@ export const RISK: LegalDoc = {
 			heading: "What Maschina is, and is not",
 			body: [
 				[
-					"Maschina is software for giving an AI a wallet and a job. It is not a bank, a broker, an exchange or an investment adviser. Your money in a machine's wallet is not insured and is not covered by any deposit protection scheme. Nothing here is financial advice. See also the ",
+					"Maschina is run by Maschina Labs. It is software for giving an AI a wallet and a job. It is not a bank, a broker, an exchange or an investment adviser. Your money in a machine's wallet is not insured and is not covered by any deposit protection scheme. Nothing here is financial advice. See also the ",
 					{ text: "terms of service", href: "/terms" },
 					".",
 				],
