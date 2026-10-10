@@ -3,6 +3,7 @@ import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
 import { type Hit, search } from "./search.ts";
+import { inShell, scrolled, scroller } from "./shell.ts";
 import { TryButton } from "./try-button.tsx";
 
 /**
@@ -183,16 +184,18 @@ export function Header({
 	// all of it once the page has scrolled the height of the bar. It sets one property on the layer, which the
 	// layer's black and its blur both read, so scrolling never re-renders the page.
 	useEffect(() => {
+		// What scrolls is the window on a desktop and the root box on a touch screen (see shell.ts).
+		const target = scroller();
 		const update = () => {
 			const height = bar.current?.offsetHeight || BAR_HEIGHT;
-			const amount = Math.min(1, Math.max(0, window.scrollY / height));
+			const amount = Math.min(1, Math.max(0, scrolled(target) / height));
 			fade.current?.style.setProperty("--fade", String(amount));
 		};
 		update();
-		window.addEventListener("scroll", update, { passive: true });
+		target.addEventListener("scroll", update, { passive: true });
 		window.addEventListener("resize", update);
 		return () => {
-			window.removeEventListener("scroll", update);
+			target.removeEventListener("scroll", update);
 			window.removeEventListener("resize", update);
 		};
 	}, []);
@@ -280,11 +283,14 @@ export function Header({
 	const locking = Boolean(menu) || open || searching;
 	useEffect(() => {
 		if (!locking) return;
-		const root = document.documentElement;
-		const before = root.style.overflow;
-		root.style.overflow = "hidden";
+		// The page that must not scroll is the document on a desktop and the root box on a touch screen.
+		const target = inShell()
+			? (document.getElementById("root") ?? document.documentElement)
+			: document.documentElement;
+		const before = target.style.overflow;
+		target.style.overflow = "hidden";
 		return () => {
-			root.style.overflow = before;
+			target.style.overflow = before;
 		};
 	}, [locking]);
 	// Nothing is listed until something is typed.

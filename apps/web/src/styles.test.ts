@@ -22,15 +22,28 @@ describe("scrolling past the ends", () => {
 	});
 });
 
-describe("pull down to refresh", () => {
-	// The rule above would also switch off the browser's own pull down to refresh on a phone, which people rely on.
-	// A touch screen has no trackpad bounce to guard against, so there the vertical pull is given back.
-	it("is allowed on a touch screen, while the page still does not bounce with a mouse or trackpad", () => {
-		expect(css).toMatch(
-			/@media \(hover: none\) and \(pointer: coarse\)\s*\{\s*html,\s*body\s*\{[^}]*overscroll-behavior-y:\s*auto/,
-		);
-		// Sideways is still never chained, so a swipe on the preview cannot navigate back.
-		expect(css).toMatch(/overscroll-behavior-x:\s*none/);
+describe("the shell on a touch screen", () => {
+	// A phone's address bar and toolbar slide away only while the document scrolls, and their sliding is what resizes and
+	// shifts a page. On a touch screen the document is held still and one box inside it scrolls, so they never move.
+	const shell =
+		css.match(/@media \(hover: none\) and \(pointer: coarse\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+
+	it("holds the document still, as tall as the screen, with no overscroll of its own", () => {
+		expect(shell).toMatch(/html,\s*body\s*\{[^}]*position:\s*fixed/);
+		expect(shell).toMatch(/html,\s*body\s*\{[^}]*overflow:\s*hidden/);
+		expect(shell).toMatch(/html,\s*body\s*\{[^}]*overscroll-behavior:\s*none/);
+	});
+
+	it("scrolls the root box instead, with no overscroll, which the page's own pull to refresh then replaces", () => {
+		expect(shell).toMatch(/#root\s*\{[^}]*height:\s*100%/);
+		expect(shell).toMatch(/#root\s*\{[^}]*overflow-y:\s*auto/);
+		expect(shell).toMatch(/#root\s*\{[^}]*overscroll-behavior:\s*none/);
+	});
+
+	it("is for a touch screen only: the rules for the page outside of it are the desktop's, as they were", () => {
+		const outside = css.replace(/@media \(hover: none\)[^{]*\{[\s\S]*?\n\}\n/g, "");
+		expect(outside).not.toMatch(/position:\s*fixed/);
+		expect(outside).not.toMatch(/#root/);
 	});
 });
 

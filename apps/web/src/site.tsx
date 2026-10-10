@@ -5,6 +5,7 @@ import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
 import { LiveRecord } from "./live-record.tsx";
+import { PullToRefresh } from "./pull-refresh.tsx";
 import { Customize, Features, HowItWorks, Safety } from "./sections.tsx";
 import { Showcase } from "./showcase.tsx";
 
@@ -14,7 +15,7 @@ import { Showcase } from "./showcase.tsx";
  */
 export function Site({ authUrl }: { authUrl: string }) {
 	return (
-		<div className="relative flex min-h-lvh flex-col bg-black">
+		<PullToRefresh className="relative flex min-h-lvh flex-col bg-black">
 			<Header authUrl={authUrl} />
 			<main>
 				<Hero authUrl={authUrl} />
@@ -29,6 +30,6 @@ export function Site({ authUrl }: { authUrl: string }) {
 				<Closing authUrl={authUrl} />
 			</main>
 			<Footer />
-		</div>
+		</PullToRefresh>
 	);
 }

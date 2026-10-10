@@ -34,13 +34,28 @@ body {
 	overscroll-behavior: none;
 }
 
-/* A touch screen has no trackpad bounce to guard against, so the browser's own pull down to refresh is given back
-   there. Sideways stays off, so a swipe along the preview never turns into going back a page. */
+/* On a touch screen the document is held still, as tall as the screen, and one box inside it, the root, does the
+   scrolling. The address bar and toolbar of a phone slide away only while the document scrolls, and their sliding is
+   what resizes and shifts a page; with a box scrolling instead they never move, so they can only ever cover the
+   page. Nothing overscrolls, and the page draws its own pull to refresh. A mouse or a trackpad never meets any of
+   this. */
 @media (hover: none) and (pointer: coarse) {
 	html,
 	body {
-		overscroll-behavior-x: none;
-		overscroll-behavior-y: auto;
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		overscroll-behavior: none;
+	}
+	#root {
+		height: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: none;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
 	}
 }
 
@@ -50,6 +65,11 @@ html {
 }
 @media (prefers-reduced-motion: reduce) {
 	html {
+		scroll-behavior: auto;
+	}
+}
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+	#root {
 		scroll-behavior: auto;
 	}
 }
