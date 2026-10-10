@@ -73,8 +73,10 @@ describe("the closing section", () => {
 		expect(glow.className).toContain("inset-x-0");
 		expect(glow.className).toContain("bottom-0");
 		expect(section.className).toContain("overflow-hidden");
-		// One wide soft light centered on the bottom edge, nothing angled.
-		expect(glow.className.match(/radial-gradient\(/g)).toHaveLength(1);
+		// One wide soft light centered on the bottom edge, nothing angled. (A phone gets a stronger one of the same shape instead.)
+		const desktopLight = glow.className.split(" ").filter((token) => !token.startsWith("max-sm:"));
+		expect(desktopLight.join(" ").match(/radial-gradient\(/g)).toHaveLength(1);
+		expect(glow.className.match(/max-sm:bg-\[radial-gradient\(/g)).toHaveLength(1);
 		expect(glow.className).toMatch(/radial-gradient\(60%_90%_at_50%_100%/);
 		expect(glow.className).not.toMatch(/conic-gradient|linear-gradient\(\d/);
 		// Gentle, and it fades out as it rises, so it never reaches the words.

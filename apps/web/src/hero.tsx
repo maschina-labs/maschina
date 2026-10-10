@@ -61,7 +61,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			</div>
 			<h1
 				ref={heading}
-				className="relative z-20 -mb-[0.14em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] max-w-none pb-[0.14em] font-display font-normal max-sm:-mx-4 text-[clamp(1.6rem,8.8vw,2.5rem)] sm:text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
+				className="relative z-20 -mb-[0.14em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] max-w-none pb-[0.14em] font-display font-normal max-sm:-mx-4 text-[clamp(1.6rem,8.4vw,2.5rem)] sm:text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"
 			>
 				<span className="block">The operating system for</span>{" "}
 				<span className="block">autonomous capital.</span>
@@ -80,7 +80,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				/>
 				<a
 					href="/docs"
-					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18]"
+					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 				>
 					<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />
 					Read the docs

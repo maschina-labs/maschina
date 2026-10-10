@@ -35,12 +35,25 @@ describe("the main buttons on a phone", () => {
 		expect(pearl.className).not.toMatch(/(^|\s)pl-5/);
 	});
 
-	it("centers the gray buttons' labels too", () => {
-		render(<Hero authUrl={AUTH} />);
-		const docs = within(screen.getByRole("region", { name: "Maschina" })).getByRole("link", {
-			name: "Read the docs",
-		});
-		expect(docs.className).toContain("justify-center");
+	it("centers the gray buttons' labels too, and sets every button's words a little thicker and brighter so they read on a phone", () => {
+		for (const element of [
+			<Hero key="h" authUrl={AUTH} />,
+			<Closing key="c" authUrl={AUTH} />,
+			<Builders key="b" />,
+			<HowItWorks key="w" authUrl={AUTH} />,
+		]) {
+			const { unmount } = render(element);
+			const links = screen.getAllByRole("link");
+			const gray = links.find((link) => link.className.includes("bg-white/[0.13]")) as HTMLElement;
+			const pearl = links.find((link) =>
+				link.className.includes("bg-[oklch(0.93_0.02_300)]"),
+			) as HTMLElement;
+			expect(gray.className).toContain("justify-center");
+			expect(gray.className).toContain("max-sm:font-medium");
+			expect(gray.className).toContain("max-sm:text-white");
+			expect(pearl.className).toContain("max-sm:font-medium");
+			unmount();
+		}
 	});
 });
 
@@ -64,7 +77,7 @@ describe("the hero headline", () => {
 	it("is sized so the long first line fits across a phone, and keeps its big size from a tablet up with no width cut", () => {
 		render(<Hero authUrl={AUTH} />);
 		const heading = screen.getByRole("heading", { level: 1 });
-		expect(heading.className).toContain("text-[clamp(1.6rem,8.8vw,2.5rem)]");
+		expect(heading.className).toContain("text-[clamp(1.6rem,8.4vw,2.5rem)]");
 		expect(heading.className).toContain("sm:text-[clamp(2.5rem,6.4vw,7.5rem)]");
 		expect(heading.className).toContain("max-w-none");
 		// On a phone the headline may run a little into the page margin, so the long first line can be set bigger; from a tablet up it does not.
@@ -180,5 +193,37 @@ describe("the preview on a phone", () => {
 		expect(backdrop.className).not.toContain("max-sm:-mx-");
 		expect(image.className).toContain("max-sm:max-w-none");
 		expect(image.className).toContain("w-full");
+	});
+});
+
+describe("the closing section on a phone", () => {
+	it("puts its two buttons side by side and centered like on a desktop, not stacked full width", () => {
+		render(<Closing authUrl={AUTH} />);
+		const row = screen.getByRole("link", { name: "Start for free" }).parentElement as HTMLElement;
+		expect(row.className).toContain("flex-row");
+		expect(row.className).toContain("justify-center");
+		expect(row.className).not.toContain("flex-col");
+		expect(row.className).not.toContain("items-stretch");
+		expect(row.className).toContain("sm:w-auto");
+	});
+
+	it("has the same outlined headline as every other section on a phone, so its weight matches", () => {
+		render(<Closing authUrl={AUTH} />);
+		const heading = screen.getByRole("heading", { level: 2 });
+		expect(heading.className).toContain("max-sm:[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]");
+	});
+
+	it("glows harder on a phone: a bigger, brighter light along the footer and a bloom behind the headline", () => {
+		const { container } = render(<Closing authUrl={AUTH} />);
+		const glow = container.querySelector("[data-glow]") as HTMLElement;
+		expect(glow.className).toContain("max-sm:h-[85%]");
+		expect(glow.className).toMatch(
+			/max-sm:bg-\[radial-gradient\([^\]]*oklch\(0\.92_0\.03_300\/0\.4/,
+		);
+		const bloom = container.querySelector("[data-bloom]") as HTMLElement;
+		expect(bloom).toHaveAttribute("aria-hidden", "true");
+		// Phones only: it is gone from a tablet up, so the desktop looks as it did.
+		expect(bloom.className).toContain("sm:hidden");
+		expect(bloom.className).toContain("pointer-events-none");
 	});
 });
