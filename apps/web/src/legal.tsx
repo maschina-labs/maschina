@@ -151,7 +151,7 @@ function Contents({
  * A legal document, set the way a contract is and the way the best product legal pages are: a small label, a big plain
  * title, the date, and the first words as a lead; then a hairline, the contents down the left (held in view, with the
  * section you are in lit) and the text in a reading column on the right. Every section is numbered and every clause inside it (1.1, 1.2) has its own number as an address, and a counter
- * pinned at the left shows the clause being read, rolling up to the next as the reading goes on. Seventeen pixel type with roomy lines, headings that step up with
+ * pinned at the left shows the clause being read, rolling up to the next like an odometer as the reading goes on. Seventeen pixel type with roomy lines, headings that step up with
  * room above them, square bullets, and nothing else. On a phone the contents fold into a list at the top. The page
  * margins are the article's own padding and the width is on a box inside it, so the margins never squeeze the text.
  */
@@ -160,6 +160,10 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 	const ids = doc.sections.map((section) => slug(section.heading));
 	const current = useCurrentSection(ids);
 	const counts = useClauseCounters(doc.sections.length);
+	const clauseTotals = doc.sections.map(
+		(section) =>
+			section.body.filter((block) => typeof block === "string" || Array.isArray(block)).length,
+	);
 	return (
 		<Frame authUrl={authUrl}>
 			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
@@ -180,7 +184,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 						))}
 					</div>
 					<div data-layout className="mt-20 grid gap-x-16 lg:grid-cols-[minmax(0,1fr)_12rem]">
-						<div data-text className="max-w-[42rem]">
+						<div data-text className="max-w-[50rem]">
 							{doc.sections.map((section, sectionIndex) => {
 								const id = slug(section.heading);
 								let clause = 0;
@@ -190,15 +194,35 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 											<span
 												data-counter
 												aria-hidden="true"
-												className="block w-16 bg-black font-normal text-[1.5rem] text-neutral-600 leading-tight tabular-nums"
+												className="block w-14 bg-black font-normal text-[1.25rem] text-neutral-200 leading-[1.25em] tabular-nums"
 											>
 												{sectionIndex + 1}
+												<span data-dot className="text-neutral-500">
+													.
+												</span>
 												<span
-													key={counts[sectionIndex] ?? 1}
-													data-digit
-													className="inline-block animate-roll text-neutral-300 motion-reduce:animate-none"
+													data-odometer
+													data-value={counts[sectionIndex] ?? 1}
+													className="inline-block h-[1.25em] overflow-hidden align-bottom"
 												>
-													.{counts[sectionIndex] ?? 1}
+													<span
+														className="flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+														style={{
+															transform: `translateY(${-((counts[sectionIndex] ?? 1) - 1) * 1.25}em)`,
+														}}
+													>
+														{Array.from(
+															{ length: clauseTotals[sectionIndex] ?? 1 },
+															(_, number) => (
+																<span
+																	key={`${sectionIndex}.${number + 1}`}
+																	className="block h-[1.25em] text-neutral-500 leading-[1.25em]"
+																>
+																	{number + 1}
+																</span>
+															),
+														)}
+													</span>
 												</span>
 											</span>
 										</div>
@@ -214,7 +238,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												return (
 													<ul
 														key={block.list.join("|")}
-														className="mt-4 ml-16 list-[square] space-y-2 pl-5 marker:text-neutral-600"
+														className="mt-4 ml-32 list-[square] space-y-2 pl-5 marker:text-neutral-600"
 													>
 														{block.list.map((item) => (
 															<li key={item} className={`${CLAUSE} pl-1`}>
@@ -229,8 +253,15 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												<div
 													key={typeof block === "string" ? block : flat(block)}
 													data-clause-id={`${sectionIndex + 1}.${clause}`}
-													className="mt-5 pl-16"
+													className="mt-5 ml-16 grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4"
 												>
+													<span
+														data-clause-number
+														aria-hidden="true"
+														className="pt-[0.45em] text-[13px] text-neutral-600 tabular-nums"
+													>
+														{sectionIndex + 1}.{clause}
+													</span>
 													<p className={CLAUSE}>
 														{typeof block === "string" ? block : <Text parts={block} />}
 													</p>

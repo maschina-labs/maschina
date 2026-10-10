@@ -70,7 +70,7 @@ describe("a legal page", () => {
 		expect(links.map((link) => link.textContent)).toEqual(["1One", "2Two"]);
 		expect(links.map((link) => link.getAttribute("href"))).toEqual(["#one", "#two"]);
 		const text = container.querySelector("[data-text]") as HTMLElement;
-		expect(text.className).toContain("max-w-[42rem]");
+		expect(text.className).toContain("max-w-[50rem]");
 		// On a phone the contents come first, above the text; on a wide screen they sit after it, on the right.
 		const sideBox = side.parentElement as HTMLElement;
 		expect(sideBox.className).toContain("order-first");
@@ -99,8 +99,16 @@ describe("a legal page", () => {
 			node.getAttribute("data-clause-id"),
 		);
 		expect(clauses).toEqual(["1.1", "1.2", "2.1"]);
-		// The clause numbers are not printed down the margin: the counter at the left shows the one being read.
-		expect(container.querySelector("[data-clause-number]")).toBeNull();
+		// Each clause's number is printed beside it, in the margin, and scrolls by with it; the counter at the far left changes as each one reaches it.
+		const printed = [...container.querySelectorAll("[data-clause-number]")];
+		expect(printed.map((node) => node.textContent)).toEqual(["1.1", "1.2", "2.1"]);
+		for (const node of printed) {
+			expect(node).toHaveAttribute("aria-hidden", "true");
+			expect(node.className).toContain("tabular-nums");
+		}
+		const row = printed[0]?.parentElement as HTMLElement;
+		expect(row.className).toContain("ml-16");
+		expect(row.className).toContain("grid-cols-[3rem_minmax(0,1fr)]");
 		const list = screen.getByText("a").closest("ul") as HTMLElement;
 		expect(list.className).toContain("list-[square]");
 	});
@@ -116,10 +124,17 @@ describe("a legal page", () => {
 		expect(counter).toHaveAttribute("aria-hidden", "true");
 		expect(counter.className).toContain("bg-black");
 		expect(counter.className).toContain("tabular-nums");
+		// The section's number is the bright part and the clause after the dot is the quieter one; neither is left dim next to a lit one.
+		expect(counter.className).toContain("text-neutral-200");
+		expect(counter.querySelector("[data-odometer] span span")?.className).toContain(
+			"text-neutral-500",
+		);
+		expect(counter.querySelector("[data-dot]")?.className).toContain("text-neutral-500");
 		// The heading's text starts where the counter ends.
 		expect(heading.className).toContain("pl-16");
 		// It starts at the first clause of its section.
-		expect(counter).toHaveTextContent("1.1");
+		expect(counter).toHaveTextContent(/^1/);
+		expect(counter.querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 	});
 
 	describe("the counter counts as the clauses are read", () => {
@@ -151,13 +166,13 @@ describe("a legal page", () => {
 			place("1.2", LINE + 150, 100);
 			place("2.1", LINE + 400, 100);
 			scroll();
-			expect(counter("One")).toHaveTextContent("1.1");
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 			// Scrolled on: 1.1 has passed and 1.2 is crossing the line.
 			place("1.1", LINE - 300, 200);
 			place("1.2", LINE - 60, 100);
 			scroll();
-			expect(counter("One")).toHaveTextContent("1.2");
-			expect(counter("Two")).toHaveTextContent("2.1");
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "2");
+			expect(counter("Two").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 		});
 
 		it("holds the last clause of a section it has passed, and the first of one it has not reached", () => {
@@ -166,20 +181,92 @@ describe("a legal page", () => {
 			place("1.2", LINE - 300, 100);
 			place("2.1", LINE - 20, 100);
 			scroll();
-			expect(counter("One")).toHaveTextContent("1.2");
-			expect(counter("Two")).toHaveTextContent("2.1");
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "2");
+			expect(counter("Two").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 			place("1.1", LINE + 300, 200);
 			place("1.2", LINE + 600, 100);
 			place("2.1", LINE + 900, 100);
 			scroll();
-			expect(counter("One")).toHaveTextContent("1.1");
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 		});
 
-		it("rolls each new number up into place, and keeps still for anyone who asked for less motion", () => {
+		it("rolls like an odometer: the numbers sit in a strip behind a window, and the strip slides up to the next as the reading goes on", () => {
 			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
-			const digit = counter("One").querySelector("[data-digit]") as HTMLElement;
-			expect(digit.className).toContain("animate-roll");
-			expect(digit.className).toContain("motion-reduce:animate-none");
+			const window_ = counter("One").querySelector("[data-odometer]") as HTMLElement;
+			// A window the height of one number, hiding the rest of the strip.
+			expect(window_.className).toContain("overflow-hidden");
+			expect(window_.className).toContain("h-[1.25em]");
+			const strip = window_.firstElementChild as HTMLElement;
+			// One entry for each clause the section has, 1 and 2 for section one, so it can pass through each as it goes. Only the
+			// number rolls: the dot in front of it stays where it is.
+			expect([...strip.children].map((entry) => entry.textContent)).toEqual(["1", "2"]);
+			const dot = counter("One").querySelector("[data-dot]") as HTMLElement;
+			expect(dot).toHaveTextContent(".");
+			expect(window_.contains(dot)).toBe(false);
+			expect(dot.nextElementSibling).toBe(window_);
+			expect(strip.style.transform).toBe("translateY(0em)");
+			expect(strip.className).toContain("transition-transform");
+			expect(strip.className).toContain("motion-reduce:transition-none");
+			place("1.1", LINE - 300, 200);
+			place("1.2", LINE - 60, 100);
+			place("2.1", LINE + 400, 100);
+			scroll();
+			expect(window_).toHaveAttribute("data-value", "2");
+			expect(strip.style.transform).toBe("translateY(-1.25em)");
+		});
+	});
+
+	describe("the counter counts as the clauses are read", () => {
+		const LINE = 140;
+		const place = (id: string, top: number, height: number) => {
+			const node = document.querySelector(`[data-clause-id="${id}"]`) as HTMLElement;
+			vi.spyOn(node, "getBoundingClientRect").mockReturnValue({
+				top,
+				height,
+				bottom: top + height,
+				left: 0,
+				right: 0,
+				width: 0,
+				x: 0,
+				y: top,
+				toJSON() {},
+			});
+		};
+		const counter = (section: string) =>
+			(
+				screen.getByRole("heading", { level: 2, name: section }).closest("section") as HTMLElement
+			).querySelector("[data-counter]") as HTMLElement;
+		const scroll = () => act(() => void fireEvent.scroll(window));
+
+		it("shows the clause that is crossing the line just under the header, and goes up one as the next one reaches it", () => {
+			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+			// Section one's clauses: 1.1 is crossing the line.
+			place("1.1", LINE - 50, 200);
+			place("1.2", LINE + 150, 100);
+			place("2.1", LINE + 400, 100);
+			scroll();
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
+			// Scrolled on: 1.1 has passed and 1.2 is crossing the line.
+			place("1.1", LINE - 300, 200);
+			place("1.2", LINE - 60, 100);
+			scroll();
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "2");
+			expect(counter("Two").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
+		});
+
+		it("holds the last clause of a section it has passed, and the first of one it has not reached", () => {
+			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+			place("1.1", LINE - 600, 200);
+			place("1.2", LINE - 300, 100);
+			place("2.1", LINE - 20, 100);
+			scroll();
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "2");
+			expect(counter("Two").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
+			place("1.1", LINE + 300, 200);
+			place("1.2", LINE + 600, 100);
+			place("2.1", LINE + 900, 100);
+			scroll();
+			expect(counter("One").querySelector("[data-odometer]")).toHaveAttribute("data-value", "1");
 		});
 	});
 
