@@ -137,6 +137,18 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 							download
 							className="mt-8 inline-flex h-11 items-center gap-3 bg-[oklch(0.93_0.02_300)] px-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
 						>
+							<svg
+								data-icon="download"
+								viewBox="0 0 20 20"
+								className="size-4"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth={1.5}
+								strokeLinecap="square"
+								aria-hidden="true"
+							>
+								<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
+							</svg>
 							Full asset pack
 						</a>
 					</div>

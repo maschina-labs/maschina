@@ -35,6 +35,11 @@ describe("the brand assets page", () => {
 		const pack = within(head).getByRole("link", { name: /Full asset pack/ });
 		expect(pack).toHaveAttribute("href", "/brand/maschina-brand-kit.zip");
 		expect(pack).toHaveAttribute("download");
+		// A download icon before the words, hidden from assistive technology since the words say it.
+		const icon = pack.querySelector("svg[data-icon=download]") as SVGElement;
+		expect(icon).not.toBeNull();
+		expect(icon).toHaveAttribute("aria-hidden", "true");
+		expect(pack.firstElementChild).toBe(icon);
 		expect(document.title).toBe("Brand assets | Maschina");
 	});
 
