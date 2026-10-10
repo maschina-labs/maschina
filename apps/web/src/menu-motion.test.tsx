@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./header.tsx";
+import { SOCIALS } from "./socials.ts";
 
 const AUTH = "https://auth.maschina.dev";
 const find = (selector: string) => document.querySelector(selector) as HTMLElement | null;
@@ -131,5 +132,41 @@ describe("the search in the phone menu", () => {
 		settle(30);
 		const again = screen.getByRole("navigation", { name: "Pages, menu" });
 		expect(within(again).getByRole("searchbox", { name: "Search Maschina" })).toHaveValue("");
+	});
+});
+
+describe("the socials in the phone menu", () => {
+	const open = () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		settle(30);
+		return screen.getByRole("navigation", { name: "Pages, menu" });
+	};
+
+	it("sit in a centered row at the very bottom of the menu, the same squares as the footer's", () => {
+		const nav = open();
+		const row = nav.lastElementChild as HTMLElement;
+		expect(row.className).toContain("justify-center");
+		expect(row.className).toContain("flex");
+		const links = within(row).getAllByRole("link");
+		expect(links.map((link) => link.getAttribute("href"))).toEqual(
+			SOCIALS.map((social) => social.href),
+		);
+		for (const [index, link] of links.entries()) {
+			expect(link).toHaveAccessibleName(SOCIALS[index]?.label ?? "");
+			expect(link.className).toContain("size-9");
+			expect(link.className).toContain("bg-white/[0.07]");
+			expect(link.className).not.toMatch(/rounded/);
+			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		}
+	});
+
+	it("are still the last thing while something is typed in the search", () => {
+		const nav = open();
+		fireEvent.change(within(nav).getByRole("searchbox", { name: "Search Maschina" }), {
+			target: { value: "pricing" },
+		});
+		const row = nav.lastElementChild as HTMLElement;
+		expect(within(row).getAllByRole("link")).toHaveLength(SOCIALS.length);
 	});
 });

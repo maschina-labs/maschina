@@ -4,6 +4,7 @@ import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
 import { type Hit, search } from "./search.ts";
 import { inShell, scrolled, scroller } from "./shell.ts";
+import { SOCIALS } from "./socials.ts";
 import { TryButton } from "./try-button.tsx";
 
 /**
@@ -624,6 +625,26 @@ export function Header({
 											</div>
 										</>
 									)}
+									{/* The same three links as the footer's, centered at the very bottom of the menu. */}
+									<div className="mt-6 flex items-center justify-center gap-3">
+										{SOCIALS.map((social) => (
+											<a
+												key={social.label}
+												href={social.href}
+												className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
+											>
+												<span className="sr-only">{social.label}</span>
+												<svg
+													viewBox="0 0 24 24"
+													className="size-4"
+													fill="currentColor"
+													aria-hidden="true"
+												>
+													<path d={social.icon} />
+												</svg>
+											</a>
+										))}
+									</div>
 								</nav>
 							</div>
 						</div>
