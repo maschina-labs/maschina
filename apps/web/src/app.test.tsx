@@ -117,11 +117,11 @@ describe("the legal pages", () => {
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Support");
 	});
 
-	it("names each page's tab by its short name, then a bar and Maschina, never the long title", () => {
+	it("names each page's tab by its full page name, then a bar and Maschina; an article by its short name, not its headline", () => {
 		for (const [path, tab] of [
-			["/terms", "Terms | Maschina"],
-			["/privacy", "Privacy | Maschina"],
-			["/risk", "Risk disclosure | Maschina"],
+			["/terms", "Terms of Service | Maschina"],
+			["/privacy", "Privacy Policy | Maschina"],
+			["/risk", "Risk Disclosure | Maschina"],
 			["/about", "About | Maschina"],
 			["/roadmap", "Roadmap | Maschina"],
 			["/contact", "Contact | Maschina"],
