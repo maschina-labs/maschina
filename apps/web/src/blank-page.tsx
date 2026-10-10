@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { Frame } from "./frame.tsx";
+import { useTitle } from "./use-title.ts";
 
 /**
  * A page with nothing on it yet: the header and the footer with a full screen of nothing between them, so the footer
@@ -7,13 +7,7 @@ import { Frame } from "./frame.tsx";
  * where they are, and the browser tab is named after it.
  */
 export function BlankPage({ authUrl, title }: { authUrl: string; title: string }) {
-	useEffect(() => {
-		const before = document.title;
-		document.title = `${title} · Maschina`;
-		return () => {
-			document.title = before;
-		};
-	}, [title]);
+	useTitle(title);
 
 	return (
 		<Frame authUrl={authUrl} className="min-h-lvh">
