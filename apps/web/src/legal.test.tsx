@@ -482,21 +482,67 @@ describe("the privacy policy", () => {
 		expect(all).toMatch(/cannot delete or edit a machine's record/i);
 		expect(all).toMatch(/Solana network are public and permanent/i);
 		expect(all).toMatch(/do not sell your information/i);
-		expect(all).toMatch(/do not run advertising/i);
-		expect(all).toMatch(/do not currently use analytics/i);
+		expect(all).toMatch(/do not show third party ads/i);
 		expect(all).toMatch(/private keys of your own wallet/i);
 		// The services that receive information are named, not hidden.
 		for (const name of ["Cloudflare", "Telegram"]) expect(all).toContain(name);
 	});
 
-	it("describes only the cookies there are: the sign in cookie and the one that remembers the choice", () => {
+	it("describes the cookies there are: the sign in cookie, the one that remembers the choice, and analytics only if allowed", () => {
 		const cookies = PRIVACY.sections.find((section) => /cookies/i.test(section.heading));
 		const words = (cookies?.body ?? [])
-			.map((block) => (typeof block === "string" ? block : ""))
+			.map((block) =>
+				typeof block === "string"
+					? block
+					: "list" in (block as object)
+						? (block as { list: string[] }).list.join(" ")
+						: "",
+			)
 			.join(" ");
+		expect(words).toMatch(/three kinds of cookie/i);
 		expect(words).toMatch(/sign in cookie/i);
 		expect(words).toMatch(/Preferences/);
-		expect(words).not.toMatch(/advertis|tracking|analytics/i);
+		expect(words).toMatch(/PostHog/);
+		expect(words).toMatch(/only if you accept/i);
+		expect(words).not.toMatch(/advertis|tracking/i);
+	});
+
+	it("tells the truth about how people sign in: a wallet, or an email and password, Google, GitHub or single sign-on", () => {
+		const all = text(PRIVACY);
+		expect(all).not.toMatch(/there is no account with an email and a password/i);
+		expect(all).not.toMatch(/not your name, your email or a password/i);
+		expect(all).not.toMatch(/do not ask for your name, your email, a password/i);
+		for (const method of [/email and password/i, /Google/, /GitHub/, /single sign-on/i, /wallet/i])
+			expect(all).toMatch(method);
+		// A password is never kept in a form that can be read back.
+		expect(all).toMatch(/never stored as you typed it|one way hash/i);
+	});
+
+	it("says analytics is PostHog, collected only if you allow it, and says what it collects", () => {
+		const all = text(PRIVACY);
+		expect(all).toMatch(/PostHog/);
+		expect(all).toMatch(/only if you (accept|allow)/i);
+		expect(all).not.toMatch(/do not currently use analytics/i);
+	});
+
+	it("says AI keys are stored encrypted with a key kept apart from the database, and passwords are different: hashed, never stored", () => {
+		const all = text(PRIVACY);
+		expect(all).toMatch(/encrypted with a key (that is )?kept apart from the database/i);
+		expect(all).toMatch(/passwords are different/i);
+	});
+
+	it("does not promise the future: no government ID today, with a plain word on what happens if that changes; no promise of no ads for ever", () => {
+		const all = text(PRIVACY);
+		expect(all).toMatch(/do not ask for a government ID/i);
+		expect(all).toMatch(/if the law or a feature ever requires us to verify/i);
+		expect(all).not.toMatch(/we do not run advertising/i);
+		expect(all).toMatch(/advertise Maschina on other services/i);
+	});
+
+	it("confirms who is asking for their information in a way that fits how they signed in", () => {
+		const all = text(PRIVACY);
+		expect(all).toMatch(/sign a message with it/i);
+		expect(all).toMatch(/send a message to that address|by email/i);
 	});
 
 	it("links the terms of service and the security disclosure by their real addresses", () => {
@@ -687,7 +733,7 @@ describe("the security disclosure", () => {
 		expect(hrefs).toContain("https://github.com/maschina-labs/maschina/security/advisories/new");
 		expect(all).toMatch(/reply within three days/i);
 		for (const matter of [
-			/anywhere other than its owner's wallet/i,
+			/anywhere its owner's rules do not allow/i,
 			/beyond a machine's budget or its limits/i,
 			/act as another user or another machine/i,
 			/read or change the permanent record/i,
@@ -714,5 +760,35 @@ describe("the security disclosure", () => {
 		expect(all).toMatch(/will not take legal action against you/i);
 		expect(all).toMatch(/cannot promise how long a fix will take/i);
 		expect(all).not.toMatch(/within \d+ days of|90 days|fixed within/i);
+	});
+
+	describe("what the terms say about signing in", () => {
+		it("names every way to sign in, and says a wallet is only one of them", () => {
+			const section = TERMS.sections.find((entry) => /signing in/i.test(entry.heading));
+			const words = (section?.body ?? []).filter((block) => typeof block === "string").join(" ");
+			for (const method of [
+				/Solana wallet/,
+				/email and password/i,
+				/Google/,
+				/GitHub/,
+				/single sign-on/i,
+			])
+				expect(words).toMatch(method);
+			expect(words).toMatch(/Anyone who has access to your sign in can act as you/i);
+			expect(words).not.toMatch(
+				/You sign in to Maschina with a Solana wallet, and your wallet address is how/,
+			);
+		});
+	});
+
+	describe("what machines may pay", () => {
+		it("never says a machine can only ever pay its owner, because machines will pay other machines and people by their owner's rules", () => {
+			for (const doc of [TERMS, PRIVACY, RISK, ACCEPTABLE_USE, LICENSE, DISCLOSURE]) {
+				expect(text(doc)).not.toMatch(
+					/only ever pay|can only pay (you|its owner)|nowhere other than its owner/i,
+				);
+			}
+			expect(text(DISCLOSURE)).toMatch(/anywhere its owner's rules do not allow/i);
+		});
 	});
 });

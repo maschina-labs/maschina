@@ -55,8 +55,8 @@ export const TERMS: LegalDoc = {
 		{
 			heading: "Your wallet and signing in",
 			body: [
-				"You sign in to Maschina with a Solana wallet, and your wallet address is how we know who you are. We do not hold your wallet's private keys and we cannot recover them if you lose them. Keep your wallet and your recovery phrase safe. Anyone who controls your wallet can act as you in Maschina.",
-				"You are responsible for everything done through your account, including by anyone you let use your wallet. Tell us quickly if you think someone else has got into it.",
+				"You can sign in to Maschina with a Solana wallet, with an email and password, with Google or GitHub, or through your organization's single sign-on. If you use a wallet, your wallet address is how we know who you are. We do not hold your wallet's private keys and we cannot recover them if you lose them. Keep your wallet, your recovery phrase and your password safe. Anyone who has access to your sign in can act as you in Maschina.",
+				"You are responsible for everything done through your account, including by anyone you let use your wallet or your sign in. Tell us quickly if you think someone else has got into it.",
 			],
 		},
 		{

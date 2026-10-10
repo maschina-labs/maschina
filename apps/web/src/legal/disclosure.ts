@@ -82,7 +82,7 @@ export const DISCLOSURE: LegalDoc = {
 				"Everything in the Maschina repository, and the services we run from it, is in scope. These are the problems that matter most to us:",
 				{
 					list: [
-						"Any way for a machine to move funds anywhere other than its owner's wallet.",
+						"Any way for a machine to move funds anywhere its owner's rules do not allow.",
 						"Any way to go beyond a machine's budget or its limits.",
 						"Any way to act as another user or another machine.",
 						"Any way to read or change the permanent record of what a machine did.",
