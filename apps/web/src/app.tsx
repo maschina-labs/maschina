@@ -3,6 +3,7 @@ import { BlankPage } from "./blank-page.tsx";
 import { ABOUT } from "./company/about.ts";
 import { CAREERS, type EmptyDoc, NEWS } from "./company/empty.ts";
 import { ROADMAP } from "./company/roadmap.ts";
+import { SUPPORT } from "./company/support.ts";
 import { ContactPage } from "./contact-page.tsx";
 import { EmptyPage } from "./empty-page.tsx";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
@@ -14,6 +15,7 @@ import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { titleFor } from "./routes.ts";
 import { Site } from "./site.tsx";
+import { SupportPage } from "./support-page.tsx";
 
 /**
  * Which page an address shows: the front page at the root, a blank page for each address in routes.ts, and the front
@@ -50,6 +52,7 @@ export function App({
 	const doc = DOCUMENTS[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
+	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
 	const empty = EMPTY[clean];
 	if (empty) return <EmptyPage authUrl={authUrl} doc={empty} />;
 	const article = ARTICLES[clean];

@@ -15,6 +15,7 @@ const LEGAL = {
 	"/roadmap": 1,
 	"/news": 1,
 	"/careers": 1,
+	"/support": 1,
 	"/contact": 1,
 };
 
@@ -123,5 +124,10 @@ describe("the legal pages", () => {
 		render(<App authUrl={AUTH} path="/contact" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Contact");
 		expect(screen.getByRole("button", { name: "Send message" })).toBeInTheDocument();
+	});
+
+	it("shows the support page at /support", () => {
+		render(<App authUrl={AUTH} path="/support" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Support");
 	});
 });
