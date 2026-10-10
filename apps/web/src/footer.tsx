@@ -246,6 +246,13 @@ function StatusMark() {
 export function Footer() {
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
+	// A screen with no hover has nothing to light the wordmark with, so there it lights itself: the pearl light is on
+	// and sweeps across the letters, again and again, unless the reader asked for less motion, when it just rests in the
+	// middle. The outline is also drawn brighter there, since a phone is held further from the eyes.
+	const [touch] = useState(() => window.matchMedia?.("(hover: none)")?.matches ?? false);
+	const [calm] = useState(
+		() => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false,
+	);
 
 	// The light moves by setting attributes directly: following the cursor never re-renders the page.
 	const follow = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -257,11 +264,11 @@ export function Footer() {
 		if (lit.current) lit.current.style.opacity = "1";
 	};
 	const leave = () => {
-		if (lit.current) lit.current.style.opacity = "0";
+		if (lit.current && !touch) lit.current.style.opacity = "0";
 	};
 
 	return (
-		<footer className="relative flex min-h-svh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16">
+		<footer className="relative flex min-h-svh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16 max-sm:pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
 			<div className="flex w-full flex-col gap-12 py-12 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
@@ -332,7 +339,15 @@ export function Footer() {
 					<Language />
 				</div>
 			</div>
-			<div style={{ aspectRatio: `${VIEW.width} / ${SHOWN}` }} className="relative">
+			<div
+				style={
+					{
+						"--shown": `${VIEW.width} / ${SHOWN}`,
+						"--full": `${VIEW.width} / ${VIEW.height}`,
+					} as React.CSSProperties
+				}
+				className="relative aspect-(--shown) max-sm:aspect-(--full)"
+			>
 				<svg
 					role="img"
 					aria-label="Maschina"
@@ -364,19 +379,29 @@ export function Footer() {
 							<circle
 								ref={spot}
 								data-spot
-								cx={-REACH * 2}
-								cy={-REACH * 2}
+								cx={touch ? VIEW.x + VIEW.width / 2 : -REACH * 2}
+								cy={touch ? VIEW.height / 2 : -REACH * 2}
 								r={REACH}
 								fill="url(#spot-fade)"
-							/>
+							>
+								{touch && !calm ? (
+									<animate
+										attributeName="cx"
+										from={VIEW.x - REACH}
+										to={VIEW.x + VIEW.width + REACH}
+										dur="8s"
+										repeatCount="indefinite"
+									/>
+								) : null}
+							</circle>
 						</mask>
 					</defs>
-					<Outline stroke="oklch(1 0 0 / 0.16)" />
+					<Outline stroke={touch ? "oklch(1 0 0 / 0.3)" : "oklch(1 0 0 / 0.16)"} />
 					<g
 						ref={lit}
 						data-lit
 						mask="url(#spot)"
-						style={{ opacity: 0 }}
+						style={{ opacity: touch ? 1 : 0 }}
 						className="transition-opacity duration-500"
 					>
 						<Outline stroke="url(#pearl)" />
