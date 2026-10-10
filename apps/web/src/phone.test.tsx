@@ -122,10 +122,10 @@ describe("the preview on a phone", () => {
 		// The picture is two and eight tenths times as wide as the room it has, so it is big enough to read, and it keeps its own width from a tablet up.
 		expect(image.className).toContain("max-sm:w-[320%]");
 		expect(image.className).not.toContain("max-sm:-ml-");
-		// The backdrop starts under the left edge of the title and runs out to the edge of the screen on the right, so it is cut off there like the app is.
+		// The backdrop starts at the page margin on the left and runs out to the edge of the screen on the right, so it is cut off there like the app is.
 		expect(backdrop.className).toContain("max-sm:-mr-(--gutter)");
-		// Its top left corner lines up with the left edge of the title above it ("in one place." is about 11.6rem wide and centered).
-		expect(backdrop.className).toContain("max-sm:ml-[calc((100%-11.6rem)/2)]");
+		// Its left edge is at the page margin, in line with everything else, not pushed over.
+		expect(backdrop.className).not.toMatch(/max-sm:-?ml-/);
 		expect(backdrop.className).not.toContain("max-sm:-mx-");
 		expect(image.className).toContain("max-sm:max-w-none");
 		expect(image.className).toContain("w-full");

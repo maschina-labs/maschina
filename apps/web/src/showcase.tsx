@@ -11,10 +11,9 @@ import { Backdrop } from "./backdrop.tsx";
  * (gradients and a grain filter), so it costs the graphics card nothing. The picture has an ordinary dark drop
  * shadow to lift it off the light, and nothing glows. Nothing moves: no tilt, no shine, no window frame.
  *
- * On a phone the backdrop starts under the left edge of the title (a line of it is about 11.6rem wide, centered) and runs out
- * to the edge of the screen at the right, and the picture
- * is three and two tenths times as wide as the room it has, so the app is big enough to read, with its whole height,
- * cut off at the right like the backdrop. The backdrop swipes sideways to show the rest of it.
+ * On a phone the backdrop starts at the page margin on the left and runs out to the edge of the screen at the right, and the
+ * picture is three and two tenths times as wide as the room it has, so the app is big enough to read, with its whole
+ * height, cut off at the right like the backdrop. The backdrop swipes sideways to show the rest of it.
  *
  * The picture is very sharp: it is the whole app, edge to edge, captured on a 1920 by 1200 screen at three times its
  * pixels, and the browser picks between a 2838 pixel file and a 5676 pixel one for the screen it is on.
@@ -29,7 +28,7 @@ export function Showcase() {
 				Everything in one place.
 			</h2>
 			<figure className="mt-16 w-full">
-				<Backdrop className="max-sm:-mr-(--gutter) max-sm:ml-[calc((100%-11.6rem)/2)] max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
+				<Backdrop className="max-sm:-mr-(--gutter) max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
 					<img
 						src="/showcase/dashboard.jpg"
 						srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
