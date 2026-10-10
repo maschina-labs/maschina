@@ -1,6 +1,7 @@
 import { type ArticleDoc, ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { ABOUT } from "./company/about.ts";
+import { ROADMAP } from "./company/roadmap.ts";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
@@ -27,7 +28,10 @@ const DOCUMENTS: Record<string, LegalDoc> = {
 };
 
 /** The company pages, which read like articles, each at its address. */
-const ARTICLES: Record<string, ArticleDoc> = { "/about": ABOUT };
+const ARTICLES: Record<string, ArticleDoc> = {
+	"/about": ABOUT,
+	"/roadmap": ROADMAP,
+};
 
 export function App({
 	authUrl,

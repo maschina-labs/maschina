@@ -12,6 +12,7 @@ const LEGAL = {
 	"/license": 1,
 	"/disclosure": 1,
 	"/about": 1,
+	"/roadmap": 1,
 };
 
 beforeEach(() => {
@@ -93,5 +94,13 @@ describe("the legal pages", () => {
 		render(<App authUrl={AUTH} path="/about" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Controls for AI");
 		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(2);
+	});
+
+	it("shows the roadmap at /roadmap, as an article", () => {
+		render(<App authUrl={AUTH} path="/roadmap" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"What Maschina is building",
+		);
+		expect(screen.getByRole("heading", { level: 2, name: "Now" })).toBeInTheDocument();
 	});
 });
