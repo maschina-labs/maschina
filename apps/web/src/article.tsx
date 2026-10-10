@@ -74,7 +74,6 @@ export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc
 						{doc.sections.map((section, sectionIndex) => (
 							<section
 								// A section may have no heading, so its place in the article is its key.
-								// biome-ignore lint/suspicious/noArrayIndexKey: the order never changes
 								key={sectionIndex}
 								className="mt-12 first:mt-0"
 							>

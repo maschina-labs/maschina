@@ -3,6 +3,7 @@ import { startServer } from "@maschina/service";
 import { createLogger, initErrorReporting } from "@maschina/telemetry";
 import { buildApp, SERVICE } from "./app.ts";
 import { loadConfig } from "./config.ts";
+import { contactDesk } from "./contact.ts";
 import { machinePorts } from "./deps.ts";
 import { newsDesk } from "./news.ts";
 
@@ -36,6 +37,7 @@ startServer({
 		manager: gateway.manager,
 		news: newsDesk({ clock: systemClock }),
 		publicRecord: gateway.publicRecord,
+		contact: config.RESEND_API_KEY ? contactDesk({ apiKey: config.RESEND_API_KEY }) : undefined,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,

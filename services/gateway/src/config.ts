@@ -49,6 +49,11 @@ export function loadConfig(source?: EnvSource) {
 			 * nobody can ask for someone else's machine.
 			 */
 			PUBLIC_RECORD_MACHINE_ID: env.optional(z.uuid()),
+			/**
+			 * The Resend key (sending only) that the contact page's mail goes out on. Unset, the contact route
+			 * answers that it is not available, and nothing pretends to send.
+			 */
+			RESEND_API_KEY: env.optional(env.secret()),
 			GATEWAY_SECRETS_KEY: z
 				.string()
 				.refine((value) => Buffer.from(value, "base64").length === 32, "must be 32 bytes as base64")

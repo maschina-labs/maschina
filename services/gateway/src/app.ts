@@ -4,8 +4,10 @@ import { createServiceApp, rateLimit, registerHealth } from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
+import type { ContactDesk } from "./contact.ts";
 import type { NewsDesk } from "./news.ts";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
+import { contactRoutes } from "./routes/contact.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
 import { newsRoutes } from "./routes/news.ts";
@@ -31,6 +33,8 @@ export type GatewayDeps = {
 	news?: NewsDesk | undefined;
 	/** The finished trades of the one machine chosen to be shown to everyone. Left out, the public record is empty. */
 	publicRecord?: PublicRecordDesk | undefined;
+	/** Sends the contact page's messages by email. Left out, the contact route answers that it is not available. */
+	contact?: ContactDesk | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -62,7 +66,8 @@ function v1(deps: GatewayDeps) {
 		.route("/", authRoutes(deps.auth, deps.cookie))
 		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))
 		.route("/", newsRoutes(deps.news, deps.clock ?? systemClock))
-		.route("/", publicRecordRoutes(deps.publicRecord));
+		.route("/", publicRecordRoutes(deps.publicRecord))
+		.route("/", contactRoutes(deps.contact));
 }
 
 export function buildApp(deps: GatewayDeps) {
@@ -89,6 +94,17 @@ export function buildApp(deps: GatewayDeps) {
 		rateLimit({
 			capacity: 60,
 			refillPerSecond: 2,
+			key: clientKey,
+			clock: deps.clock ?? systemClock,
+		}),
+	);
+
+	// Mail costs something and invites spam, so it has its own, much tighter limit: three a minute from one address.
+	app.use(
+		"/v1/contact",
+		rateLimit({
+			capacity: 3,
+			refillPerSecond: 1 / 60,
 			key: clientKey,
 			clock: deps.clock ?? systemClock,
 		}),
