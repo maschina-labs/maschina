@@ -1,3 +1,4 @@
+import { DOCS_PAGES } from "./links.ts";
 import { MENUS } from "./menus.ts";
 import { leavesSite } from "./routes.ts";
 
@@ -57,9 +58,9 @@ export const SITEMAP: Column[] = [
 		items: once(
 			[
 				...(docs ? [docs] : []),
-				{ label: "Quickstart", href: "/quickstart" },
+				{ label: "Quickstart", href: DOCS_PAGES.quickstart },
 				...moreDevelopers,
-				{ label: "Examples", href: "/examples" },
+				{ label: "Examples", href: DOCS_PAGES.examples },
 			],
 			taken,
 		),

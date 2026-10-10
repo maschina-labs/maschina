@@ -24,7 +24,7 @@ describe("the closing section", () => {
 		);
 		expect(within(section).getByRole("link", { name: "Read the docs" })).toHaveAttribute(
 			"href",
-			"/docs",
+			"https://docs.maschina.dev",
 		);
 	});
 

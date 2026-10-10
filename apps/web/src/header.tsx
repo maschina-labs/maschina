@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
+import { DOCS } from "./links.ts";
 import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
@@ -16,7 +17,7 @@ import { TryButton } from "./try-button.tsx";
  */
 const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
-	{ label: "Developers", href: "/developers", dropdown: true },
+	{ label: "Developers", href: DOCS, dropdown: true },
 	{ label: "Company", href: "/company", dropdown: true },
 	{ label: "Live record", href: "/live", dropdown: false },
 	{ label: "Papers", href: "/papers", dropdown: false },

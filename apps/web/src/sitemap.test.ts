@@ -75,7 +75,20 @@ describe("the sitemap", () => {
 
 	it("knows which links leave the site: those with a full address", () => {
 		const external = all.filter((item) => item.external).map((item) => item.label);
-		expect(external.sort()).toEqual(["AI index", "Changelog", "GitHub", "Skill file", "X"]);
+		expect(external.sort()).toEqual([
+			"AI index",
+			"API",
+			"Changelog",
+			"Docs",
+			"Examples",
+			"GitHub",
+			"Machine spec",
+			"Quickstart",
+			"SDK",
+			"Skill file",
+			"Templates",
+			"X",
+		]);
 		for (const item of all) expect(item.external).toBe(item.href ? leavesSite(item.href) : false);
 	});
 
@@ -109,8 +122,8 @@ describe("the sitemap", () => {
 			find(column).find((item) => item.label === label)?.href;
 		expect(hrefOf("Product", "How it works")).toBe("/how-it-works");
 		expect(hrefOf("Product", "Machines")).toBe("/machines");
-		expect(hrefOf("Developers", "Quickstart")).toBe("/quickstart");
-		expect(hrefOf("Developers", "Examples")).toBe("/examples");
+		expect(hrefOf("Developers", "Quickstart")).toBe("https://docs.maschina.dev/quickstart");
+		expect(hrefOf("Developers", "Examples")).toBe("https://docs.maschina.dev/examples");
 		expect(hrefOf("Company", "Support")).toBe("/support");
 		expect(hrefOf("Company", "Brand assets")).toBe("/brand");
 	});

@@ -2,6 +2,8 @@
  * What each dropdown holds. The big links on the left are the pages; the small ones beside them are the
  * way on. A link with no address is not built yet: it shows dimmed and tagged Soon, and is never a link.
  */
+import { DOCS, DOCS_PAGES } from "./links.ts";
+
 type Item = { label: string; href?: string };
 
 export type Menu = {
@@ -36,11 +38,11 @@ export const MENUS: Record<string, Menu> = {
 	Developers: {
 		intro: "Build on Maschina",
 		main: [
-			{ label: "Docs", href: "/docs" },
-			{ label: "API", href: "/api" },
-			{ label: "SDK", href: "/sdk" },
-			{ label: "Machine spec", href: "/spec" },
-			{ label: "Templates", href: "/templates" },
+			{ label: "Docs", href: DOCS },
+			{ label: "API", href: DOCS_PAGES.api },
+			{ label: "SDK", href: DOCS_PAGES.sdk },
+			{ label: "Machine spec", href: DOCS_PAGES.spec },
+			{ label: "Templates", href: DOCS_PAGES.templates },
 		],
 		asideTitle: "For builders and agents",
 		aside: [

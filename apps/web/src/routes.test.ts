@@ -11,7 +11,6 @@ const links = [
 	"/marketplace",
 	"/network",
 	"/mobile",
-	"/developers",
 	"/company",
 	"/papers",
 	"/pricing",
@@ -24,7 +23,7 @@ describe("the pages", () => {
 	});
 
 	it("has the pages that are only tagged Soon as well, the docs and the live record", () => {
-		for (const href of ["/marketplace", "/network", "/mobile", "/docs", "/live"])
+		for (const href of ["/marketplace", "/network", "/mobile", "/live"])
 			expect(ROUTES[href], href).toBeDefined();
 	});
 
@@ -85,5 +84,33 @@ describe("the pages", () => {
 	it("uses the addresses as the links write them: plain words and dashes, and the two file names", () => {
 		for (const href of Object.keys(ROUTES))
 			expect(href).toMatch(/^\/[A-Za-z]+(-[a-z]+)*(\.[a-z]+)?$/);
+	});
+
+	it("sends every developer link to the docs app on its own address, and has no page of its own for any of them", () => {
+		const hrefs = Object.fromEntries(
+			(MENUS["Developers"]?.main ?? []).map((item) => [item.label, item.href]),
+		);
+		expect(hrefs).toEqual({
+			Docs: "https://docs.maschina.dev",
+			API: "https://docs.maschina.dev/api",
+			SDK: "https://docs.maschina.dev/sdk",
+			"Machine spec": "https://docs.maschina.dev/machine-spec",
+			Templates: "https://docs.maschina.dev/templates",
+		});
+		const footer = SITEMAP.find((column) => column.title === "Developers")?.items ?? [];
+		const byLabel = Object.fromEntries(footer.map((item) => [item.label, item.href]));
+		expect(byLabel["Quickstart"]).toBe("https://docs.maschina.dev/quickstart");
+		expect(byLabel["Examples"]).toBe("https://docs.maschina.dev/examples");
+		for (const path of [
+			"/docs",
+			"/developers",
+			"/api",
+			"/sdk",
+			"/spec",
+			"/quickstart",
+			"/templates",
+			"/examples",
+		])
+			expect(ROUTES[path], path).toBeUndefined();
 	});
 });

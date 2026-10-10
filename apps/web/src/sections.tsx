@@ -1,3 +1,4 @@
+import { DOCS } from "./links.ts";
 import { PlainSection } from "./plain-section.tsx";
 
 /**
@@ -14,7 +15,7 @@ export function HowItWorks({ authUrl }: { authUrl: string }) {
 			title="Give a machine a wallet and a job."
 			line="Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves."
 			primary={{ label: "Make a machine", href: `${authUrl}/sign-up` }}
-			secondary={{ label: "Read the docs", href: "/docs" }}
+			secondary={{ label: "Read the docs", href: DOCS }}
 		/>
 	);
 }
@@ -36,7 +37,7 @@ export function Safety() {
 			name="Safety"
 			title="It cannot take your money."
 			line="A machine holds no keys, and its wallet can only pay you. Every trade is checked against its limits first."
-			primary={{ label: "Read how it is built", href: "/docs" }}
+			primary={{ label: "Read how it is built", href: DOCS }}
 		/>
 	);
 }

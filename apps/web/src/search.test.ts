@@ -7,7 +7,11 @@ describe("the page index", () => {
 		const hrefs = PAGES_INDEX.map((hit) => hit.href);
 		expect(new Set(hrefs).size).toBe(hrefs.length);
 		const docs = PAGES_INDEX.find((hit) => hit.label === "Docs");
-		expect(docs).toEqual({ label: "Docs", href: "/docs", section: "Developers" });
+		expect(docs).toEqual({
+			label: "Docs",
+			href: "https://docs.maschina.dev",
+			section: "Developers",
+		});
 	});
 
 	it("leaves out what is not built yet, because there is nowhere to go", () => {

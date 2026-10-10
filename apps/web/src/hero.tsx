@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Glint } from "./glint.tsx";
+import { DOCS } from "./links.ts";
 import { TryButton } from "./try-button.tsx";
 
 // The ribbon is WebGL and pulls in three.js, which is heavy: it loads after the page is on screen, so the
@@ -79,7 +80,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					glint
 				/>
 				<a
-					href="/docs"
+					href={DOCS}
 					className="group relative inline-flex items-center justify-center overflow-hidden bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 				>
 					<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />

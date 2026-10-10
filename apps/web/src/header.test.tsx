@@ -389,7 +389,10 @@ describe("the header", () => {
 		expect(panel.queryByText("No pages match.")).toBeNull();
 
 		fireEvent.change(box, { target: { value: "spec" } });
-		expect(panel.getByRole("link", { name: /Machine spec/ })).toHaveAttribute("href", "/spec");
+		expect(panel.getByRole("link", { name: /Machine spec/ })).toHaveAttribute(
+			"href",
+			"https://docs.maschina.dev/machine-spec",
+		);
 		expect(panel.queryByRole("link", { name: /Docs/ })).toBeNull();
 
 		fireEvent.change(box, { target: { value: "pricing" } });
@@ -409,16 +412,16 @@ describe("the header", () => {
 		});
 		fireEvent.change(box, { target: { value: "developers" } });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("/docs");
+		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev");
 
 		fireEvent.keyDown(box, { key: "ArrowDown" });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("/api");
+		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev/api");
 
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("/docs");
+		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev");
 	});
 
 	it("does nothing on Enter when nothing has been typed", () => {

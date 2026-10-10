@@ -1,3 +1,4 @@
+import { DOCS } from "../links.ts";
 /**
  * The support page: the ways to get help, as cards that lead to real pages, and an empty state for the help articles,
  * which do not exist yet. It promises no reply time and no hours, because there is no support team to hold to them.
@@ -23,7 +24,7 @@ export const SUPPORT: SupportDoc = {
 		{
 			title: "Read the docs",
 			body: "How machines, limits and the signer work, and how to build on Maschina.",
-			href: "/docs",
+			href: DOCS,
 		},
 		{
 			title: "Know the risks",

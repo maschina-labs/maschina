@@ -86,7 +86,10 @@ describe("the footer", () => {
 		const headings = within(nav).getAllByRole("heading", { level: 2 });
 		for (const heading of headings) expect(heading.parentElement?.className).toContain("text-left");
 		expect(nav.innerHTML).not.toMatch(/rounded/);
-		expect(within(nav).getByRole("link", { name: "Docs" })).toHaveAttribute("href", "/docs");
+		expect(within(nav).getByRole("link", { name: "Docs" })).toHaveAttribute(
+			"href",
+			"https://docs.maschina.dev",
+		);
 		expect(within(nav).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
 	});
 

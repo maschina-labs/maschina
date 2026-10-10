@@ -11,7 +11,7 @@ const SECTIONS = [
 		element: <HowItWorks authUrl={AUTH} />,
 		links: [
 			["Make a machine", `${AUTH}/sign-up`],
-			["Read the docs", "/docs"],
+			["Read the docs", "https://docs.maschina.dev"],
 		],
 	},
 	{
@@ -24,7 +24,7 @@ const SECTIONS = [
 		name: "Safety",
 		title: "It cannot take your money.",
 		element: <Safety />,
-		links: [["Read how it is built", "/docs"]],
+		links: [["Read how it is built", "https://docs.maschina.dev"]],
 	},
 	{
 		name: "Customize",
