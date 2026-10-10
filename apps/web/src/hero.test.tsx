@@ -44,7 +44,7 @@ describe("the hero", () => {
 	it("has two buttons under the headline: start for free, and the docs", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
-		// The two buttons come first; the proof line's link is after them.
+		// The two buttons are the only links.
 		expect(
 			hero
 				.getAllByRole("link")
@@ -81,14 +81,16 @@ describe("the hero", () => {
 		);
 	});
 
-	it("ends with one proof line that links to the live record", () => {
+	it("ends with one plain line of facts, with no link and no claim about results", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		const proof = within(section).getByRole("link", {
-			name: "Range Finder has traded real money on Solana since September 28.",
-		});
-		expect(proof).toHaveAttribute("href", "/live");
-		expect(section.lastElementChild).toBe(proof.parentElement);
+		const line = within(section).getByText(
+			"Source-available, built on Solana, free to try on paper.",
+		);
+		expect(line.tagName).toBe("P");
+		expect(section.lastElementChild).toBe(line);
+		expect(line.querySelector("a")).toBeNull();
+		expect(section.textContent ?? "").not.toMatch(/Range Finder|real money|September 28/);
 	});
 
 	it("has nothing else on it: nothing floating", () => {
@@ -165,15 +167,14 @@ describe("the hero", () => {
 		expect(section.className).toContain("pb-16");
 	});
 
-	it("keeps the proof line at the foot of the screen, off the stack", () => {
+	it("keeps that line at the foot of the screen, off the stack", () => {
 		render(<Hero authUrl={AUTH} />);
-		const proof = screen.getByRole("link", {
-			name: "Range Finder has traded real money on Solana since September 28.",
-		}).parentElement as HTMLElement;
-		expect(proof.className).toContain("absolute");
-		expect(proof.className).toContain("inset-x-0");
-		expect(proof.className).toContain("bottom-8");
-		expect(proof.className).toContain("z-20");
+		const line = screen.getByText("Source-available, built on Solana, free to try on paper.");
+		expect(line.className).toContain("absolute");
+		expect(line.className).toContain("inset-x-0");
+		expect(line.className).toContain("bottom-8");
+		expect(line.className).toContain("z-20");
+		expect(line.className).toContain("text-neutral-500");
 	});
 
 	it("puts a glint on both buttons, without changing what they are called", () => {

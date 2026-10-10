@@ -11,7 +11,7 @@ const Ribbon = lazy(() =>
 /**
  * The first screen: the silver and
  * pearl ribbon is behind the headline, with one line saying what it does, two buttons (start for free, the
- * docs) and one proof line linking to the live record. The floating pieces were tried and taken out (the last
+ * docs) and one plain line of facts at the foot (source-available, built on Solana, free to try on paper: each true today). The floating pieces were tried and taken out (the last
  * version with them is in the history). The ribbon fades in once it has loaded. Its layers are decoration, so
  * they are hidden from assistive technology.
  */
@@ -86,9 +86,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				</a>
 			</div>
 			<p className="absolute inset-x-0 bottom-8 z-20 px-(--gutter) text-[13px] text-neutral-500">
-				<a href="/live" className="transition-colors hover:text-neutral-300">
-					Range Finder has traded real money on Solana since September 28.
-				</a>
+				Source-available, built on Solana, free to try on paper.
 			</p>
 		</section>
 	);
