@@ -32,11 +32,15 @@ function indexPages(): Hit[] {
 
 export const PAGES_INDEX: Hit[] = indexPages();
 
-/** The pages whose name or menu contains what was typed. Nothing typed gives them all. */
-export function search(query: string): Hit[] {
+/** The pages whose name or menu contains what was typed, in English or in the reader's own language. Nothing typed gives them all. */
+export function search(query: string, translate: (name: string) => string = (name) => name): Hit[] {
 	const words = query.trim().toLowerCase();
 	if (!words) return PAGES_INDEX;
 	return PAGES_INDEX.filter(
-		(hit) => hit.label.toLowerCase().includes(words) || hit.section.toLowerCase().includes(words),
+		(hit) =>
+			hit.label.toLowerCase().includes(words) ||
+			hit.section.toLowerCase().includes(words) ||
+			translate(hit.label).toLowerCase().includes(words) ||
+			translate(hit.section).toLowerCase().includes(words),
 	);
 }

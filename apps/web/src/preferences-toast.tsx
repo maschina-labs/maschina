@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { fill } from "./i18n/messages.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import {
 	OPEN_PREFERENCES,
 	type Preference,
@@ -13,6 +15,7 @@ import {
  * if there is one. Square, with the site's two buttons, the gray one to decline and the pearl one to accept.
  */
 export function PreferencesToast() {
+	const m = useMessages();
 	const [open, setOpen] = useState(false);
 	const [choice, setChoice] = useState<Preference | null>(null);
 
@@ -43,29 +46,30 @@ export function PreferencesToast() {
 	return (
 		<div
 			role="dialog"
-			aria-label="Cookie preferences"
+			aria-label={m.preferences.title}
 			className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 bg-[oklch(0.2_0.008_285)] p-5 text-left shadow-[0_20px_60px_-20px_oklch(0_0_0/0.8)]"
 		>
-			<p className="text-[15px] text-white">Cookie preferences</p>
-			<p className="mt-2 text-[14px] text-neutral-400 leading-snug">
-				Essential cookies keep you signed in and always stay on. Optional cookies let us use PostHog
-				to see which pages you open, so we can improve Maschina. Nothing else is turned on.
-			</p>
-			{choice ? <p className="mt-3 text-[13px] text-neutral-500">Your choice: {choice}</p> : null}
+			<p className="text-[15px] text-white">{m.preferences.title}</p>
+			<p className="mt-2 text-[14px] text-neutral-400 leading-snug">{m.preferences.body}</p>
+			{choice ? (
+				<p className="mt-3 text-[13px] text-neutral-500">
+					{fill(m.preferences.choice, { choice: m.preferences[choice] })}
+				</p>
+			) : null}
 			<div className="mt-5 grid grid-cols-2 gap-2 text-[15px]">
 				<button
 					type="button"
 					onClick={() => answer("declined")}
 					className="inline-flex h-10 items-center justify-center bg-white/[0.13] px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 				>
-					Decline
+					{m.preferences.decline}
 				</button>
 				<button
 					type="button"
 					onClick={() => answer("accepted")}
 					className="inline-flex h-10 items-center justify-center bg-[oklch(0.93_0.02_300)] px-5 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] max-sm:font-medium"
 				>
-					Accept
+					{m.preferences.accept}
 				</button>
 			</div>
 		</div>

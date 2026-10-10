@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { saveLanguage } from "./i18n/language.ts";
 import { useLocale } from "./i18n/locale-context.tsx";
 import { AVAILABLE, LOCALES, type LocaleCode, localizePath, parsePath } from "./i18n/locales.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import { usePresence } from "./presence.ts";
 
 /** How long the popover takes to leave, so it fades away rather than blinking out. */
@@ -22,6 +23,7 @@ export function LanguageSwitcher({
 	navigate?: (href: string) => void;
 }) {
 	const locale = useLocale();
+	const m = useMessages();
 	const [open, setOpen] = useState(false);
 	const root = useRef<HTMLDivElement>(null);
 	const button = useRef<HTMLButtonElement>(null);
@@ -59,7 +61,7 @@ export function LanguageSwitcher({
 			<button
 				ref={button}
 				type="button"
-				aria-label="Language"
+				aria-label={m.language.label}
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				onClick={() => setOpen((now) => !now)}
@@ -94,7 +96,7 @@ export function LanguageSwitcher({
 				>
 					<div
 						role="listbox"
-						aria-label="Language"
+						aria-label={m.language.label}
 						className="flex max-h-72 flex-col overflow-y-auto p-1"
 					>
 						{LOCALES.map((language) => {
@@ -113,7 +115,7 @@ export function LanguageSwitcher({
 								>
 									<span data-name>{language.name}</span>
 									{ready ? null : (
-										<span className="ml-auto text-[11px] text-neutral-600">Soon</span>
+										<span className="ml-auto text-[11px] text-neutral-600">{m.language.soon}</span>
 									)}
 									<span
 										data-box

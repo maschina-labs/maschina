@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
+import { Link } from "./i18n/link.tsx";
+import { useLocale } from "./i18n/locale-context.tsx";
+import { localizePath } from "./i18n/locales.ts";
+import { label } from "./i18n/messages.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import { DOCS } from "./links.ts";
 import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
@@ -61,12 +66,14 @@ function SearchInput({
 	onHighlight: (update: (now: number) => number) => void;
 	navigate: (href: string) => void;
 }) {
+	const m = useMessages();
+	const locale = useLocale();
 	return (
 		<input
 			ref={ref}
 			type="search"
-			aria-label="Search Maschina"
-			placeholder="Search Maschina"
+			aria-label={m.header.searchMaschina}
+			placeholder={m.header.searchMaschina}
 			value={query}
 			onChange={(event) => onQuery(event.target.value)}
 			onKeyDown={(event) => {
@@ -78,7 +85,7 @@ function SearchInput({
 					onHighlight((now) => Math.max(0, now - 1));
 				} else if (event.key === "Enter") {
 					const hit = hits[highlight];
-					if (hit) navigate(hit.href);
+					if (hit) navigate(localizePath(hit.href, locale));
 				}
 			}}
 			className="w-full bg-transparent pb-5 font-display text-[clamp(1.25rem,1.9vw,1.875rem)] text-[oklch(0.9_0.012_285)] tracking-[-0.02em] outline-none placeholder:text-neutral-600"
@@ -96,24 +103,27 @@ function SearchHits({
 	highlight: number;
 	typed: boolean;
 }) {
+	const m = useMessages();
 	if (hits.length)
 		return (
 			<ul className="flex flex-col">
 				{hits.map((hit, index) => (
 					<li key={hit.href}>
-						<a
+						<Link
 							href={hit.href}
 							data-active={index === highlight}
 							className={`flex items-baseline justify-between gap-6 px-3 py-2.5 text-[16px] transition-colors ${index === highlight ? "bg-white/[0.08] text-[oklch(0.97_0.018_300)]" : "text-[oklch(0.78_0.012_285)] hover:bg-white/[0.05]"}`}
 						>
-							<span>{hit.label}</span>
-							<span className="text-[13px] text-neutral-500">{hit.section}</span>
-						</a>
+							<span>{label(m, hit.label)}</span>
+							<span className="text-[13px] text-neutral-500">{label(m, hit.section)}</span>
+						</Link>
 					</li>
 				))}
 			</ul>
 		);
-	return typed ? <p className="px-3 py-2.5 text-[16px] text-neutral-500">No pages match.</p> : null;
+	return typed ? (
+		<p className="px-3 py-2.5 text-[16px] text-neutral-500">{m.header.noMatch}</p>
+	) : null;
 }
 
 /** A row in the phone menu, and the links that unfold under it. */
@@ -175,6 +185,8 @@ export function Header({
 	authUrl: string;
 	navigate?: (href: string) => void;
 }) {
+	const m = useMessages();
+	const L = (name: string) => label(m, name);
 	const [open, setOpen] = useState(false);
 	const [section, setSection] = useState<string | null>(null);
 	const [active, setActive] = useState<string | null>(null);
@@ -301,7 +313,7 @@ export function Header({
 	}, [locking]);
 	// Nothing is listed until something is typed.
 	const typed = query.trim() !== "";
-	const hits = typed ? search(query).slice(0, MAX_HITS) : [];
+	const hits = typed ? search(query, L).slice(0, MAX_HITS) : [];
 	const signIn = `${authUrl}/sign-in`;
 	const signUp = `${authUrl}/sign-up`;
 
@@ -349,7 +361,7 @@ export function Header({
 						<div className="flex items-center gap-10">
 							<Logo />
 							<div className="hidden items-center gap-5 xl:flex">
-								<nav aria-label="Pages" className="flex items-center gap-7">
+								<nav aria-label={m.header.pages} className="flex items-center gap-7">
 									{PAGES.map((page) =>
 										page.dropdown ? (
 											<button
@@ -360,24 +372,24 @@ export function Header({
 												onClick={() => (active === page.label ? hideNow() : show(page.label))}
 												className={`${LINK} inline-flex items-center gap-1.5`}
 											>
-												{page.label}
+												{L(page.label)}
 												<Caret open={active === page.label} />
 											</button>
 										) : (
-											<a
+											<Link
 												key={page.label}
 												href={page.href}
 												onMouseEnter={hideNow}
 												className={`${LINK} inline-flex items-center`}
 											>
-												{page.label}
-											</a>
+												{L(page.label)}
+											</Link>
 										),
 									)}
 								</nav>
 								<button
 									type="button"
-									aria-label="Search"
+									aria-label={m.header.search}
 									aria-expanded={searching}
 									onClick={() => (searching ? setSearching(false) : openSearch())}
 									className="grid size-8 place-items-center text-[oklch(0.74_0.012_285)] transition-colors hover:text-[oklch(0.96_0.018_300)]"
@@ -387,12 +399,12 @@ export function Header({
 							</div>
 						</div>
 						<div className="flex items-center gap-2 text-[14px] xl:gap-3">
-							<a
+							<Link
 								href={signIn}
 								className={`${LINK} inline-flex h-10 items-center px-3.5 max-xl:bg-[oklch(0.93_0.02_300)] max-xl:text-black max-xl:hover:bg-[oklch(0.98_0.015_300)] sm:px-5 xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
 							>
-								Log in
-							</a>
+								{m.header.login}
+							</Link>
 							<TryButton
 								href={signUp}
 								className="hidden py-1 pr-1 pl-4 xl:inline-flex"
@@ -403,7 +415,7 @@ export function Header({
 							{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 							<button
 								type="button"
-								aria-label="Menu"
+								aria-label={m.header.menu}
 								aria-expanded={open}
 								aria-controls="pages-menu"
 								onClick={() => {
@@ -441,27 +453,27 @@ export function Header({
 							inert={dropdown.closing}
 							className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label={shownName} className="min-h-0 overflow-hidden bg-black">
+							<section aria-label={L(shownName)} className="min-h-0 overflow-hidden bg-black">
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 									<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 										<div className="flex flex-col gap-5">
-											<p className="text-[13px] text-neutral-500">{shownMenu.intro}</p>
+											<p className="text-[13px] text-neutral-500">{L(shownMenu.intro)}</p>
 											<ul className="flex flex-col gap-1.5">
 												{shownMenu.main.map((item) => (
 													<li key={item.label}>
 														{item.href ? (
-															<a href={item.href} className={BIG}>
-																{item.label}
+															<Link href={item.href} className={BIG}>
+																{L(item.label)}
 																{leavesSite(item.href) ? <ExternalArrow /> : null}
-															</a>
+															</Link>
 														) : (
 															<span
 																aria-disabled="true"
 																className={`${BIG} cursor-default opacity-40 hover:text-[oklch(0.82_0.012_285)]`}
 															>
-																{item.label}
+																{L(item.label)}
 																<span className="ml-2.5 align-middle font-sans text-[11px] tracking-normal text-neutral-400">
-																	Soon
+																	{m.header.soon}
 																</span>
 															</span>
 														)}
@@ -470,17 +482,17 @@ export function Header({
 											</ul>
 										</div>
 										<div className="flex flex-col gap-5">
-											<p className="text-[13px] text-neutral-500">{shownMenu.asideTitle}</p>
+											<p className="text-[13px] text-neutral-500">{L(shownMenu.asideTitle)}</p>
 											<ul className="flex flex-col gap-3 pt-1">
 												{shownMenu.aside.map((item) => (
 													<li key={item.label}>
-														<a
+														<Link
 															href={item.href}
 															className="text-[14px] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
 														>
-															{item.label}
+															{L(item.label)}
 															{item.href && leavesSite(item.href) ? <ExternalArrow /> : null}
-														</a>
+														</Link>
 													</li>
 												))}
 											</ul>
@@ -528,7 +540,7 @@ export function Header({
 							<div className="bg-black">
 								<nav
 									id="pages-menu"
-									aria-label="Pages, menu"
+									aria-label={m.header.pagesMenu}
 									className="flex max-h-[calc(100svh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
 								>
 									{/* The search is the first thing in the phone menu: the same open field as on a desktop, always there, nothing to press first. */}
@@ -558,7 +570,7 @@ export function Header({
 															}
 															className={`${ROW} flex w-full items-center justify-between`}
 														>
-															{page.label}
+															{L(page.label)}
 															<Caret open={section === page.label} />
 														</button>
 														{MENUS[page.label] ? (
@@ -575,18 +587,18 @@ export function Header({
 																			{MENUS[page.label]?.main.map((item) => (
 																				<li key={item.label}>
 																					{item.href ? (
-																						<a href={item.href} className={SUB}>
-																							{item.label}
+																						<Link href={item.href} className={SUB}>
+																							{L(item.label)}
 																							{leavesSite(item.href) ? <ExternalArrow /> : null}
-																						</a>
+																						</Link>
 																					) : (
 																						<span
 																							aria-disabled="true"
 																							className={`${SUB} cursor-default opacity-40`}
 																						>
-																							{item.label}
+																							{L(item.label)}
 																							<span className="ml-2.5 align-middle font-sans text-[11px] text-neutral-400">
-																								Soon
+																								{m.header.soon}
 																							</span>
 																						</span>
 																					)}
@@ -596,15 +608,15 @@ export function Header({
 																		<ul className="flex flex-col gap-2.5">
 																			{MENUS[page.label]?.aside.map((item) => (
 																				<li key={item.label}>
-																					<a
+																					<Link
 																						href={item.href}
 																						className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-200"
 																					>
-																						{item.label}
+																						{L(item.label)}
 																						{item.href && leavesSite(item.href) ? (
 																							<ExternalArrow />
 																						) : null}
-																					</a>
+																					</Link>
 																				</li>
 																			))}
 																		</ul>
@@ -614,18 +626,18 @@ export function Header({
 														) : null}
 													</div>
 												) : (
-													<a key={page.label} href={page.href} className={ROW}>
-														{page.label}
-													</a>
+													<Link key={page.label} href={page.href} className={ROW}>
+														{L(page.label)}
+													</Link>
 												),
 											)}
 											<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
-												<a
+												<Link
 													href={signIn}
 													className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"
 												>
-													Log in
-												</a>
+													{m.header.login}
+												</Link>
 												<TryButton
 													href={signUp}
 													className="flex py-2 pr-2 pl-4"
@@ -639,12 +651,12 @@ export function Header({
 									{/* The same three links as the footer's, centered at the very bottom of the menu. */}
 									<div className="mt-6 flex items-center justify-center gap-3">
 										{SOCIALS.map((social) => (
-											<a
+											<Link
 												key={social.label}
 												href={social.href}
 												className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
 											>
-												<span className="sr-only">{social.label}</span>
+												<span className="sr-only">{L(social.label)}</span>
 												<svg
 													viewBox="0 0 24 24"
 													className="size-4"
@@ -653,7 +665,7 @@ export function Header({
 												>
 													<path d={social.icon} />
 												</svg>
-											</a>
+											</Link>
 										))}
 									</div>
 								</nav>

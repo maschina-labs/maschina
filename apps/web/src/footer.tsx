@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
+import { Link } from "./i18n/link.tsx";
+import { fill, label } from "./i18n/messages.ts";
+import { useMessages } from "./i18n/use-messages.ts";
 import { LanguageSwitcher } from "./language-switcher.tsx";
 import { Logo } from "./logo.tsx";
 import { openPreferences } from "./preferences.ts";
@@ -43,18 +46,12 @@ function Outline({ stroke }: { stroke: string }) {
 	);
 }
 
-/** What each state says, and its color: the app's own live and stop signals, grey while unknown. */
-const SHOWN_AS = {
-	checking: { label: "Checking", color: "bg-neutral-600" },
-	up: {
-		label: "All systems normal",
-		color: "bg-[oklch(0.8_0.2_145)] animate-blink motion-reduce:animate-none",
-	},
-	paused: { label: "Machines paused", color: "bg-[oklch(0.86_0.17_100)]" },
-	down: {
-		label: "API unreachable",
-		color: "bg-[oklch(0.62_0.24_25)] animate-blink motion-reduce:animate-none",
-	},
+/** The color of each state: the app's own live and stop signals, grey while unknown. Its words are in the catalog. */
+const COLOR = {
+	checking: "bg-neutral-600",
+	up: "bg-[oklch(0.8_0.2_145)] animate-blink motion-reduce:animate-none",
+	paused: "bg-[oklch(0.86_0.17_100)]",
+	down: "bg-[oklch(0.62_0.24_25)] animate-blink motion-reduce:animate-none",
 } as const;
 
 /** Green, like the activity light on a network port. The label says which direction it is. */
@@ -88,15 +85,15 @@ function Light({ label, count, color }: { label: string; count: number; color: s
  * to it: TX as the request goes out, RX as the answer comes back. Nothing here is animated for show.
  */
 function StatusMark() {
+	const m = useMessages();
 	const { status, tx, rx } = useStatus();
-	const shown = SHOWN_AS[status.state];
 	return (
 		<div
 			role="status"
 			className="flex h-9 w-max items-center gap-3 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
 		>
-			<span aria-hidden="true" className={`size-2 ${shown.color}`} />
-			<span>{shown.label}</span>
+			<span aria-hidden="true" className={`size-2 ${COLOR[status.state]}`} />
+			<span>{m.footer.status[status.state]}</span>
 			<span aria-hidden="true" className="h-4 w-px bg-white/10" />
 			<Light label="TX" count={tx} color={ACTIVITY} />
 			<Light label="RX" count={rx} color={ACTIVITY} />
@@ -106,6 +103,8 @@ function StatusMark() {
 
 /** At least a screen, the sitemap near the top, and the line and the wordmark at the foot of it. */
 export function Footer() {
+	const m = useMessages();
+	const L = (name: string) => label(m, name);
 	const spot = useRef<SVGCircleElement>(null);
 	const lit = useRef<SVGGElement>(null);
 	// A screen with no hover has nothing to light the wordmark with, so there it lights itself: the pearl light is on
@@ -135,12 +134,14 @@ export function Footer() {
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}
 				<nav
-					aria-label="Sitemap"
+					aria-label={m.footer.sitemap}
 					className="grid grid-cols-2 gap-x-6 gap-y-10 sm:flex sm:gap-x-[clamp(2rem,5vw,6rem)]"
 				>
 					{SITEMAP.map((column) => (
 						<div key={column.title} className="text-left">
-							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
+							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">
+								{L(column.title)}
+							</h2>
 							<ul className="mt-5 flex flex-col gap-2.5 text-[15px]">
 								{column.items.map((item) =>
 									item.action === "preferences" ? (
@@ -150,23 +151,23 @@ export function Footer() {
 												onClick={openPreferences}
 												className="text-left text-neutral-500 transition-colors hover:text-white"
 											>
-												{item.label}
+												{L(item.label)}
 											</button>
 										</li>
 									) : item.href ? (
 										<li key={item.label}>
-											<a
+											<Link
 												href={item.href}
 												className="text-neutral-500 transition-colors hover:text-white"
 											>
-												{item.label}
+												{L(item.label)}
 												{item.external ? <ExternalArrow /> : null}
-											</a>
+											</Link>
 										</li>
 									) : (
 										<li key={item.label} className="text-neutral-700">
-											{item.label}
-											<span className="ml-2 text-[11px]">Soon</span>
+											{L(item.label)}
+											<span className="ml-2 text-[11px]">{m.footer.soon}</span>
 										</li>
 									),
 								)}
@@ -178,7 +179,7 @@ export function Footer() {
 			<div className="mt-auto flex flex-col items-center gap-4 pb-8 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 				<div data-left className="flex items-center gap-3 sm:col-start-1 sm:justify-self-start">
 					{SOCIALS.map((social) => (
-						<a
+						<Link
 							key={social.label}
 							href={social.href}
 							className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
@@ -187,11 +188,11 @@ export function Footer() {
 							<svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
 								<path d={social.icon} />
 							</svg>
-						</a>
+						</Link>
 					))}
 				</div>
 				<p className="text-center text-[13px] text-neutral-500 sm:col-start-2">
-					© {new Date().getFullYear()} Maschina Labs. All rights reserved.
+					{fill(m.footer.rights, { year: new Date().getFullYear() })}
 				</p>
 				<div data-right className="flex items-center gap-3 sm:col-start-3 sm:justify-self-end">
 					<StatusMark />
