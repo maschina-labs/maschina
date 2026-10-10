@@ -1,5 +1,6 @@
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
+import { PreferencesToast } from "./preferences-toast.tsx";
 import { PullToRefresh } from "./pull-refresh.tsx";
 
 /**
@@ -21,6 +22,7 @@ export function Frame({
 			<Header authUrl={authUrl} />
 			<main className={className}>{children}</main>
 			<Footer />
+			<PreferencesToast />
 		</PullToRefresh>
 	);
 }

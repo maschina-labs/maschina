@@ -1,6 +1,6 @@
 import { MENUS } from "./menus.ts";
 
-type Entry = { label: string; href?: string };
+type Entry = { label: string; href?: string; action?: "preferences" };
 
 /** A link with no address is not built yet and shows as Soon. One with a full address leaves the site. */
 type Link = Entry & { external: boolean };
@@ -19,7 +19,9 @@ function once(items: Entry[], taken: Set<string>): Link[] {
 		taken.add(item.href);
 		return true;
 	});
-	const ordered = [...fresh.filter((item) => item.href), ...fresh.filter((item) => !item.href)];
+	// A link that does something instead of going somewhere (Preferences) is as built as a page is.
+	const built = (item: Entry) => Boolean(item.href || item.action);
+	const ordered = [...fresh.filter(built), ...fresh.filter((item) => !built(item))];
 	return ordered.map((item) => ({ ...item, external: item.href?.startsWith("https://") ?? false }));
 }
 
@@ -95,6 +97,7 @@ export const SITEMAP: Column[] = [
 				{ label: "Acceptable use", href: "/acceptable-use" },
 				{ label: "License", href: "/license" },
 				{ label: "Security disclosure", href: "/disclosure" },
+				{ label: "Preferences", action: "preferences" },
 			],
 			taken,
 		),

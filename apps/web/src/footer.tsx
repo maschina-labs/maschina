@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "./logo.tsx";
+import { openPreferences } from "./preferences.ts";
 import { usePresence } from "./presence.ts";
 import { SITEMAP } from "./sitemap.ts";
 import { SOCIALS } from "./socials.ts";
@@ -283,7 +284,17 @@ export function Footer() {
 							<h2 className="text-[12px] text-white uppercase tracking-[0.08em]">{column.title}</h2>
 							<ul className="mt-5 flex flex-col gap-2.5 text-[15px]">
 								{column.items.map((item) =>
-									item.href ? (
+									item.action === "preferences" ? (
+										<li key={item.label}>
+											<button
+												type="button"
+												onClick={openPreferences}
+												className="text-left text-neutral-500 transition-colors hover:text-white"
+											>
+												{item.label}
+											</button>
+										</li>
+									) : item.href ? (
 										<li key={item.label}>
 											<a
 												href={item.href}

@@ -86,6 +86,7 @@ describe("the sitemap", () => {
 			"Acceptable use",
 			"License",
 			"Security disclosure",
+			"Preferences",
 		]);
 		expect(legal?.map((item) => item.href)).toEqual([
 			"/terms",
@@ -94,7 +95,10 @@ describe("the sitemap", () => {
 			"/acceptable-use",
 			"/license",
 			"/disclosure",
+			// Preferences is not a page: it opens a toast.
+			undefined,
 		]);
+		expect(legal?.at(-1)?.action).toBe("preferences");
 	});
 
 	it("has the product, developer and company pages that are still to be written", () => {
