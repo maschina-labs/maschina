@@ -3,6 +3,7 @@ import { BlankPage } from "./blank-page.tsx";
 import { BrandPage } from "./brand-page.tsx";
 import { ABOUT } from "./company/about.ts";
 import { BRAND } from "./company/brand.ts";
+import { PAPERS } from "./company/papers.ts";
 import { ROADMAP } from "./company/roadmap.ts";
 import { SUPPORT } from "./company/support.ts";
 import { ContactPage } from "./contact-page.tsx";
@@ -14,6 +15,7 @@ import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { NotFoundPage } from "./not-found-page.tsx";
+import { PapersPage } from "./papers-page.tsx";
 import { titleFor } from "./routes.ts";
 import { Site } from "./site.tsx";
 import { SupportPage } from "./support-page.tsx";
@@ -52,6 +54,7 @@ export const CONTENT_PATHS = [
 	"/contact",
 	"/support",
 	"/brand",
+	"/papers",
 ];
 
 export function App({
@@ -67,6 +70,7 @@ export function App({
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
 	if (clean === "/brand") return <BrandPage authUrl={authUrl} doc={BRAND} />;
+	if (clean === "/papers") return <PapersPage authUrl={authUrl} doc={PAPERS} />;
 	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
 	const article = ARTICLES[clean];
 	if (article) return <ArticlePage authUrl={authUrl} doc={article} tab={titleFor(clean)} />;

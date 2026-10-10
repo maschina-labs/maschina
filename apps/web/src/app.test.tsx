@@ -15,6 +15,7 @@ const LEGAL = {
 	"/roadmap": 1,
 	"/support": 1,
 	"/brand": 1,
+	"/papers": 1,
 	"/contact": 1,
 };
 
@@ -27,11 +28,11 @@ beforeEach(() => {
 
 describe("which page an address shows", () => {
 	it("shows a blank page named for the address, with or without a trailing slash", () => {
-		const first = render(<App authUrl={AUTH} path="/papers" />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Papers");
+		const first = render(<App authUrl={AUTH} path="/pricing" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Pricing");
 		first.unmount();
-		render(<App authUrl={AUTH} path="/papers/" />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Papers");
+		render(<App authUrl={AUTH} path="/pricing/" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Pricing");
 	});
 
 	it("shows a blank page for every address in the table", () => {
@@ -175,5 +176,11 @@ describe("what a search engine is told about each page", () => {
 			view.unmount();
 			expect(robots(), path).toBeUndefined();
 		}
+	});
+
+	it("shows the papers page at /papers, with a place for each video, deck and paper", () => {
+		render(<App authUrl={AUTH} path="/papers" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Papers");
+		expect(screen.getByRole("heading", { level: 2, name: "Videos" })).toBeInTheDocument();
 	});
 });

@@ -24,6 +24,7 @@ Maschina Labs, based in Alberta, Canada, builds it in the open. Nothing here is 
 - [Contact](https://maschina.dev/contact): write to support, billing, legal or abuse
 - [Support](https://maschina.dev/support): ways to get help
 - [Brand assets](https://maschina.dev/brand): logos, colors and rules for using them
+- [Papers](https://maschina.dev/papers): videos, decks and papers, listed as each one is ready
 
 ## Optional
 
