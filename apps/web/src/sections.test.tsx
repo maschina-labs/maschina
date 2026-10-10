@@ -7,7 +7,7 @@ const AUTH = "https://auth.maschina.dev";
 const SECTIONS = [
 	{
 		name: "How it works",
-		title: "Give an AI a wallet and a job.",
+		title: "Give a machine a wallet and a job.",
 		element: <HowItWorks authUrl={AUTH} />,
 		links: [
 			["Make a machine", `${AUTH}/sign-up`],

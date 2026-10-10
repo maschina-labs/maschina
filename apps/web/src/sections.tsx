@@ -11,7 +11,7 @@ export function HowItWorks({ authUrl }: { authUrl: string }) {
 	return (
 		<PlainSection
 			name="How it works"
-			title="Give an AI a wallet and a job."
+			title="Give a machine a wallet and a job."
 			line="Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves."
 			primary={{ label: "Make a machine", href: `${authUrl}/sign-up` }}
 			secondary={{ label: "Read the docs", href: "/docs" }}
