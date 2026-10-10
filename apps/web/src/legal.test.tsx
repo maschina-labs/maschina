@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
+import { LICENSE } from "./legal/license.ts";
 import { PRIVACY } from "./legal/privacy.ts";
 import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
@@ -454,6 +455,7 @@ describe.each([
 	["the privacy policy", PRIVACY],
 	["the risk disclosure", RISK],
 	["the acceptable use policy", ACCEPTABLE_USE],
+	["the license", LICENSE],
 ])("%s", (_name, doc) => {
 	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
 		expect(doc.updated).toBe("October 9, 2026");
@@ -472,7 +474,8 @@ describe.each([
 		// It may say money is NOT insured, which is true, and must never say that it is.
 		expect(all.replace(/not (covered|insured)/gi, "")).not.toMatch(/\binsured\b|\bfdic\b/i);
 		expect(all).not.toMatch(/risk.free|cannot lose|100% secure|military.grade|unhackable/i);
-		expect(all).not.toMatch(/open source license/i);
+		// It may say there is NO open source license, which is the point of the license page, and must never say there is one.
+		expect(all.replace(/no open source license/gi, "")).not.toMatch(/open source license/i);
 	});
 
 	it("reaches the company at legal@maschina.dev, and every address it links to inside the site is a page that exists", () => {
@@ -694,5 +697,52 @@ describe("the acceptable use policy", () => {
 		expect(hrefs).toContain("mailto:abuse@maschina.dev");
 		expect(hrefs).toContain("/disclosure");
 		expect(hrefs).toContain("/terms");
+	});
+});
+
+describe("the license", () => {
+	it("says what the repository's own notice says: public to be read, all rights reserved, not open source", () => {
+		const all = text(LICENSE);
+		expect(all).toMatch(/source.available, which is not the same as open source/i);
+		expect(all).toMatch(/all rights are reserved/i);
+		expect(all).toMatch(/There is no open source license/i);
+		expect(all).toMatch(/not accepting outside contributions/i);
+		expect(all).toMatch(/Söhne/);
+	});
+
+	it("grants nothing it does not mean to: no open source license is named as applying, and permission is only ever in writing", () => {
+		const all = text(LICENSE);
+		expect(all).not.toMatch(
+			/\b(MIT|Apache|GPL|BSD|MPL|AGPL|Creative Commons|BUSL|Business Source)\b/,
+		);
+		expect(all).toMatch(/in writing/i);
+		expect(all).toMatch(/Silence is not permission/i);
+	});
+
+	it("covers each part of a license page, under its own heading", () => {
+		const headings = LICENSE.sections.map((section) => section.heading);
+		for (const needed of [
+			/short version/i,
+			/what this is/i,
+			/what you may do/i,
+			/what you may not do/i,
+			/permission/i,
+			/contributions/i,
+			/third party/i,
+			/names and logos/i,
+			/warranty/i,
+			/may change/i,
+			/contact/i,
+		])
+			expect(
+				headings.some((heading) => needed.test(heading)),
+				String(needed),
+			).toBe(true);
+	});
+
+	it("points to the terms and the brand assets by their real addresses", () => {
+		const hrefs = linksOf(LICENSE);
+		expect(hrefs).toContain("/terms");
+		expect(hrefs).toContain("/brand");
 	});
 });

@@ -1,5 +1,6 @@
 import { BlankPage } from "./blank-page.tsx";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
+import { LICENSE } from "./legal/license.ts";
 import { PRIVACY } from "./legal/privacy.ts";
 import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
@@ -18,6 +19,7 @@ const DOCUMENTS: Record<string, LegalDoc> = {
 	"/privacy": PRIVACY,
 	"/risk": RISK,
 	"/acceptable-use": ACCEPTABLE_USE,
+	"/license": LICENSE,
 };
 
 export function App({
