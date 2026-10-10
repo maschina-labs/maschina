@@ -42,7 +42,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
-			className="relative flex h-svh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-16 text-center"
+			className="relative flex h-lvh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-[calc(4rem+100lvh-100svh)] text-center"
 		>
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 				{ready ? (
@@ -86,7 +86,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					Read the docs
 				</a>
 			</div>
-			<p className="absolute inset-x-0 bottom-8 z-20 px-(--gutter) text-[13px] text-neutral-500">
+			<p className="absolute inset-x-0 bottom-[calc(2rem+100lvh-100svh)] z-20 px-(--gutter) text-[13px] text-neutral-500">
 				Source-available, built on Solana, free to try on paper.
 			</p>
 		</section>

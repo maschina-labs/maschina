@@ -420,7 +420,7 @@ describe("the footer", () => {
 	it("is at least a screen tall, with the sitemap near the top and the line and wordmark at the foot, so any spare height sits between them, not above the sitemap", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
-		expect(className).toContain("min-h-svh");
+		expect(className).toContain("min-h-lvh");
 		expect(className).not.toContain("justify-end");
 		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
 		expect(line.className).toContain("mt-auto");

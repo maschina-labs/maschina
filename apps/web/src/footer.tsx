@@ -268,7 +268,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative flex min-h-svh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16 max-sm:pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+		<footer className="relative flex min-h-lvh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16 max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]">
 			<div className="flex w-full flex-col gap-12 py-12 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}

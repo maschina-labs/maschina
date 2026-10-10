@@ -8,22 +8,34 @@ const sources = readdirSync(here).filter(
 	(name) => /\.(tsx?|css)$/.test(name) && !name.includes(".test."),
 );
 
-describe("the page does not resize as the browser's bars come and go", () => {
-	// On a phone the address bar slides away as you scroll down and back as you scroll up. A height in dvh follows it,
-	// so anything sized that way, the hero above all, grows and shrinks under the reader's thumb and the whole page
-	// shifts. svh is the height with the bars showing: it never changes while scrolling, so nothing moves.
-	it("sizes nothing in dvh or vh, which follow the bars; only svh, which stays put", () => {
+describe("the browser's bars only ever cover the page; they never resize it or move it", () => {
+	// On a phone the address bar or the toolbar slides away as you scroll and comes back as you scroll up. Anything sized
+	// in dvh follows it, so the page stretches and shifts under the reader's thumb. lvh is the height with the bars
+	// gone: it never changes, so the page is always that tall and a bar that is showing simply sits on top of it.
+	// svh is the height with the bars showing, which the difference between the two measures.
+	it("sizes nothing in dvh or vh, which follow the bars", () => {
 		const offenders = sources.filter((name) =>
-			/\d(dvh|lvh|vh)\b|-dvh\b|-vh\b|-lvh\b/.test(readFileSync(resolve(here, name), "utf8")),
+			/\d(dvh|vh)\b|-dvh\b|-vh\b/.test(readFileSync(resolve(here, name), "utf8")),
 		);
 		expect(offenders).toEqual([]);
 	});
 
-	it("does size the hero, the closing section, the footer and the page itself in svh", () => {
+	it("sizes the hero, the closing section, the footer and the page itself to the full height, lvh, so a bar can only overlap them", () => {
 		const read = (name: string) => readFileSync(resolve(here, name), "utf8");
-		expect(read("hero.tsx")).toContain("h-svh");
-		expect(read("closing.tsx")).toContain("min-h-[70svh]");
-		expect(read("footer.tsx")).toContain("min-h-svh");
-		expect(read("site.tsx")).toContain("min-h-svh");
+		expect(read("hero.tsx")).toContain("h-lvh");
+		expect(read("closing.tsx")).toContain("min-h-[70lvh]");
+		expect(read("footer.tsx")).toContain("min-h-lvh");
+		expect(read("site.tsx")).toContain("min-h-lvh");
+		for (const name of ["hero.tsx", "closing.tsx", "footer.tsx", "site.tsx"])
+			expect(read(name)).not.toMatch(/h-svh|min-h-svh|70svh/);
+	});
+
+	it("keeps what sits at the foot of the hero and the page clear of a bar that is showing: the gap between lvh and svh is the bar", () => {
+		const read = (name: string) => readFileSync(resolve(here, name), "utf8");
+		expect(read("hero.tsx")).toContain("bottom-[calc(2rem+100lvh-100svh)]");
+		expect(read("hero.tsx")).toContain("pb-[calc(4rem+100lvh-100svh)]");
+		expect(read("footer.tsx")).toContain(
+			"max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]",
+		);
 	});
 });

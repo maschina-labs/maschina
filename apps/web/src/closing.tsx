@@ -11,7 +11,7 @@ export function Closing({ authUrl }: { authUrl: string }) {
 	return (
 		<section
 			aria-label="Get started"
-			className="relative flex min-h-[70svh] flex-col items-center justify-center overflow-hidden bg-black px-(--gutter) py-24 text-center"
+			className="relative flex min-h-[70lvh] flex-col items-center justify-center overflow-hidden bg-black px-(--gutter) py-24 text-center"
 		>
 			{/* A soft glow along the seam with the footer, rising a little and fading out before it reaches the words. */}
 			<div

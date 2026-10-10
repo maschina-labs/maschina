@@ -46,7 +46,9 @@ describe("the wordmark at the foot of the page on a phone", () => {
 		screenWith({ noHover: false });
 		const { container } = render(<Footer />);
 		const footer = container.querySelector("footer") as HTMLElement;
-		expect(footer.className).toContain("max-sm:pb-[calc(3.5rem+env(safe-area-inset-bottom))]");
+		expect(footer.className).toContain(
+			"max-sm:pb-[calc(env(safe-area-inset-bottom)+max(3.5rem,100lvh-100svh))]",
+		);
 	});
 
 	it("lights itself on a screen with no hover: the pearl light is on and sweeps across the letters, again and again", () => {

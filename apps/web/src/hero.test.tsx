@@ -22,9 +22,9 @@ describe("the hero", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
 		// A full screen: nothing of the next section shows until you scroll.
-		expect(section.className).toContain("h-svh");
+		expect(section.className).toContain("h-lvh");
 		expect(section.className).toContain("min-h-[36rem]");
-		expect(section.className).not.toContain("84svh");
+		expect(section.className).not.toContain("84lvh");
 		expect(section.className).toContain("items-center");
 		expect(section.className).toContain("justify-center");
 		expect(section.className).toContain("text-center");
@@ -164,7 +164,7 @@ describe("the hero", () => {
 		expect(buttons.className).toContain("mt-14");
 		// The block sits a little below the middle of the screen.
 		expect(section.className).toContain("pt-32");
-		expect(section.className).toContain("pb-16");
+		expect(section.className).toContain("pb-[calc(4rem+100lvh-100svh)]");
 	});
 
 	it("keeps that line at the foot of the screen, off the stack", () => {
@@ -172,7 +172,7 @@ describe("the hero", () => {
 		const line = screen.getByText("Source-available, built on Solana, free to try on paper.");
 		expect(line.className).toContain("absolute");
 		expect(line.className).toContain("inset-x-0");
-		expect(line.className).toContain("bottom-8");
+		expect(line.className).toContain("bottom-[calc(2rem+100lvh-100svh)]");
 		expect(line.className).toContain("z-20");
 		expect(line.className).toContain("text-neutral-500");
 	});
