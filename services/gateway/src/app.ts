@@ -13,6 +13,7 @@ import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts
 import { newsRoutes } from "./routes/news.ts";
 import { type PublicRecordDesk, publicRecordRoutes } from "./routes/public-record.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
+import { welcome } from "./welcome.ts";
 
 export type GatewayDeps = {
 	version: string;
@@ -109,6 +110,11 @@ export function buildApp(deps: GatewayDeps) {
 			clock: deps.clock ?? systemClock,
 		}),
 	);
+
+	// The front door: a welcome, not the not found error a bare address used to get.
+	app.get("/", welcome(deps.version));
+	app.get("/v1", welcome(deps.version));
+	app.get("/v1/", welcome(deps.version));
 
 	registerHealth(app, { service: SERVICE, version: deps.version });
 
