@@ -93,13 +93,34 @@ describe("a legal page", () => {
 		const one = screen.getByRole("heading", { level: 2, name: "One" });
 		expect(one).toHaveAttribute("id", "one");
 		expect(one.className).toContain("font-medium");
-		expect(within(one).getByText("1")).toHaveAttribute("aria-hidden", "true");
+		// The heading is only its words; the section number is a separate thing that stays put (see below).
+		expect(one).toHaveTextContent(/^One$/);
+		const number = one.closest("section")?.querySelector("[data-number]") as HTMLElement;
+		expect(number).toHaveTextContent("1");
+		expect(number).toHaveAttribute("aria-hidden", "true");
 		// Clauses 1.1 and 1.2 are the two paragraphs; the list belongs to the one before it and is not numbered.
 		expect(screen.getByText("Alpha.").closest("div")).toHaveTextContent("1.1Alpha.");
 		expect(screen.getByText("Beta.").closest("div")).toHaveTextContent("1.2Beta.");
 		expect(screen.getByText("Gamma.").closest("div")).toHaveTextContent("2.1Gamma.");
 		const list = screen.getByText("a").closest("ul") as HTMLElement;
 		expect(list.className).toContain("list-[square]");
+	});
+
+	it("keeps each section's number pinned at the left under the header while its clauses are read, covering the clause numbers that pass beneath it, until the next section pushes it away", () => {
+		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+		const section = screen
+			.getByRole("heading", { level: 2, name: "One" })
+			.closest("section") as HTMLElement;
+		const pin = section.querySelector("[data-number]")?.parentElement as HTMLElement;
+		for (const part of ["sticky", "top-28", "z-10", "h-0"]) expect(pin.className).toContain(part);
+		// It comes before the heading, so it starts level with it, and takes no room of its own.
+		expect(pin.nextElementSibling).toBe(screen.getByRole("heading", { level: 2, name: "One" }));
+		const number = pin.firstElementChild as HTMLElement;
+		expect(number.className).toContain("bg-black");
+		expect(number.className).toContain("w-12");
+		expect(number.className).toContain("text-[1.75rem]");
+		const heading = screen.getByRole("heading", { level: 2, name: "One" });
+		expect(heading.className).toContain("pl-16");
 	});
 
 	it("sets the text for reading: seventeen pixel type, roomy lines, a calm gray that is bright enough, and headings that step up with room above them", () => {

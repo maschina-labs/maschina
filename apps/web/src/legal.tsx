@@ -114,7 +114,7 @@ function Contents({
 /**
  * A legal document, set the way a contract is and the way the best product legal pages are: a small label, a big plain
  * title, the date, and the first words as a lead; then a hairline, the contents down the left (held in view, with the
- * section you are in lit) and the text in a reading column on the right. Every section is numbered and every clause
+ * section you are in lit) and the text in a reading column on the right. Every section is numbered, the number staying pinned at the left while its clauses are read, and every clause
  * inside it (1.1, 1.2) so any part can be pointed to. Seventeen pixel type with roomy lines, headings that step up with
  * room above them, square bullets, and nothing else. On a phone the contents fold into a list at the top. The page
  * margins are the article's own padding and the width is on a box inside it, so the margins never squeeze the text.
@@ -149,17 +149,20 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								let clause = 0;
 								return (
 									<section key={id} data-section={id} className="scroll-mt-28 pt-14 first:pt-0">
-										<h2
-											id={id}
-											tabIndex={-1}
-											className="flex gap-4 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none"
-										>
+										<div className="sticky top-28 z-10 h-0">
 											<span
+												data-number
 												aria-hidden="true"
-												className="w-12 shrink-0 font-normal text-neutral-600 tabular-nums"
+												className="block w-12 bg-black font-normal text-[1.75rem] text-neutral-600 leading-tight tabular-nums"
 											>
 												{sectionIndex + 1}
 											</span>
+										</div>
+										<h2
+											id={id}
+											tabIndex={-1}
+											className="pl-16 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none"
+										>
 											{section.heading}
 										</h2>
 										{section.body.map((block) => {
