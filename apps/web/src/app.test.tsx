@@ -13,6 +13,7 @@ const LEGAL = {
 	"/disclosure": 1,
 	"/about": 1,
 	"/roadmap": 1,
+	"/news": 1,
 };
 
 beforeEach(() => {
@@ -102,5 +103,10 @@ describe("the legal pages", () => {
 			"What Maschina is building",
 		);
 		expect(screen.getByRole("heading", { level: 2, name: "Now" })).toBeInTheDocument();
+	});
+
+	it("shows the news page at /news, as an article", () => {
+		render(<App authUrl={AUTH} path="/news" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("News from Maschina Labs");
 	});
 });
