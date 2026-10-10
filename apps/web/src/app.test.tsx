@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app.tsx";
 import { ROUTES } from "./routes.ts";
@@ -14,6 +14,7 @@ const LEGAL = {
 	"/about": 1,
 	"/roadmap": 1,
 	"/news": 1,
+	"/careers": 1,
 	"/contact": 1,
 };
 
@@ -106,9 +107,16 @@ describe("the legal pages", () => {
 		expect(screen.getByRole("heading", { level: 2, name: "Now" })).toBeInTheDocument();
 	});
 
-	it("shows the news page at /news, as an article", () => {
-		render(<App authUrl={AUTH} path="/news" />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("News from Maschina Labs");
+	it("shows an empty state, not a blank screen, at /news and /careers", () => {
+		const news = render(<App authUrl={AUTH} path="/news" />);
+		expect(within(screen.getByRole("main")).getByRole("heading", { level: 2 })).toHaveTextContent(
+			"Nothing to announce yet.",
+		);
+		news.unmount();
+		render(<App authUrl={AUTH} path="/careers" />);
+		expect(within(screen.getByRole("main")).getByRole("heading", { level: 2 })).toHaveTextContent(
+			"No open roles right now.",
+		);
 	});
 
 	it("shows the contact form at /contact", () => {
