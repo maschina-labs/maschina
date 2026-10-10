@@ -202,6 +202,18 @@ export function Header({
 	else if (searching) backdropFor.current = "search";
 	else if (open) backdropFor.current = "menu";
 	const anyPanel = dropdown.mounted || searchPanel.mounted || mobileMenu.mounted;
+	// While any panel is open the page behind it does not scroll, so a swipe or a wheel moves the panel's own list
+	// and never the page. The page's own setting is put back the moment the last panel closes, or the header goes.
+	const locking = Boolean(menu) || open || searching;
+	useEffect(() => {
+		if (!locking) return;
+		const root = document.documentElement;
+		const before = root.style.overflow;
+		root.style.overflow = "hidden";
+		return () => {
+			root.style.overflow = before;
+		};
+	}, [locking]);
 	// Nothing is listed until something is typed.
 	const typed = query.trim() !== "";
 	const hits = typed ? search(query).slice(0, MAX_HITS) : [];
@@ -347,7 +359,7 @@ export function Header({
 						className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 					>
 						<section aria-label={shownName} className="min-h-0 overflow-hidden bg-black">
-							<div className="px-(--gutter) pt-6 pb-10">
+							<div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 								<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 									<div className="flex flex-col gap-5">
 										<p className="text-[13px] text-neutral-500">{shownMenu.intro}</p>
@@ -402,7 +414,7 @@ export function Header({
 						className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 					>
 						<section aria-label="Search" className="min-h-0 overflow-hidden bg-black">
-							<div className="px-(--gutter) pt-4 pb-10">
+							<div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 								<input
 									ref={box}
 									type="search"
@@ -461,7 +473,7 @@ export function Header({
 							<nav
 								id="pages-menu"
 								aria-label="Pages, menu"
-								className="flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto px-(--gutter) pt-2 pb-8"
+								className="flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
 							>
 								{PAGES.map((page) =>
 									page.dropdown ? (
