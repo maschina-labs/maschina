@@ -73,4 +73,16 @@ describe("the support page", () => {
 		expect(content.className).toContain("mx-auto");
 		expect(content.className).not.toContain("max-w-[44rem]");
 	});
+
+	it("makes every card the same size: rows of equal height, and each card fills its row", () => {
+		const { container } = render(<SupportPage authUrl={AUTH} doc={SUPPORT} />);
+		const grid = container.querySelector("[data-content]") as HTMLElement;
+		expect(grid.className).toContain("auto-rows-fr");
+		const cards = within(grid).getAllByRole("link");
+		expect(cards).toHaveLength(4);
+		for (const card of cards) {
+			expect(card.className).toContain("h-full");
+			expect(card.className).toContain("min-h-44");
+		}
+	});
 });

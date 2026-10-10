@@ -25,12 +25,15 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
-					<div data-content className="mx-auto grid w-full max-w-[64rem] gap-3 sm:grid-cols-2">
+					<div
+						data-content
+						className="mx-auto grid w-full max-w-[64rem] auto-rows-fr gap-3 sm:grid-cols-2"
+					>
 						{doc.ways.map((way) => (
 							<a
 								key={way.href}
 								href={way.href}
-								className="group block bg-white/[0.06] p-6 transition-colors hover:bg-white/[0.1]"
+								className="group block h-full min-h-44 bg-white/[0.06] p-6 transition-colors hover:bg-white/[0.1]"
 							>
 								<span className="block font-display font-medium text-[1.25rem] text-white tracking-[-0.015em]">
 									{way.title}
