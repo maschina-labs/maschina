@@ -13,17 +13,22 @@
 	},
 	"dependencies": {
 		"@maschina/field": "workspace:*",
+		"d3-geo": "3.1.1",
 		"ldrs": "1.1.9",
 		"react": "catalog:",
-		"react-dom": "catalog:"
+		"react-dom": "catalog:",
+		"topojson-client": "3.1.0",
+		"world-atlas": "2.0.2"
 	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
 		"@tailwindcss/vite": "catalog:",
 		"@testing-library/jest-dom": "catalog:",
 		"@testing-library/react": "catalog:",
+		"@types/d3-geo": "3.1.1",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
+		"@types/topojson-client": "3.1.5",
 		"@vitejs/plugin-react": "catalog:",
 		"@vitest/coverage-v8": "catalog:",
 		"jsdom": "catalog:",

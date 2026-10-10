@@ -110,6 +110,20 @@ export const en = {
 			name: "How it works",
 			title: "Give a machine a wallet and a job.",
 			line: "Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves.",
+			steps: [
+				{
+					title: "Pick a kind",
+					body: "Choose what the machine does, such as trading SOL. It gets a wallet of its own.",
+				},
+				{
+					title: "Set its limits",
+					body: "Decide how much it may spend and which tokens it may touch. The limits are yours, and the AI cannot change them.",
+				},
+				{
+					title: "Let it work",
+					body: "Every trade is checked against your limits before it moves, and every decision is written to the record.",
+				},
+			],
 			primary: "Make a machine",
 			secondary: "Read the docs",
 		},
@@ -117,19 +131,77 @@ export const en = {
 			name: "Inside the app",
 			title: "See every move it makes.",
 			line: "Your portfolio, every decision, every trade, and a manager you can ask, all in one app.",
+			tiles: [
+				{
+					title: "Portfolio",
+					body: "Your machines and their wallets, with the balance and the result of each.",
+				},
+				{
+					title: "Decisions",
+					body: "What each machine decided and why, including the trades it refused.",
+				},
+				{
+					title: "Manager",
+					body: "An assistant you can ask about your machines, running on your own AI key.",
+				},
+				{
+					title: "Record",
+					body: "An append-only record of everything a machine does, kept so it can be checked.",
+				},
+			],
+			sample: "Sample data.",
 			primary: "Try it on paper",
 		},
 		safety: {
 			name: "Safety",
 			title: "The limits are yours.",
 			line: "A machine can only spend what you give it, inside the limits you set. Every trade is checked against them before it is signed.",
+			flow: ["The AI proposes", "Your limits check it", "The signer signs", "Solana settles it"],
+			points: [
+				"Budgets live in a ledger the machine cannot edit.",
+				"Every action is checked before anything is signed.",
+				"A refused action is recorded too, with the reason.",
+				"Maschina never holds your own wallet's keys.",
+			],
+			audit:
+				"Maschina is early and has not been independently audited. Read the {link} for what can go wrong.",
+			auditLink: "risk disclosure",
 			primary: "Read how it is built",
 		},
 		customize: {
 			name: "Customize",
 			title: "Make it yours.",
 			line: "Set the range, the floor and the limits on every machine. Arranging your own screens and tiles is coming soon.",
+			settings: ["Range", "Floor", "Amount per trade", "Daily limit"],
+			sample: "Sample settings.",
 			primary: "Make a machine",
+		},
+		live: {
+			name: "Live record",
+			title: "Every decision, on the record.",
+			line: "A machine's decisions, including the ones it refused, will go on a record anyone can read. It is being built.",
+			tag: "Coming soon",
+			rows: [
+				{ time: "12:04", action: "Buy SOL", outcome: "Allowed" },
+				{ time: "12:19", action: "Buy SOL", outcome: "Refused: over the daily limit" },
+				{ time: "12:31", action: "Sell SOL", outcome: "Allowed" },
+				{ time: "12:48", action: "Buy a token", outcome: "Refused: token not allowed" },
+			],
+			sample: "Sample data. The live record is not open yet.",
+		},
+		network: {
+			name: "Network",
+			title: "A network of computers, running machines.",
+			line: "Soon, anyone will be able to lend a computer to run machines, and be paid for it.",
+			tag: "Coming soon",
+			globe: "The network, on a turning globe",
+		},
+		marketplace: {
+			name: "Marketplace",
+			title: "Publish what works. Copy what does.",
+			line: "A place to publish a proven machine, and for others to copy it.",
+			tag: "Coming soon",
+			cards: ["A machine", "A machine", "A machine"],
 		},
 		builders: {
 			name: "For builders",
