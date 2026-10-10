@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
-import { search } from "./search.ts";
+import { type Hit, search } from "./search.ts";
 import { TryButton } from "./try-button.tsx";
 
 /**
@@ -35,6 +35,79 @@ const CLOSE_DELAY_MS = 180;
 
 const LINK =
 	"text-[14px] text-[oklch(0.74_0.012_285)] transition-colors hover:text-[oklch(0.96_0.018_300)]";
+
+/** The open field the search starts with, in the display type, with no box around it: the same on a desktop and in the phone menu. */
+function SearchInput({
+	ref,
+	query,
+	onQuery,
+	hits,
+	highlight,
+	onHighlight,
+	navigate,
+}: {
+	ref?: React.Ref<HTMLInputElement>;
+	query: string;
+	onQuery: (value: string) => void;
+	hits: Hit[];
+	highlight: number;
+	onHighlight: (update: (now: number) => number) => void;
+	navigate: (href: string) => void;
+}) {
+	return (
+		<input
+			ref={ref}
+			type="search"
+			aria-label="Search Maschina"
+			placeholder="Search Maschina"
+			value={query}
+			onChange={(event) => onQuery(event.target.value)}
+			onKeyDown={(event) => {
+				if (event.key === "ArrowDown") {
+					event.preventDefault();
+					onHighlight((now) => Math.min(hits.length - 1, now + 1));
+				} else if (event.key === "ArrowUp") {
+					event.preventDefault();
+					onHighlight((now) => Math.max(0, now - 1));
+				} else if (event.key === "Enter") {
+					const hit = hits[highlight];
+					if (hit) navigate(hit.href);
+				}
+			}}
+			className="w-full bg-transparent pb-5 font-display text-[clamp(1.25rem,1.9vw,1.875rem)] text-[oklch(0.9_0.012_285)] tracking-[-0.02em] outline-none placeholder:text-neutral-600"
+		/>
+	);
+}
+
+/** The pages that match what was typed, one under the other, or a plain line when none does. */
+function SearchHits({
+	hits,
+	highlight,
+	typed,
+}: {
+	hits: Hit[];
+	highlight: number;
+	typed: boolean;
+}) {
+	if (hits.length)
+		return (
+			<ul className="flex flex-col">
+				{hits.map((hit, index) => (
+					<li key={hit.href}>
+						<a
+							href={hit.href}
+							data-active={index === highlight}
+							className={`flex items-baseline justify-between gap-6 px-3 py-2.5 text-[16px] transition-colors ${index === highlight ? "bg-white/[0.08] text-[oklch(0.97_0.018_300)]" : "text-[oklch(0.78_0.012_285)] hover:bg-white/[0.05]"}`}
+						>
+							<span>{hit.label}</span>
+							<span className="text-[13px] text-neutral-500">{hit.section}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		);
+	return typed ? <p className="px-3 py-2.5 text-[16px] text-neutral-500">No pages match.</p> : null;
+}
 
 /** A row in the phone menu, and the links that unfold under it. */
 const ROW =
@@ -323,6 +396,7 @@ export function Header({
 								aria-controls="pages-menu"
 								onClick={() => {
 									setSearching(false);
+									setQuery("");
 									setOpen((now) => !now);
 								}}
 								className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
@@ -412,48 +486,19 @@ export function Header({
 						>
 							<section aria-label="Search" className="min-h-0 overflow-hidden bg-black">
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
-									<input
+									<SearchInput
 										ref={box}
-										type="search"
-										aria-label="Search Maschina"
-										placeholder="Search Maschina"
-										value={query}
-										onChange={(event) => {
-											setQuery(event.target.value);
+										query={query}
+										onQuery={(value) => {
+											setQuery(value);
 											setHighlight(0);
 										}}
-										onKeyDown={(event) => {
-											if (event.key === "ArrowDown") {
-												event.preventDefault();
-												setHighlight((now) => Math.min(hits.length - 1, now + 1));
-											} else if (event.key === "ArrowUp") {
-												event.preventDefault();
-												setHighlight((now) => Math.max(0, now - 1));
-											} else if (event.key === "Enter") {
-												const hit = hits[highlight];
-												if (hit) navigate(hit.href);
-											}
-										}}
-										className="w-full bg-transparent pb-5 font-display text-[clamp(1.25rem,1.9vw,1.875rem)] text-[oklch(0.9_0.012_285)] tracking-[-0.02em] outline-none placeholder:text-neutral-600"
+										hits={hits}
+										highlight={highlight}
+										onHighlight={setHighlight}
+										navigate={navigate}
 									/>
-									{hits.length ? (
-										<ul className="flex flex-col">
-											{hits.map((hit, index) => (
-												<li key={hit.href}>
-													<a
-														href={hit.href}
-														data-active={index === highlight}
-														className={`flex items-baseline justify-between gap-6 px-3 py-2.5 text-[16px] transition-colors ${index === highlight ? "bg-white/[0.08] text-[oklch(0.97_0.018_300)]" : "text-[oklch(0.78_0.012_285)] hover:bg-white/[0.05]"}`}
-													>
-														<span>{hit.label}</span>
-														<span className="text-[13px] text-neutral-500">{hit.section}</span>
-													</a>
-												</li>
-											))}
-										</ul>
-									) : typed ? (
-										<p className="px-3 py-2.5 text-[16px] text-neutral-500">No pages match.</p>
-									) : null}
+									<SearchHits hits={hits} highlight={highlight} typed={typed} />
 								</div>
 							</section>
 						</div>
@@ -472,99 +517,107 @@ export function Header({
 									aria-label="Pages, menu"
 									className="flex max-h-[calc(100svh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
 								>
-									{/* The search is the first thing in the phone menu: a full width bar, like a field, above the pages. */}
-									<button
-										type="button"
-										aria-label="Search"
-										onClick={openSearch}
-										className="mb-3 flex h-12 w-full items-center gap-3 bg-white/[0.08] px-4 text-[16px] text-neutral-400 transition-colors hover:bg-white/[0.12]"
-									>
-										<Magnifier />
-										Search Maschina
-									</button>
-									{PAGES.map((page) =>
-										page.dropdown ? (
-											<div key={page.label}>
-												<button
-													type="button"
-													aria-expanded={section === page.label}
-													onClick={() =>
-														setSection((now) => (now === page.label ? null : page.label))
-													}
-													className={`${ROW} flex w-full items-center justify-between`}
-												>
-													{page.label}
-													<Caret open={section === page.label} />
-												</button>
-												{MENUS[page.label] ? (
-													<div
-														data-panel="section"
-														data-state={section === page.label ? "open" : "closed"}
-														aria-hidden={section === page.label ? undefined : true}
-														inert={section !== page.label}
-														className={`grid transition-[grid-template-rows] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${section === page.label ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-													>
-														<div className="min-h-0 overflow-hidden">
-															<div className="flex flex-col gap-5 pb-4 pl-1">
-																<ul className="flex flex-col gap-3">
-																	{MENUS[page.label]?.main.map((item) => (
-																		<li key={item.label}>
-																			{item.href ? (
-																				<a href={item.href} className={SUB}>
-																					{item.label}
-																				</a>
-																			) : (
-																				<span
-																					aria-disabled="true"
-																					className={`${SUB} cursor-default opacity-40`}
-																				>
-																					{item.label}
-																					<span className="ml-2.5 align-middle font-sans text-[11px] text-neutral-400">
-																						Soon
-																					</span>
-																				</span>
-																			)}
-																		</li>
-																	))}
-																</ul>
-																<ul className="flex flex-col gap-2.5">
-																	{MENUS[page.label]?.aside.map((item) => (
-																		<li key={item.label}>
-																			<a
-																				href={item.href}
-																				className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-200"
-																			>
-																				{item.label}
-																			</a>
-																		</li>
-																	))}
-																</ul>
+									{/* The search is the first thing in the phone menu: the same open field as on a desktop, always there, nothing to press first. */}
+									<SearchInput
+										query={query}
+										onQuery={(value) => {
+											setQuery(value);
+											setHighlight(0);
+										}}
+										hits={hits}
+										highlight={highlight}
+										onHighlight={setHighlight}
+										navigate={navigate}
+									/>
+									{typed ? (
+										<SearchHits hits={hits} highlight={highlight} typed={typed} />
+									) : (
+										<>
+											{PAGES.map((page) =>
+												page.dropdown ? (
+													<div key={page.label}>
+														<button
+															type="button"
+															aria-expanded={section === page.label}
+															onClick={() =>
+																setSection((now) => (now === page.label ? null : page.label))
+															}
+															className={`${ROW} flex w-full items-center justify-between`}
+														>
+															{page.label}
+															<Caret open={section === page.label} />
+														</button>
+														{MENUS[page.label] ? (
+															<div
+																data-panel="section"
+																data-state={section === page.label ? "open" : "closed"}
+																aria-hidden={section === page.label ? undefined : true}
+																inert={section !== page.label}
+																className={`grid transition-[grid-template-rows] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${section === page.label ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+															>
+																<div className="min-h-0 overflow-hidden">
+																	<div className="flex flex-col gap-5 pb-4 pl-1">
+																		<ul className="flex flex-col gap-3">
+																			{MENUS[page.label]?.main.map((item) => (
+																				<li key={item.label}>
+																					{item.href ? (
+																						<a href={item.href} className={SUB}>
+																							{item.label}
+																						</a>
+																					) : (
+																						<span
+																							aria-disabled="true"
+																							className={`${SUB} cursor-default opacity-40`}
+																						>
+																							{item.label}
+																							<span className="ml-2.5 align-middle font-sans text-[11px] text-neutral-400">
+																								Soon
+																							</span>
+																						</span>
+																					)}
+																				</li>
+																			))}
+																		</ul>
+																		<ul className="flex flex-col gap-2.5">
+																			{MENUS[page.label]?.aside.map((item) => (
+																				<li key={item.label}>
+																					<a
+																						href={item.href}
+																						className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-200"
+																					>
+																						{item.label}
+																					</a>
+																				</li>
+																			))}
+																		</ul>
+																	</div>
+																</div>
 															</div>
-														</div>
+														) : null}
 													</div>
-												) : null}
+												) : (
+													<a key={page.label} href={page.href} className={ROW}>
+														{page.label}
+													</a>
+												),
+											)}
+											<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
+												<a
+													href={signIn}
+													className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"
+												>
+													Log in
+												</a>
+												<TryButton
+													href={signUp}
+													className="flex py-2 pr-2 pl-4"
+													labelClassName="flex-1 text-center"
+													chipClassName="size-8"
+													glint
+												/>
 											</div>
-										) : (
-											<a key={page.label} href={page.href} className={ROW}>
-												{page.label}
-											</a>
-										),
+										</>
 									)}
-									<div className="mt-2 grid grid-cols-2 gap-2 text-[14px]">
-										<a
-											href={signIn}
-											className="bg-white/[0.13] px-4 py-3 text-center text-neutral-200 transition-colors hover:bg-white/[0.18]"
-										>
-											Log in
-										</a>
-										<TryButton
-											href={signUp}
-											className="flex py-2 pr-2 pl-4"
-											labelClassName="flex-1 text-center"
-											chipClassName="size-8"
-											glint
-										/>
-									</div>
 								</nav>
 							</div>
 						</div>

@@ -476,15 +476,6 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
 	});
 
-	it("can be reached from the phone menu, which makes way for it", () => {
-		render(<Header authUrl={AUTH} />);
-		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
-		fireEvent.click(panel.getByRole("button", { name: "Search" }));
-		expect(screen.queryByRole("navigation", { name: "Pages, menu" })).toBeNull();
-		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
-	});
-
 	it("shows try Maschina as a button only on a wide screen, and log in as a button there and a small gray box on a phone", () => {
 		render(<Header authUrl={AUTH} />);
 		const banner = within(screen.getByRole("banner"));

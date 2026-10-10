@@ -68,29 +68,68 @@ describe("the phone menu rolls down smoothly", () => {
 });
 
 describe("the search in the phone menu", () => {
-	it("sits at the very top, above Product, as a full width field-like button inside the margins", () => {
-		render(<Header authUrl={AUTH} />);
+	const openMenu = (navigate = vi.fn()) => {
+		render(<Header authUrl={AUTH} navigate={navigate} />);
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
 		settle(30);
-		const nav = screen.getByRole("navigation", { name: "Pages, menu" });
-		const search = within(nav).getByRole("button", { name: "Search" });
+		return screen.getByRole("navigation", { name: "Pages, menu" });
+	};
+
+	it("is the same open field as on a desktop, always there, at the very top above Product and inside the margins", () => {
+		const nav = openMenu();
+		const box = within(nav).getByRole("searchbox", { name: "Search Maschina" });
+		// The same field as on a desktop: its words, its display type, and no box or fill around it.
+		expect(box).toHaveAttribute("placeholder", "Search Maschina");
+		expect(box.className).toContain("bg-transparent");
+		expect(box.className).toContain("font-display");
+		expect(box.className).not.toMatch(/(^|\s)bg-white/);
+		expect(box.tagName).toBe("INPUT");
+		// A field, not a button: nothing to press first.
+		expect(within(nav).queryByRole("button", { name: "Search" })).toBeNull();
 		const product = within(nav).getByRole("button", { name: "Product" });
-		// First in the list, before every page.
-		expect(nav.firstElementChild).toBe(search);
-		expect(search.compareDocumentPosition(product) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-		// Full width of the menu, which already keeps to the page margins; no rounding; tall enough to press.
-		expect(search.className).toContain("w-full");
-		expect(search.className).toContain("h-12");
-		expect(search.className).not.toMatch(/rounded/);
-		// It says what it does, and the visible words contain its accessible name.
-		expect(search).toHaveTextContent("Search Maschina");
+		expect(nav.firstElementChild?.contains(box)).toBe(true);
+		expect(box.compareDocumentPosition(product) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(box.className).toContain("w-full");
+		expect(box.className).not.toMatch(/rounded/);
 		expect(nav.className).toContain("px-(--gutter)");
 	});
 
-	it("is not repeated further down beside the log in buttons", () => {
-		render(<Header authUrl={AUTH} />);
+	it("shows the matching pages right under it as you type, in place of the list of pages, and brings the list back when it is cleared", () => {
+		const nav = openMenu();
+		const box = within(nav).getByRole("searchbox", { name: "Search Maschina" });
+		expect(within(nav).getByRole("button", { name: "Product" })).toBeInTheDocument();
+		fireEvent.change(box, { target: { value: "pricing" } });
+		expect(within(nav).getByRole("link", { name: /Pricing/ })).toHaveAttribute("href", "/pricing");
+		expect(within(nav).queryByRole("button", { name: "Product" })).toBeNull();
+		// The separate search panel is not opened: it all happens in the menu.
+		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
+		fireEvent.change(box, { target: { value: "" } });
+		expect(within(nav).getByRole("button", { name: "Product" })).toBeInTheDocument();
+	});
+
+	it("says plainly when nothing matches, and goes to the first match on Enter", () => {
+		const navigate = vi.fn();
+		const nav = openMenu(navigate);
+		const box = within(nav).getByRole("searchbox", { name: "Search Maschina" });
+		fireEvent.change(box, { target: { value: "zzzzqq" } });
+		expect(within(nav).getByText("No pages match.")).toBeInTheDocument();
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).not.toHaveBeenCalled();
+		fireEvent.change(box, { target: { value: "pricing" } });
+		fireEvent.keyDown(box, { key: "Enter" });
+		expect(navigate).toHaveBeenLastCalledWith("/pricing");
+	});
+
+	it("starts empty each time the menu is opened", () => {
+		const nav = openMenu();
+		fireEvent.change(within(nav).getByRole("searchbox", { name: "Search Maschina" }), {
+			target: { value: "docs" },
+		});
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-		const nav = screen.getByRole("navigation", { name: "Pages, menu" });
-		expect(within(nav).getAllByRole("button", { name: "Search" })).toHaveLength(1);
+		settle(500);
+		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+		settle(30);
+		const again = screen.getByRole("navigation", { name: "Pages, menu" });
+		expect(within(again).getByRole("searchbox", { name: "Search Maschina" })).toHaveValue("");
 	});
 });
