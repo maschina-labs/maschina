@@ -1,4 +1,5 @@
 import { Frame } from "./frame.tsx";
+import { centerInView } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
 
 /** A bit of running text: plain words, or words with a link in them. */
@@ -23,6 +24,21 @@ const slug = (heading: string) =>
 const PARAGRAPH = "text-[17px] text-neutral-200 leading-[1.7]";
 const LINK =
 	"text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white";
+/**
+ * A click on the index goes to the section by the page's own scrolling instead of the browser's jump to an address, so
+ * the section lands in the middle of the screen and stays there. The address still follows, and the keyboard moves to
+ * the section's heading.
+ */
+function jump(event: React.MouseEvent, id: string) {
+	const heading = document.getElementById(id);
+	const section = heading?.closest("section");
+	if (!heading || !section) return;
+	event.preventDefault();
+	centerInView(section);
+	window.history.replaceState(null, "", `#${id}`);
+	heading.focus({ preventScroll: true });
+}
+
 const number = (index: number) => String(index + 1).padStart(2, "0");
 
 function Text({ parts }: { parts: Part[] }) {
@@ -84,6 +100,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								<li key={section.heading}>
 									<a
 										href={`#${slug(section.heading)}`}
+										onClick={(event) => jump(event, slug(section.heading))}
 										className="text-neutral-400 transition-colors hover:text-white"
 									>
 										<span className="inline-block w-9 text-neutral-600">{number(index)}</span>{" "}
@@ -104,7 +121,8 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								</span>
 								<h2
 									id={slug(section.heading)}
-									className="mt-2 scroll-mt-28 font-display font-medium text-[1.25rem] text-white leading-snug tracking-[-0.02em]"
+									tabIndex={-1}
+									className="mt-2 scroll-mt-28 outline-none font-display font-medium text-[1.25rem] text-white leading-snug tracking-[-0.02em]"
 								>
 									{section.heading}
 								</h2>

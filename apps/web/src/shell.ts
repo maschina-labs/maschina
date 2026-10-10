@@ -23,3 +23,23 @@ export function scroller(): HTMLElement | Window {
 /** How far down the page has scrolled. */
 export const scrolled = (target: HTMLElement | Window): number =>
 	"scrollY" in target ? target.scrollY : target.scrollTop;
+
+/** How much room the header takes at the top of the screen, for something too tall to be centered. */
+const HEADER_ROOM = 96;
+
+/**
+ * Scrolls so that something sits in the middle of the screen, working out where once and going straight there, with
+ * no drift and no stop at the top of it like the browser's own jump to an address. A thing too tall for the screen
+ * cannot be centered, so its top goes just under the header instead. It scrolls whatever scrolls the page (the window,
+ * or the root box on a touch screen), and glides unless the reader asked for less motion.
+ */
+export function centerInView(element: HTMLElement): void {
+	const target = scroller();
+	const room = target === window ? window.innerHeight : (target as HTMLElement).clientHeight;
+	const box = element.getBoundingClientRect();
+	const place = scrolled(target) + box.top;
+	const top =
+		box.height + HEADER_ROOM > room ? place - HEADER_ROOM : place - (room - box.height) / 2;
+	const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+	target.scrollTo({ top, behavior: calm ? "auto" : "smooth" });
+}
