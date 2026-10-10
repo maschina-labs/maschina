@@ -44,16 +44,33 @@ describe("the main buttons on a phone", () => {
 	});
 });
 
-describe("the hero headline on a phone", () => {
-	it("is sized to sit on two balanced lines instead of three, and keeps its big size from a tablet up", () => {
+describe("the hero headline", () => {
+	it("is two lines with the long one on top: the first is longer than the second, on every screen", () => {
 		render(<Hero authUrl={AUTH} />);
 		const heading = screen.getByRole("heading", { level: 1 });
-		// Smaller on a phone, so the whole sentence fits across two lines; the old size and width come back from sm.
-		expect(heading.className).toContain("text-[clamp(1.7rem,8.4vw,2.5rem)]");
+		expect(heading).toHaveAccessibleName("The operating system for autonomous capital.");
+		const lines = [...heading.querySelectorAll("span")];
+		expect(lines.map((line) => line.textContent)).toEqual([
+			"The operating system for",
+			"autonomous capital.",
+		]);
+		// Each is its own line, so the shape holds at every width instead of depending on how the browser balances it.
+		for (const line of lines) expect(line.className).toContain("block");
+		expect((lines[0]?.textContent ?? "").length).toBeGreaterThan(
+			(lines[1]?.textContent ?? "").length,
+		);
+	});
+
+	it("is sized so the long first line fits across a phone, and keeps its big size from a tablet up with no width cut", () => {
+		render(<Hero authUrl={AUTH} />);
+		const heading = screen.getByRole("heading", { level: 1 });
+		expect(heading.className).toContain("text-[clamp(1.6rem,8.8vw,2.5rem)]");
 		expect(heading.className).toContain("sm:text-[clamp(2.5rem,6.4vw,7.5rem)]");
 		expect(heading.className).toContain("max-w-none");
-		expect(heading.className).toContain("sm:max-w-[18ch]");
-		expect(heading.className).toContain("[text-wrap:balance]");
+		// On a phone the headline may run a little into the page margin, so the long first line can be set bigger; from a tablet up it does not.
+		expect(heading.className).toContain("max-sm:-mx-4");
+		expect(heading.className).toContain("tracking-[-0.035em]");
+		expect(heading.className).not.toContain("max-w-[18ch]");
 	});
 });
 
