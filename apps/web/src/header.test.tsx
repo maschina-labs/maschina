@@ -504,9 +504,20 @@ describe("the header", () => {
 		expect(menu.className).toContain("xl:hidden");
 	});
 
-	it("is sticky: it stays at the top of the screen as the page scrolls", () => {
+	it("stays at the top of the screen as the page scrolls, as a sticky rail rather than a fixed bar, so it moves down with the page when it is pulled", () => {
 		render(<Header authUrl={AUTH} />);
-		expect(screen.getByRole("banner").className).toContain("fixed");
+		const bar = screen.getByRole("banner");
+		// A fixed bar stays glued to the screen while the page is pulled down to refresh, and the loader appears behind it.
+		// A sticky rail of no height travels with the page, so the bar goes down with the page and the loader sits above it.
+		expect(bar.className).not.toContain("fixed");
+		expect(bar.className).toContain("absolute");
+		expect(bar.className).toContain("inset-x-0");
+		const rail = bar.parentElement as HTMLElement;
+		expect(rail).toHaveAttribute("data-rail");
+		expect(rail.className).toContain("sticky");
+		expect(rail.className).toContain("top-0");
+		expect(rail.className).toContain("h-0");
+		expect(rail.className).toContain("z-40");
 	});
 
 	it("stays one attached bar: it fades from black to nothing as the page scrolls, and never splits", () => {
