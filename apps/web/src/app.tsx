@@ -1,6 +1,7 @@
 import { BlankPage } from "./blank-page.tsx";
+import { PRIVACY } from "./legal/privacy.ts";
 import { TERMS } from "./legal/terms.ts";
-import { LegalPage } from "./legal.tsx";
+import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { titleFor } from "./routes.ts";
 import { Site } from "./site.tsx";
 
@@ -9,6 +10,9 @@ import { Site } from "./site.tsx";
  * page for any other address until it has a page of its own. The address is a plain argument so a test can stand in
  * for the browser's.
  */
+/** The legal documents, each at its address. They are written out in full; the other pages are blank. */
+const DOCUMENTS: Record<string, LegalDoc> = { "/terms": TERMS, "/privacy": PRIVACY };
+
 export function App({
 	authUrl,
 	path = window.location.pathname,
@@ -17,7 +21,8 @@ export function App({
 	path?: string;
 }) {
 	const clean = path.replace(/\/+$/, "") || "/";
-	if (clean === "/terms") return <LegalPage authUrl={authUrl} doc={TERMS} />;
+	const doc = DOCUMENTS[clean];
+	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	const title = titleFor(path);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
 	return <Site authUrl={authUrl} />;

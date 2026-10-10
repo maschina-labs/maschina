@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PRIVACY } from "./legal/privacy.ts";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { ROUTES } from "./routes.ts";
@@ -421,21 +422,70 @@ describe("jumping to a section from the contents", () => {
 	});
 });
 
-describe("the terms of service", () => {
-	const flat = (parts: (string | { text: string; href: string })[]) =>
-		parts.map((x) => (typeof x === "string" ? x : x.text)).join("");
-	const text = (doc: LegalDoc) =>
-		[
-			doc.title,
-			...(doc.intro ?? []).map((p) => (typeof p === "string" ? p : flat(p))),
-			...doc.sections.flatMap((s) => [
-				s.heading,
-				...s.body.flatMap((b) =>
-					typeof b === "string" ? [b] : Array.isArray(b) ? [flat(b)] : b.list,
-				),
-			]),
-		].join("\n");
+const flat = (parts: (string | { text: string; href: string })[]) =>
+	parts.map((x) => (typeof x === "string" ? x : x.text)).join("");
+const text = (doc: LegalDoc) =>
+	[
+		doc.title,
+		...(doc.intro ?? []).map((p) => (typeof p === "string" ? p : flat(p))),
+		...doc.sections.flatMap((s) => [
+			s.heading,
+			...s.body.flatMap((b) =>
+				typeof b === "string" ? [b] : Array.isArray(b) ? [flat(b)] : b.list,
+			),
+		]),
+	].join("\n");
+const linksOf = (doc: LegalDoc) => {
+	const hrefs: string[] = [];
+	const collect = (parts: (string | { text: string; href: string })[]) => {
+		for (const part of parts) if (typeof part !== "string") hrefs.push(part.href);
+	};
+	for (const p of doc.intro ?? []) if (Array.isArray(p)) collect(p);
+	for (const section of doc.sections)
+		for (const block of section.body) if (Array.isArray(block)) collect(block);
+	return hrefs;
+};
 
+// What is true of every legal document, however it is worded.
+describe.each([
+	["the terms of service", TERMS],
+	["the privacy policy", PRIVACY],
+])("%s", (_name, doc) => {
+	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
+		expect(doc.updated).toBe("October 9, 2026");
+		const all = text(doc);
+		expect(all).not.toMatch(
+			new RegExp(`[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]`),
+		);
+		expect(all).not.toMatch(/\bTODO\b|\bTBD\b|\[[^\]]*\]|lorem|placeholder/i);
+		expect(all).not.toMatch(/\bAI[- ]generated\b|written by an AI|ChatGPT|Claude/i);
+		expect(all).not.toMatch(/!/);
+	});
+
+	it("never promises safety it cannot prove, or anything not built", () => {
+		const all = text(doc);
+		expect(all.replace(/not been independently audited/gi, "")).not.toMatch(/\baudited\b/i);
+		expect(all).not.toMatch(
+			/\bfdic\b|insured|risk.free|cannot lose|100% secure|military.grade|unhackable/i,
+		);
+		expect(all).not.toMatch(/open source license/i);
+	});
+
+	it("reaches the company at legal@maschina.dev, and every address it links to inside the site is a page that exists", () => {
+		const hrefs = linksOf(doc);
+		expect(hrefs).toContain("mailto:legal@maschina.dev");
+		expect(text(doc)).toMatch(/legal@maschina\.dev/);
+		for (const href of hrefs.filter((h) => h.startsWith("/")))
+			expect(ROUTES[href], href).toBeDefined();
+	});
+
+	it("names who runs it, and nobody else's address as its own", () => {
+		expect(text(doc)).toMatch(/Maschina Labs/);
+		expect(text(doc)).not.toMatch(/info@|asher@/);
+	});
+});
+
+describe("the terms of service", () => {
 	it("covers what the terms of a service like this have to cover", () => {
 		const headings = TERMS.sections.map((section) => section.heading);
 		for (const needed of [
@@ -463,48 +513,76 @@ describe("the terms of service", () => {
 			).toBe(true);
 	});
 
-	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording", () => {
-		expect(TERMS.updated).toBe("October 9, 2026");
-		const all = text(TERMS);
-		expect(all).not.toMatch(
-			new RegExp(`[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]`),
-		);
-		expect(all).not.toMatch(/\bTODO\b|\bTBD\b|\[[^\]]*\]|lorem|placeholder/i);
-		expect(all).not.toMatch(/\bAI[- ]generated\b|written by an AI|ChatGPT|Claude/i);
-		expect(all).not.toMatch(/!/);
-	});
-
-	it("never promises a result, safety it cannot prove, or anything not built", () => {
+	it("never promises a result, and says plainly that money can be lost and that this is not advice", () => {
 		const all = text(TERMS);
 		expect(all).not.toMatch(/guarantee(s|d)? (profit|returns|that you will)/i);
-		expect(all.replace(/not been independently audited/gi, "")).not.toMatch(/\baudited\b/i);
-		expect(all).not.toMatch(/\bfdic\b|insured|risk.free|cannot lose/i);
 		expect(all).toMatch(/can lose (some or all|money)/i);
 		expect(all).toMatch(/not financial advice|does not give financial advice|not .*adviser/i);
 		expect(all).toMatch(/source.available/i);
-		expect(all).not.toMatch(/open source license/i);
 	});
 
-	it("points to the other legal pages by their real addresses, and every internal link it makes is a page that exists", () => {
-		const hrefs: string[] = [];
-		const collect = (parts: (string | { text: string; href: string })[]) => {
-			for (const part of parts) if (typeof part !== "string") hrefs.push(part.href);
-		};
-		for (const p of TERMS.intro ?? []) if (Array.isArray(p)) collect(p);
-		for (const section of TERMS.sections)
-			for (const block of section.body) if (Array.isArray(block)) collect(block);
+	it("points to the other legal pages by their real addresses, and says where the law is", () => {
+		const hrefs = linksOf(TERMS);
 		for (const href of ["/privacy", "/risk", "/license", "/disclosure"])
 			expect(hrefs).toContain(href);
-		for (const href of hrefs.filter((h) => h.startsWith("/")))
-			expect(ROUTES[href], href).toBeDefined();
-		expect(hrefs).toContain("mailto:legal@maschina.dev");
+		expect(text(TERMS)).toMatch(/Alberta/);
+		expect(text(TERMS)).toMatch(/18/);
+	});
+});
+
+describe("the privacy policy", () => {
+	it("covers what a privacy policy has to cover", () => {
+		const headings = PRIVACY.sections.map((section) => section.heading);
+		for (const needed of [
+			/short version/i,
+			/who we are/i,
+			/what we collect/i,
+			/what we do not collect/i,
+			/how we use/i,
+			/permanent record/i,
+			/cookies/i,
+			/who else sees/i,
+			/ai providers/i,
+			/where it is processed/i,
+			/how long/i,
+			/protect/i,
+			/rights/i,
+			/children/i,
+			/changes/i,
+			/contact/i,
+		])
+			expect(
+				headings.some((heading) => needed.test(heading)),
+				String(needed),
+			).toBe(true);
 	});
 
-	it("sets out who runs it, where the law is, and how to reach them, in plain words", () => {
-		const all = text(TERMS);
-		expect(all).toMatch(/Maschina Labs/);
-		expect(all).toMatch(/Alberta/);
-		expect(all).toMatch(/legal@maschina\.dev/);
-		expect(all).toMatch(/18/);
+	it("says honestly what cannot be deleted, who gets the information, and what is not done with it", () => {
+		const all = text(PRIVACY);
+		// The record that cannot be rewritten and the chain that cannot be erased limit deletion, and it says so.
+		expect(all).toMatch(/cannot delete or edit a machine's record/i);
+		expect(all).toMatch(/Solana network are public and permanent/i);
+		expect(all).toMatch(/do not sell your information/i);
+		expect(all).toMatch(/do not run advertising/i);
+		expect(all).toMatch(/do not currently use analytics/i);
+		expect(all).toMatch(/private keys of your own wallet/i);
+		// The services that receive information are named, not hidden.
+		for (const name of ["Cloudflare", "Telegram"]) expect(all).toContain(name);
+	});
+
+	it("describes only the cookies there are: the sign in cookie and the one that remembers the choice", () => {
+		const cookies = PRIVACY.sections.find((section) => /cookies/i.test(section.heading));
+		const words = (cookies?.body ?? [])
+			.map((block) => (typeof block === "string" ? block : ""))
+			.join(" ");
+		expect(words).toMatch(/sign in cookie/i);
+		expect(words).toMatch(/Preferences/);
+		expect(words).not.toMatch(/advertis|tracking|analytics/i);
+	});
+
+	it("links the terms of service and the security disclosure by their real addresses", () => {
+		const hrefs = linksOf(PRIVACY);
+		expect(hrefs).toContain("/terms");
+		expect(hrefs).toContain("/disclosure");
 	});
 });
