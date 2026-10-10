@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ExternalArrow } from "./external-arrow.tsx";
 import { Logo } from "./logo.tsx";
 import { openPreferences } from "./preferences.ts";
 import { usePresence } from "./presence.ts";
@@ -301,20 +302,7 @@ export function Footer() {
 												className="text-neutral-500 transition-colors hover:text-white"
 											>
 												{item.label}
-												{item.external ? (
-													<svg
-														viewBox="0 0 12 12"
-														data-arrow="external"
-														className="ml-1.5 inline size-3"
-														fill="none"
-														stroke="currentColor"
-														strokeWidth={1.25}
-														strokeLinecap="square"
-														aria-hidden="true"
-													>
-														<path d="M3.5 8.5 8.5 3.5M4 3.5h4.5V8" />
-													</svg>
-												) : null}
+												{item.external ? <ExternalArrow /> : null}
 											</a>
 										</li>
 									) : (

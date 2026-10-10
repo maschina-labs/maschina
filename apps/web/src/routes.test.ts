@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MENUS } from "./menus.ts";
-import { FILES, ROUTES, titleFor } from "./routes.ts";
+import { FILES, leavesSite, ROUTES, titleFor } from "./routes.ts";
 import { SITEMAP } from "./sitemap.ts";
 
 const internal = (href: string | undefined): href is string => Boolean(href?.startsWith("/"));
@@ -26,6 +26,14 @@ describe("the pages", () => {
 	it("has the pages that are only tagged Soon as well, the docs and the live record", () => {
 		for (const href of ["/marketplace", "/network", "/mobile", "/docs", "/live"])
 			expect(ROUTES[href], href).toBeDefined();
+	});
+
+	it("says a link leaves the site when it goes to another address or to a plain file, and not when it goes to a page", () => {
+		expect(leavesSite("https://github.com/maschina-labs")).toBe(true);
+		expect(leavesSite("/llms.txt")).toBe(true);
+		expect(leavesSite("/SKILL.md")).toBe(true);
+		expect(leavesSite("/about")).toBe(false);
+		expect(leavesSite("/")).toBe(false);
 	});
 
 	it("keeps the plain files for agents out of the pages: they are files served as they are, never a page of the site", () => {

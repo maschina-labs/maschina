@@ -51,6 +51,11 @@ export const FILES: Record<string, string> = {
 	"/humans.txt": "Humans",
 };
 
+/** Whether a link leaves the site: it goes to another address, or to a plain file that is not a page of the site. */
+export function leavesSite(href: string): boolean {
+	return href.startsWith("https://") || href in FILES;
+}
+
 /** The name of the page at an address, with or without a trailing slash; nothing for an address with no page. */
 export function titleFor(path: string): string | undefined {
 	const clean = path.replace(/\/+$/, "") || "/";

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "./footer.tsx";
+import { leavesSite } from "./routes.ts";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
@@ -107,7 +108,7 @@ describe("the footer", () => {
 	it("marks the links that leave the site with a small up-right arrow, and no others", () => {
 		render(<Footer />);
 		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
-		for (const name of ["GitHub", "X"]) {
+		for (const name of ["GitHub", "X", "Changelog", "AI index", "Skill file"]) {
 			const link = nav.getByRole("link", { name });
 			expect(link.querySelector("svg")).toHaveAttribute("data-arrow", "external");
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
@@ -119,8 +120,9 @@ describe("the footer", () => {
 			expect(link.className).toContain("hover:text-white");
 		}
 		for (const link of nav.getAllByRole("link")) {
-			const external = link.getAttribute("href")?.startsWith("https://") ?? false;
-			expect(link.querySelector("svg") !== null).toBe(external);
+			// What leaves the site: another address, or a plain file that is not a page of it.
+			const href = link.getAttribute("href") ?? "";
+			expect(link.querySelector("svg") !== null, href).toBe(leavesSite(href));
 		}
 	});
 

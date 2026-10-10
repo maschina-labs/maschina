@@ -1,8 +1,9 @@
 import { MENUS } from "./menus.ts";
+import { leavesSite } from "./routes.ts";
 
 type Entry = { label: string; href?: string; action?: "preferences" };
 
-/** A link with no address is not built yet and shows as Soon. One with a full address leaves the site. */
+/** A link with no address is not built yet and shows as Soon. One with a full address, or one that is a plain file, leaves the site. */
 type Link = Entry & { external: boolean };
 
 /** One column of the footer's sitemap. */
@@ -22,7 +23,7 @@ function once(items: Entry[], taken: Set<string>): Link[] {
 	// A link that does something instead of going somewhere (Preferences) is as built as a page is.
 	const built = (item: Entry) => Boolean(item.href || item.action);
 	const ordered = [...fresh.filter(built), ...fresh.filter((item) => !built(item))];
-	return ordered.map((item) => ({ ...item, external: item.href?.startsWith("https://") ?? false }));
+	return ordered.map((item) => ({ ...item, external: item.href ? leavesSite(item.href) : false }));
 }
 
 const taken = new Set<string>();

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { ExternalArrow } from "./external-arrow.tsx";
 import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
+import { leavesSite } from "./routes.ts";
 import { type Hit, search } from "./search.ts";
 import { inShell, scrolled, scroller } from "./shell.ts";
 import { SOCIALS } from "./socials.ts";
@@ -475,6 +477,7 @@ export function Header({
 															className="text-[14px] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]"
 														>
 															{item.label}
+															{item.href && leavesSite(item.href) ? <ExternalArrow /> : null}
 														</a>
 													</li>
 												))}
@@ -595,6 +598,9 @@ export function Header({
 																						className="text-[14px] text-neutral-500 transition-colors hover:text-neutral-200"
 																					>
 																						{item.label}
+																						{item.href && leavesSite(item.href) ? (
+																							<ExternalArrow />
+																						) : null}
 																					</a>
 																				</li>
 																			))}

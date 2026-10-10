@@ -712,4 +712,17 @@ describe("the header's motion", () => {
 		expect(find('[data-panel="search"]')).toBeNull();
 		window.matchMedia = real;
 	});
+
+	it("marks the links in the menus that leave the site with the same small arrow as the footer, and no others", () => {
+		render(<Header authUrl={AUTH} />);
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
+		const inside = within(screen.getByRole("region", { name: "Developers" }));
+		for (const name of ["GitHub", "AI index", "Skill file"])
+			expect(
+				inside.getByRole("link", { name }).querySelector("svg[data-arrow=external]"),
+				name,
+			).not.toBeNull();
+		for (const name of ["Docs", "API", "SDK"])
+			expect(inside.getByRole("link", { name }).querySelector("svg"), name).toBeNull();
+	});
 });
