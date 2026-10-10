@@ -4,7 +4,6 @@ import { Faq } from "./faq.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
-import { LiveRecord } from "./live-record.tsx";
 import { PullToRefresh } from "./pull-refresh.tsx";
 import { Customize, Features, HowItWorks, Safety } from "./sections.tsx";
 import { Showcase } from "./showcase.tsx";
@@ -24,7 +23,6 @@ export function Site({ authUrl }: { authUrl: string }) {
 				<Features authUrl={authUrl} />
 				<Safety />
 				<Customize authUrl={authUrl} />
-				<LiveRecord />
 				<Builders />
 				<Faq />
 				<Closing authUrl={authUrl} />

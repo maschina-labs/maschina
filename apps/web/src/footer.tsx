@@ -270,7 +270,7 @@ export function Footer() {
 	};
 
 	return (
-		<footer className="relative flex min-h-lvh w-full flex-col overflow-hidden border-white/10 border-t bg-black px-(--gutter) pt-16">
+		<footer className="relative flex min-h-lvh w-full flex-col overflow-hidden bg-black px-(--gutter) pt-16">
 			<div className="flex w-full flex-col gap-12 py-12 sm:flex-row sm:items-start sm:justify-between">
 				<Logo />
 				{/* The map of the site: columns together on the right, up to the margin, each with its pages left aligned. The links that leave the site carry a small up-right arrow. */}

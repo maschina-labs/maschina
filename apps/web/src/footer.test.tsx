@@ -427,16 +427,14 @@ describe("the footer", () => {
 		expect(className).toContain("flex-col");
 	});
 
-	it("is an ordinary section on black with a hairline on top: it scrolls into view and covers nothing", () => {
+	it("is an ordinary section on black with no line along its top: it scrolls into view and covers nothing", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
 		expect(className).toContain("relative");
 		expect(className).not.toContain("z-10");
 		expect(className).toContain("bg-black");
-		// A hairline along its top edge, where it meets the closing section: one pixel, faint white.
-		expect(className).toContain("border-t");
-		expect(className).toContain("border-white/10");
-		expect(className).not.toMatch(/\bborder-(2|4|8)\b|\bborder-[lrb]\b/);
+		// The line along the top, where it met the closing section, is gone.
+		expect(className).not.toMatch(/\bborder/);
 	});
 
 	it("carries the wordmark, named once for screen readers", () => {
