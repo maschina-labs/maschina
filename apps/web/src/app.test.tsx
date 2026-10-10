@@ -4,6 +4,7 @@ import { App } from "./app.tsx";
 import { ROUTES } from "./routes.ts";
 
 const AUTH = "https://auth.maschina.dev";
+const LEGAL = { "/terms": 1, "/privacy": 1, "/risk": 1, "/acceptable-use": 1 };
 
 beforeEach(() => {
 	vi.stubGlobal(
@@ -24,7 +25,7 @@ describe("which page an address shows", () => {
 	it("shows a blank page for every address in the table", () => {
 		for (const [path, title] of Object.entries(ROUTES)) {
 			// The legal pages are written out in full; the rest are blank.
-			if (path === "/terms" || path === "/privacy" || path === "/risk") continue;
+			if (path in LEGAL) continue;
 			const view = render(<App authUrl={AUTH} path={path} />);
 			expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
 			expect(screen.getByRole("main").querySelectorAll("section")).toHaveLength(0);
@@ -59,6 +60,12 @@ describe("the legal pages", () => {
 	it("shows the risk disclosure at /risk, as a real document too", () => {
 		render(<App authUrl={AUTH} path="/risk" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Risk Disclosure");
+		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(10);
+	});
+
+	it("shows the acceptable use policy at /acceptable-use, as a real document too", () => {
+		render(<App authUrl={AUTH} path="/acceptable-use" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Acceptable Use Policy");
 		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(10);
 	});
 });

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { PRIVACY } from "./legal/privacy.ts";
 import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
@@ -452,6 +453,7 @@ describe.each([
 	["the terms of service", TERMS],
 	["the privacy policy", PRIVACY],
 	["the risk disclosure", RISK],
+	["the acceptable use policy", ACCEPTABLE_USE],
 ])("%s", (_name, doc) => {
 	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
 		expect(doc.updated).toBe("October 9, 2026");
@@ -635,5 +637,62 @@ describe("the risk disclosure", () => {
 		const hrefs = linksOf(RISK);
 		expect(hrefs).toContain("/terms");
 		expect(hrefs).toContain("mailto:legal@maschina.dev");
+	});
+});
+
+describe("the acceptable use policy", () => {
+	it("covers what may not be done, each under its own heading", () => {
+		const headings = ACCEPTABLE_USE.sections.map((section) => section.heading);
+		for (const needed of [
+			/short version/i,
+			/why this exists/i,
+			/illegal activity/i,
+			/markets and trading/i,
+			/what a machine must not do/i,
+			/security/i,
+			/accounts and identity/i,
+			/manager/i,
+			/other people's rights/i,
+			/what we may do/i,
+			/reporting abuse/i,
+			/contact/i,
+		])
+			expect(
+				headings.some((heading) => needed.test(heading)),
+				String(needed),
+			).toBe(true);
+	});
+
+	it("names the conduct that is barred, and says that ordinary fast trading is allowed", () => {
+		const all = text(ACCEPTABLE_USE);
+		for (const word of [
+			/sanctions/i,
+			/money laundering|launder/i,
+			/wash trading/i,
+			/spoofing/i,
+			/pump and dump/i,
+			/rug pull/i,
+			/phish/i,
+			/denial of service/i,
+		])
+			expect(all).toMatch(word);
+		expect(all).toMatch(
+			/ordinary trading, including trading that is fast, frequent or automated, is allowed/i,
+		);
+	});
+
+	it("is honest about enforcement: it may act, it is not required to watch, and withdrawals stay possible", () => {
+		const all = text(ACCEPTABLE_USE);
+		expect(all).toMatch(/not required to watch/i);
+		expect(all).toMatch(/pause or stop one machine/i);
+		expect(all).toMatch(/should still be able to withdraw/i);
+		expect(all).not.toMatch(/we (monitor|watch|review) (all|every)/i);
+	});
+
+	it("sends abuse reports to the abuse address and security problems to the disclosure page, and ties itself to the terms", () => {
+		const hrefs = linksOf(ACCEPTABLE_USE);
+		expect(hrefs).toContain("mailto:abuse@maschina.dev");
+		expect(hrefs).toContain("/disclosure");
+		expect(hrefs).toContain("/terms");
 	});
 });
