@@ -246,9 +246,9 @@ export function Header({
 					aria-hidden="true"
 					className={`pointer-events-none absolute inset-0 -z-10 bg-black transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
 				/>
-				<div className="flex items-center justify-between px-(--gutter) py-4">
+				<div className="flex items-center justify-between px-(--gutter) py-5 xl:py-4">
 					<div className="flex items-center gap-10">
-						<Logo />
+						<Logo large />
 						<div className="hidden items-center gap-5 xl:flex">
 							<nav aria-label="Pages" className="flex items-center gap-7">
 								{PAGES.map((page) =>
@@ -308,7 +308,7 @@ export function Header({
 								setSearching(false);
 								setOpen((now) => !now);
 							}}
-							className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
+							className="grid size-12 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 						>
 							<svg
 								viewBox="0 0 20 20"

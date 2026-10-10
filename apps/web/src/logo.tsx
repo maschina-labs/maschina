@@ -5,7 +5,7 @@ import { useState } from "react";
  * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
  * their system for less motion.
  */
-function Mark() {
+function Mark({ large }: { large: boolean }) {
 	const [turns, setTurns] = useState(0);
 	const still =
 		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -16,18 +16,22 @@ function Mark() {
 			alt=""
 			onPointerEnter={() => !still && setTurns((count) => count + 1)}
 			style={{ transform: `rotate(${turns * 360}deg)` }}
-			className="size-4 shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:size-5"
+			className={`shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${large ? "size-6 sm:size-7" : "size-4 sm:size-5"}`}
 		/>
 	);
 }
 
-/** The mark and the word, linking home. The same in the header and the footer. */
-export function Logo() {
+/** The mark and the word, linking home. The header's is larger (`large`) so it holds its own on a phone; the footer's is the plain size. */
+export function Logo({ large = false }: { large?: boolean }) {
 	return (
 		<a href="/" aria-label="Maschina, home" className="flex w-fit items-center">
-			<Mark />
+			<Mark large={large} />
 			<span data-word className="ml-1.5">
-				<img src="/brand/word.svg" alt="" className="h-4 w-auto sm:h-5" />
+				<img
+					src="/brand/word.svg"
+					alt=""
+					className={`w-auto ${large ? "h-6 sm:h-7" : "h-4 sm:h-5"}`}
+				/>
 			</span>
 		</a>
 	);

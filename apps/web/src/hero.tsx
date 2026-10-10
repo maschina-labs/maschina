@@ -72,8 +72,8 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				<TryButton
 					href={`${authUrl}/sign-up`}
 					label="Start for free"
-					className="flex h-9 pr-1 pl-5 sm:inline-flex"
-					labelClassName="flex-1 text-left"
+					className="flex h-9 px-5 sm:inline-flex sm:pr-1"
+					labelClassName="flex-1 text-center sm:text-left"
 					chipClassName="size-7"
 					glint
 				/>

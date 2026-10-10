@@ -213,7 +213,8 @@ describe("the header", () => {
 		const header = screen.getByRole("banner");
 		const bar = header.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
-		expect(bar.className).toContain("py-4");
+		expect(bar.className).toContain("py-5");
+		expect(bar.className).toContain("xl:py-4");
 		expect(bar.className).toContain("px-(--gutter)");
 	});
 

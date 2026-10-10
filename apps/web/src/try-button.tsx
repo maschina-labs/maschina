@@ -33,7 +33,7 @@ export function TryButton({
 			) : null}
 			<span
 				data-chip
-				className={`relative z-10 grid place-items-center bg-black text-white ${chipClassName}`}
+				className={`relative z-10 grid place-items-center bg-black text-white max-sm:hidden ${chipClassName}`}
 			>
 				<svg
 					viewBox="0 0 12 12"
