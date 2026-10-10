@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@maschina/field": "workspace:*",
+		"ldrs": "1.1.9",
 		"react": "catalog:",
 		"react-dom": "catalog:"
 	},

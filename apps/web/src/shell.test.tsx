@@ -101,17 +101,23 @@ describe("pull down to refresh, drawn by the page itself", () => {
 		expect(refresh).toHaveBeenCalledTimes(1);
 	});
 
-	it("shows a loader above the page that grows into view as it is pulled, and turns while it refreshes", () => {
+	it("shows ldrs' square loader above the page, in pearl, that grows into view as it is pulled", () => {
 		setup({ touch: true });
 		const loader = screen.getByTestId("loader");
 		expect(loader).toHaveAttribute("aria-hidden", "true");
 		expect(loader.style.opacity).toBe("0");
+		// The square from ldrs: a square outline with a short bright stretch of it running round the track.
+		const square = loader.querySelector("svg") as SVGElement;
+		expect(square).not.toBeNull();
+		expect(square.querySelectorAll("rect")).toHaveLength(2);
+		expect(square.getAttribute("width")).toBe("28");
+		const style = (square.parentElement as HTMLElement).getAttribute("style") ?? "";
+		expect(style).toContain("--uib-color: oklch(0.93 0.02 300)");
 		fireEvent.touchStart(root, touches(100));
 		fireEvent.touchMove(root, touches(180));
 		expect(Number(loader.style.opacity)).toBeGreaterThan(0.3);
 		fireEvent.touchMove(root, touches(300));
-		fireEvent.touchEnd(root, touches(300));
-		expect(loader.firstElementChild?.className).toContain("animate-spin");
+		expect(loader.style.opacity).toBe("1");
 	});
 
 	it("does not start when the page is not at the top, so scrolling back up is just scrolling", () => {
