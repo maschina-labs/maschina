@@ -22,6 +22,18 @@ describe("scrolling past the ends", () => {
 	});
 });
 
+describe("pull down to refresh", () => {
+	// The rule above would also switch off the browser's own pull down to refresh on a phone, which people rely on.
+	// A touch screen has no trackpad bounce to guard against, so there the vertical pull is given back.
+	it("is allowed on a touch screen, while the page still does not bounce with a mouse or trackpad", () => {
+		expect(css).toMatch(
+			/@media \(hover: none\) and \(pointer: coarse\)\s*\{\s*html,\s*body\s*\{[^}]*overscroll-behavior-y:\s*auto/,
+		);
+		// Sideways is still never chained, so a swipe on the preview cannot navigate back.
+		expect(css).toMatch(/overscroll-behavior-x:\s*none/);
+	});
+});
+
 describe("the background package", () => {
 	// Tailwind only builds the classes it finds, and it never looks inside node_modules, where a workspace
 	// package is linked. Without this the ribbon loses its layout and draws as a strip at the top.

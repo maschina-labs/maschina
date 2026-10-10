@@ -34,6 +34,16 @@ body {
 	overscroll-behavior: none;
 }
 
+/* A touch screen has no trackpad bounce to guard against, so the browser's own pull down to refresh is given back
+   there. Sideways stays off, so a swipe along the preview never turns into going back a page. */
+@media (hover: none) and (pointer: coarse) {
+	html,
+	body {
+		overscroll-behavior-x: none;
+		overscroll-behavior-y: auto;
+	}
+}
+
 /* Anchors, keyboard scrolling and scripted scrolls glide instead of jumping. Not for reduced motion. */
 html {
 	scroll-behavior: smooth;
