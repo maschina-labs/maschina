@@ -14,7 +14,7 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 			<article className="w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
-					<div data-head-text className="relative mx-auto w-full max-w-[44rem]">
+					<div data-head-text className="relative mx-auto w-full max-w-[64rem]">
 						<p className="text-[14px] text-neutral-400">{doc.kicker}</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.5rem)] text-white leading-[0.98] tracking-[-0.04em]">
 							{doc.title}
@@ -25,7 +25,7 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
-					<div className="mx-auto grid w-full max-w-[44rem] gap-3 sm:grid-cols-2">
+					<div data-content className="mx-auto grid w-full max-w-[64rem] gap-3 sm:grid-cols-2">
 						{doc.ways.map((way) => (
 							<a
 								key={way.href}

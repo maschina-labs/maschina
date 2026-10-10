@@ -63,4 +63,14 @@ describe("the support page", () => {
 		);
 		expect(all).not.toMatch(/lorem|todo|tbd|!/i);
 	});
+
+	it("gives the content room: a wide column, on the same left edge as the head's text", () => {
+		const { container } = render(<SupportPage authUrl={AUTH} doc={SUPPORT} />);
+		const inner = container.querySelector("[data-head-text]") as HTMLElement;
+		expect(inner.className).toContain("max-w-[64rem]");
+		const content = container.querySelector("[data-content]") as HTMLElement;
+		expect(content.className).toContain("max-w-[64rem]");
+		expect(content.className).toContain("mx-auto");
+		expect(content.className).not.toContain("max-w-[44rem]");
+	});
 });

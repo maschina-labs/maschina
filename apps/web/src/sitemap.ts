@@ -79,7 +79,6 @@ export const SITEMAP: Column[] = [
 		items: once(
 			[
 				...(menu("Company")?.main ?? []),
-				{ label: "Careers", href: "/careers" },
 				{ label: "Support", href: "/support" },
 				{ label: "Brand assets", href: "/brand" },
 				...(menu("Company")?.aside ?? []),

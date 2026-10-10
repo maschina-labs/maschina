@@ -1,11 +1,9 @@
 import { type ArticleDoc, ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { ABOUT } from "./company/about.ts";
-import { CAREERS, type EmptyDoc, NEWS } from "./company/empty.ts";
 import { ROADMAP } from "./company/roadmap.ts";
 import { SUPPORT } from "./company/support.ts";
 import { ContactPage } from "./contact-page.tsx";
-import { EmptyPage } from "./empty-page.tsx";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
@@ -38,9 +36,6 @@ const ARTICLES: Record<string, ArticleDoc> = {
 	"/roadmap": ROADMAP,
 };
 
-/** The company pages with nothing on them yet: each says so, and where to look meanwhile. */
-const EMPTY: Record<string, EmptyDoc> = { "/news": NEWS, "/careers": CAREERS };
-
 export function App({
 	authUrl,
 	path = window.location.pathname,
@@ -53,8 +48,6 @@ export function App({
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
 	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
-	const empty = EMPTY[clean];
-	if (empty) return <EmptyPage authUrl={authUrl} doc={empty} />;
 	const article = ARTICLES[clean];
 	if (article) return <ArticlePage authUrl={authUrl} doc={article} />;
 	const title = titleFor(path);

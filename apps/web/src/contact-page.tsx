@@ -65,7 +65,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 			<article className="w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
-					<div data-head-text className="relative mx-auto w-full max-w-[44rem]">
+					<div data-head-text className="relative mx-auto w-full max-w-[64rem]">
 						<p className="text-[14px] text-neutral-400">Company</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.5rem)] text-white leading-[0.98] tracking-[-0.04em]">
 							Contact
@@ -76,7 +76,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
-					<div className="mx-auto w-full max-w-[44rem]">
+					<div data-content className="mx-auto w-full max-w-[64rem]">
 						{state === "sent" ? (
 							<div role="status">
 								<h2 className="font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em]">

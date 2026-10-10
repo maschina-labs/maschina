@@ -109,7 +109,6 @@ describe("the sitemap", () => {
 		expect(hrefOf("Product", "Machines")).toBe("/machines");
 		expect(hrefOf("Developers", "Quickstart")).toBe("/quickstart");
 		expect(hrefOf("Developers", "Examples")).toBe("/examples");
-		expect(hrefOf("Company", "Careers")).toBe("/careers");
 		expect(hrefOf("Company", "Support")).toBe("/support");
 		expect(hrefOf("Company", "Brand assets")).toBe("/brand");
 	});

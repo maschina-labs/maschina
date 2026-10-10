@@ -122,7 +122,7 @@ describe("the header", () => {
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Company" }));
 		expect(screen.queryByRole("region", { name: "Developers" })).toBeNull();
 		const company = within(screen.getByRole("region", { name: "Company" }));
-		for (const name of ["About", "Roadmap", "Changelog", "News", "Contact"]) {
+		for (const name of ["About", "Roadmap", "Changelog", "Contact"]) {
 			expect(company.getByRole("link", { name })).toBeInTheDocument();
 		}
 	});

@@ -56,7 +56,6 @@ export const MENUS: Record<string, Menu> = {
 			{ label: "About", href: "/about" },
 			{ label: "Roadmap", href: "/roadmap" },
 			{ label: "Changelog", href: "/changelog" },
-			{ label: "News", href: "/news" },
 			{ label: "Contact", href: "/contact" },
 		],
 		asideTitle: "Follow",
