@@ -3,6 +3,7 @@ import { BlankPage } from "./blank-page.tsx";
 import { ABOUT } from "./company/about.ts";
 import { NEWS } from "./company/news.ts";
 import { ROADMAP } from "./company/roadmap.ts";
+import { ContactPage } from "./contact-page.tsx";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
@@ -45,6 +46,7 @@ export function App({
 	const clean = path.replace(/\/+$/, "") || "/";
 	const doc = DOCUMENTS[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
+	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
 	const article = ARTICLES[clean];
 	if (article) return <ArticlePage authUrl={authUrl} doc={article} />;
 	const title = titleFor(path);
