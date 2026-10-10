@@ -36,6 +36,25 @@ describe("the front page", () => {
 		expect(main.nextElementSibling).toBe(screen.getByRole("contentinfo"));
 	});
 
+	it("keeps the space between the text sections tighter on a phone, where a screen is short, and wide from a tablet up", () => {
+		render(<Site authUrl="https://auth.maschina.dev" />);
+		const main = screen.getByRole("main");
+		for (const name of [
+			"How it works",
+			"Inside the app",
+			"Safety",
+			"Customize",
+			"Live record",
+			"For builders",
+			"Questions",
+		]) {
+			const { className } = within(main).getByRole("region", { name });
+			expect(className).toContain("py-20");
+			expect(className).toContain("sm:py-32");
+			expect(className).not.toMatch(/(^|\s)py-32/);
+		}
+	});
+
 	it("has the header, then the hero with its headline, and ends with the footer", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		expect(screen.getByRole("banner")).toBeInTheDocument();

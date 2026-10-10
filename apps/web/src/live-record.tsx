@@ -79,7 +79,7 @@ export function LiveRecord() {
 	return (
 		<section
 			aria-label="Live record"
-			className="relative flex flex-col items-center bg-black px-(--gutter) py-32"
+			className="relative flex flex-col items-center bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
 				Every trade, on the record.
@@ -94,8 +94,8 @@ export function LiveRecord() {
 							key={trade.signature}
 							className="flex flex-wrap items-center gap-x-6 gap-y-1 bg-white/[0.04] px-6 py-4 text-[15px] text-neutral-200"
 						>
-							<span className="w-36 text-neutral-500">{when(trade.at)}</span>
-							<span className="w-16 text-white">{trade.side === "buy" ? "Bought" : "Sold"}</span>
+							<span className="w-full text-neutral-500 sm:w-36">{when(trade.at)}</span>
+							<span className="text-white sm:w-16">{trade.side === "buy" ? "Bought" : "Sold"}</span>
 							<span className="flex-1">
 								{amount(trade.sol, 9, 4)} SOL for {amount(trade.usdc, 6, 2)} USDC
 							</span>
@@ -103,7 +103,7 @@ export function LiveRecord() {
 								href={`https://solscan.io/tx/${trade.signature}`}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="text-neutral-400 transition-colors hover:text-white"
+								className="w-full text-neutral-400 transition-colors hover:text-white sm:w-auto"
 							>
 								Solscan ↗
 							</a>

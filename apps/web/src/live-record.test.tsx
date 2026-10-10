@@ -2,8 +2,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LiveRecord } from "./live-record.tsx";
 
-const SIGNATURE_A = "A".repeat(87) + "1";
-const SIGNATURE_B = "B".repeat(87) + "2";
+const SIGNATURE_A = `${"A".repeat(87)}1`;
+const SIGNATURE_B = `${"B".repeat(87)}2`;
 
 const trades = [
 	{
