@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./app.tsx";
 import { ROUTES } from "./routes.ts";
@@ -45,12 +45,20 @@ describe("which page an address shows", () => {
 		}
 	});
 
-	it("shows the front page at the root, and for any address that has no page", () => {
-		for (const path of ["/", "/anything/else", "/sign-in"]) {
+	it("shows the front page at the root", () => {
+		render(<App authUrl={AUTH} path="/" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"The operating system for autonomous capital.",
+		);
+	});
+
+	it("says there is no page, plainly, for an address that has none, with a way home, and the sign in addresses are among them", () => {
+		for (const path of ["/anything/else", "/sign-in", "/papers/extra"]) {
 			const view = render(<App authUrl={AUTH} path={path} />);
-			expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-				"The operating system for autonomous capital.",
-			);
+			const main = within(screen.getByRole("main"));
+			expect(main.getByRole("heading", { level: 1 })).toHaveTextContent("Page not found");
+			expect(main.getByRole("link", { name: "Go to the front page" })).toHaveAttribute("href", "/");
+			expect(document.title).toBe("Page not found | Maschina");
 			view.unmount();
 		}
 	});
@@ -138,5 +146,34 @@ describe("the legal pages", () => {
 	it("shows the brand assets page at /brand", () => {
 		render(<App authUrl={AUTH} path="/brand" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand assets");
+	});
+});
+
+describe("what a search engine is told about each page", () => {
+	const robots = () => document.head.querySelector('meta[name="robots"]')?.getAttribute("content");
+	const canonical = () =>
+		document.head.querySelector('link[rel="canonical"]')?.getAttribute("href");
+
+	it("points each page with something on it at its own address, and leaves it to be indexed", () => {
+		for (const [path, href] of [
+			["/", "https://maschina.dev/"],
+			["/terms", "https://maschina.dev/terms"],
+			["/about/", "https://maschina.dev/about"],
+			["/brand", "https://maschina.dev/brand"],
+		] as const) {
+			const view = render(<App authUrl={AUTH} path={path} />);
+			expect(canonical(), path).toBe(href);
+			expect(robots(), path).toBeUndefined();
+			view.unmount();
+		}
+	});
+
+	it("keeps a blank page and the not found page out of search results, and puts things back when they go", () => {
+		for (const path of ["/pricing", "/nowhere"]) {
+			const view = render(<App authUrl={AUTH} path={path} />);
+			expect(robots(), path).toBe("noindex");
+			view.unmount();
+			expect(robots(), path).toBeUndefined();
+		}
 	});
 });

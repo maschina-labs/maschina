@@ -13,13 +13,15 @@ import { PRIVACY } from "./legal/privacy.ts";
 import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
+import { NotFoundPage } from "./not-found-page.tsx";
 import { titleFor } from "./routes.ts";
 import { Site } from "./site.tsx";
 import { SupportPage } from "./support-page.tsx";
+import { useMeta } from "./use-meta.ts";
 
 /**
- * Which page an address shows: the front page at the root, a blank page for each address in routes.ts, and the front
- * page for any other address until it has a page of its own. The address is a plain argument so a test can stand in
+ * Which page an address shows: the front page at the root, a blank page for each address in routes.ts that has nothing
+ * on it yet, and a page saying there is none for any other address. The address is a plain argument so a test can stand in
  * for the browser's.
  */
 /** The legal documents, each at its address. They are written out in full; the other pages are blank. */
@@ -60,6 +62,7 @@ export function App({
 	path?: string;
 }) {
 	const clean = path.replace(/\/+$/, "") || "/";
+	useMeta(clean, CONTENT_PATHS.includes(clean));
 	const doc = DOCUMENTS[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
@@ -69,5 +72,6 @@ export function App({
 	if (article) return <ArticlePage authUrl={authUrl} doc={article} tab={titleFor(clean)} />;
 	const title = titleFor(path);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
-	return <Site authUrl={authUrl} />;
+	if (clean === "/") return <Site authUrl={authUrl} />;
+	return <NotFoundPage authUrl={authUrl} />;
 }
