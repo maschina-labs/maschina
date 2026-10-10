@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
+import { LanguageSwitcher } from "./language-switcher.tsx";
 import { Logo } from "./logo.tsx";
 import { openPreferences } from "./preferences.ts";
-import { usePresence } from "./presence.ts";
 import { SITEMAP } from "./sitemap.ts";
 import { SOCIALS } from "./socials.ts";
 import { useStatus } from "./status.ts";
@@ -40,148 +40,6 @@ function Outline({ stroke }: { stroke: string }) {
 				/>
 			))}
 		</g>
-	);
-}
-
-/**
- * The languages offered, each under its own name, English first. Choosing one is only a choice for now: the
- * site itself is written in English until the translations exist.
- */
-const LANGUAGES = [
-	{ code: "en", name: "English" },
-	{ code: "es", name: "Español" },
-	{ code: "fr", name: "Français" },
-	{ code: "de", name: "Deutsch" },
-	{ code: "it", name: "Italiano" },
-	{ code: "pt", name: "Português" },
-	{ code: "nl", name: "Nederlands" },
-	{ code: "pl", name: "Polski" },
-	{ code: "tr", name: "Türkçe" },
-	{ code: "ru", name: "Русский" },
-	{ code: "uk", name: "Українська" },
-	{ code: "ar", name: "العربية" },
-	{ code: "he", name: "עברית" },
-	{ code: "hi", name: "हिन्दी" },
-	{ code: "bn", name: "বাংলা" },
-	{ code: "zh", name: "简体中文" },
-	{ code: "zh-tw", name: "繁體中文" },
-	{ code: "ja", name: "日本語" },
-	{ code: "ko", name: "한국어" },
-	{ code: "id", name: "Bahasa Indonesia" },
-	{ code: "vi", name: "Tiếng Việt" },
-	{ code: "th", name: "ไทย" },
-	{ code: "fil", name: "Filipino" },
-] as const;
-
-/** How long the popover takes to leave, so it fades away rather than blinking out. */
-const POPOVER_EXIT_MS = 180;
-
-function Language() {
-	const [open, setOpen] = useState(false);
-	const [chosen, setChosen] = useState("en");
-	const root = useRef<HTMLDivElement>(null);
-	const button = useRef<HTMLButtonElement>(null);
-	const popover = usePresence(
-		open,
-		window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : POPOVER_EXIT_MS,
-	);
-
-	// Escape and a press anywhere outside close it. Neither listens while it is shut.
-	useEffect(() => {
-		if (!open) return;
-		const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
-		const onPress = (event: PointerEvent) => {
-			if (!root.current?.contains(event.target as Node)) setOpen(false);
-		};
-		document.addEventListener("keydown", onKey);
-		document.addEventListener("pointerdown", onPress);
-		return () => {
-			document.removeEventListener("keydown", onKey);
-			document.removeEventListener("pointerdown", onPress);
-		};
-	}, [open]);
-
-	return (
-		<div ref={root} className="relative">
-			<button
-				ref={button}
-				type="button"
-				aria-label="Language"
-				aria-haspopup="listbox"
-				aria-expanded={open}
-				onClick={() => setOpen((now) => !now)}
-				className="flex h-9 items-center gap-2 bg-white/[0.07] pr-3 pl-3 text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.11]"
-			>
-				<svg
-					viewBox="0 0 24 24"
-					className="size-[14px]"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					aria-hidden="true"
-				>
-					<circle cx="12" cy="12" r="9" />
-					<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
-				</svg>
-				<span>{chosen.toUpperCase()}</span>
-				<svg
-					viewBox="0 0 24 24"
-					className={`size-[12px] transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					aria-hidden="true"
-				>
-					<path d="m6 9 6 6 6-6" />
-				</svg>
-			</button>
-			{popover.mounted ? (
-				<div
-					className={`absolute right-0 bottom-full z-10 mb-2 w-56 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
-				>
-					<div
-						role="listbox"
-						aria-label="Language"
-						className="flex max-h-72 flex-col overflow-y-auto p-1"
-					>
-						{LANGUAGES.map((language) => (
-							<button
-								key={language.code}
-								type="button"
-								role="option"
-								aria-selected={chosen === language.code}
-								onClick={() => {
-									setChosen(language.code);
-									setOpen(false);
-									button.current?.focus();
-								}}
-								className="flex items-center justify-between gap-3 px-3 py-2 text-left text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.08] hover:text-neutral-100"
-							>
-								<span>{language.name}</span>
-								<span
-									data-box
-									className={`grid size-4 shrink-0 place-items-center border ${chosen === language.code ? "border-transparent bg-[oklch(0.93_0.02_300)] text-black" : "border-white/25"}`}
-								>
-									{chosen === language.code ? (
-										<svg
-											viewBox="0 0 24 24"
-											className="size-3"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth={3}
-											strokeLinecap="square"
-											aria-hidden="true"
-										>
-											<path d="m5 12.5 4.5 4.5L19 7.5" />
-										</svg>
-									) : null}
-								</span>
-							</button>
-						))}
-					</div>
-				</div>
-			) : null}
-		</div>
 	);
 }
 
@@ -337,7 +195,7 @@ export function Footer() {
 				</p>
 				<div data-right className="flex items-center gap-3 sm:col-start-3 sm:justify-self-end">
 					<StatusMark />
-					<Language />
+					<LanguageSwitcher />
 				</div>
 			</div>
 			<div

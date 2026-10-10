@@ -499,7 +499,9 @@ describe("the privacy policy", () => {
 						: "",
 			)
 			.join(" ");
-		expect(words).toMatch(/three kinds of cookie/i);
+		expect(words).toMatch(/four kinds of cookie/i);
+		expect(words).toMatch(/language cookie/i);
+		expect(words).toMatch(/only when you choose a language/i);
 		expect(words).toMatch(/sign in cookie/i);
 		expect(words).toMatch(/Preferences/);
 		expect(words).toMatch(/PostHog/);

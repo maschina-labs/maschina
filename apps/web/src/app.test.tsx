@@ -184,3 +184,64 @@ describe("what a search engine is told about each page", () => {
 		expect(screen.getByRole("heading", { level: 2, name: "Videos" })).toBeInTheDocument();
 	});
 });
+
+describe("the language of a page", () => {
+	const html = document.documentElement;
+	const alternates = () =>
+		[...document.head.querySelectorAll('link[rel="alternate"][hreflang]')].map((node) => [
+			node.getAttribute("hreflang"),
+			node.getAttribute("href"),
+		]);
+
+	it("sets the page's language and its reading direction, from the address, and puts them back when it goes", () => {
+		html.lang = "en";
+		html.dir = "ltr";
+		const arabic = render(<App authUrl={AUTH} path="/ar/terms" available={["en", "es", "ar"]} />);
+		expect(html.lang).toBe("ar");
+		expect(html.dir).toBe("rtl");
+		arabic.unmount();
+		expect(html.lang).toBe("en");
+		expect(html.dir).toBe("ltr");
+		const spanish = render(<App authUrl={AUTH} path="/es" available={["en", "es"]} />);
+		expect(html.lang).toBe("es");
+		expect(html.dir).toBe("ltr");
+		spanish.unmount();
+		render(<App authUrl={AUTH} path="/terms" available={["en", "es"]} />);
+		expect(html.lang).toBe("en");
+	});
+
+	it("shows the page the address names, with the language taken off it, so /es/terms is the terms", () => {
+		render(<App authUrl={AUTH} path="/es/terms" available={["en", "es"]} />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Terms of Service");
+	});
+
+	it("reads a language that is not ready as English, and says so: the page and the tag are English", () => {
+		html.lang = "en";
+		render(<App authUrl={AUTH} path="/fr/terms" available={["en"]} />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Terms of Service");
+		expect(html.lang).toBe("en");
+	});
+
+	it("points a translated page at its own address, and lists the same page in every ready language for search engines", () => {
+		render(<App authUrl={AUTH} path="/es/terms" available={["en", "es", "ar"]} />);
+		expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
+			"https://maschina.dev/es/terms",
+		);
+		expect(alternates()).toEqual([
+			["en", "https://maschina.dev/terms"],
+			["es", "https://maschina.dev/es/terms"],
+			["ar", "https://maschina.dev/ar/terms"],
+			["x-default", "https://maschina.dev/terms"],
+		]);
+	});
+
+	it("lists no alternates while only English is ready, and takes them away when the page goes", () => {
+		const view = render(<App authUrl={AUTH} path="/terms" available={["en"]} />);
+		expect(alternates()).toEqual([]);
+		view.unmount();
+		const other = render(<App authUrl={AUTH} path="/terms" available={["en", "es"]} />);
+		expect(alternates().length).toBe(3);
+		other.unmount();
+		expect(alternates()).toEqual([]);
+	});
+});

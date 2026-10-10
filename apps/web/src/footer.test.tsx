@@ -255,7 +255,7 @@ describe("the footer", () => {
 		expect(button).toHaveAttribute("aria-expanded", "true");
 		const list = screen.getByRole("listbox", { name: "Language" });
 		const options = within(list).getAllByRole("option");
-		const names = options.map((option) => option.textContent);
+		const names = options.map((option) => option.querySelector("[data-name]")?.textContent);
 		// English first, then the world's most used languages, each under its own name.
 		expect(names[0]).toBe("English");
 		expect(names).toEqual(
@@ -300,23 +300,15 @@ describe("the footer", () => {
 		}
 	});
 
-	it("switches the chosen language, shows its code on the button, and closes", async () => {
+	it("does not switch to a language that is not ready: it is dimmed, tagged Soon, and pressing it changes nothing", () => {
 		render(<Footer />);
 		const button = screen.getByRole("button", { name: "Language" });
 		fireEvent.click(button);
-		fireEvent.click(within(screen.getByRole("listbox")).getByRole("option", { name: "Español" }));
-		await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
-		expect(button).toHaveTextContent("ES");
-		fireEvent.click(button);
-		const options = within(screen.getByRole("listbox")).getAllByRole("option");
-		expect(options.find((o) => o.textContent === "Español")).toHaveAttribute(
-			"aria-selected",
-			"true",
-		);
-		expect(options.find((o) => o.textContent === "English")).toHaveAttribute(
-			"aria-selected",
-			"false",
-		);
+		const spanish = within(screen.getByRole("listbox")).getByRole("option", { name: /Español/ });
+		expect(spanish).toHaveAttribute("aria-disabled", "true");
+		fireEvent.click(spanish);
+		expect(button).toHaveTextContent("EN");
+		expect(screen.getByRole("listbox")).toBeInTheDocument();
 	});
 
 	it("closes the popover on Escape, on a click elsewhere, and on choosing a language", async () => {

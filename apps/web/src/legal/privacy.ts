@@ -93,11 +93,12 @@ export const PRIVACY: LegalDoc = {
 		{
 			heading: "Cookies",
 			body: [
-				"Maschina uses three kinds of cookie.",
+				"Maschina uses four kinds of cookie.",
 				{
 					list: [
 						"The sign in cookie keeps you signed in. Scripts on the page cannot read it. It is essential, so it is always on while you are signed in.",
 						"The preferences cookie holds your choice about optional cookies, so we do not ask you again. It is the only cookie that records a choice.",
+						"The language cookie remembers the language you chose, so every page opens in it. It holds only that choice, and it is set only when you choose a language. Nothing else ever picks your language for you.",
 						"The analytics cookie holds a random number, so PostHog can tell a return visit from a new one. It is optional: it is set only if you accept optional cookies, and it is removed if you decline.",
 					],
 				},

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { type ArticleDoc, ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { BrandPage } from "./brand-page.tsx";
@@ -7,6 +8,10 @@ import { PAPERS } from "./company/papers.ts";
 import { ROADMAP } from "./company/roadmap.ts";
 import { SUPPORT } from "./company/support.ts";
 import { ContactPage } from "./contact-page.tsx";
+import { readLanguage } from "./i18n/language.ts";
+import { LocaleContext } from "./i18n/locale-context.tsx";
+import { AVAILABLE, LOCALES, type LocaleCode, parsePath } from "./i18n/locales.ts";
+import { redirectFor } from "./i18n/redirect.ts";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
@@ -57,15 +62,8 @@ export const CONTENT_PATHS = [
 	"/papers",
 ];
 
-export function App({
-	authUrl,
-	path = window.location.pathname,
-}: {
-	authUrl: string;
-	path?: string;
-}) {
-	const clean = path.replace(/\/+$/, "") || "/";
-	useMeta(clean, CONTENT_PATHS.includes(clean));
+/** The page for an address, with the language already taken off it. */
+function Page({ authUrl, clean }: { authUrl: string; clean: string }) {
 	const doc = DOCUMENTS[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
 	if (clean === "/contact") return <ContactPage authUrl={authUrl} />;
@@ -74,8 +72,64 @@ export function App({
 	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={SUPPORT} />;
 	const article = ARTICLES[clean];
 	if (article) return <ArticlePage authUrl={authUrl} doc={article} tab={titleFor(clean)} />;
-	const title = titleFor(path);
+	const title = titleFor(clean);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
 	if (clean === "/") return <Site authUrl={authUrl} />;
 	return <NotFoundPage authUrl={authUrl} />;
+}
+
+/**
+ * Sets what a page tells the browser about its language: the language tag and the reading direction on the whole
+ * document, which are put back when the page goes.
+ */
+function useLanguageAttributes(locale: LocaleCode) {
+	useEffect(() => {
+		const html = document.documentElement;
+		const before = { lang: html.lang, dir: html.dir };
+		const language = LOCALES.find((entry) => entry.code === locale) ?? LOCALES[0];
+		html.lang = language.tag;
+		html.dir = language.dir;
+		return () => {
+			html.lang = before.lang || "en";
+			html.dir = before.dir || "ltr";
+		};
+	}, [locale]);
+}
+
+/**
+ * Which page an address shows, in which language. The language is the first part of the address (`/es/terms`) if it names
+ * one that is ready, and English otherwise. Nothing the browser or the network says about the visitor picks it: only
+ * the address, and the visitor's own saved choice (see redirectFor). The rest is the page: the front page at the root, a
+ * blank page for each address in routes.ts that has nothing on it yet, and a page saying there is none for any other
+ * address. The address is a plain argument so a test can stand in for the browser's.
+ */
+export function App({
+	authUrl,
+	path = window.location.pathname,
+	available = AVAILABLE,
+}: {
+	authUrl: string;
+	path?: string;
+	/** The languages that are ready. A test can say more than the site does yet. */
+	available?: readonly LocaleCode[];
+}) {
+	const parsed = parsePath(path);
+	const locale = available.includes(parsed.locale) ? parsed.locale : "en";
+	const clean = parsed.path;
+	useMeta(clean, CONTENT_PATHS.includes(clean), locale, available);
+	useLanguageAttributes(locale);
+
+	// Only the real address of the browser is ever moved: a test that passes its own address is left where it is.
+	useEffect(() => {
+		if (path !== window.location.pathname) return;
+		const { pathname, search, hash } = window.location;
+		const target = redirectFor(pathname, search, hash, readLanguage(), available);
+		if (target) window.location.replace(target);
+	}, [path, available]);
+
+	return (
+		<LocaleContext.Provider value={locale}>
+			<Page authUrl={authUrl} clean={clean} />
+		</LocaleContext.Provider>
+	);
 }
