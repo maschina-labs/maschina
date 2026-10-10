@@ -107,9 +107,12 @@ describe("the header", () => {
 			"href",
 			"https://github.com/maschina-labs/maschina",
 		);
-		for (const name of ["Status", "AI index", "Skill file", "MCP server"]) {
+		for (const name of ["Status", "AI index", "Skill file"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
+		// Not built yet: named, tagged Soon, and not a link.
+		expect(inside.queryByRole("link", { name: /MCP server/ })).toBeNull();
+		expect(inside.getByText("MCP server")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Developers" })).toHaveAttribute(
 			"aria-expanded",
 			"true",
@@ -285,7 +288,8 @@ describe("the header", () => {
 		);
 		expect(panel.queryByRole("link", { name: "Overview" })).toBeNull();
 		expect(panel.getByRole("link", { name: "Docs" })).toBeInTheDocument();
-		expect(panel.getByRole("link", { name: "MCP server" })).toBeInTheDocument();
+		expect(panel.queryByRole("link", { name: /MCP server/ })).toBeNull();
+		expect(panel.getByText("MCP server")).toBeInTheDocument();
 
 		fireEvent.click(panel.getByRole("button", { name: "Developers" }));
 		expect(panel.queryByRole("link", { name: "Docs" })).toBeNull();

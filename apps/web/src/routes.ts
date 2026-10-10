@@ -1,9 +1,9 @@
 /**
  * The pages there are, each by its address and its name: every page the header, the menus, the search and the footer
- * link to. Every one is blank for now: the header and the footer with a screen of nothing between them, to be filled
- * in one at a time. The docs, the live record, the status page and the two AI files have a blank page here too until
- * each is moved or replaced by what it is to be (its own app, a status page run by someone else, a plain file). Sign
- * in and sign up are a separate app and are never pages here.
+ * link to. The ones with nothing on them yet are blank: the header and the footer with a screen of nothing between
+ * them, to be filled in one at a time. The docs and the live record have a blank page here until each is moved or
+ * replaced by what it is to be (its own app). The status page is run by someone else and the AI files are plain files,
+ * so neither is a page here (see FILES). Sign in and sign up are a separate app and are never pages here.
  */
 export const ROUTES: Record<string, string> = {
 	"/product": "Product",
@@ -12,9 +12,6 @@ export const ROUTES: Record<string, string> = {
 	"/mobile": "Mobile",
 	"/docs": "Docs",
 	"/live": "Live record",
-	"/status": "Status",
-	"/llms.txt": "AI index",
-	"/SKILL.md": "Skill file",
 	"/security": "Security",
 	"/how-it-works": "How it works",
 	"/machines": "Machines",
@@ -28,7 +25,6 @@ export const ROUTES: Record<string, string> = {
 	"/quickstart": "Quickstart",
 	"/templates": "Templates",
 	"/examples": "Examples",
-	"/mcp": "MCP server",
 	"/company": "Company",
 	"/about": "About",
 	"/roadmap": "Roadmap",
@@ -41,6 +37,19 @@ export const ROUTES: Record<string, string> = {
 	"/acceptable-use": "Acceptable use",
 	"/license": "License",
 	"/disclosure": "Security disclosure",
+};
+
+/**
+ * The plain files the site serves as they are, from public/. They are not pages: an agent or a crawler reads them, and
+ * the header and the footer link to a few. Each one is a real file, and a test checks that it exists.
+ */
+export const FILES: Record<string, string> = {
+	"/llms.txt": "AI index",
+	"/llms-full.txt": "Full text",
+	"/SKILL.md": "Skill file",
+	"/robots.txt": "Robots",
+	"/sitemap.xml": "Sitemap",
+	"/humans.txt": "Humans",
 };
 
 /** The name of the page at an address, with or without a trailing slash; nothing for an address with no page. */

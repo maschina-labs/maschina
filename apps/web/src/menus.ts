@@ -44,10 +44,10 @@ export const MENUS: Record<string, Menu> = {
 		asideTitle: "For builders and agents",
 		aside: [
 			{ label: "GitHub", href: REPO },
-			{ label: "Status", href: "/status" },
+			{ label: "Status", href: "https://status.maschina.dev" },
 			{ label: "AI index", href: "/llms.txt" },
 			{ label: "Skill file", href: "/SKILL.md" },
-			{ label: "MCP server", href: "/mcp" },
+			{ label: "MCP server" },
 		],
 	},
 	Company: {

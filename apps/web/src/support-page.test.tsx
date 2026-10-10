@@ -38,7 +38,7 @@ describe("the support page", () => {
 		const cards = main.getAllByRole("link");
 		expect(cards[0]).toHaveAttribute("href", "/contact");
 		expect(cards[0]).toHaveTextContent("Write to support");
-		for (const href of ["/docs", "/status", "/disclosure"])
+		for (const href of ["/docs", "https://status.maschina.dev", "/disclosure"])
 			expect(cards.map((card) => card.getAttribute("href"))).toContain(href);
 		for (const card of cards) {
 			const href = card.getAttribute("href") ?? "";
