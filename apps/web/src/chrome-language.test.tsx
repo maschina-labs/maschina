@@ -245,3 +245,31 @@ describe("the pages in another language", () => {
 		expect(document.title).toBe("Precios | Maschina");
 	});
 });
+
+describe("a legal document in another language", () => {
+	afterEach(() => {
+		delete CATALOGS["es"];
+	});
+
+	it("says it is a translation and that the English version is the one that applies, with a plain link to it", () => {
+		CATALOGS["es"] = {
+			...pretend,
+			legal: {
+				...en.legal,
+				translation:
+					"Esta es una traducción. Si difiere de la {link}, se aplica la versión en inglés.",
+				englishVersion: "versión en inglés",
+			},
+		};
+		render(<App authUrl={AUTH} path="/es/terms" available={["en", "es"]} />);
+		const note = screen.getByText(/Esta es una traducción/);
+		const link = within(note).getByRole("link", { name: "versión en inglés" });
+		// The one link in the site that must NOT keep the language: it goes to the English page.
+		expect(link).toHaveAttribute("href", "/terms");
+	});
+
+	it("says nothing of the kind on the English document", () => {
+		render(<App authUrl={AUTH} path="/terms" available={["en", "es"]} />);
+		expect(screen.queryByText(/This is a translation/)).toBeNull();
+	});
+});

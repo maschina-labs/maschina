@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AVAILABLE, DEFAULT_LOCALE, LOCALES, localizePath, parsePath } from "./locales.ts";
+import { DEFAULT_LOCALE, LOCALES, localizePath, parsePath } from "./locales.ts";
 
 describe("the languages", () => {
 	it("are the twenty three on the list, English first, each under its own name", () => {
@@ -42,10 +42,6 @@ describe("the languages", () => {
 		for (const locale of LOCALES) expect(locale.tag).toMatch(/^[a-z]{2,3}(-[A-Z]{2})?$/);
 		expect(LOCALES.find((locale) => locale.code === "zh-tw")?.tag).toBe("zh-TW");
 		expect(LOCALES.find((locale) => locale.code === "zh")?.tag).toBe("zh-CN");
-	});
-
-	it("offers only English until a language has all of its pages, so no language is offered that is not true", () => {
-		expect(AVAILABLE).toEqual(["en"]);
 	});
 });
 

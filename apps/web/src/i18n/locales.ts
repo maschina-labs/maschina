@@ -33,12 +33,6 @@ export type LocaleCode = (typeof LOCALES)[number]["code"];
 
 export const DEFAULT_LOCALE: LocaleCode = "en";
 
-/**
- * The languages that are offered. A language joins this list only when every page of the site is translated into it, so
- * the switcher never offers a language that is not all there. Everything else is on the list above, ready, and waits.
- */
-export const AVAILABLE: readonly LocaleCode[] = ["en"];
-
 const CODES: ReadonlySet<string> = new Set(LOCALES.map((locale) => locale.code));
 
 export const isLocale = (value: string | undefined | null): value is LocaleCode =>

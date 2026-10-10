@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { Link } from "./i18n/link.tsx";
+import { useLocale } from "./i18n/locale-context.tsx";
 import { fill } from "./i18n/messages.ts";
+import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
@@ -187,8 +189,18 @@ export function Contents({
  * sits further out in the margin, small, rolling like an odometer. The contents are down the right of a very wide
  * screen. Below a wide screen the numbers go, and on a phone it is just text on a page.
  */
-export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) {
+export function LegalPage({
+	authUrl,
+	doc,
+	englishPath,
+}: {
+	authUrl: string;
+	doc: LegalDoc;
+	/** The address of the same document in English. Given, and the page in another language, a note says so. */
+	englishPath?: string | undefined;
+}) {
 	const m = useMessages().legal;
+	const locale = useLocale();
 	useTitle(doc.title);
 	const ids = doc.sections.map((section) => slug(section.heading));
 	const current = useCurrentSection(ids);
@@ -213,6 +225,24 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
+					{englishPath && locale !== "en" ? (
+						<p
+							data-translation
+							className="mx-auto mb-10 w-full max-w-[44rem] bg-white/[0.06] p-4 text-[15px] text-neutral-300 leading-[1.55]"
+						>
+							{rich(m.translation, {
+								// A plain link, not the site's: it is the one that must go to the English page and not stay in the language.
+								link: (
+									<a
+										href={englishPath}
+										className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+									>
+										{m.englishVersion}
+									</a>
+								),
+							})}
+						</p>
+					) : null}
 					{doc.intro?.length ? (
 						<div className="mx-auto mb-14 w-full max-w-[44rem]">
 							{doc.intro.map((block) => (

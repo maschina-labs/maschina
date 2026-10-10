@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { saveLanguage } from "./i18n/language.ts";
+import { AVAILABLE } from "./i18n/languages.ts";
 import { useLocale } from "./i18n/locale-context.tsx";
-import { AVAILABLE, LOCALES, type LocaleCode, localizePath, parsePath } from "./i18n/locales.ts";
+import { LOCALES, type LocaleCode, localizePath, parsePath } from "./i18n/locales.ts";
 import { useMessages } from "./i18n/use-messages.ts";
 import { usePresence } from "./presence.ts";
 

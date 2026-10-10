@@ -292,6 +292,9 @@ export const en = {
 		label: "Legal",
 		updated: "Last updated {date}",
 		onThisPage: "On this page",
+		translation:
+			"This is a translation. If it differs from the {link}, the English version applies.",
+		englishVersion: "English version",
 	},
 	article: {
 		by: "By {name}",
