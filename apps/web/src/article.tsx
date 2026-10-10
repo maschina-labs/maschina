@@ -26,8 +26,7 @@ const Field = lazy(() =>
 const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [text-wrap:pretty]";
 
 /**
- * A page that reads like a newsletter or a news article, for the company pages: a small label, a big centered
- * headline, a standfirst, who wrote it and when, then one narrow column of larger type in the middle of the page with
+ * A page that reads like a newsletter or a news article, for the company pages: a small label, a big headline, a standfirst, who wrote it and when, then one column of larger type in the middle of the page, on the same left edge as the head's text with
  * plain headings, pulled quotes and lists. It has none of the legal pages' numbers, counter or contents: it is read
  * once, top to bottom. The page margins are the article's own padding, so they never squeeze the column.
  */
@@ -40,27 +39,27 @@ export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc
 			<article className="w-full">
 				<header
 					data-head
-					className="sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-24 text-center"
+					className="sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col justify-end overflow-hidden px-(--gutter) pt-24 pb-12 sm:pb-16"
 				>
 					<div data-art aria-hidden="true" className="pointer-events-none absolute inset-0">
 						{ready ? (
 							<Suspense fallback={null}>
 								<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
-									<Field position="absolute" field="particles" motion="calm" mode="dark" />
+									<Field position="absolute" field="particles" motion="full" mode="dark" />
 								</div>
 							</Suspense>
 						) : null}
-						<div className="absolute inset-0 bg-[oklch(0_0_0/0.55)]" />
+						<div className="absolute inset-0 bg-[oklch(0_0_0/0.15)]" />
 					</div>
-					<div className="relative mx-auto w-full max-w-[64rem]">
+					<div data-head-text className="relative mx-auto w-full max-w-[48rem]">
 						<p className="text-[14px] text-neutral-400">{doc.kicker}</p>
-						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.75rem)] text-white leading-[1] tracking-[-0.04em] [text-wrap:balance]">
+						<h1 className="mt-5 font-display font-medium text-[clamp(2.25rem,5vw,3.75rem)] text-white leading-[1] tracking-[-0.04em] [text-wrap:balance]">
 							{doc.title}
 						</h1>
-						<p className="mx-auto mt-8 max-w-[40rem] text-[clamp(1.125rem,2vw,1.5rem)] text-neutral-200 leading-[1.45] [text-wrap:balance]">
+						<p className="mt-6 text-[clamp(1.125rem,2vw,1.375rem)] text-neutral-200 leading-[1.45] [text-wrap:balance]">
 							{doc.standfirst}
 						</p>
-						<p className="mt-8 text-[14px] text-neutral-400">
+						<p className="mt-6 text-[14px] text-neutral-400">
 							By {doc.byline}
 							<span aria-hidden="true"> · </span>
 							<time>{doc.date}</time>
