@@ -3,7 +3,7 @@ import { Frame } from "./frame.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { useTitle } from "./use-title.ts";
 
-const CARD = "block h-full min-h-44 p-6";
+const CARD = "block h-full p-6";
 
 /**
  * The papers page: the held mesh head, then on the black sheet a group of equal cards for each kind of thing: videos,
@@ -34,10 +34,21 @@ export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }
 								<h2 className="font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em]">
 									{group.heading}
 								</h2>
-								<div data-group className="mt-6 grid auto-rows-fr gap-3 sm:grid-cols-2">
+								<div
+									data-group={group.id}
+									className={`mt-6 grid auto-rows-fr gap-3 sm:grid-cols-2 ${group.compact ? "lg:grid-cols-3" : ""}`}
+								>
 									{group.items.map((item) => {
 										const inside = (
 											<>
+												{item.number ? (
+													<span
+														data-number
+														className="mb-3 block text-[13px] text-neutral-500 tabular-nums"
+													>
+														{item.number}
+													</span>
+												) : null}
 												<span
 													data-name
 													className="flex items-center justify-between gap-4 font-display font-medium text-[1.25rem] text-white tracking-[-0.015em]"
@@ -58,9 +69,11 @@ export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }
 														</svg>
 													) : null}
 												</span>
-												<span className="mt-3 block text-[16px] text-neutral-400 leading-[1.55]">
-													{item.body}
-												</span>
+												{item.body ? (
+													<span className="mt-3 block text-[16px] text-neutral-400 leading-[1.55]">
+														{item.body}
+													</span>
+												) : null}
 												{item.href ? null : (
 													<span className="mt-5 inline-block text-[13px] text-neutral-500">
 														Coming soon
@@ -75,12 +88,16 @@ export function PapersPage({ authUrl, doc }: { authUrl: string; doc: PapersDoc }
 												href={item.href}
 												target="_blank"
 												rel="noopener noreferrer"
-												className={`${CARD} bg-white/[0.06] transition-colors hover:bg-white/[0.1]`}
+												className={`${CARD} ${group.compact ? "min-h-36" : "min-h-44"} bg-white/[0.06] transition-colors hover:bg-white/[0.1]`}
 											>
 												{inside}
 											</a>
 										) : (
-											<div key={item.name} data-item className={`${CARD} bg-white/[0.04]`}>
+											<div
+												key={item.name}
+												data-item
+												className={`${CARD} ${group.compact ? "min-h-36" : "min-h-44"} bg-white/[0.04]`}
+											>
 												{inside}
 											</div>
 										);

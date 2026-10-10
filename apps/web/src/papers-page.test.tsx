@@ -31,15 +31,15 @@ describe("the papers page", () => {
 		expect(document.title).toBe("Papers | Maschina");
 	});
 
-	it("sets out three groups, videos, decks and papers, each under its own heading", () => {
+	it("sets out four groups, videos, decks, the papers and their figures, each under its own heading", () => {
 		render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
 		const main = within(screen.getByRole("main"));
 		expect(
 			main.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent),
-		).toEqual(["Videos", "Decks", "Papers"]);
+		).toEqual(["Videos", "Decks", "The papers", "Figures"]);
 	});
 
-	it("holds a place for every video, deck and paper that is wanted, by name", () => {
+	it("holds a place for every video, deck, paper and figure that is wanted, by name: the index and the fourteen papers in their order", () => {
 		const { container } = render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
 		const names = [...container.querySelectorAll("[data-item] [data-name]")].map(
 			(node) => node.textContent,
@@ -49,9 +49,22 @@ describe("the papers page", () => {
 			"Pitch video",
 			"Pitch deck",
 			"Investor deck",
+			"Index",
+			"Primer",
 			"Whitepaper",
-			"Technical paper",
-			"Security model",
+			"Protocol and Architecture",
+			"Security and Custody",
+			"The Machine",
+			"The Surface",
+			"The Network",
+			"The Machine Economy",
+			"Integrity",
+			"Economics",
+			"The Path",
+			"Using Maschina",
+			"Building on Maschina",
+			"Risk and Disclosures",
+			"All figures",
 		]);
 	});
 
@@ -70,6 +83,7 @@ describe("the papers page", () => {
 			...PAPERS,
 			groups: [
 				{
+					id: "videos",
 					heading: "Videos",
 					items: [{ name: "Demo video", body: "Shown.", href: "https://youtu.be/example" }],
 				},
@@ -90,7 +104,7 @@ describe("the papers page", () => {
 			expect(grid.className).toContain("auto-rows-fr");
 			for (const item of grid.querySelectorAll("[data-item]")) {
 				expect(item.className).toContain("h-full");
-				expect(item.className).toContain("min-h-44");
+				expect(item.className).toMatch(/min-h-(36|44)/);
 			}
 		}
 	});
@@ -104,5 +118,18 @@ describe("the papers page", () => {
 		expect(all).not.toMatch(/\b(I|I'm|my|me)\b/);
 		expect(all).not.toMatch(/\d+%|\$\d|\b20(2[7-9]|3\d)\b|q[1-4]\b|profit|returns of|guarantee/i);
 		expect(all).not.toMatch(/\b(audited by|raised|funding|partner)\b/i);
+	});
+
+	it("numbers the fourteen papers from 01 to 14 in order, and leaves the index without a number", () => {
+		const { container } = render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
+		const papers = container.querySelectorAll("[data-group=papers] [data-item]");
+		expect(papers).toHaveLength(15);
+		const numbers = [...papers].map(
+			(item) => item.querySelector("[data-number]")?.textContent ?? null,
+		);
+		expect(numbers).toEqual([
+			null,
+			...Array.from({ length: 14 }, (_, index) => String(index + 1).padStart(2, "0")),
+		]);
 	});
 });
