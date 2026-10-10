@@ -141,3 +141,119 @@ describe("humans.txt", () => {
 		expect(text).not.toMatch(/asher@|info@/i);
 	});
 });
+
+describe("the page's own head, for browsers, search engines and shared links", () => {
+	const html = readFileSync(resolve(root, "index.html"), "utf8");
+	const meta = (attribute: string, name: string) =>
+		new RegExp(`<meta[^>]*${attribute}="${name}"[^>]*content="([^"]*)"`).exec(html)?.[1];
+
+	it("says where the page lives, and what it is called and about, once", () => {
+		expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/" />`);
+		expect(meta("property", "og:site_name")).toBe("Maschina");
+		expect(meta("property", "og:url")).toBe(ORIGIN);
+		expect(meta("property", "og:locale")).toBe("en_US");
+		expect(meta("name", "description")).toBeTruthy();
+		expect(meta("property", "og:description")).toBeTruthy();
+	});
+
+	it("has a card for shared links on Open Graph and on X, at the size they ask for, with a description of the picture", () => {
+		expect(meta("property", "og:image")).toBe(`${ORIGIN}/og-image.png`);
+		expect(meta("property", "og:image:width")).toBe("1200");
+		expect(meta("property", "og:image:height")).toBe("630");
+		expect(meta("property", "og:image:alt")).toBeTruthy();
+		expect(meta("name", "twitter:card")).toBe("summary_large_image");
+		expect(meta("name", "twitter:site")).toBe("@maschinalabs");
+		expect(meta("name", "twitter:image")).toBe(`${ORIGIN}/twitter-image.png`);
+		for (const file of ["og-image.png", "twitter-image.png"]) {
+			const png = readFileSync(resolve(root, "public", file));
+			expect(png.readUInt32BE(16), file).toBe(1200);
+			expect(png.readUInt32BE(20), file).toBe(630);
+		}
+	});
+
+	it("links the icons, the manifest, the sitemap and the plain files for agents, each to a file that exists", () => {
+		const hrefs = [...html.matchAll(/<link[^>]*href="([^"]+)"/g)].map((match) => match[1] ?? "");
+		for (const wanted of [
+			"/favicon.ico",
+			"/brand/favicon.svg",
+			"/apple-touch-icon.png",
+			"/manifest.webmanifest",
+			"/sitemap.xml",
+			"/llms.txt",
+			"/humans.txt",
+		])
+			expect(hrefs, wanted).toContain(wanted);
+		for (const href of hrefs.filter((link) => link.startsWith("/")))
+			expect(existsSync(resolve(root, "public", `.${href}`)), href).toBe(true);
+	});
+
+	it("describes the company for search engines as structured data, claiming only what is true", () => {
+		const raw = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)?.[1] ?? "";
+		const data = JSON.parse(raw) as { "@graph": { "@type": string; name: string; url: string }[] };
+		const types = data["@graph"].map((node) => node["@type"]);
+		expect(types).toEqual(["Organization", "WebSite"]);
+		expect(raw).not.toMatch(/aggregateRating|review|price|offers|employee|numberOf/i);
+	});
+
+	it("shows something real to a reader without scripts, and tells a crawler nothing false", () => {
+		expect(html).toMatch(/<noscript>[\s\S]*Maschina[\s\S]*<\/noscript>/);
+	});
+});
+
+describe("the web app manifest", () => {
+	const manifest = JSON.parse(read("manifest.webmanifest")) as {
+		name: string;
+		short_name: string;
+		start_url: string;
+		display: string;
+		background_color: string;
+		theme_color: string;
+		icons: { src: string; sizes: string; type: string; purpose?: string }[];
+	};
+
+	it("names the site, starts at the front page and is dark like the site", () => {
+		expect(manifest.name).toBe("Maschina");
+		expect(manifest.short_name).toBe("Maschina");
+		expect(manifest.start_url).toBe("/");
+		expect(manifest.display).toBe("standalone");
+		expect(manifest.background_color).toBe("#000000");
+		expect(manifest.theme_color).toBe("#000000");
+	});
+
+	it("has the icons a phone asks for, each a real file of the size it says, one of them maskable", () => {
+		expect(manifest.icons.length).toBeGreaterThanOrEqual(3);
+		for (const icon of manifest.icons) {
+			const png = readFileSync(resolve(root, "public", `.${icon.src}`));
+			const [width] = icon.sizes.split("x").map(Number);
+			expect(png.readUInt32BE(16), icon.src).toBe(width);
+		}
+		expect(manifest.icons.some((icon) => icon.purpose === "maskable")).toBe(true);
+	});
+});
+
+describe("how Cloudflare serves the site: _headers and _redirects", () => {
+	const headers = read("_headers");
+	const redirects = read("_redirects");
+
+	it("sends the headers a site that moves money should: no framing, no sniffing, https only, a plain referrer", () => {
+		for (const line of [
+			"X-Content-Type-Options: nosniff",
+			"X-Frame-Options: DENY",
+			"Referrer-Policy: strict-origin-when-cross-origin",
+			"Strict-Transport-Security: max-age=31536000; includeSubDomains",
+			"Permissions-Policy: camera=(), microphone=(), geolocation=()",
+		])
+			expect(headers).toContain(line);
+	});
+
+	it("lets the built files be kept for good, because their names change with their content, and the plain files only briefly", () => {
+		expect(headers).toMatch(/\/assets\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/);
+		expect(headers).toMatch(/\/\.well-known\/\*\n\s+Content-Type: text\/plain; charset=utf-8/);
+		expect(headers).toMatch(/\/SKILL\.md\n\s+Content-Type: text\/markdown; charset=utf-8/);
+	});
+
+	it("sends the old address of the security file to the standard one, and any other address to the app", () => {
+		expect(redirects).toContain("/security.txt /.well-known/security.txt 301");
+		expect(redirects.trim().split("\n").at(-1)).toBe("/* /index.html 200");
+	});
+});
