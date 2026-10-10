@@ -4,7 +4,14 @@ import { App } from "./app.tsx";
 import { ROUTES } from "./routes.ts";
 
 const AUTH = "https://auth.maschina.dev";
-const LEGAL = { "/terms": 1, "/privacy": 1, "/risk": 1, "/acceptable-use": 1, "/license": 1 };
+const LEGAL = {
+	"/terms": 1,
+	"/privacy": 1,
+	"/risk": 1,
+	"/acceptable-use": 1,
+	"/license": 1,
+	"/disclosure": 1,
+};
 
 beforeEach(() => {
 	vi.stubGlobal(
@@ -72,6 +79,12 @@ describe("the legal pages", () => {
 	it("shows the license at /license, as a real document too", () => {
 		render(<App authUrl={AUTH} path="/license" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("License");
+		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(8);
+	});
+
+	it("shows the security disclosure at /disclosure, as a real document too", () => {
+		render(<App authUrl={AUTH} path="/disclosure" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Security Disclosure");
 		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(8);
 	});
 });

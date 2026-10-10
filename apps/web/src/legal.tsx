@@ -34,7 +34,15 @@ function Text({ parts }: { parts: Part[] }) {
 		typeof part === "string" ? (
 			<span key={`${index}-${part}`}>{part}</span>
 		) : (
-			<a key={part.href} href={part.href} className={LINK}>
+			<a
+				key={part.href}
+				href={part.href}
+				// A link that leaves the site opens in a new tab and does not hand the new page this one.
+				{...(part.href.startsWith("https://")
+					? { target: "_blank", rel: "noopener noreferrer" }
+					: {})}
+				className={LINK}
+			>
 				{part.text}
 			</a>
 		),

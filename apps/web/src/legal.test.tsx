@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
+import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
 import { PRIVACY } from "./legal/privacy.ts";
 import { RISK } from "./legal/risk.ts";
@@ -307,6 +308,31 @@ describe("a legal page", () => {
 		expect(screen.getByRole("main").className).not.toMatch(/animate-/);
 	});
 
+	it("opens a link that leaves the site in a new tab, without handing it this page, and leaves the site's own links alone", () => {
+		render(
+			<LegalPage
+				authUrl={AUTH}
+				doc={{
+					...SMALL,
+					intro: [
+						[
+							"See ",
+							{ text: "the repository", href: "https://github.com/x" },
+							" and ",
+							{ text: "us", href: "/terms" },
+							".",
+						],
+					],
+				}}
+			/>,
+		);
+		const outside = screen.getByRole("link", { name: "the repository" });
+		expect(outside).toHaveAttribute("target", "_blank");
+		expect(outside.getAttribute("rel")).toContain("noopener");
+		expect(outside.getAttribute("rel")).toContain("noreferrer");
+		expect(screen.getByRole("link", { name: "us" })).not.toHaveAttribute("target");
+	});
+
 	it("renders links inside the text, underlined", () => {
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const link = screen.getByRole("link", { name: "the privacy policy" });
@@ -456,6 +482,7 @@ describe.each([
 	["the risk disclosure", RISK],
 	["the acceptable use policy", ACCEPTABLE_USE],
 	["the license", LICENSE],
+	["the security disclosure", DISCLOSURE],
 ])("%s", (_name, doc) => {
 	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
 		expect(doc.updated).toBe("October 9, 2026");
@@ -744,5 +771,63 @@ describe("the license", () => {
 		const hrefs = linksOf(LICENSE);
 		expect(hrefs).toContain("/terms");
 		expect(hrefs).toContain("/brand");
+	});
+});
+
+describe("the security disclosure", () => {
+	it("covers what a disclosure page has to cover, each under its own heading", () => {
+		const headings = DISCLOSURE.sections.map((section) => section.heading);
+		for (const needed of [
+			/short version/i,
+			/how to report/i,
+			/what to include/i,
+			/what happens next/i,
+			/what matters most/i,
+			/out of scope/i,
+			/test safely/i,
+			/promise/i,
+			/rewards/i,
+			/supported versions/i,
+			/contact/i,
+		])
+			expect(
+				headings.some((heading) => needed.test(heading)),
+				String(needed),
+			).toBe(true);
+	});
+
+	it("says what the repository's own security file says: report privately through GitHub, a reply in three days, the five things that matter most, the latest release only", () => {
+		const all = text(DISCLOSURE);
+		const hrefs = linksOf(DISCLOSURE);
+		expect(hrefs).toContain("https://github.com/maschina-labs/maschina/security/advisories/new");
+		expect(all).toMatch(/reply within three days/i);
+		for (const matter of [
+			/anywhere other than its owner's wallet/i,
+			/beyond a machine's budget or its limits/i,
+			/act as another user or another machine/i,
+			/read or change the permanent record/i,
+			/secret or key that could leave/i,
+		])
+			expect(all).toMatch(matter);
+		expect(all).toMatch(/Only the latest release is supported/i);
+	});
+
+	it("sends reports to the security address and offers no reward it does not have", () => {
+		const hrefs = linksOf(DISCLOSURE);
+		expect(hrefs).toContain("mailto:security@maschina.dev");
+		const all = text(DISCLOSURE);
+		expect(all).toMatch(/do not run a bug bounty/i);
+		expect(all).not.toMatch(/\$\d|reward of|we will pay|bounty of|up to \d/i);
+	});
+
+	it("gives a researcher rules to follow and a good faith promise, and does not promise a fix date", () => {
+		const all = text(DISCLOSURE);
+		expect(all).toMatch(/Use only your own accounts, your own wallets and your own funds/i);
+		expect(all).toMatch(
+			/Do not look at, take, change or delete anyone else's information or funds/i,
+		);
+		expect(all).toMatch(/will not take legal action against you/i);
+		expect(all).toMatch(/cannot promise how long a fix will take/i);
+		expect(all).not.toMatch(/within \d+ days of|90 days|fixed within/i);
 	});
 });
