@@ -1,11 +1,20 @@
 /**
- * The pages there are, each by its address and its name. Every one is blank for now: the header and the footer with
- * nothing between them, to be filled in one at a time. Left out on purpose: the docs (their own app), the live record
- * (to be a separate app), the status page (run by someone else), the two AI files (plain files, not pages), and sign
- * in and sign up, which are a separate app and are never pages here.
+ * The pages there are, each by its address and its name: every page the header, the menus, the search and the footer
+ * link to. Every one is blank for now: the header and the footer with a screen of nothing between them, to be filled
+ * in one at a time. The docs, the live record, the status page and the two AI files have a blank page here too until
+ * each is moved or replaced by what it is to be (its own app, a status page run by someone else, a plain file). Sign
+ * in and sign up are a separate app and are never pages here.
  */
 export const ROUTES: Record<string, string> = {
 	"/product": "Product",
+	"/marketplace": "Marketplace",
+	"/network": "Network",
+	"/mobile": "Mobile",
+	"/docs": "Docs",
+	"/live": "Live record",
+	"/status": "Status",
+	"/llms.txt": "AI index",
+	"/SKILL.md": "Skill file",
 	"/security": "Security",
 	"/how-it-works": "How it works",
 	"/machines": "Machines",

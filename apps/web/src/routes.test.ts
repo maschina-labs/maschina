@@ -3,15 +3,14 @@ import { MENUS } from "./menus.ts";
 import { ROUTES, titleFor } from "./routes.ts";
 import { SITEMAP } from "./sitemap.ts";
 
-// Pages that live somewhere else and are not built here: the docs are their own app, the live record is to be a separate
-// app, the status page is run by someone else, and the two AI files are plain files, not pages.
-const ELSEWHERE = ["/docs", "/live", "/status", "/llms.txt", "/SKILL.md"];
-
 const internal = (href: string | undefined): href is string => Boolean(href?.startsWith("/"));
 const links = [
 	...Object.values(MENUS).flatMap((menu) => [...menu.main, ...menu.aside].map((item) => item.href)),
 	...SITEMAP.flatMap((column) => column.items.map((item) => item.href)),
 	"/product",
+	"/marketplace",
+	"/network",
+	"/mobile",
 	"/developers",
 	"/company",
 	"/papers",
@@ -19,15 +18,26 @@ const links = [
 ].filter(internal);
 
 describe("the pages", () => {
-	it("has a page for every address the header, the menus, the search and the footer link to, except the ones that live elsewhere", () => {
-		const missing = [...new Set(links)].filter(
-			(href) => !ROUTES[href] && !ELSEWHERE.includes(href),
-		);
+	it("has a page for every single address the header, the menus, the search and the footer link to, with no exceptions", () => {
+		const missing = [...new Set(links)].filter((href) => !ROUTES[href]);
 		expect(missing).toEqual([]);
 	});
 
-	it("has no page for the ones that live elsewhere, and none for sign in or sign up, which are a separate app", () => {
-		for (const href of ELSEWHERE) expect(ROUTES[href]).toBeUndefined();
+	it("has the pages that are only tagged Soon as well, the docs, the live record, the status page and the two AI files", () => {
+		for (const href of [
+			"/marketplace",
+			"/network",
+			"/mobile",
+			"/docs",
+			"/live",
+			"/status",
+			"/llms.txt",
+			"/SKILL.md",
+		])
+			expect(ROUTES[href], href).toBeDefined();
+	});
+
+	it("has no page for sign in or sign up, which are a separate app", () => {
 		for (const href of ["/sign-in", "/sign-up", "/login", "/signup", "/auth"])
 			expect(ROUTES[href]).toBeUndefined();
 	});
@@ -40,7 +50,8 @@ describe("the pages", () => {
 		expect(titleFor("/nope")).toBeUndefined();
 	});
 
-	it("uses lower case addresses of plain words and dashes, as the links do", () => {
-		for (const href of Object.keys(ROUTES)) expect(href).toMatch(/^\/[a-z]+(-[a-z]+)*$/);
+	it("uses the addresses as the links write them: plain words and dashes, and the two file names", () => {
+		for (const href of Object.keys(ROUTES))
+			expect(href).toMatch(/^\/[A-Za-z]+(-[a-z]+)*(\.[a-z]+)?$/);
 	});
 });

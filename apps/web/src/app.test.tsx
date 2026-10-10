@@ -31,7 +31,7 @@ describe("which page an address shows", () => {
 	});
 
 	it("shows the front page at the root, and for any address that has no page", () => {
-		for (const path of ["/", "/docs", "/anything/else", "/sign-in"]) {
+		for (const path of ["/", "/anything/else", "/sign-in"]) {
 			const view = render(<App authUrl={AUTH} path={path} />);
 			expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
 				"The operating system for autonomous capital.",
