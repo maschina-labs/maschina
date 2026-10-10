@@ -25,8 +25,8 @@ describe("the browser's bars only ever cover the page; they never resize it or m
 		expect(read("hero.tsx")).toContain("h-lvh");
 		expect(read("closing.tsx")).toContain("min-h-[70lvh]");
 		expect(read("footer.tsx")).toContain("min-h-lvh");
-		expect(read("site.tsx")).toContain("min-h-lvh");
-		for (const name of ["hero.tsx", "closing.tsx", "footer.tsx", "site.tsx"])
+		expect(read("frame.tsx")).toContain("min-h-lvh");
+		for (const name of ["hero.tsx", "closing.tsx", "footer.tsx", "frame.tsx"])
 			expect(read(name)).not.toMatch(/h-svh|min-h-svh|70svh/);
 	});
 

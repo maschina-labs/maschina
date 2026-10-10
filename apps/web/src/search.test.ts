@@ -56,4 +56,10 @@ describe("searching the pages", () => {
 		// ...while a real word does find something, so an always-empty search could not pass.
 		expect(search("docs").length).toBeGreaterThan(0);
 	});
+
+	it("finds the papers page, which is a page of its own in the header", () => {
+		expect(PAGES_INDEX.find((hit) => hit.label === "Papers")?.href).toBe("/papers");
+		expect(search("whitepaper pap").map((hit) => hit.label)).toEqual([]);
+		expect(search("paper").map((hit) => hit.label)).toContain("Papers");
+	});
 });

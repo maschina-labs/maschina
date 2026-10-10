@@ -22,6 +22,7 @@ describe("the sitemap", () => {
 	it("gathers the ways in and the things to check under Resources, from the menus' small links", () => {
 		const labels = SITEMAP.find((c) => c.title === "Resources")?.items.map((i) => i.label);
 		expect(labels).toEqual([
+			"Papers",
 			"Live record",
 			"Changelog",
 			"GitHub",

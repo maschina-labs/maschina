@@ -63,7 +63,14 @@ export const SITEMAP: Column[] = [
 	},
 	{
 		title: "Resources",
-		items: once([...(menu("Product")?.aside ?? []), ...(menu("Developers")?.aside ?? [])], taken),
+		items: once(
+			[
+				{ label: "Papers", href: "/papers" },
+				...(menu("Product")?.aside ?? []),
+				...(menu("Developers")?.aside ?? []),
+			],
+			taken,
+		),
 	},
 	{
 		title: "Company",

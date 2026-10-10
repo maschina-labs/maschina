@@ -54,6 +54,7 @@ describe("the header", () => {
 			"Developers",
 			"Company",
 			"Live record",
+			"Papers",
 			"Pricing",
 		]);
 	});
@@ -85,7 +86,7 @@ describe("the header", () => {
 			expect(trigger).toHaveAttribute("aria-expanded", "false");
 			expect(trigger.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		}
-		for (const name of ["Live record", "Pricing"]) {
+		for (const name of ["Live record", "Papers", "Pricing"]) {
 			const link = pages.getByRole("link", { name });
 			expect(link.querySelector("svg")).toBeNull();
 		}

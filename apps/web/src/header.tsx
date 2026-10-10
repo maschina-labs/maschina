@@ -9,13 +9,15 @@ import { TryButton } from "./try-button.tsx";
 
 /**
  * The header's pages, in order. The three with a dropdown carry a caret and open a menu from menus.ts; Live
- * record and Pricing are single pages.
+ * record, Papers and Pricing are single pages. Papers is in the bar itself, where it is seen at once, because the
+ * papers are how a reader checks what is said here.
  */
 const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
 	{ label: "Developers", href: "/developers", dropdown: true },
 	{ label: "Company", href: "/company", dropdown: true },
 	{ label: "Live record", href: "/live", dropdown: false },
+	{ label: "Papers", href: "/papers", dropdown: false },
 	{ label: "Pricing", href: "/pricing", dropdown: false },
 ];
 

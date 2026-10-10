@@ -4,7 +4,10 @@ import { MENUS } from "./menus.ts";
 export type Hit = { label: string; href: string; section: string };
 
 /** The pages that are not in a dropdown. */
-const LOOSE: Hit[] = [{ label: "Pricing", href: "/pricing", section: "Site" }];
+const LOOSE: Hit[] = [
+	{ label: "Papers", href: "/papers", section: "Site" },
+	{ label: "Pricing", href: "/pricing", section: "Site" },
+];
 
 /**
  * Every page there is somewhere to go, once each, in the order of the menus. What is not built yet has no
