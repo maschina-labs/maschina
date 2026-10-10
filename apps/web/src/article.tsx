@@ -18,7 +18,7 @@ export type ArticleDoc = {
 	sections: { heading?: string; body: Block[] }[];
 };
 
-// The particles field, from the same package as the front page's ribbon, loaded after the page is on screen so the page never waits for it.
+// The mesh field, from the same package as the front page's ribbon, loaded after the page is on screen so the page never waits for it.
 const Field = lazy(() =>
 	import("@maschina/field").then((module) => ({ default: module.FogBackground })),
 );
@@ -45,7 +45,7 @@ export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc
 						{ready ? (
 							<Suspense fallback={null}>
 								<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
-									<Field position="absolute" field="particles" motion="full" mode="dark" />
+									<Field position="absolute" field="mesh" motion="full" mode="dark" />
 								</div>
 							</Suspense>
 						) : null}
