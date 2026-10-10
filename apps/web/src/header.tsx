@@ -232,7 +232,7 @@ export function Header({
 						setOpen(false);
 						setSearching(false);
 					}}
-					className={`fixed inset-0 z-30 bg-black/30 backdrop-blur-xl backdrop-saturate-150 transition-opacity duration-300 ease-out motion-reduce:transition-none ${backdrop.visible ? "opacity-100" : "opacity-0"} ${backdropFor.current === "dropdown" ? "hidden xl:block" : backdropFor.current === "menu" ? "xl:hidden" : ""} ${backdrop.closing ? "pointer-events-none" : ""}`}
+					className={`fixed inset-0 z-30 bg-black/30 backdrop-blur-xl backdrop-saturate-150 max-xl:bg-black/70 max-xl:backdrop-blur-none max-xl:backdrop-saturate-100 transition-opacity duration-300 ease-out motion-reduce:transition-none ${backdrop.visible ? "opacity-100" : "opacity-0"} ${backdropFor.current === "dropdown" ? "hidden xl:block" : backdropFor.current === "menu" ? "xl:hidden" : ""} ${backdrop.closing ? "pointer-events-none" : ""}`}
 				/>
 			) : null}
 			{/* A sticky rail of no height: it stays at the top as the page scrolls, and goes down with the page when it is pulled to refresh. */}
@@ -464,9 +464,9 @@ export function Header({
 							data-state={mobileMenu.visible ? "open" : "closed"}
 							aria-hidden={mobileMenu.closing ? true : undefined}
 							inert={mobileMenu.closing}
-							className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:hidden ${mobileMenu.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+							className={`absolute inset-x-0 top-full will-change-[clip-path] transition-[clip-path] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none xl:hidden ${mobileMenu.visible ? "[clip-path:inset(0_0_0_0)]" : "[clip-path:inset(0_0_100%_0)]"}`}
 						>
-							<div className="min-h-0 overflow-hidden bg-black">
+							<div className="bg-black">
 								<nav
 									id="pages-menu"
 									aria-label="Pages, menu"
@@ -492,7 +492,7 @@ export function Header({
 														data-state={section === page.label ? "open" : "closed"}
 														aria-hidden={section === page.label ? undefined : true}
 														inert={section !== page.label}
-														className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${section === page.label ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+														className={`grid transition-[grid-template-rows] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${section === page.label ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 													>
 														<div className="min-h-0 overflow-hidden">
 															<div className="flex flex-col gap-5 pb-4 pl-1">
