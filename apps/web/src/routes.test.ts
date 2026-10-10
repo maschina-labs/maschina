@@ -27,10 +27,10 @@ describe("the pages", () => {
 			expect(ROUTES[href], href).toBeDefined();
 	});
 
-	it("says a link leaves the site when it goes to another address or to a plain file, and not when it goes to a page", () => {
+	it("says a link leaves the site only when it goes to another address: the plain files are endpoints of this site, and so are its pages", () => {
 		expect(leavesSite("https://github.com/maschina-labs")).toBe(true);
-		expect(leavesSite("/llms.txt")).toBe(true);
-		expect(leavesSite("/SKILL.md")).toBe(true);
+		expect(leavesSite("/llms.txt")).toBe(false);
+		expect(leavesSite("/SKILL.md")).toBe(false);
 		expect(leavesSite("/about")).toBe(false);
 		expect(leavesSite("/")).toBe(false);
 	});

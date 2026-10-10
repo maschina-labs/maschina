@@ -31,8 +31,8 @@ export const ROUTES: Record<string, string> = {
 };
 
 /**
- * The plain files the site serves as they are, from public/. They are not pages: an agent or a crawler reads them, and
- * the header and the footer link to a few. Each one is a real file, and a test checks that it exists.
+ * The plain files the site serves as they are, from public/. They are endpoints of this site, not pages and not
+ * other sites: an agent or a crawler reads them, and the header and the footer link to a few, with no arrow. Each one is a real file, and a test checks that it exists.
  */
 export const FILES: Record<string, string> = {
 	"/llms.txt": "AI index",
@@ -43,9 +43,9 @@ export const FILES: Record<string, string> = {
 	"/humans.txt": "Humans",
 };
 
-/** Whether a link leaves the site: it goes to another address, or to a plain file that is not a page of the site. */
+/** Whether a link leaves the site: it goes to another address. The plain files in FILES are endpoints of this site. */
 export function leavesSite(href: string): boolean {
-	return href.startsWith("https://") || href in FILES;
+	return href.startsWith("https://");
 }
 
 /** The name of the page at an address, with or without a trailing slash; nothing for an address with no page. */

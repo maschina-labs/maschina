@@ -452,6 +452,7 @@ export function Header({
 														{item.href ? (
 															<a href={item.href} className={BIG}>
 																{item.label}
+																{leavesSite(item.href) ? <ExternalArrow /> : null}
 															</a>
 														) : (
 															<span
@@ -576,6 +577,7 @@ export function Header({
 																					{item.href ? (
 																						<a href={item.href} className={SUB}>
 																							{item.label}
+																							{leavesSite(item.href) ? <ExternalArrow /> : null}
 																						</a>
 																					) : (
 																						<span

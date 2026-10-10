@@ -720,12 +720,12 @@ describe("the header's motion", () => {
 		render(<Header authUrl={AUTH} />);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const inside = within(screen.getByRole("region", { name: "Developers" }));
-		for (const name of ["GitHub", "AI index", "Skill file"])
+		for (const name of ["Docs", "API", "SDK", "Machine spec", "Templates", "GitHub"])
 			expect(
 				inside.getByRole("link", { name }).querySelector("svg[data-arrow=external]"),
 				name,
 			).not.toBeNull();
-		for (const name of ["Docs", "API", "SDK"])
+		for (const name of ["AI index", "Skill file"])
 			expect(inside.getByRole("link", { name }).querySelector("svg"), name).toBeNull();
 	});
 });

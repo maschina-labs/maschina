@@ -4,7 +4,7 @@ import { leavesSite } from "./routes.ts";
 
 type Entry = { label: string; href?: string; action?: "preferences" };
 
-/** A link with no address is not built yet and shows as Soon. One with a full address, or one that is a plain file, leaves the site. */
+/** A link with no address is not built yet and shows as Soon. One with a full address leaves the site. */
 type Link = Entry & { external: boolean };
 
 /** One column of the footer's sitemap. */

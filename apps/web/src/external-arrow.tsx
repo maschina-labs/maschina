@@ -1,6 +1,5 @@
 /**
- * The small up-right arrow that says a link leaves the site: it goes to another address, or to a plain file that is not
- * a page of it. It takes its color from the link, so it is gray with the words and light with them on hover.
+ * The small up-right arrow that says a link leaves the site: it goes to another address. It takes its color from the link, so it is gray with the words and light with them on hover.
  */
 export function ExternalArrow() {
 	return (

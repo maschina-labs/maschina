@@ -76,7 +76,6 @@ describe("the sitemap", () => {
 	it("knows which links leave the site: those with a full address", () => {
 		const external = all.filter((item) => item.external).map((item) => item.label);
 		expect(external.sort()).toEqual([
-			"AI index",
 			"API",
 			"Changelog",
 			"Docs",
@@ -85,7 +84,6 @@ describe("the sitemap", () => {
 			"Machine spec",
 			"Quickstart",
 			"SDK",
-			"Skill file",
 			"Templates",
 			"X",
 		]);

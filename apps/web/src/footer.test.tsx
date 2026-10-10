@@ -111,7 +111,7 @@ describe("the footer", () => {
 	it("marks the links that leave the site with a small up-right arrow, and no others", () => {
 		render(<Footer />);
 		const nav = within(screen.getByRole("navigation", { name: "Sitemap" }));
-		for (const name of ["GitHub", "X", "Changelog", "AI index", "Skill file"]) {
+		for (const name of ["GitHub", "X", "Changelog"]) {
 			const link = nav.getByRole("link", { name });
 			expect(link.querySelector("svg")).toHaveAttribute("data-arrow", "external");
 			expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
@@ -123,7 +123,7 @@ describe("the footer", () => {
 			expect(link.className).toContain("hover:text-white");
 		}
 		for (const link of nav.getAllByRole("link")) {
-			// What leaves the site: another address, or a plain file that is not a page of it.
+			// What leaves the site: another address. The plain files are endpoints of this site and get no arrow.
 			const href = link.getAttribute("href") ?? "";
 			expect(link.querySelector("svg") !== null, href).toBe(leavesSite(href));
 		}
