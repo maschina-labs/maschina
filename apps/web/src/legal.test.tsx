@@ -202,14 +202,14 @@ describe("the terms of service", () => {
 			expect(hrefs).toContain(href);
 		for (const href of hrefs.filter((h) => h.startsWith("/")))
 			expect(ROUTES[href], href).toBeDefined();
-		expect(hrefs).toContain("mailto:asher@maschina.dev");
+		expect(hrefs).toContain("mailto:legal@maschina.dev");
 	});
 
 	it("sets out who runs it, where the law is, and how to reach them, in plain words", () => {
 		const all = text(TERMS);
 		expect(all).toMatch(/Maschina Labs/);
 		expect(all).toMatch(/Alberta/);
-		expect(all).toMatch(/asher@maschina\.dev/);
+		expect(all).toMatch(/legal@maschina\.dev/);
 		expect(all).toMatch(/18/);
 	});
 });

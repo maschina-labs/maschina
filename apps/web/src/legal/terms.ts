@@ -227,7 +227,7 @@ export const TERMS: LegalDoc = {
 			body: [
 				[
 					"Questions about these terms, or anything to do with Maschina, can go to ",
-					{ text: "asher@maschina.dev", href: "mailto:asher@maschina.dev" },
+					{ text: "legal@maschina.dev", href: "mailto:legal@maschina.dev" },
 					".",
 				],
 			],
