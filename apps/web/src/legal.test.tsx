@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PRIVACY } from "./legal/privacy.ts";
+import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { ROUTES } from "./routes.ts";
@@ -450,6 +451,7 @@ const linksOf = (doc: LegalDoc) => {
 describe.each([
 	["the terms of service", TERMS],
 	["the privacy policy", PRIVACY],
+	["the risk disclosure", RISK],
 ])("%s", (_name, doc) => {
 	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
 		expect(doc.updated).toBe("October 9, 2026");
@@ -584,5 +586,54 @@ describe("the privacy policy", () => {
 		const hrefs = linksOf(PRIVACY);
 		expect(hrefs).toContain("/terms");
 		expect(hrefs).toContain("/disclosure");
+	});
+});
+
+describe("the risk disclosure", () => {
+	it("covers the risks of a product like this, each under its own heading", () => {
+		const headings = RISK.sections.map((section) => section.heading);
+		for (const needed of [
+			/short version/i,
+			/what maschina is/i,
+			/lose everything/i,
+			/market risks/i,
+			/machine and automation/i,
+			/ai risks/i,
+			/limits/i,
+			/wallet and technical/i,
+			/third parties/i,
+			/legal and tax/i,
+			/results and examples/i,
+			/less risk/i,
+			/your decision/i,
+		])
+			expect(
+				headings.some((heading) => needed.test(heading)),
+				String(needed),
+			).toBe(true);
+	});
+
+	it("says plainly that all of it can be lost, that nothing is insured, that limits do not make a machine safe, and that nothing is promised", () => {
+		const all = text(RISK);
+		expect(all).toMatch(/lose all of the money/i);
+		expect(all).toMatch(/not insured/i);
+		expect(all).toMatch(/not (a )?(bank|broker)|not a bank/i);
+		expect(all).toMatch(/do not make it safe/i);
+		expect(all).toMatch(/cannot be reversed|cannot be undone/i);
+		expect(all).toMatch(/not been independently audited/i);
+		expect(all).toMatch(/do not predict future results/i);
+		expect(all).toMatch(/do not promise or imply that any machine will make money/i);
+		expect(all).toMatch(/only use money you can afford to lose|money you can afford to lose/i);
+	});
+
+	it("shows no figures: no percentages, no amounts, no returns", () => {
+		const all = text(RISK);
+		expect(all).not.toMatch(/%|\$\d|\d+x\b|per cent|percent/i);
+	});
+
+	it("points to the terms by their real address, and reaches the company at the legal address", () => {
+		const hrefs = linksOf(RISK);
+		expect(hrefs).toContain("/terms");
+		expect(hrefs).toContain("mailto:legal@maschina.dev");
 	});
 });

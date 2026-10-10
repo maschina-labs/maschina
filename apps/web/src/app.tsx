@@ -1,5 +1,6 @@
 import { BlankPage } from "./blank-page.tsx";
 import { PRIVACY } from "./legal/privacy.ts";
+import { RISK } from "./legal/risk.ts";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
 import { titleFor } from "./routes.ts";
@@ -11,7 +12,7 @@ import { Site } from "./site.tsx";
  * for the browser's.
  */
 /** The legal documents, each at its address. They are written out in full; the other pages are blank. */
-const DOCUMENTS: Record<string, LegalDoc> = { "/terms": TERMS, "/privacy": PRIVACY };
+const DOCUMENTS: Record<string, LegalDoc> = { "/terms": TERMS, "/privacy": PRIVACY, "/risk": RISK };
 
 export function App({
 	authUrl,
