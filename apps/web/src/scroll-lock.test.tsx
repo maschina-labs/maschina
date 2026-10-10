@@ -60,7 +60,7 @@ describe("the page cannot scroll behind an open header panel", () => {
 });
 
 describe("the open panels still scroll on their own, since only the page behind them is locked", () => {
-	const SCROLLS = ["overflow-y-auto", "overscroll-contain", "max-h-[calc(100dvh-5.5rem)]"];
+	const SCROLLS = ["overflow-y-auto", "overscroll-contain", "max-h-[calc(100svh-5.5rem)]"];
 
 	it("scrolls the phone menu's list", () => {
 		render(<Header authUrl={AUTH} />);

@@ -42,7 +42,7 @@ export function Hero({ authUrl }: { authUrl: string }) {
 			aria-label="Maschina"
 			onPointerMove={follow}
 			onPointerLeave={leave}
-			className="relative flex h-dvh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-16 text-center"
+			className="relative flex h-svh min-h-[36rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-32 pb-16 text-center"
 		>
 			<div aria-hidden="true" className="pointer-events-none absolute inset-0">
 				{ready ? (

@@ -15,7 +15,7 @@ import { Showcase } from "./showcase.tsx";
  */
 export function Site({ authUrl }: { authUrl: string }) {
 	return (
-		<div className="relative flex min-h-dvh flex-col bg-black">
+		<div className="relative flex min-h-svh flex-col bg-black">
 			<Header authUrl={authUrl} />
 			<main>
 				<Hero authUrl={authUrl} />

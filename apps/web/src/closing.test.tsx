@@ -51,7 +51,7 @@ describe("the closing section", () => {
 		const { container } = render(<Closing authUrl={AUTH} />);
 		const { className } = screen.getByRole("region", { name: "Get started" });
 		expect(className).toContain("bg-black");
-		expect(className).toContain("min-h-[70dvh]");
+		expect(className).toContain("min-h-[70svh]");
 		expect(className).toContain("flex-col");
 		expect(className).toContain("items-center");
 		expect(className).toContain("justify-center");

@@ -359,7 +359,7 @@ export function Header({
 						className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 					>
 						<section aria-label={shownName} className="min-h-0 overflow-hidden bg-black">
-							<div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
+							<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 								<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 									<div className="flex flex-col gap-5">
 										<p className="text-[13px] text-neutral-500">{shownMenu.intro}</p>
@@ -414,7 +414,7 @@ export function Header({
 						className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 					>
 						<section aria-label="Search" className="min-h-0 overflow-hidden bg-black">
-							<div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
+							<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 								<input
 									ref={box}
 									type="search"
@@ -473,7 +473,7 @@ export function Header({
 							<nav
 								id="pages-menu"
 								aria-label="Pages, menu"
-								className="flex max-h-[calc(100dvh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
+								className="flex max-h-[calc(100svh-5.5rem)] flex-col gap-1 overflow-y-auto overscroll-contain px-(--gutter) pt-2 pb-8"
 							>
 								{PAGES.map((page) =>
 									page.dropdown ? (

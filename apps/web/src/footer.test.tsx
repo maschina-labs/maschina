@@ -419,7 +419,7 @@ describe("the footer", () => {
 	it("is a full screen with the wordmark at the foot of it", () => {
 		render(<Footer />);
 		const { className } = screen.getByRole("contentinfo");
-		expect(className).toContain("min-h-dvh");
+		expect(className).toContain("min-h-svh");
 		expect(className).toContain("flex-col");
 		expect(className).toContain("justify-end");
 	});
