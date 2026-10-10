@@ -47,18 +47,6 @@ describe("a legal page", () => {
 		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
 	});
 
-	it("keeps the page margins on the article, so the text starts at the left margin and the contents end at the right one", () => {
-		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
-		const article = screen.getByRole("main").querySelector("article") as HTMLElement;
-		expect(article.className).toContain("px-(--gutter)");
-		expect(article.className).not.toMatch(/max-w-/);
-		const column = article.firstElementChild as HTMLElement;
-		expect(column).toHaveAttribute("data-column");
-		// No centered box: the text starts at the page's left margin, in line with the logo, and the contents end at the right margin.
-		expect(column.className).not.toMatch(/mx-auto|max-w-/);
-		expect(column.className).not.toContain("px-");
-	});
-
 	describe("the counter counts as the clauses are read", () => {
 		const LINE = 140;
 		const place = (id: string, top: number, height: number) => {

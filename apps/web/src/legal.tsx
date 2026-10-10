@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Frame } from "./frame.tsx";
+import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
 
@@ -194,26 +195,33 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 	);
 	return (
 		<Frame authUrl={authUrl}>
-			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
-				<div data-column className="w-full">
-					<div data-head className="mx-auto w-full max-w-[44rem]">
-						<p className="text-[14px] text-neutral-500">Legal</p>
-						<h1 className="mt-5 font-display font-medium text-[clamp(2.75rem,7vw,5.5rem)] text-white leading-[0.98] tracking-[-0.04em] [text-wrap:balance]">
+			<article className="w-full">
+				<div data-head className={HEAD}>
+					<HeadArt />
+					<div data-head-text className="relative mx-auto w-full max-w-[44rem]">
+						<p className="text-[14px] text-neutral-400">Legal</p>
+						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.5rem)] text-white leading-[0.98] tracking-[-0.04em] [text-wrap:balance]">
 							{doc.title}
 						</h1>
-						<p className="mt-6 text-[14px] text-neutral-500">Last updated {doc.updated}</p>
-						{doc.intro?.map((block) => (
-							<p
-								key={typeof block === "string" ? block : flat(block)}
-								className="mt-8 text-[19px] text-neutral-300 leading-[1.6]"
-							>
-								{typeof block === "string" ? block : <Text parts={block} />}
-							</p>
-						))}
+						<p className="mt-6 text-[14px] text-neutral-400">Last updated {doc.updated}</p>
 					</div>
+				</div>
+				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
+					{doc.intro?.length ? (
+						<div className="mx-auto mb-14 w-full max-w-[44rem]">
+							{doc.intro.map((block) => (
+								<p
+									key={typeof block === "string" ? block : flat(block)}
+									className="mt-6 text-[19px] text-neutral-300 leading-[1.6] first:mt-0"
+								>
+									{typeof block === "string" ? block : <Text parts={block} />}
+								</p>
+							))}
+						</div>
+					) : null}
 					<div
 						data-layout
-						className="mt-20 grid gap-x-12 xl:grid-cols-[minmax(0,1fr)_44rem_minmax(0,1fr)]"
+						className="grid gap-x-12 xl:grid-cols-[minmax(0,1fr)_44rem_minmax(0,1fr)]"
 					>
 						<div className="hidden xl:block" />
 						<div data-text className="mx-auto w-full max-w-[44rem]">

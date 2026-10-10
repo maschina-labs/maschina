@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
 import { Frame } from "./frame.tsx";
+import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { flat, type Part, Text } from "./legal.tsx";
 import { useTitle } from "./use-title.ts";
 
@@ -18,11 +18,6 @@ export type ArticleDoc = {
 	sections: { heading?: string; body: Block[] }[];
 };
 
-// The mesh field, from the same package as the front page's ribbon, loaded after the page is on screen so the page never waits for it.
-const Field = lazy(() =>
-	import("@maschina/field").then((module) => ({ default: module.FogBackground })),
-);
-
 const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [text-wrap:pretty]";
 
 /**
@@ -32,25 +27,11 @@ const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [tex
  */
 export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc }) {
 	useTitle(doc.title);
-	const [ready, setReady] = useState(false);
-	useEffect(() => setReady(true), []);
 	return (
 		<Frame authUrl={authUrl}>
 			<article className="w-full">
-				<header
-					data-head
-					className="sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col justify-end overflow-hidden px-(--gutter) pt-24 pb-12 sm:pb-16"
-				>
-					<div data-art aria-hidden="true" className="pointer-events-none absolute inset-0">
-						{ready ? (
-							<Suspense fallback={null}>
-								<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
-									<Field position="absolute" field="mesh" motion="full" mode="dark" />
-								</div>
-							</Suspense>
-						) : null}
-						<div className="absolute inset-0 bg-[oklch(0_0_0/0.15)]" />
-					</div>
+				<div data-head className={HEAD}>
+					<HeadArt />
 					<div data-head-text className="relative mx-auto w-full max-w-[48rem]">
 						<p className="text-[14px] text-neutral-400">{doc.kicker}</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.25rem,5vw,3.75rem)] text-white leading-[1] tracking-[-0.04em] [text-wrap:balance]">
@@ -65,11 +46,8 @@ export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc
 							<time>{doc.date}</time>
 						</p>
 					</div>
-				</header>
-				<div
-					data-sheet
-					className="relative z-10 bg-black px-(--gutter) pt-14 pb-24 sm:pt-20 sm:pb-32"
-				>
+				</div>
+				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
 					<div data-body className="mx-auto w-full max-w-[48rem]">
 						{doc.sections.map((section, sectionIndex) => (
 							<section

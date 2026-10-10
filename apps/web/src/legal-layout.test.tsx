@@ -23,18 +23,35 @@ const DOC: LegalDoc = {
 };
 
 describe("the centered legal page", () => {
-	it("puts the title, the lead and the text in one reading column in the middle of the page, with the page margins on the article", () => {
+	it("gives the head the same held background as the article pages, 50lvh tall, with the title over it on the text's edge", () => {
 		const { container } = render(<LegalPage authUrl={AUTH} doc={DOC} />);
-		const article = container.querySelector("article") as HTMLElement;
-		expect(article.className).toContain("px-(--gutter)");
-		expect(article.className).not.toMatch(/max-w-/);
 		const head = container.querySelector("[data-head]") as HTMLElement;
-		expect(head.className).toContain("mx-auto");
-		expect(head.className).toContain("max-w-[44rem]");
+		for (const part of ["sticky", "top-0", "overflow-hidden", "h-[50lvh]", "px-(--gutter)"])
+			expect(head.className).toContain(part);
+		const art = container.querySelector("[data-art]") as HTMLElement;
+		expect(art).toHaveAttribute("aria-hidden", "true");
+		expect(head.contains(art)).toBe(true);
+		const inner = container.querySelector("[data-head-text]") as HTMLElement;
+		expect(inner.className).toContain("mx-auto");
+		expect(inner.className).toContain("max-w-[44rem]");
+		expect(inner).toHaveTextContent("Legal");
+		expect(inner).toHaveTextContent("Last updated October 9, 2026");
+		expect(inner.contains(screen.getByRole("heading", { level: 1 }))).toBe(true);
+	});
+
+	it("rolls a black sheet over the head: the lead and the text sit on it, with the page margins, and the text has no background of its own", () => {
+		const { container } = render(<LegalPage authUrl={AUTH} doc={DOC} />);
+		const head = container.querySelector("[data-head]") as HTMLElement;
+		const sheet = container.querySelector("[data-sheet]") as HTMLElement;
+		expect(head.nextElementSibling).toBe(sheet);
+		for (const part of ["relative", "z-10", "bg-black", "px-(--gutter)"])
+			expect(sheet.className).toContain(part);
+		expect(sheet.contains(screen.getByText("The lead."))).toBe(true);
 		const text = container.querySelector("[data-text]") as HTMLElement;
+		expect(sheet.contains(text)).toBe(true);
+		expect(text.className).not.toMatch(/\bbg-/);
 		expect(text.className).toContain("mx-auto");
 		expect(text.className).toContain("max-w-[44rem]");
-		// A middle column the same width as the head, with room either side, on a very wide screen.
 		const layout = container.querySelector("[data-layout]") as HTMLElement;
 		expect(layout.className).toContain("xl:grid-cols-[minmax(0,1fr)_44rem_minmax(0,1fr)]");
 		expect(layout.className).not.toMatch(/border/);
