@@ -25,10 +25,11 @@ describe("the header", () => {
 		expect(mark.style.transform).toBe("rotate(720deg)");
 	});
 
-	it("has Log in as plain text, in no box, like the pages, on a desktop (a box beside the menu button on a phone)", () => {
+	it("has Log in as plain text, in no box, like the pages, on a desktop (the pearl button beside the menu button on a phone)", () => {
 		render(<Header authUrl={AUTH} />);
 		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
-		expect(logIn.className).toContain("xl:bg-transparent");
+		// On a desktop it has no box at all: its only background classes are for a phone.
+		expect(logIn.className).not.toMatch(/(^|\s)(xl:)?bg-/);
 		expect(logIn.className).toContain("xl:inline-block");
 	});
 

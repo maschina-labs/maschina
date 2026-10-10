@@ -262,7 +262,7 @@ export function Header({
 					/>
 					<div className="flex items-center justify-between px-(--gutter) py-5 xl:py-4">
 						<div className="flex items-center gap-10">
-							<Logo large />
+							<Logo />
 							<div className="hidden items-center gap-5 xl:flex">
 								<nav aria-label="Pages" className="flex items-center gap-7">
 									{PAGES.map((page) =>
@@ -304,7 +304,7 @@ export function Header({
 						<div className="flex items-center gap-2 text-[14px] xl:gap-3">
 							<a
 								href={signIn}
-								className={`${LINK} inline-flex h-10 items-center bg-white/[0.13] px-3.5 hover:bg-white/[0.18] sm:px-5 xl:inline-block xl:h-auto xl:bg-transparent xl:px-2 xl:py-2 xl:hover:bg-transparent`}
+								className={`${LINK} inline-flex h-10 items-center px-3.5 max-xl:bg-[oklch(0.93_0.02_300)] max-xl:text-black max-xl:hover:bg-[oklch(0.98_0.015_300)] sm:px-5 xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
 							>
 								Log in
 							</a>
@@ -327,27 +327,22 @@ export function Header({
 								}}
 								className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 							>
+								{/* Phosphor's List and X, regular weight, drawn from the library's own paths. */}
 								<svg
-									viewBox="0 0 20 20"
-									className={`col-start-1 row-start-1 size-5 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
-									fill="none"
-									stroke="currentColor"
-									strokeWidth={1.5}
-									strokeLinecap="square"
+									viewBox="0 0 256 256"
+									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
+									fill="currentColor"
 									aria-hidden="true"
 								>
-									<path d="M3 6h14M3 10h14M3 14h14" />
+									<path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z" />
 								</svg>
 								<svg
-									viewBox="0 0 20 20"
-									className={`col-start-1 row-start-1 size-5 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
-									fill="none"
-									stroke="currentColor"
-									strokeWidth={1.5}
-									strokeLinecap="square"
+									viewBox="0 0 256 256"
+									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
+									fill="currentColor"
 									aria-hidden="true"
 								>
-									<path d="M4 4l12 12M16 4L4 16" />
+									<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
 								</svg>
 							</button>
 						</div>

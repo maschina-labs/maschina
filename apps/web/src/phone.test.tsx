@@ -84,45 +84,79 @@ describe("the header on a phone", () => {
 		return screen.getByRole("banner");
 	};
 
-	it("is fatter than on a desktop, with a slightly bigger logo, and its two buttons are the small size", () => {
+	it("is fatter than on a desktop, with its two buttons at the small size", () => {
 		const banner = header();
 		const bar = banner.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
 		expect(bar.className).toContain("py-5");
 		expect(bar.className).toContain("xl:py-4");
-		const mark = banner.querySelector("[data-mark]") as HTMLElement;
-		expect(mark.className).toContain("size-5");
-		expect(mark.className).toContain("sm:size-6");
-		const word = banner.querySelector("[data-word] img") as HTMLElement;
-		expect(word.className).toContain("h-5");
-		expect(word.className).toContain("sm:h-6");
 		const menu = screen.getByRole("button", { name: "Menu" });
 		expect(menu.className).toContain("size-10");
 		expect(menu.className).toContain("xl:hidden");
 	});
 
-	it("has Log in in a gray square box right beside the menu button, the same height as it", () => {
+	it("has one logo size everywhere, the desktop's own: 20px, so a phone's header and footer match each other and the desktop is exactly as it was", () => {
+		const banner = header();
+		const mark = banner.querySelector("[data-mark]") as HTMLElement;
+		const word = banner.querySelector("[data-word] img") as HTMLElement;
+		// Phone and desktop get the same size now. Before, a phone had 16px and from sm up 20px: the 20px is kept.
+		expect(mark.className.split(" ")).toContain("size-5");
+		expect(mark.className).not.toMatch(/sm:size-/);
+		expect(word.className.split(" ")).toContain("h-5");
+		expect(word.className).not.toMatch(/sm:h-/);
+	});
+
+	it("shows the same size logo in the footer as in the header", () => {
+		render(<Footer />);
+		const footer = screen.getByRole("contentinfo");
+		const mark = footer.querySelector("[data-mark]") as HTMLElement;
+		const word = footer.querySelector("[data-word] img") as HTMLElement;
+		expect(mark.className.split(" ")).toContain("size-5");
+		expect(mark.className).not.toMatch(/sm:size-/);
+		expect(word.className.split(" ")).toContain("h-5");
+		expect(word.className).not.toMatch(/sm:h-/);
+	});
+
+	it("draws the menu and close icons from Phosphor's own List and X (regular weight), not hand drawn lines", () => {
+		const banner = header();
+		const menu = within(banner).getByRole("button", { name: "Menu" });
+		const paths = [...menu.querySelectorAll("svg")].map((svg) => ({
+			view: svg.getAttribute("viewBox"),
+			d: svg.querySelector("path")?.getAttribute("d"),
+			fill: svg.getAttribute("fill"),
+		}));
+		expect(paths).toEqual([
+			{
+				view: "0 0 256 256",
+				fill: "currentColor",
+				d: "M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z",
+			},
+			{
+				view: "0 0 256 256",
+				fill: "currentColor",
+				d: "M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z",
+			},
+		]);
+	});
+
+	it("has Log in as the pearl button on a phone, since it is the only call to action in the bar, right beside the menu button", () => {
 		const banner = header();
 		const logIn = within(banner).getByRole("link", { name: "Log in" });
 		const menu = screen.getByRole("button", { name: "Menu" });
-		expect(logIn.className).toContain("bg-white/[0.13]");
+		// Pearl and black like the other main buttons, on a phone only: the desktop's plain text link is not touched.
+		expect(logIn.className).toContain("max-xl:bg-[oklch(0.93_0.02_300)]");
+		expect(logIn.className).toContain("max-xl:text-black");
+		expect(logIn.className).toContain("max-xl:hover:bg-[oklch(0.98_0.015_300)]");
+		expect(logIn.className).not.toMatch(/(^|\s)bg-white\/\[0\.13\]/);
 		expect(logIn.className).toContain("h-10");
 		expect(logIn.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+		expect(logIn.className).not.toMatch(/rounded/);
+		// In the same row as the menu button, just before it (only the desktop's own Try button, hidden on a phone, may sit between).
 		expect(logIn.parentElement).toBe(menu.parentElement);
-		// Just before it in the same row (only the desktop's own Try button, hidden on a phone, may sit between).
 		const row = [...(menu.parentElement?.children ?? [])];
 		expect(row.indexOf(logIn)).toBeLessThan(row.indexOf(menu));
 		const between = row.slice(row.indexOf(logIn) + 1, row.indexOf(menu));
 		expect(between.every((each) => each.className.includes("hidden"))).toBe(true);
-		expect(logIn.className).not.toMatch(/rounded/);
-	});
-
-	it("leaves the footer's logo at its own size", () => {
-		render(<Footer />);
-		const mark = screen.getByRole("contentinfo").querySelector("[data-mark]") as HTMLElement;
-		const sizes = mark.className.split(" ");
-		expect(sizes).toContain("size-4");
-		expect(sizes).not.toContain("size-5");
 	});
 });
 
