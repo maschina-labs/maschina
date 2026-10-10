@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Frame } from "./frame.tsx";
 import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
@@ -103,28 +103,37 @@ function useClauseCounters(sections: number) {
 /** The section on screen, so the contents can show where the reader is. Where nothing can be watched, none. */
 function useCurrentSection(ids: string[]) {
 	const [current, setCurrent] = useState<string | null>(null);
+	const key = ids.join("|");
 	useEffect(() => {
-		if (typeof IntersectionObserver === "undefined") return;
-		const watcher = new IntersectionObserver(
-			(entries) => {
-				const visible = entries.filter((entry) => entry.isIntersecting);
-				const first = visible.sort(
-					(a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
-				)[0];
-				if (first) setCurrent(first.target.getAttribute("data-section"));
-			},
-			{ rootMargin: "-30% 0px -60% 0px" },
-		);
-		for (const id of ids) {
-			const node = document.querySelector(`[data-section="${id}"]`);
-			if (node) watcher.observe(node);
-		}
-		return () => watcher.disconnect();
-	}, [ids]);
+		const sections = key.split("|");
+		// The section being read is the last one whose top has reached the middle of the screen. Watching a thin band
+		// with an observer misses a short last section, which never reaches the band before the page ends.
+		const measure = () => {
+			const middle = window.innerHeight / 2;
+			let found: string | null = null;
+			for (const id of sections) {
+				const node = document.querySelector(`[data-section="${id}"]`);
+				if (node && node.getBoundingClientRect().top <= middle) found = id;
+			}
+			// At the very end of the page a short last section may never reach the middle, so it is the one being read.
+			const end = document.documentElement.scrollHeight - 2;
+			if (window.scrollY + window.innerHeight >= end)
+				found = sections[sections.length - 1] ?? found;
+			setCurrent(found);
+		};
+		const root = scroller();
+		measure();
+		root.addEventListener("scroll", measure, { passive: true });
+		window.addEventListener("resize", measure);
+		return () => {
+			root.removeEventListener("scroll", measure);
+			window.removeEventListener("resize", measure);
+		};
+	}, [key]);
 	return current;
 }
 
-function Contents({
+export function Contents({
 	doc,
 	current,
 	className,
@@ -133,8 +142,20 @@ function Contents({
 	current: string | null;
 	className: string;
 }) {
+	const list = useRef<HTMLOListElement>(null);
+	// The list is taller than the screen on a long document, so it scrolls on its own. Keep the lit line inside it by
+	// moving the list only, never the page: scrollIntoView would drag the page along.
+	useEffect(() => {
+		const box = list.current?.closest("nav");
+		const lit = list.current?.querySelector('[aria-current="location"]');
+		if (!box || !lit) return;
+		const frame = box.getBoundingClientRect();
+		const line = lit.getBoundingClientRect();
+		if (line.top >= frame.top && line.bottom <= frame.bottom) return;
+		box.scrollTop = line.top - frame.top + box.scrollTop - (frame.height - line.height) / 2;
+	}, [current]);
 	return (
-		<ol className={className}>
+		<ol ref={list} className={className}>
 			{doc.sections.map((section, index) => {
 				const id = slug(section.heading);
 				return (
@@ -156,12 +177,11 @@ function Contents({
 }
 
 /**
- * A legal document, set the way a contract is and the way the best product legal pages are: a small label, a big plain
- * title, the date, and the first words as a lead; then a hairline, the contents down the left (held in view, with the
- * section you are in lit) and the text in a reading column on the right. Every section is numbered and every clause inside it (1.1, 1.2) has its own number as an address, and a counter
- * pinned at the left shows the clause being read, rolling up to the next like an odometer as the reading goes on. Seventeen pixel type with roomy lines, headings that step up with
- * room above them, square bullets, and nothing else. On a phone it is just text on a page: no contents, no counter, no numbers in the margin, no indent, and the type a size up. The page
- * margins are the article's own padding and the width is on a box inside it, so the margins never squeeze the text.
+ * The legal page with its text centered: one reading column in the middle of the page, the title at the column's left
+ * edge, every line of text on that one edge with no stepping in and out, and the numbers kept but moved out of the way.
+ * The clause numbers hang in the margin beside each clause, small and faint, and the counter that follows the reading
+ * sits further out in the margin, small, rolling like an odometer. The contents are down the right of a very wide
+ * screen. Below a wide screen the numbers go, and on a phone it is just text on a page.
  */
 export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) {
 	useTitle(doc.title);
@@ -176,7 +196,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 		<Frame authUrl={authUrl}>
 			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
 				<div data-column className="w-full">
-					<div className="max-w-[48rem]">
+					<div data-head className="mx-auto w-full max-w-[44rem]">
 						<p className="text-[14px] text-neutral-500">Legal</p>
 						<h1 className="mt-5 font-display font-medium text-[clamp(2.75rem,7vw,5.5rem)] text-white leading-[0.98] tracking-[-0.04em] [text-wrap:balance]">
 							{doc.title}
@@ -191,21 +211,25 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 							</p>
 						))}
 					</div>
-					<div data-layout className="mt-20 grid gap-x-16 lg:grid-cols-[minmax(0,1fr)_12rem]">
-						<div data-text className="max-w-[50rem]">
+					<div
+						data-layout
+						className="mt-20 grid gap-x-12 xl:grid-cols-[minmax(0,1fr)_44rem_minmax(0,1fr)]"
+					>
+						<div className="hidden xl:block" />
+						<div data-text className="mx-auto w-full max-w-[44rem]">
 							{doc.sections.map((section, sectionIndex) => {
 								const id = slug(section.heading);
 								let clause = 0;
 								return (
 									<section key={id} data-section={id} className="scroll-mt-28 pt-14 first:pt-0">
-										<div className="sticky top-28 z-10 h-0 max-md:hidden">
+										<div className="sticky top-28 z-10 h-0 max-lg:hidden">
 											<span
 												data-counter
 												aria-hidden="true"
-												className="block w-14 bg-black font-normal text-[1.25rem] text-neutral-200 leading-[1.25em] tabular-nums"
+												className="-ml-36 block w-14 text-right font-normal text-[14px] text-neutral-300 leading-[1.25em] tabular-nums"
 											>
 												{sectionIndex + 1}
-												<span data-dot className="text-neutral-500">
+												<span data-dot className="text-neutral-600">
 													.
 												</span>
 												<span
@@ -237,7 +261,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 										<h2
 											id={id}
 											tabIndex={-1}
-											className="pl-16 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none max-md:pl-0 max-md:text-[1.5rem]"
+											className="font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] outline-none max-md:text-[1.5rem]"
 										>
 											{section.heading}
 										</h2>
@@ -246,7 +270,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												return (
 													<ul
 														key={block.list.join("|")}
-														className="mt-4 ml-32 list-[square] space-y-2 pl-5 marker:text-neutral-600 max-md:ml-0"
+														className="mt-4 list-[square] space-y-2 pl-5 marker:text-neutral-600"
 													>
 														{block.list.map((item) => (
 															<li key={item} className={`${CLAUSE} pl-1`}>
@@ -261,12 +285,12 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 												<div
 													key={typeof block === "string" ? block : flat(block)}
 													data-clause-id={`${sectionIndex + 1}.${clause}`}
-													className="mt-5 ml-16 grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4 max-md:ml-0 max-md:block"
+													className="relative mt-5"
 												>
 													<span
 														data-clause-number
 														aria-hidden="true"
-														className="pt-[0.45em] text-[13px] text-neutral-600 tabular-nums max-md:hidden"
+														className="absolute top-[0.5em] -left-14 w-10 text-right text-[12px] text-neutral-700 tabular-nums max-lg:hidden"
 													>
 														{sectionIndex + 1}.{clause}
 													</span>
@@ -280,10 +304,10 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 								);
 							})}
 						</div>
-						<div className="hidden lg:block">
+						<div className="hidden xl:block">
 							<nav
 								aria-label="On this page"
-								className="hidden text-[13px] lg:sticky lg:top-28 lg:block lg:max-h-[calc(100svh-9rem)] lg:overflow-y-auto"
+								className="hidden text-[13px] xl:sticky xl:top-28 xl:block xl:max-h-[calc(100svh-9rem)] xl:overflow-y-auto"
 							>
 								<Contents doc={doc} current={current} className="flex flex-col" />
 							</nav>
