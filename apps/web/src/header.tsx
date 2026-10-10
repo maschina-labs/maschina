@@ -287,8 +287,11 @@ export function Header({
 							</button>
 						</div>
 					</div>
-					<div className="flex items-center gap-3 text-[14px]">
-						<a href={signIn} className={`${LINK} hidden px-2 py-2 xl:inline-block`}>
+					<div className="flex items-center gap-2 text-[14px] xl:gap-3">
+						<a
+							href={signIn}
+							className={`${LINK} inline-flex h-10 items-center bg-white/[0.13] px-3.5 hover:bg-white/[0.18] sm:px-5 xl:inline-block xl:h-auto xl:bg-transparent xl:px-2 xl:py-2 xl:hover:bg-transparent`}
+						>
 							Log in
 						</a>
 						<TryButton
@@ -308,7 +311,7 @@ export function Header({
 								setSearching(false);
 								setOpen((now) => !now);
 							}}
-							className="grid size-12 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
+							className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 						>
 							<svg
 								viewBox="0 0 20 20"

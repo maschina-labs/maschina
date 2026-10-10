@@ -44,6 +44,19 @@ describe("the main buttons on a phone", () => {
 	});
 });
 
+describe("the hero headline on a phone", () => {
+	it("is sized to sit on two balanced lines instead of three, and keeps its big size from a tablet up", () => {
+		render(<Hero authUrl={AUTH} />);
+		const heading = screen.getByRole("heading", { level: 1 });
+		// Smaller on a phone, so the whole sentence fits across two lines; the old size and width come back from sm.
+		expect(heading.className).toContain("text-[clamp(1.7rem,8.4vw,2.5rem)]");
+		expect(heading.className).toContain("sm:text-[clamp(2.5rem,6.4vw,7.5rem)]");
+		expect(heading.className).toContain("max-w-none");
+		expect(heading.className).toContain("sm:max-w-[18ch]");
+		expect(heading.className).toContain("[text-wrap:balance]");
+	});
+});
+
 describe("the header on a phone", () => {
 	const header = () => {
 		vi.stubGlobal(
@@ -54,42 +67,62 @@ describe("the header on a phone", () => {
 		return screen.getByRole("banner");
 	};
 
-	it("is fatter than on a desktop, with a bigger logo and a bigger menu button", () => {
+	it("is fatter than on a desktop, with a slightly bigger logo, and its two buttons are the small size", () => {
 		const banner = header();
 		const bar = banner.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
 		expect(bar.className).toContain("py-5");
 		expect(bar.className).toContain("xl:py-4");
 		const mark = banner.querySelector("[data-mark]") as HTMLElement;
-		expect(mark.className).toContain("size-6");
-		expect(mark.className).toContain("sm:size-7");
+		expect(mark.className).toContain("size-5");
+		expect(mark.className).toContain("sm:size-6");
 		const word = banner.querySelector("[data-word] img") as HTMLElement;
-		expect(word.className).toContain("h-6");
-		expect(word.className).toContain("sm:h-7");
+		expect(word.className).toContain("h-5");
+		expect(word.className).toContain("sm:h-6");
 		const menu = screen.getByRole("button", { name: "Menu" });
-		expect(menu.className).toContain("size-12");
+		expect(menu.className).toContain("size-10");
 		expect(menu.className).toContain("xl:hidden");
+	});
+
+	it("has Log in in a gray square box right beside the menu button, the same height as it", () => {
+		const banner = header();
+		const logIn = within(banner).getByRole("link", { name: "Log in" });
+		const menu = screen.getByRole("button", { name: "Menu" });
+		expect(logIn.className).toContain("bg-white/[0.13]");
+		expect(logIn.className).toContain("h-10");
+		expect(logIn.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+		expect(logIn.parentElement).toBe(menu.parentElement);
+		// Just before it in the same row (only the desktop's own Try button, hidden on a phone, may sit between).
+		const row = [...(menu.parentElement?.children ?? [])];
+		expect(row.indexOf(logIn)).toBeLessThan(row.indexOf(menu));
+		const between = row.slice(row.indexOf(logIn) + 1, row.indexOf(menu));
+		expect(between.every((each) => each.className.includes("hidden"))).toBe(true);
+		expect(logIn.className).not.toMatch(/rounded/);
 	});
 
 	it("leaves the footer's logo at its own size", () => {
 		render(<Footer />);
 		const mark = screen.getByRole("contentinfo").querySelector("[data-mark]") as HTMLElement;
-		expect(mark.className).toContain("size-4");
-		expect(mark.className).not.toContain("size-6");
+		const sizes = mark.className.split(" ");
+		expect(sizes).toContain("size-4");
+		expect(sizes).not.toContain("size-5");
 	});
 });
 
 describe("the preview on a phone", () => {
-	it("shows the app bigger than the screen, cropped at the right only, with its whole height and the whole backdrop showing", () => {
+	it("shows the app big, cropped at the right, with its whole height, and swipes sideways to show the rest", () => {
 		render(<Showcase />);
 		const image = screen.getByRole("img");
 		const backdrop = image.closest("[data-backdrop]") as HTMLElement;
-		// No padding at the right for it to end against, and nothing that cuts the height: the backdrop is as tall as the picture.
-		expect(backdrop.className).toContain("max-sm:pr-0");
+		// Nothing cuts the height: the backdrop is as tall as the picture. The reader swipes it sideways to see the rest.
+		expect(backdrop.className).toContain("max-sm:overflow-x-auto");
+		expect(backdrop.className).toContain("max-sm:[scrollbar-width:none]");
 		expect(backdrop.className).not.toMatch(/max-sm:h-|max-sm:pb-0|max-h-/);
 		expect(backdrop.className).toContain("overflow-hidden");
-		// The picture is twice as wide as the room it has, so about half of it shows, the left half, and it keeps its own width from a tablet up.
-		expect(image.className).toContain("max-sm:w-[200%]");
+		// The picture is three times as wide as the room it has, so it is big enough to read, and it keeps its own width from a tablet up.
+		expect(image.className).toContain("max-sm:w-[320%]");
+		// The backdrop runs edge to edge on a phone, past the page margins, so it is as big as the screen allows.
+		expect(backdrop.className).toContain("max-sm:-mx-(--gutter)");
 		expect(image.className).toContain("max-sm:max-w-none");
 		expect(image.className).toContain("w-full");
 	});

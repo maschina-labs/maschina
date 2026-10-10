@@ -16,7 +16,7 @@ function Mark({ large }: { large: boolean }) {
 			alt=""
 			onPointerEnter={() => !still && setTurns((count) => count + 1)}
 			style={{ transform: `rotate(${turns * 360}deg)` }}
-			className={`shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${large ? "size-6 sm:size-7" : "size-4 sm:size-5"}`}
+			className={`shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${large ? "size-5 sm:size-6" : "size-4 sm:size-5"}`}
 		/>
 	);
 }
@@ -30,7 +30,7 @@ export function Logo({ large = false }: { large?: boolean }) {
 				<img
 					src="/brand/word.svg"
 					alt=""
-					className={`w-auto ${large ? "h-6 sm:h-7" : "h-4 sm:h-5"}`}
+					className={`w-auto ${large ? "h-5 sm:h-6" : "h-4 sm:h-5"}`}
 				/>
 			</span>
 		</a>

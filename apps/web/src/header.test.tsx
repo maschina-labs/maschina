@@ -25,11 +25,11 @@ describe("the header", () => {
 		expect(mark.style.transform).toBe("rotate(720deg)");
 	});
 
-	it("has Log in as plain text, in no box, like the pages", () => {
+	it("has Log in as plain text, in no box, like the pages, on a desktop (a box beside the menu button on a phone)", () => {
 		render(<Header authUrl={AUTH} />);
 		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
-		expect(logIn.className).not.toMatch(/\bbg-/);
-		expect(logIn.className).toContain("hidden");
+		expect(logIn.className).toContain("xl:bg-transparent");
+		expect(logIn.className).toContain("xl:inline-block");
 	});
 
 	it("leads to log in and sign up, wherever auth lives", () => {
@@ -484,13 +484,15 @@ describe("the header", () => {
 		expect(screen.getByRole("region", { name: "Search" })).toBeInTheDocument();
 	});
 
-	it("shows log in and try Maschina as buttons only on a wide screen", () => {
+	it("shows try Maschina as a button only on a wide screen, and log in as a button there and a small gray box on a phone", () => {
 		render(<Header authUrl={AUTH} />);
-		for (const name of ["Log in", "Try Maschina"]) {
-			const link = within(screen.getByRole("banner")).getByRole("link", { name });
-			expect(link.className).toContain("hidden");
-			expect(link.className).toMatch(/xl:inline-(block|flex)/);
-		}
+		const banner = within(screen.getByRole("banner"));
+		const tryIt = banner.getByRole("link", { name: "Try Maschina" });
+		expect(tryIt.className).toContain("hidden");
+		expect(tryIt.className).toMatch(/xl:inline-(block|flex)/);
+		expect(banner.getByRole("link", { name: "Log in" }).className).toMatch(
+			/xl:inline-(block|flex)/,
+		);
 	});
 
 	it("is a hamburger in a box of its own on a phone: an icon, no words", () => {
