@@ -1,4 +1,6 @@
+import { type ArticleDoc, ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
+import { ABOUT } from "./company/about.ts";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
 import { DISCLOSURE } from "./legal/disclosure.ts";
 import { LICENSE } from "./legal/license.ts";
@@ -24,6 +26,9 @@ const DOCUMENTS: Record<string, LegalDoc> = {
 	"/disclosure": DISCLOSURE,
 };
 
+/** The company pages, which read like articles, each at its address. */
+const ARTICLES: Record<string, ArticleDoc> = { "/about": ABOUT };
+
 export function App({
 	authUrl,
 	path = window.location.pathname,
@@ -34,6 +39,8 @@ export function App({
 	const clean = path.replace(/\/+$/, "") || "/";
 	const doc = DOCUMENTS[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} />;
+	const article = ARTICLES[clean];
+	if (article) return <ArticlePage authUrl={authUrl} doc={article} />;
 	const title = titleFor(path);
 	if (title) return <BlankPage authUrl={authUrl} title={title} />;
 	return <Site authUrl={authUrl} />;

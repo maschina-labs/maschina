@@ -4,7 +4,7 @@ import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
 
 /** A bit of running text: plain words, or words with a link in them. */
-type Part = string | { text: string; href: string };
+export type Part = string | { text: string; href: string };
 /** One block of a section: a clause (plain, or with links in it) or a bulleted list that belongs to the clause before it. */
 type Block = string | Part[] | { list: string[] };
 
@@ -26,10 +26,10 @@ const CLAUSE = "text-[17px] text-neutral-300 leading-[1.7] max-md:text-[18px]";
 const LINK =
 	"text-white underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-white";
 
-const flat = (parts: Part[]) =>
+export const flat = (parts: Part[]) =>
 	parts.map((part) => (typeof part === "string" ? part : part.text)).join("");
 
-function Text({ parts }: { parts: Part[] }) {
+export function Text({ parts }: { parts: Part[] }) {
 	return parts.map((part, index) =>
 		typeof part === "string" ? (
 			<span key={`${index}-${part}`}>{part}</span>

@@ -11,6 +11,7 @@ const LEGAL = {
 	"/acceptable-use": 1,
 	"/license": 1,
 	"/disclosure": 1,
+	"/about": 1,
 };
 
 beforeEach(() => {
@@ -86,5 +87,11 @@ describe("the legal pages", () => {
 		render(<App authUrl={AUTH} path="/disclosure" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Security Disclosure");
 		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(8);
+	});
+
+	it("shows the about page at /about, as an article", () => {
+		render(<App authUrl={AUTH} path="/about" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Controls for AI");
+		expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(2);
 	});
 });
