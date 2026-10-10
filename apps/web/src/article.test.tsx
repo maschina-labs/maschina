@@ -45,12 +45,29 @@ describe("an article page", () => {
 		expect(time).toHaveTextContent("October 9, 2026");
 	});
 
-	it("sets the body in one narrow column in the middle, with page margins on the article", () => {
+	it("gives the head its own background, held in place, with the headline over it", () => {
 		const { container } = render(<ArticlePage authUrl={AUTH} doc={DOC} />);
-		expect((container.querySelector("article") as HTMLElement).className).toContain(
-			"px-(--gutter)",
-		);
+		const head = container.querySelector("[data-head]") as HTMLElement;
+		for (const part of ["sticky", "top-0", "overflow-hidden"])
+			expect(head.className).toContain(part);
+		expect(head.className).toContain("h-[50lvh]");
+		expect(head.className).not.toContain("85lvh");
+		const art = container.querySelector("[data-art]") as HTMLElement;
+		expect(art).toHaveAttribute("aria-hidden", "true");
+		expect(head.contains(art)).toBe(true);
+		expect(head.contains(screen.getByRole("heading", { level: 1 }))).toBe(true);
+	});
+
+	it("rolls a black sheet over the head as the page scrolls: the sheet comes after it, above it, solid black, and the text on it has no background of its own", () => {
+		const { container } = render(<ArticlePage authUrl={AUTH} doc={DOC} />);
+		const head = container.querySelector("[data-head]") as HTMLElement;
+		const sheet = container.querySelector("[data-sheet]") as HTMLElement;
+		expect(head.nextElementSibling).toBe(sheet);
+		for (const part of ["relative", "z-10", "bg-black", "px-(--gutter)"])
+			expect(sheet.className).toContain(part);
 		const body = container.querySelector("[data-body]") as HTMLElement;
+		expect(sheet.contains(body)).toBe(true);
+		expect(body.className).not.toMatch(/\bbg-/);
 		expect(body.className).toContain("mx-auto");
 		expect(body.className).toContain("max-w-[48rem]");
 	});

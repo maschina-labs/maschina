@@ -1,3 +1,4 @@
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Frame } from "./frame.tsx";
 import { flat, type Part, Text } from "./legal.tsx";
 import { useTitle } from "./use-title.ts";
@@ -17,6 +18,11 @@ export type ArticleDoc = {
 	sections: { heading?: string; body: Block[] }[];
 };
 
+// The particles field, from the same package as the front page's ribbon, loaded after the page is on screen so the page never waits for it.
+const Field = lazy(() =>
+	import("@maschina/field").then((module) => ({ default: module.FogBackground })),
+);
+
 const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [text-wrap:pretty]";
 
 /**
@@ -27,71 +33,93 @@ const BODY = "text-[20px] text-neutral-300 leading-[1.7] max-md:text-[19px] [tex
  */
 export function ArticlePage({ authUrl, doc }: { authUrl: string; doc: ArticleDoc }) {
 	useTitle(doc.title);
+	const [ready, setReady] = useState(false);
+	useEffect(() => setReady(true), []);
 	return (
 		<Frame authUrl={authUrl}>
-			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
-				<header data-head className="mx-auto w-full max-w-[64rem] text-center">
-					<p className="text-[14px] text-neutral-500">{doc.kicker}</p>
-					<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.75rem)] text-white leading-[1] tracking-[-0.04em] [text-wrap:balance]">
-						{doc.title}
-					</h1>
-					<p className="mx-auto mt-8 max-w-[40rem] text-[clamp(1.125rem,2vw,1.5rem)] text-neutral-300 leading-[1.45] [text-wrap:balance]">
-						{doc.standfirst}
-					</p>
-					<p className="mt-8 text-[14px] text-neutral-500">
-						By {doc.byline}
-						<span aria-hidden="true"> · </span>
-						<time>{doc.date}</time>
-					</p>
+			<article className="w-full">
+				<header
+					data-head
+					className="sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col items-center justify-center overflow-hidden px-(--gutter) pt-24 text-center"
+				>
+					<div data-art aria-hidden="true" className="pointer-events-none absolute inset-0">
+						{ready ? (
+							<Suspense fallback={null}>
+								<div className="absolute inset-0 animate-fade-in motion-reduce:animate-none">
+									<Field position="absolute" field="particles" motion="calm" mode="dark" />
+								</div>
+							</Suspense>
+						) : null}
+						<div className="absolute inset-0 bg-[oklch(0_0_0/0.55)]" />
+					</div>
+					<div className="relative mx-auto w-full max-w-[64rem]">
+						<p className="text-[14px] text-neutral-400">{doc.kicker}</p>
+						<h1 className="mt-5 font-display font-medium text-[clamp(2.5rem,6vw,4.75rem)] text-white leading-[1] tracking-[-0.04em] [text-wrap:balance]">
+							{doc.title}
+						</h1>
+						<p className="mx-auto mt-8 max-w-[40rem] text-[clamp(1.125rem,2vw,1.5rem)] text-neutral-200 leading-[1.45] [text-wrap:balance]">
+							{doc.standfirst}
+						</p>
+						<p className="mt-8 text-[14px] text-neutral-400">
+							By {doc.byline}
+							<span aria-hidden="true"> · </span>
+							<time>{doc.date}</time>
+						</p>
+					</div>
 				</header>
-				<div data-body className="mx-auto mt-20 w-full max-w-[48rem]">
-					{doc.sections.map((section, sectionIndex) => (
-						<section
-							// A section may have no heading, so its place in the article is its key.
-							// biome-ignore lint/suspicious/noArrayIndexKey: the order never changes
-							key={sectionIndex}
-							className="mt-14 first:mt-0"
-						>
-							{section.heading ? (
-								<h2 className="font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] max-md:text-[1.5rem]">
-									{section.heading}
-								</h2>
-							) : null}
-							{section.body.map((block) => {
-								if (!Array.isArray(block) && typeof block === "object") {
-									if ("quote" in block)
+				<div
+					data-sheet
+					className="relative z-10 bg-black px-(--gutter) pt-14 pb-24 sm:pt-20 sm:pb-32"
+				>
+					<div data-body className="mx-auto w-full max-w-[48rem]">
+						{doc.sections.map((section, sectionIndex) => (
+							<section
+								// A section may have no heading, so its place in the article is its key.
+								// biome-ignore lint/suspicious/noArrayIndexKey: the order never changes
+								key={sectionIndex}
+								className="mt-12 first:mt-0"
+							>
+								{section.heading ? (
+									<h2 className="font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em] max-md:text-[1.5rem]">
+										{section.heading}
+									</h2>
+								) : null}
+								{section.body.map((block) => {
+									if (!Array.isArray(block) && typeof block === "object") {
+										if ("quote" in block)
+											return (
+												<blockquote
+													key={block.quote}
+													className="my-10 font-display font-normal text-[clamp(1.5rem,3vw,2.125rem)] text-neutral-400 leading-[1.3] tracking-[-0.02em] [text-wrap:balance]"
+												>
+													{block.quote}
+												</blockquote>
+											);
 										return (
-											<blockquote
-												key={block.quote}
-												className="my-12 font-display font-medium text-[clamp(1.5rem,3vw,2.125rem)] text-white leading-[1.25] tracking-[-0.02em] [text-wrap:balance]"
+											<ul
+												key={block.list.join("|")}
+												className="mt-5 list-[square] space-y-3 pl-6 marker:text-neutral-600"
 											>
-												{block.quote}
-											</blockquote>
+												{block.list.map((item) => (
+													<li key={item} className={`${BODY} pl-1`}>
+														{item}
+													</li>
+												))}
+											</ul>
 										);
+									}
 									return (
-										<ul
-											key={block.list.join("|")}
-											className="mt-6 list-[square] space-y-3 pl-6 marker:text-neutral-600"
+										<p
+											key={typeof block === "string" ? block : flat(block)}
+											className={`mt-6 ${BODY}`}
 										>
-											{block.list.map((item) => (
-												<li key={item} className={`${BODY} pl-1`}>
-													{item}
-												</li>
-											))}
-										</ul>
+											{typeof block === "string" ? block : <Text parts={block} />}
+										</p>
 									);
-								}
-								return (
-									<p
-										key={typeof block === "string" ? block : flat(block)}
-										className={`mt-6 ${BODY}`}
-									>
-										{typeof block === "string" ? block : <Text parts={block} />}
-									</p>
-								);
-							})}
-						</section>
-					))}
+								})}
+							</section>
+						))}
+					</div>
 				</div>
 			</article>
 		</Frame>
