@@ -14,6 +14,7 @@ const LEGAL = {
 	"/about": 1,
 	"/roadmap": 1,
 	"/support": 1,
+	"/brand": 1,
 	"/contact": 1,
 };
 
@@ -132,5 +133,10 @@ describe("the legal pages", () => {
 			expect(document.title, path).toBe(tab);
 			view.unmount();
 		}
+	});
+
+	it("shows the brand assets page at /brand", () => {
+		render(<App authUrl={AUTH} path="/brand" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand assets");
 	});
 });
