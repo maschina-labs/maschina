@@ -1,6 +1,7 @@
 import { type ArticleDoc, ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { ABOUT } from "./company/about.ts";
+import { CONTACT } from "./company/contact.ts";
 import { NEWS } from "./company/news.ts";
 import { ROADMAP } from "./company/roadmap.ts";
 import { ACCEPTABLE_USE } from "./legal/acceptable-use.ts";
@@ -33,6 +34,7 @@ const ARTICLES: Record<string, ArticleDoc> = {
 	"/about": ABOUT,
 	"/roadmap": ROADMAP,
 	"/news": NEWS,
+	"/contact": CONTACT,
 };
 
 export function App({

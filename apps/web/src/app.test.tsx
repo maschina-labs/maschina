@@ -14,6 +14,7 @@ const LEGAL = {
 	"/about": 1,
 	"/roadmap": 1,
 	"/news": 1,
+	"/contact": 1,
 };
 
 beforeEach(() => {
@@ -108,5 +109,14 @@ describe("the legal pages", () => {
 	it("shows the news page at /news, as an article", () => {
 		render(<App authUrl={AUTH} path="/news" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("News from Maschina Labs");
+	});
+
+	it("shows the contact page at /contact, as an article", () => {
+		render(<App authUrl={AUTH} path="/contact" />);
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Contact Maschina Labs");
+		expect(screen.getByRole("link", { name: "support@maschina.dev" })).toHaveAttribute(
+			"href",
+			"mailto:support@maschina.dev",
+		);
 	});
 });
