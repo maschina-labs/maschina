@@ -5,7 +5,6 @@ import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Hero } from "./hero.tsx";
 import { LiveRecord } from "./live-record.tsx";
-import { Marquee } from "./marquee.tsx";
 import { Customize, Features, HowItWorks, Safety } from "./sections.tsx";
 import { Showcase } from "./showcase.tsx";
 
@@ -19,7 +18,6 @@ export function Site({ authUrl }: { authUrl: string }) {
 			<Header authUrl={authUrl} />
 			<main>
 				<Hero authUrl={authUrl} />
-				<Marquee />
 				<Showcase />
 				<HowItWorks authUrl={authUrl} />
 				<Features authUrl={authUrl} />
