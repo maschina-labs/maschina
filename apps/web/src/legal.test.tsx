@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TERMS } from "./legal/terms.ts";
 import { type LegalDoc, LegalPage } from "./legal.tsx";
@@ -88,39 +88,99 @@ describe("a legal page", () => {
 		expect(side.className).toContain("lg:block");
 	});
 
-	it("numbers every section and every clause the way a contract does, so any part can be pointed to", () => {
-		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+	it("numbers every section, and gives every clause its number as an address, so any part can be pointed to", () => {
+		const { container } = render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const one = screen.getByRole("heading", { level: 2, name: "One" });
 		expect(one).toHaveAttribute("id", "one");
 		expect(one.className).toContain("font-medium");
-		// The heading is only its words; the section number is a separate thing that stays put (see below).
+		// The heading is only its words; the number is a separate thing that stays put (see below).
 		expect(one).toHaveTextContent(/^One$/);
-		const number = one.closest("section")?.querySelector("[data-number]") as HTMLElement;
-		expect(number).toHaveTextContent("1");
-		expect(number).toHaveAttribute("aria-hidden", "true");
-		// Clauses 1.1 and 1.2 are the two paragraphs; the list belongs to the one before it and is not numbered.
-		expect(screen.getByText("Alpha.").closest("div")).toHaveTextContent("1.1Alpha.");
-		expect(screen.getByText("Beta.").closest("div")).toHaveTextContent("1.2Beta.");
-		expect(screen.getByText("Gamma.").closest("div")).toHaveTextContent("2.1Gamma.");
+		const clauses = [...container.querySelectorAll("[data-clause-id]")].map((node) =>
+			node.getAttribute("data-clause-id"),
+		);
+		expect(clauses).toEqual(["1.1", "1.2", "2.1"]);
+		// The clause numbers are not printed down the margin: the counter at the left shows the one being read.
+		expect(container.querySelector("[data-clause-number]")).toBeNull();
 		const list = screen.getByText("a").closest("ul") as HTMLElement;
 		expect(list.className).toContain("list-[square]");
 	});
 
-	it("keeps each section's number pinned at the left under the header while its clauses are read, covering the clause numbers that pass beneath it, until the next section pushes it away", () => {
+	it("keeps a counter pinned at the left under the header while a section is read, level with the heading when it starts, and taking no room of its own", () => {
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
-		const section = screen
-			.getByRole("heading", { level: 2, name: "One" })
-			.closest("section") as HTMLElement;
-		const pin = section.querySelector("[data-number]")?.parentElement as HTMLElement;
-		for (const part of ["sticky", "top-28", "z-10", "h-0"]) expect(pin.className).toContain(part);
-		// It comes before the heading, so it starts level with it, and takes no room of its own.
-		expect(pin.nextElementSibling).toBe(screen.getByRole("heading", { level: 2, name: "One" }));
-		const number = pin.firstElementChild as HTMLElement;
-		expect(number.className).toContain("bg-black");
-		expect(number.className).toContain("w-12");
-		expect(number.className).toContain("text-[1.75rem]");
 		const heading = screen.getByRole("heading", { level: 2, name: "One" });
+		const section = heading.closest("section") as HTMLElement;
+		const pin = section.querySelector("[data-counter]")?.parentElement as HTMLElement;
+		for (const part of ["sticky", "top-28", "z-10", "h-0"]) expect(pin.className).toContain(part);
+		expect(pin.nextElementSibling).toBe(heading);
+		const counter = pin.firstElementChild as HTMLElement;
+		expect(counter).toHaveAttribute("aria-hidden", "true");
+		expect(counter.className).toContain("bg-black");
+		expect(counter.className).toContain("tabular-nums");
+		// The heading's text starts where the counter ends.
 		expect(heading.className).toContain("pl-16");
+		// It starts at the first clause of its section.
+		expect(counter).toHaveTextContent("1.1");
+	});
+
+	describe("the counter counts as the clauses are read", () => {
+		const LINE = 140;
+		const place = (id: string, top: number, height: number) => {
+			const node = document.querySelector(`[data-clause-id="${id}"]`) as HTMLElement;
+			vi.spyOn(node, "getBoundingClientRect").mockReturnValue({
+				top,
+				height,
+				bottom: top + height,
+				left: 0,
+				right: 0,
+				width: 0,
+				x: 0,
+				y: top,
+				toJSON() {},
+			});
+		};
+		const counter = (section: string) =>
+			(
+				screen.getByRole("heading", { level: 2, name: section }).closest("section") as HTMLElement
+			).querySelector("[data-counter]") as HTMLElement;
+		const scroll = () => act(() => void fireEvent.scroll(window));
+
+		it("shows the clause that is crossing the line just under the header, and goes up one as the next one reaches it", () => {
+			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+			// Section one's clauses: 1.1 is crossing the line.
+			place("1.1", LINE - 50, 200);
+			place("1.2", LINE + 150, 100);
+			place("2.1", LINE + 400, 100);
+			scroll();
+			expect(counter("One")).toHaveTextContent("1.1");
+			// Scrolled on: 1.1 has passed and 1.2 is crossing the line.
+			place("1.1", LINE - 300, 200);
+			place("1.2", LINE - 60, 100);
+			scroll();
+			expect(counter("One")).toHaveTextContent("1.2");
+			expect(counter("Two")).toHaveTextContent("2.1");
+		});
+
+		it("holds the last clause of a section it has passed, and the first of one it has not reached", () => {
+			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+			place("1.1", LINE - 600, 200);
+			place("1.2", LINE - 300, 100);
+			place("2.1", LINE - 20, 100);
+			scroll();
+			expect(counter("One")).toHaveTextContent("1.2");
+			expect(counter("Two")).toHaveTextContent("2.1");
+			place("1.1", LINE + 300, 200);
+			place("1.2", LINE + 600, 100);
+			place("2.1", LINE + 900, 100);
+			scroll();
+			expect(counter("One")).toHaveTextContent("1.1");
+		});
+
+		it("rolls each new number up into place, and keeps still for anyone who asked for less motion", () => {
+			render(<LegalPage authUrl={AUTH} doc={SMALL} />);
+			const digit = counter("One").querySelector("[data-digit]") as HTMLElement;
+			expect(digit.className).toContain("animate-roll");
+			expect(digit.className).toContain("motion-reduce:animate-none");
+		});
 	});
 
 	it("sets the text for reading: seventeen pixel type, roomy lines, a calm gray that is bright enough, and headings that step up with room above them", () => {

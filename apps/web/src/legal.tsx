@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Frame } from "./frame.tsx";
-import { centerInView } from "./shell.ts";
+import { centerInView, scrolled, scroller } from "./shell.ts";
 import { useTitle } from "./use-title.ts";
 
 /** A bit of running text: plain words, or words with a link in them. */
@@ -54,6 +54,42 @@ function jump(event: React.MouseEvent, id: string) {
 	centerInView(section);
 	window.history.replaceState(null, "", `#${id}`);
 	heading.focus({ preventScroll: true });
+}
+
+/** How far down the screen the counter sits: just under the header. A clause counts as being read once it reaches here. */
+const LINE = 140;
+
+/**
+ * Which clause of each section is being read: the last one whose top has reached the line under the header, or the first
+ * if none has. It is worked out on every scroll, for every section, so a section above holds its last clause and one
+ * below holds its first. Nothing is measured on arrival at the top of the page, where every section is at its first.
+ */
+function useClauseCounters(sections: number) {
+	const [counts, setCounts] = useState<number[]>(() => Array.from({ length: sections }, () => 1));
+	useEffect(() => {
+		const target = scroller();
+		const measure = () => {
+			const next = Array.from(document.querySelectorAll("[data-section]")).map((section) => {
+				const clauses = [...section.querySelectorAll("[data-clause-id]")];
+				let count = 1;
+				for (const [index, clause] of clauses.entries())
+					if (clause.getBoundingClientRect().top <= LINE) count = index + 1;
+				return count;
+			});
+			setCounts((now) =>
+				next.length === now.length && next.every((n, i) => n === now[i]) ? now : next,
+			);
+		};
+		// Coming back to a page that has already been scrolled (a reload or a link with an address), so start from where it is.
+		if (scrolled(target) > 0) measure();
+		target.addEventListener("scroll", measure, { passive: true });
+		window.addEventListener("resize", measure);
+		return () => {
+			target.removeEventListener("scroll", measure);
+			window.removeEventListener("resize", measure);
+		};
+	}, []);
+	return counts;
 }
 
 /** The section on screen, so the contents can show where the reader is. Where nothing can be watched, none. */
@@ -114,8 +150,8 @@ function Contents({
 /**
  * A legal document, set the way a contract is and the way the best product legal pages are: a small label, a big plain
  * title, the date, and the first words as a lead; then a hairline, the contents down the left (held in view, with the
- * section you are in lit) and the text in a reading column on the right. Every section is numbered, the number staying pinned at the left while its clauses are read, and every clause
- * inside it (1.1, 1.2) so any part can be pointed to. Seventeen pixel type with roomy lines, headings that step up with
+ * section you are in lit) and the text in a reading column on the right. Every section is numbered and every clause inside it (1.1, 1.2) has its own number as an address, and a counter
+ * pinned at the left shows the clause being read, rolling up to the next as the reading goes on. Seventeen pixel type with roomy lines, headings that step up with
  * room above them, square bullets, and nothing else. On a phone the contents fold into a list at the top. The page
  * margins are the article's own padding and the width is on a box inside it, so the margins never squeeze the text.
  */
@@ -123,6 +159,7 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 	useTitle(doc.title);
 	const ids = doc.sections.map((section) => slug(section.heading));
 	const current = useCurrentSection(ids);
+	const counts = useClauseCounters(doc.sections.length);
 	return (
 		<Frame authUrl={authUrl}>
 			<article className="w-full px-(--gutter) pt-36 pb-28 sm:pt-44 sm:pb-40">
@@ -151,11 +188,18 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 									<section key={id} data-section={id} className="scroll-mt-28 pt-14 first:pt-0">
 										<div className="sticky top-28 z-10 h-0">
 											<span
-												data-number
+												data-counter
 												aria-hidden="true"
-												className="block w-12 bg-black font-normal text-[1.75rem] text-neutral-600 leading-tight tabular-nums"
+												className="block w-16 bg-black font-normal text-[1.5rem] text-neutral-600 leading-tight tabular-nums"
 											>
 												{sectionIndex + 1}
+												<span
+													key={counts[sectionIndex] ?? 1}
+													data-digit
+													className="inline-block animate-roll text-neutral-300 motion-reduce:animate-none"
+												>
+													.{counts[sectionIndex] ?? 1}
+												</span>
 											</span>
 										</div>
 										<h2
@@ -184,14 +228,9 @@ export function LegalPage({ authUrl, doc }: { authUrl: string; doc: LegalDoc }) 
 											return (
 												<div
 													key={typeof block === "string" ? block : flat(block)}
-													className="mt-5 grid grid-cols-[3rem_minmax(0,1fr)] gap-x-4"
+													data-clause-id={`${sectionIndex + 1}.${clause}`}
+													className="mt-5 pl-16"
 												>
-													<span
-														aria-hidden="true"
-														className="pt-[0.45em] text-[13px] text-neutral-600 tabular-nums"
-													>
-														{sectionIndex + 1}.{clause}
-													</span>
 													<p className={CLAUSE}>
 														{typeof block === "string" ? block : <Text parts={block} />}
 													</p>
