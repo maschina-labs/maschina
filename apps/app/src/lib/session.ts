@@ -11,7 +11,12 @@ import type { Api } from "./api.ts";
 import { ApiError } from "./machines.ts";
 import { connect, forgetActiveWallet, signMessage } from "./wallet.ts";
 
-export type SignedInOwner = { ownerId: string; walletAddress: string };
+export type SignedInOwner = {
+	ownerId: string;
+	/** A person who signed in with an email has no wallet until they link one. */
+	walletAddress: string | null;
+	email: string | null;
+};
 
 /** The API says why in its body, and that reason is the one worth showing a person. */
 async function read<T>(response: Response): Promise<T> {

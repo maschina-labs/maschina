@@ -71,7 +71,7 @@ export function Deck({ behind }: { behind?: string } = {}) {
 		throw new Error("A test of the error screen: ?break is in the address.");
 	}
 	const { api } = useRouter().options.context;
-	const wallet = useSession(api).data?.walletAddress;
+	const wallet = useSession(api).data?.walletAddress ?? undefined;
 	const current = useRouterState({ select: (state) => state.location.pathname });
 	const path = sectionIndex(current) >= 0 ? current : (behind ?? "/");
 	const navigate = useNavigate();
