@@ -5,21 +5,28 @@ import { leavesSite } from "./routes.ts";
 
 const spot = (container: HTMLElement) => container.querySelector("[data-spot]") as SVGCircleElement;
 
+/** What the status page's feed answers when every service is in this state. */
+const feed = (state: string, status = 200) =>
+	vi.fn(
+		async () =>
+			new Response(JSON.stringify({ data: { attributes: { aggregate_state: state } } }), {
+				status,
+			}),
+	);
+
 describe("the footer", () => {
-	// The status mark asks the API. Each test stands one in, so nothing here reaches the network.
+	// The status mark asks the status page's feed. Each test stands one in, so nothing here reaches the network.
 	beforeEach(() => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(async () => new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
-		);
+		vi.stubGlobal("fetch", feed("operational"));
 	});
 	afterEach(() => vi.useRealTimers());
 
-	it("shows whether Maschina is up, from the API's own check", async () => {
+	it("shows whether Maschina is up, from the status page's own feed, and the mark links to the status page", async () => {
 		render(<Footer />);
 		const status = screen.getByRole("status");
 		expect(status).toHaveTextContent("Checking");
 		expect(await within(status).findByText("All systems normal")).toBeInTheDocument();
+		expect(status.closest("a")).toHaveAttribute("href", "https://status.maschina.dev");
 	});
 
 	it("has the logo on the left, level with the sitemap's column headers, linking home", () => {
@@ -197,7 +204,7 @@ describe("the footer", () => {
 		expect(line.className).toContain("pb-8");
 	});
 
-	it("blinks TX when it asks the API and RX when the answer comes back, then goes dark", async () => {
+	it("blinks TX when it asks the status page and RX when the answer comes back, then goes dark", async () => {
 		render(<Footer />);
 		const status = within(screen.getByRole("status"));
 		const tx = status.getByText("TX").parentElement as HTMLElement;
@@ -219,29 +226,15 @@ describe("the footer", () => {
 		expect(dot().className).toContain("animate-blink");
 		expect(dot().className).toContain("motion-reduce:animate-none");
 		unmount();
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(
-				async () =>
-					new Response(
-						JSON.stringify({ status: "ok", halt: { reason: "x", since: "2026-10-09T00:00:00Z" } }),
-						{
-							status: 200,
-						},
-					),
-			),
-		);
+		vi.stubGlobal("fetch", feed("maintenance"));
 		const paused = render(<Footer />);
-		await within(screen.getByRole("status")).findByText("Machines paused");
+		await within(screen.getByRole("status")).findByText("Under maintenance");
 		expect(dot().className).toContain("oklch(0.86_0.17_100)");
 		expect(dot().className).not.toContain("animate-blink");
 		paused.unmount();
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(async () => new Response("{}", { status: 503 })),
-		);
+		vi.stubGlobal("fetch", feed("downtime"));
 		render(<Footer />);
-		await within(screen.getByRole("status")).findByText("API unreachable");
+		await within(screen.getByRole("status")).findByText("Some systems down");
 		expect(dot().className).toContain("oklch(0.62_0.24_25)");
 		expect(dot().className).toContain("animate-blink");
 	});
@@ -259,27 +252,15 @@ describe("the footer", () => {
 		const rx = status.getByText("RX").parentElement as HTMLElement;
 		await waitFor(() => expect(tx).toHaveAttribute("data-on", "true"));
 		expect(rx).toHaveAttribute("data-on", "false");
-		await within(screen.getByRole("status")).findByText("API unreachable");
+		await within(screen.getByRole("status")).findByText("Checking");
 		expect(rx).toHaveAttribute("data-on", "false");
 	});
 
-	it("says so when the stop switch is on", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(
-				async () =>
-					new Response(
-						JSON.stringify({
-							status: "ok",
-							halt: { reason: "upgrading", since: "2026-10-09T00:00:00Z" },
-						}),
-						{ status: 200 },
-					),
-			),
-		);
+	it("says so when the status page announces maintenance", async () => {
+		vi.stubGlobal("fetch", feed("maintenance"));
 		render(<Footer />);
 		expect(
-			await within(screen.getByRole("status")).findByText("Machines paused"),
+			await within(screen.getByRole("status")).findByText("Under maintenance"),
 		).toBeInTheDocument();
 	});
 
@@ -412,7 +393,8 @@ describe("the footer", () => {
 	it("puts the status and the language together on the right of the line with the copyright", () => {
 		render(<Footer />);
 		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
-		const right = screen.getByRole("status").parentElement as HTMLElement;
+		// The status mark is a link to the status page, so its parent is the link and the right side is above it.
+		const right = screen.getByRole("status").closest("[data-right]") as HTMLElement;
 		expect(right).toBe(screen.getByRole("button", { name: "Language" }).closest("[data-right]"));
 		expect(row.contains(right)).toBe(true);
 		expect(right.className).toContain("sm:justify-self-end");

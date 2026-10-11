@@ -77,8 +77,8 @@ export const en = {
 		status: {
 			checking: "Checking",
 			up: "All systems normal",
-			paused: "Machines paused",
-			down: "API unreachable",
+			paused: "Under maintenance",
+			down: "Some systems down",
 		},
 	},
 	preferences: {
