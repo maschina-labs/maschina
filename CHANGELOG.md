@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.40](https://github.com/maschina-labs/maschina/compare/v0.0.39...v0.0.40) (2026-10-11)
+
+
+### Fixed
+
+* **web:** sign in leads to the app until the auth app exists ([#774](https://github.com/maschina-labs/maschina/issues/774)) ([816149a](https://github.com/maschina-labs/maschina/commit/816149a763d03b0e6fe5c2069b588f9cc8e68a34))
+
 ## [0.0.39](https://github.com/maschina-labs/maschina/compare/v0.0.38...v0.0.39) (2026-10-11)
 
 
