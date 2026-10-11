@@ -9,7 +9,7 @@
 			"entry": ["src/worker.ts", "scripts/*.ts"]
 		},
 		"apps/live": {
-			"entry": ["src/worker.ts"]
+			"entry": ["src/worker.ts", "src/record.ts", "src/format.ts"]
 		},
 		"apps/auth": {
 			"entry": ["src/worker.ts", "src/people-api.ts", "src/next.ts"]
