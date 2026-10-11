@@ -63,10 +63,15 @@ describe("the footer", () => {
 		const status = within(screen.getByRole("status"));
 		const tx = status.getByText("TX").parentElement as HTMLElement;
 		const rx = status.getByText("RX").parentElement as HTMLElement;
-		await waitFor(() => expect(tx).toHaveAttribute("data-on", "true"));
-		expect(tx.firstElementChild?.className).toContain("oklch(0.82_0.17_70)");
-		await waitFor(() => expect(rx).toHaveAttribute("data-on", "true"));
-		expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
+		// Read inside the wait: a blink is short, and a slow machine can let it end between the wait and a later check.
+		await waitFor(() => {
+			expect(tx).toHaveAttribute("data-on", "true");
+			expect(tx.firstElementChild?.className).toContain("oklch(0.82_0.17_70)");
+		});
+		await waitFor(() => {
+			expect(rx).toHaveAttribute("data-on", "true");
+			expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
+		});
 	});
 
 	it("never lights TX and RX at the same moment, even when the answer is instant", async () => {
