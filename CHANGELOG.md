@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.38](https://github.com/maschina-labs/maschina/compare/v0.0.37...v0.0.38) (2026-10-09)
+
+
+### Changed
+
+* **field:** the backgrounds move to a shared package ([#769](https://github.com/maschina-labs/maschina/issues/769)) ([e8aaf53](https://github.com/maschina-labs/maschina/commit/e8aaf53282c25538641eb126cca71b7b7ba808a5))
+
 ## [0.0.37](https://github.com/maschina-labs/maschina/compare/v0.0.36...v0.0.37) (2026-10-04)
 
 

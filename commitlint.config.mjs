@@ -29,6 +29,7 @@ export default {
 				"sdk",
 				"ui",
 				"field",
+				"site",
 				"auth",
 				"config",
 				"testing",
