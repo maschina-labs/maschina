@@ -3,11 +3,12 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { startAnalytics } from "./analytics.ts";
 import { App } from "./app.tsx";
+import { authUrlFrom } from "./auth-url.ts";
 import { loadLanguage } from "./i18n/languages.ts";
 import { parsePath } from "./i18n/locales.ts";
 
-// Where sign in and sign up live: auth.maschina.dev, or the local auth app while developing (.env).
-const authUrl = import.meta.env.VITE_AUTH_URL ?? "https://auth.maschina.dev";
+// Where sign in and sign up lead: the app for now, the auth app once it exists, or the local one while developing (.env).
+const authUrl = authUrlFrom(import.meta.env.VITE_AUTH_URL);
 
 // Product analytics: PostHog, and only once the visitor has accepted optional cookies. With no key it does nothing.
 startAnalytics({
