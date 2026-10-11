@@ -5,6 +5,9 @@
 		".": {
 			"entry": ["scripts/**/*.mjs"]
 		},
+		"apps/web": {
+			"entry": ["src/worker.ts", "scripts/*.ts"]
+		},
 		"apps/app": {
 			"entry": ["src/worker.ts", "src/dev/seed-boot.ts"]
 		},
