@@ -2,13 +2,8 @@
 /* The backgrounds live in their own package, which Tailwind does not read unless told to. */
 @source "../../../packages/field/src";
 
-/* Söhne for everything people read, Geist Mono for figures, Söhne Breit for the wordmark. */
-@font-face {
-	font-family: "Sohne Breit";
-	src: url("/fonts/SohneBreit-600.otf") format("opentype");
-	font-weight: 600;
-	font-display: swap;
-}
+/* Söhne, the same licensed files the app uses. They are not in the repository: they are served from the
+   private bucket in production and copied in for local work (pnpm fonts). */
 @font-face {
 	font-family: "Sohne";
 	src: url("/fonts/Sohne-400.woff2") format("woff2");
@@ -21,312 +16,90 @@
 	font-weight: 500;
 	font-display: swap;
 }
-@font-face {
-	font-family: "Sohne";
-	src: url("/fonts/Sohne-700.woff2") format("woff2");
-	font-weight: 700;
-	font-display: swap;
-}
 
 @theme {
-	--font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-	/* Geist Mono for now; JetBrains Mono is the other contender. */
-	--font-mono: "Geist Mono", ui-monospace, monospace;
-	--font-display: "Sohne", ui-sans-serif, sans-serif;
-	/* The wordmark face until the logo arrives: Söhne Breit Halbfett. */
-	--font-wordmark: "Sohne Breit", ui-sans-serif, sans-serif;
-	/* Color is used almost nowhere, then on purpose: live and profit, stop and loss. */
-	--color-signal-on: oklch(0.8 0.2 145);
-	--color-signal-off: oklch(0.65 0.21 35);
+	--font-display: "Sohne", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* No rubber band past the top or bottom on a trackpad or phone: the terminal stays where it is. */
+/*
+ * The page margin: one value for the whole site, so the header, every section and the footer sit on the same
+ * edges. It is 24px on a phone, grows with the screen from there, and stops at 192px on a very wide one.
+ */
+:root {
+	--gutter: clamp(1.5rem, 13vw - 3.25rem, 12rem);
+}
+
 html,
 body {
 	overscroll-behavior: none;
-	/* The screen is one fixed view, like a console's dashboard: nothing scrolls the page itself. */
-	overflow: hidden;
-	height: 100%;
 }
 
-/*
- * Scrollbars: a thin square thumb of faint glass and no track at all, so only the part you grab shows,
- * floating like everything else. Chrome and Safari read the webkit rules, which are what keep it square;
- * Firefox only understands a width and two colors, so it gets those and nothing else.
- */
-::-webkit-scrollbar {
-	width: 5px;
-	height: 5px;
-}
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-	background: transparent;
-}
-::-webkit-scrollbar-thumb {
-	background: oklch(1 0 0 / 0.14);
-	border-radius: 0;
-}
-::-webkit-scrollbar-thumb:hover {
-	background: oklch(1 0 0 / 0.3);
-}
-/* Where the scroll ruler stands in for the scrollbar, the scrollbar itself is hidden. */
-.no-scrollbar {
-	scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-	display: none;
-}
-@supports (-moz-appearance: none) {
-	* {
-		scrollbar-width: thin;
-		scrollbar-color: oklch(1 0 0 / 0.14) transparent;
-	}
-}
-
-/* The ticker scrolls half its width, which is one full copy of its items, then starts again unseen. */
-@keyframes ticker {
-	from {
-		transform: translateX(0);
-	}
-	to {
-		transform: translateX(-50%);
-	}
-}
-
-/* The loading ruler: each tick brightens and grows in turn. */
-@keyframes tick {
-	0%,
-	100% {
-		background-color: oklch(1 0 0 / 0.15);
-		height: 0.5rem;
-	}
-	50% {
-		background-color: oklch(1 0 0 / 0.85);
-		height: 0.9rem;
-	}
-}
-
-/* Quiet and refined: Söhne in sentence case, the way the dashboard reads. Mono only for figures. */
-body {
-	@apply bg-black font-display text-neutral-100 antialiased;
-}
-
-/* A tile loading: one soft band of light crossing it, slowly, then a pause. */
-@keyframes shimmer {
-	0% {
-		transform: translateX(0);
-	}
-	60%,
-	100% {
-		transform: translateX(300%);
-	}
-}
-
-/* Idle mode: the rest bar filling from nothing to the full width. */
-@keyframes rest {
-	from {
-		width: 0;
-	}
-	to {
+/* On a touch screen the document is held still, as tall as the screen, and one box inside it, the root, does the
+   scrolling. The address bar and toolbar of a phone slide away only while the document scrolls, and their sliding is
+   what resizes and shifts a page; with a box scrolling instead they never move, so they can only ever cover the
+   page. Nothing overscrolls, and the page draws its own pull to refresh. A mouse or a trackpad never meets any of
+   this. */
+@media (hover: none) and (pointer: coarse) {
+	html,
+	body {
+		position: fixed;
+		inset: 0;
 		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		overscroll-behavior: none;
+	}
+	#root {
+		height: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: none;
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
 	}
 }
 
-/* Sliders: a flat track exactly as tall as its square handle, like the tiles. No rounding anywhere. */
-input[type="range"].square {
-	appearance: none;
-	height: 14px;
-	background: transparent;
-	cursor: pointer;
+/* Anchors, keyboard scrolling and scripted scrolls glide instead of jumping. Not for reduced motion. */
+html {
+	scroll-behavior: smooth;
 }
-input[type="range"].square::-webkit-slider-runnable-track {
-	height: 14px;
-	background: oklch(1 0 0 / 0.12);
-}
-input[type="range"].square::-moz-range-track {
-	height: 14px;
-	background: oklch(1 0 0 / 0.12);
-}
-input[type="range"].square::-webkit-slider-thumb {
-	appearance: none;
-	width: 14px;
-	height: 14px;
-	border-radius: 0;
-	background: oklch(0.98 0 0);
-}
-input[type="range"].square::-moz-range-thumb {
-	width: 14px;
-	height: 14px;
-	border: 0;
-	border-radius: 0;
-	background: oklch(0.98 0 0);
-}
-
-/* The opening moment: the ring arrives, a little small and faint, and settles. */
-@keyframes splash {
-	from {
-		opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
 	}
-	to {
-		opacity: 1;
+}
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+	#root {
+		scroll-behavior: auto;
 	}
 }
 
-/*
- * The surfaces things sit on: the sheet a tile opens into, the sidebars, bars, toasts and banners. Named
- * once here so light mode can turn each over with the rest of the palette.
- */
-:root {
-	/* What the charts draw in: white (black by day) for Maschina, a team's own color on its palette. */
-	--chart: var(--color-white);
-	--surface-sheet: oklch(15% 0 0);
-	/* A detail page sits in the theme's own sky, the field's colors from top to night, only still, so it
-	   never clashes with the world behind it (Ash, 2026-10-04). */
-	--surface-detail: linear-gradient(
-		to bottom,
-		var(--sky-top, oklch(25% 0 0)),
-		var(--sky-night, oklch(15% 0 0)) 70%
-	);
-	/* The sidebars carry the city's hue: mostly dark, a fifth of its slate, a touch of its glow toward the
-	   bottom, opaque enough to read on. */
-	--surface-panel: linear-gradient(
-		to bottom,
-		color-mix(in oklab, var(--tint-cool, oklch(30% 0.02 232)) 22%, oklch(12% 0 0 / 0.9)),
-		color-mix(in oklab, var(--tint-warm, oklch(45% 0.05 77)) 14%, oklch(12% 0 0 / 0.9))
-	);
-	--surface-bar: color-mix(
-		in oklab,
-		var(--tint-cool, oklch(30% 0.02 232)) 20%,
-		oklch(12% 0 0 / 0.86)
-	);
-	--surface-chip: oklch(24% 0 0 / 0.78);
-	--surface-raised: oklch(17% 0 0);
-	--surface-banner: oklch(18% 0 0);
-	--surface-alert: oklch(20% 0.04 60);
+body {
+	@apply bg-black;
 }
 
-/*
- * Light mode. Every color in the app is one of these variables, so light mode is the scale turned over:
- * what was white is near black, the lightest grays become the darkest, and black becomes white. Every
- * screen follows without a light version of its own, and nothing can be forgotten.
- */
-:root[data-mode="light"] {
-	--surface-sheet: oklch(96.5% 0 0);
-	--surface-panel: linear-gradient(
-		to bottom,
-		color-mix(in oklab, var(--tint-cool, oklch(80% 0.02 232)) 18%, oklch(97% 0 0 / 0.9)),
-		color-mix(in oklab, var(--tint-warm, oklch(85% 0.04 77)) 14%, oklch(97% 0 0 / 0.9))
-	);
-	--surface-bar: color-mix(
-		in oklab,
-		var(--tint-cool, oklch(80% 0.02 232)) 16%,
-		oklch(97% 0 0 / 0.86)
-	);
-	--surface-chip: oklch(90% 0 0 / 0.82);
-	--surface-raised: oklch(95% 0 0);
-	--surface-banner: oklch(92% 0 0);
-	--surface-alert: oklch(92% 0.05 70);
-	--color-white: oklch(18% 0 0);
-	--color-black: #fff;
-	--color-neutral-50: oklch(14.5% 0 0);
-	--color-neutral-100: oklch(20.5% 0 0);
-	--color-neutral-200: oklch(26.9% 0 0);
-	--color-neutral-300: oklch(37.1% 0 0);
-	--color-neutral-400: oklch(38% 0 0);
-	--color-neutral-500: oklch(44% 0 0);
-	--color-neutral-600: oklch(52% 0 0);
-	--color-neutral-700: oklch(70% 0 0);
-	--color-neutral-800: oklch(92.2% 0 0);
-	--color-neutral-900: oklch(97% 0 0);
-	--color-neutral-950: oklch(98.5% 0 0);
-	color-scheme: light;
+/* A hard on and off blink for the status light, like a link light on a network port. */
+@theme {
+	--animate-blink: blink 1.6s steps(1, end) infinite;
+	@keyframes blink {
+		0% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.2;
+		}
+	}
 }
 
-/* The logo files are white; on a light page they are drawn dark. */
-:root[data-mode="light"] img[src^="/brand/"] {
-	filter: invert(1);
-}
-
-/* The charts paint their own colors on a canvas. They are grayscale, so turning them over is exact. */
-:root[data-mode="light"] .tv-lightweight-charts {
-	filter: invert(1);
-}
-/* A team's colored candles: inverted for light mode, then turned back round the hue wheel, so red stays red. */
-:root[data-mode="light"][data-accent] .tv-lightweight-charts {
-	filter: invert(1) hue-rotate(180deg);
-}
-
-/*
- * White on dark glows and reads larger; black on light reads thinner, and the ring looks smaller than the
- * word beside it. A hairline of shadow gives the dark logo back the weight the light one has.
- */
-:root[data-mode="light"] img.brand-mark {
-	filter: invert(1) drop-shadow(0 0 0.45px #000) drop-shadow(0 0 0.25px #000);
-}
-
-/*
- * Tribute themes: whatever is chosen or pressed glows in the theme's accent instead of white. The colors
- * come from the theme, set on the root as --accent and --on-accent.
- */
-:root[data-accent] [aria-pressed="true"].bg-white,
-:root[data-accent] button.bg-white:not(:disabled) {
-	background-color: var(--accent);
-	color: var(--on-accent);
-}
-/* Everything inside takes the button's own text color, so a second line in grey never sits unreadable on
-   the accent (Backpack's red, 2026-10-04). Quieter lines stay quieter, just in the same color. */
-:root[data-accent] [aria-pressed="true"].bg-white *,
-:root[data-accent] button.bg-white:not(:disabled) * {
-	color: var(--on-accent);
-}
-:root[data-accent]
-	[aria-pressed="true"].bg-white
-	:is(
-		[class*="text-neutral-3"],
-		[class*="text-neutral-4"],
-		[class*="text-neutral-5"],
-		[class*="text-neutral-6"]
-	),
-:root[data-accent]
-	button.bg-white:not(:disabled)
-	:is(
-		[class*="text-neutral-3"],
-		[class*="text-neutral-4"],
-		[class*="text-neutral-5"],
-		[class*="text-neutral-6"]
-	) {
-	opacity: 0.78;
-}
-
-/* Every tile is lit from above: a few percent brighter at the top, a few deeper at the bottom, and a soft
-   shadow beneath, so it has depth without a sheen (Ash, 2026-10-04: flat, but a sheen would ruin it). */
-.tile {
-	background-image: linear-gradient(
-		to bottom,
-		oklch(100% 0 0 / 0.035),
-		oklch(100% 0 0 / 0) 45%,
-		oklch(0% 0 0 / 0.05)
-	);
-	box-shadow:
-		0 1px 2px oklch(0% 0 0 / 0.18),
-		0 12px 28px -14px oklch(0% 0 0 / 0.45);
-}
-:root[data-mode="light"] .tile {
-	background-image: linear-gradient(
-		to bottom,
-		oklch(100% 0 0 / 0.3),
-		oklch(100% 0 0 / 0) 50%,
-		oklch(40% 0.01 270 / 0.035)
-	);
-	box-shadow:
-		0 1px 2px oklch(30% 0.01 270 / 0.07),
-		0 14px 30px -16px oklch(30% 0.02 270 / 0.22);
-}
-/* By day the tiles are frosted white panes over the silver, lighter than what is behind them, so the UI
-   sits on the background rather than sinking into it as grey. Night is unchanged. */
-:root[data-mode="light"] .tile {
-	background-color: oklch(100% 0 0 / 0.55);
-}
-:root[data-mode="light"] .tile:hover {
-	background-color: oklch(100% 0 0 / 0.72);
+/* A slow fade for things that arrive on their own, such as the ribbon once it has loaded. */
+@theme {
+	--animate-fade-in: fade-in 1.4s ease-out both;
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
 }

@@ -27,9 +27,11 @@ import { fundingTransaction } from "./funding.ts";
 import { brainTools, SYSTEM } from "./manager-brain.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
 import { provisionerClient } from "./provisioner-client.ts";
+import { publicTrades } from "./public-record.ts";
 import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
 import type { ManagerPorts } from "./routes/manager.ts";
+import type { PublicRecordDesk } from "./routes/public-record.ts";
 import { walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
 import { traderRunner } from "./trader-runner.ts";
@@ -38,6 +40,8 @@ import { traderView } from "./trader-view.ts";
 /** A session lasts a week, and a sentence waiting to be signed lasts five minutes. */
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CHALLENGE_MS = 5 * 60 * 1000;
+/** How many of the latest trades the public record shows. */
+const PUBLIC_TRADES = 50;
 
 export type GatewayConfig = {
 	NODE_ENV: string;
@@ -52,6 +56,7 @@ export type GatewayConfig = {
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
 	GATEWAY_SECRETS_KEY?: string | undefined;
 	JUPITER_API_KEY?: string | undefined;
+	PUBLIC_RECORD_MACHINE_ID?: string | undefined;
 };
 
 export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, logger?: Logger) {
@@ -233,8 +238,19 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 		},
 	};
 
+	// Only the one machine chosen in the configuration, and only what publicTrades lets through.
+	const machineToShow = config.PUBLIC_RECORD_MACHINE_ID;
+	const publicRecord: PublicRecordDesk | undefined =
+		machineToShow === undefined
+			? undefined
+			: {
+					read: async () =>
+						publicTrades(await readMachineEvents(database.db, machineToShow), PUBLIC_TRADES),
+				};
+
 	return {
 		ports,
+		publicRecord,
 		auth,
 		cookie,
 		halt,

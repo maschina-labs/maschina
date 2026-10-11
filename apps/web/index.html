@@ -2,30 +2,64 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="description" content="Machines with their own wallets, budgets they cannot exceed, and no way to withdraw your money. Built on Solana." />
-		<meta name="color-scheme" content="light dark" />
-		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<title>Maschina</title>
+		<meta name="description" content="The operating system for autonomous capital. Machines with their own wallets, budgets they can't edit, and rules the AI can't change. Built on Solana." />
+		<link rel="canonical" href="https://maschina.dev/" />
+		<meta name="color-scheme" content="dark" />
+		<meta name="theme-color" content="#000000" />
+		<link rel="icon" href="/favicon.ico" sizes="48x48" />
+		<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/manifest.webmanifest" />
-		<meta name="theme-color" content="#0b0b0c" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-		<title>Maschina</title>
+		<link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+		<link rel="alternate" type="text/plain" href="/llms.txt" title="Maschina for AI agents" />
+		<link rel="author" href="/humans.txt" />
+		<meta property="og:site_name" content="Maschina" />
 		<meta property="og:title" content="Maschina" />
-		<meta property="og:description" content="A machine with its own wallet, a budget it cannot exceed, and no way to withdraw your money." />
+		<meta property="og:description" content="The operating system for autonomous capital." />
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://maschina.dev" />
-		<meta property="og:image" content="https://maschina.dev/og/home.jpg" />
+		<meta property="og:locale" content="en_US" />
+		<meta property="og:image" content="https://maschina.dev/og-image.png" />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="The Maschina wordmark in white on black." />
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:image" content="https://maschina.dev/og/home.jpg" />
+		<meta name="twitter:site" content="@maschinalabs" />
+		<meta name="twitter:title" content="Maschina" />
+		<meta name="twitter:description" content="The operating system for autonomous capital." />
+		<meta name="twitter:image" content="https://maschina.dev/twitter-image.png" />
+		<meta name="twitter:image:alt" content="The Maschina wordmark in white on black." />
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@graph": [
+					{
+						"@type": "Organization",
+						"name": "Maschina Labs",
+						"url": "https://maschina.dev",
+						"logo": "https://maschina.dev/icon-512.png",
+						"sameAs": ["https://github.com/maschina-labs/maschina", "https://x.com/maschinalabs"]
+					},
+					{
+						"@type": "WebSite",
+						"name": "Maschina",
+						"url": "https://maschina.dev"
+					}
+				]
+			}
+		</script>
 	</head>
 	<body>
 		<div id="root"></div>
+		<noscript>
+			<p>
+				Maschina is software for giving an AI its own wallet and a job on Solana, inside limits its owner sets.
+				This site needs JavaScript. The same words are in plain text at
+				<a href="/llms.txt">/llms.txt</a>.
+			</p>
+		</noscript>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

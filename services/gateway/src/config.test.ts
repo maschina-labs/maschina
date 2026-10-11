@@ -26,6 +26,17 @@ describe("gateway config", () => {
 		expect(loadConfig(complete).GATEWAY_SECRETS_KEY).toBeUndefined();
 	});
 
+	it("takes the one machine to show publicly only when it is a real id, and shows none otherwise", () => {
+		const id = "01a0e674-dbbf-75e0-a420-970000000000";
+		expect(loadConfig({ ...complete, PUBLIC_RECORD_MACHINE_ID: id }).PUBLIC_RECORD_MACHINE_ID).toBe(
+			id,
+		);
+		expect(() => loadConfig({ ...complete, PUBLIC_RECORD_MACHINE_ID: "range-finder" })).toThrow(
+			/PUBLIC_RECORD_MACHINE_ID/,
+		);
+		expect(loadConfig(complete).PUBLIC_RECORD_MACHINE_ID).toBeUndefined();
+	});
+
 	it("takes a Jupiter key when one is set", () => {
 		expect(loadConfig({ ...complete, JUPITER_API_KEY: "jup-key-123" }).JUPITER_API_KEY).toBe(
 			"jup-key-123",
@@ -45,8 +56,8 @@ describe("gateway config", () => {
 
 	it("signs in against localhost until it is told otherwise", () => {
 		expect(loadConfig(complete)).toMatchObject({
-			GATEWAY_DOMAIN: "localhost:3000",
-			GATEWAY_APP_URL: "http://localhost:3000",
+			GATEWAY_DOMAIN: "localhost:3002",
+			GATEWAY_APP_URL: "http://localhost:3002",
 		});
 	});
 

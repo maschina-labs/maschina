@@ -1,0 +1,3 @@
+# Cloudflare reads this file. The old address of the security file goes to the standard one.
+/security.txt /.well-known/security.txt 301
+# Every other address is the app: wrangler.jsonc sends it to index.html, which shows the page or says there is none.

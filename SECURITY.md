@@ -16,7 +16,7 @@ reply within three days.
 
 Everything in this repository. Of particular interest:
 
-- Any way for a machine to move funds anywhere other than its owner's wallet
+- Any way for a machine to move funds anywhere its owner's rules do not allow
 - Any way to exceed a machine's budget or limits
 - Any way to act as another user or another machine
 - Any way to read or alter the permanent record

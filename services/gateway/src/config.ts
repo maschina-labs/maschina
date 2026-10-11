@@ -25,9 +25,9 @@ export function loadConfig(source?: EnvSource) {
 			 * check it against the page's own origin, which includes the port in development, so this is
 			 * a host rather than a hostname.
 			 */
-			GATEWAY_DOMAIN: z.string().min(1).default("localhost:3000"),
+			GATEWAY_DOMAIN: z.string().min(1).default("localhost:3002"),
 			/** Where the app lives, shown in the message so a person sees what they are signing into. */
-			GATEWAY_APP_URL: env.url().default("http://localhost:3000"),
+			GATEWAY_APP_URL: env.url().default("http://localhost:3002"),
 			/**
 			 * The parent domain the session cookie is scoped to, so the app and the API share it. Left
 			 * unset in development, where there is no shared parent and no https.
@@ -43,6 +43,17 @@ export function loadConfig(source?: EnvSource) {
 			 * tier, shared by everything on the server's address.
 			 */
 			JUPITER_API_KEY: env.optional(z.string().min(8)),
+			/**
+			 * The one machine whose finished trades anyone may read, at /v1/public/record. Unset, the public
+			 * record is empty and no machine is shown. It is a choice made here, never a request parameter, so
+			 * nobody can ask for someone else's machine.
+			 */
+			PUBLIC_RECORD_MACHINE_ID: env.optional(z.uuid()),
+			/**
+			 * The Resend key (sending only) that the contact page's mail goes out on. Unset, the contact route
+			 * answers that it is not available, and nothing pretends to send.
+			 */
+			RESEND_API_KEY: env.optional(env.secret()),
 			GATEWAY_SECRETS_KEY: z
 				.string()
 				.refine((value) => Buffer.from(value, "base64").length === 32, "must be 32 bytes as base64")

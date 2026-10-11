@@ -1,0 +1,5 @@
+Contact: mailto:security@maschina.dev
+Expires: 2027-09-28T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://maschina.dev/.well-known/security.txt
+Policy: https://github.com/maschina-labs/maschina/security/policy

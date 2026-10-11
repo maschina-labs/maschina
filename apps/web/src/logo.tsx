@@ -1,0 +1,37 @@
+import { useState } from "react";
+import { Link } from "./i18n/link.tsx";
+import { useMessages } from "./i18n/use-messages.ts";
+
+/**
+ * The mark is an Allen screw. Each time the cursor arrives it turns one full turn forward, the way a key
+ * drives a screw, and it stays where it stopped: leaving never winds it back. Still for anyone who asks
+ * their system for less motion.
+ */
+function Mark() {
+	const [turns, setTurns] = useState(0);
+	const still =
+		typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	return (
+		<img
+			data-mark
+			src="/brand/favicon.svg"
+			alt=""
+			onPointerEnter={() => !still && setTurns((count) => count + 1)}
+			style={{ transform: `rotate(${turns * 360}deg)` }}
+			className="size-5 shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+		/>
+	);
+}
+
+/** The mark and the word, linking home. The same size in the header and the footer, on a phone and on a desktop. */
+export function Logo() {
+	const m = useMessages();
+	return (
+		<Link href="/" aria-label={m.header.home} className="flex w-fit items-center">
+			<Mark />
+			<span data-word className="ml-1.5">
+				<img src="/brand/word.svg" alt="" className="h-5 w-auto" />
+			</span>
+		</Link>
+	);
+}

@@ -1,0 +1,316 @@
+/**
+ * The words of the site in English, the source every other language is made from. Each area of the site has its own
+ * group. A sentence with a value in it uses braces, `{date}`, so a language can put the value where its own order wants.
+ * Names of things (Maschina, Solana, Söhne, PostHog) are not translated.
+ */
+export const en = {
+	/** The names of pages, menus and columns, by their English name. A name with no entry here is shown as it is. */
+	labels: {
+		Product: "Product",
+		"Explore Maschina": "Explore Maschina",
+		"See it work": "See it work",
+		Overview: "Overview",
+		Security: "Security",
+		Marketplace: "Marketplace",
+		Network: "Network",
+		Mobile: "Mobile",
+		"Live record": "Live record",
+		Changelog: "Changelog",
+		Developers: "Developers",
+		"Build on Maschina": "Build on Maschina",
+		"For builders and agents": "For builders and agents",
+		Docs: "Docs",
+		API: "API",
+		SDK: "SDK",
+		"Machine spec": "Machine spec",
+		Templates: "Templates",
+		GitHub: "GitHub",
+		Status: "Status",
+		"AI index": "AI index",
+		"Skill file": "Skill file",
+		"MCP server": "MCP server",
+		Company: "Company",
+		"The company": "The company",
+		Follow: "Follow",
+		About: "About",
+		Roadmap: "Roadmap",
+		Contact: "Contact",
+		X: "X",
+		"How it works": "How it works",
+		Machines: "Machines",
+		Pricing: "Pricing",
+		Papers: "Papers",
+		Support: "Support",
+		"Brand assets": "Brand assets",
+		Terms: "Terms",
+		Privacy: "Privacy",
+		"Risk disclosure": "Risk disclosure",
+		"Acceptable use": "Acceptable use",
+		License: "License",
+		"Security disclosure": "Security disclosure",
+		Quickstart: "Quickstart",
+		Examples: "Examples",
+		Resources: "Resources",
+		Legal: "Legal",
+		Preferences: "Preferences",
+		Site: "Site",
+		"Maschina on X": "Maschina on X",
+		"Maschina on GitHub": "Maschina on GitHub",
+		"Maschina on YouTube": "Maschina on YouTube",
+	} as Record<string, string>,
+	header: {
+		home: "Maschina, home",
+		pages: "Pages",
+		search: "Search",
+		searchMaschina: "Search Maschina",
+		noMatch: "No pages match.",
+		menu: "Menu",
+		pagesMenu: "Pages, menu",
+		login: "Log in",
+		tryMaschina: "Try Maschina",
+		soon: "Soon",
+	},
+	footer: {
+		sitemap: "Sitemap",
+		soon: "Soon",
+		rights: "© {year} Maschina Labs. All rights reserved.",
+		status: {
+			checking: "Checking",
+			up: "All systems normal",
+			paused: "Machines paused",
+			down: "API unreachable",
+		},
+	},
+	preferences: {
+		title: "Cookie preferences",
+		body: "Essential cookies keep you signed in and always stay on. Optional cookies let us use PostHog to see which pages you open, so we can improve Maschina. Nothing else is turned on.",
+		choice: "Your choice: {choice}",
+		accepted: "accepted",
+		declined: "declined",
+		decline: "Decline",
+		accept: "Accept",
+	},
+	home: {
+		hero: {
+			name: "Maschina",
+			headlineTop: "The operating system for",
+			headlineBottom: "autonomous capital.",
+			line: "AI decides. Maschina decides what it's allowed to do.",
+			start: "Start for free",
+			docs: "Read the docs",
+			facts: "Source-available, built on Solana, free to try on paper.",
+		},
+		showcase: {
+			name: "The app",
+			title: "Everything in one place.",
+			alt: "The home screen of the Maschina app, shown full screen: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine.",
+			caption: "The Maschina app, shown with sample data.",
+		},
+		how: {
+			name: "How it works",
+			title: "Give a machine a wallet and a job.",
+			line: "Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves.",
+			steps: [
+				{
+					title: "Pick a kind",
+					body: "Choose what the machine does, such as trading SOL. It gets a wallet of its own.",
+				},
+				{
+					title: "Set its limits",
+					body: "Decide how much it may spend and which tokens it may touch. The limits are yours, and the AI cannot change them.",
+				},
+				{
+					title: "Let it work",
+					body: "Every trade is checked against your limits before it moves, and every decision is written to the record.",
+				},
+			],
+			primary: "Make a machine",
+			secondary: "Read the docs",
+		},
+		inside: {
+			name: "Inside the app",
+			title: "See every move it makes.",
+			line: "Your portfolio, every decision, every trade, and a manager you can ask, all in one app.",
+			tiles: [
+				{
+					title: "Portfolio",
+					body: "Your machines and their wallets, with the balance and the result of each.",
+				},
+				{
+					title: "Decisions",
+					body: "What each machine decided and why, including the trades it refused.",
+				},
+				{
+					title: "Manager",
+					body: "An assistant you can ask about your machines, running on your own AI key.",
+				},
+				{
+					title: "Record",
+					body: "An append-only record of everything a machine does, kept so it can be checked.",
+				},
+			],
+			sample: "Sample data.",
+			primary: "Try it on paper",
+		},
+		safety: {
+			name: "Safety",
+			title: "The limits are yours.",
+			line: "A machine can only spend what you give it, inside the limits you set. Every trade is checked against them before it is signed.",
+			flow: ["The AI proposes", "Your limits check it", "The signer signs", "Solana settles it"],
+			points: [
+				"Budgets live in a ledger the machine cannot edit.",
+				"Every action is checked before anything is signed.",
+				"A refused action is recorded too, with the reason.",
+				"Maschina never holds your own wallet's keys.",
+			],
+			audit:
+				"Maschina is early and has not been independently audited. Read the {link} for what can go wrong.",
+			auditLink: "risk disclosure",
+			primary: "Read how it is built",
+		},
+		customize: {
+			name: "Customize",
+			title: "Make it yours.",
+			line: "Set the range, the floor and the limits on every machine. Arranging your own screens and tiles is coming soon.",
+			settings: ["Range", "Floor", "Amount per trade", "Daily limit"],
+			sample: "Sample settings.",
+			primary: "Make a machine",
+		},
+		live: {
+			name: "Live record",
+			title: "Every decision, on the record.",
+			line: "A machine's decisions, including the ones it refused, will go on a record anyone can read. It is being built.",
+			tag: "Coming soon",
+			rows: [
+				{ time: "12:04", action: "Buy SOL", outcome: "Allowed" },
+				{ time: "12:19", action: "Buy SOL", outcome: "Refused: over the daily limit" },
+				{ time: "12:31", action: "Sell SOL", outcome: "Allowed" },
+				{ time: "12:48", action: "Buy a token", outcome: "Refused: token not allowed" },
+			],
+			sample: "Sample data. The live record is not open yet.",
+		},
+		network: {
+			name: "Network",
+			title: "A network of computers, running machines.",
+			line: "Soon, anyone will be able to lend a computer to run machines, and be paid for it.",
+			tag: "Coming soon",
+			globe: "The network, on a turning globe",
+		},
+		marketplace: {
+			name: "Marketplace",
+			title: "Publish what works. Copy what does.",
+			line: "A place to publish a proven machine, and for others to copy it.",
+			tag: "Coming soon",
+			cards: ["A machine", "A machine", "A machine"],
+		},
+		builders: {
+			name: "For builders",
+			title: "Read every line.",
+			line: "Maschina is source-available. Read the code and see exactly what a machine can and cannot do.",
+			view: "View the code",
+			docs: "Read the docs",
+		},
+		faq: {
+			name: "Questions",
+			title: "Before you start.",
+			items: [
+				{
+					question: "What is Maschina?",
+					answer:
+						"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
+				},
+				{
+					question: "What can a machine do with my money?",
+					answer:
+						"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
+				},
+				{
+					question: "What if it makes a bad trade?",
+					answer:
+						"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",
+				},
+				{
+					question: "Do I need money to try it?",
+					answer:
+						"No. Make a machine on paper and watch it trade against live prices without risking anything.",
+				},
+				{
+					question: "Is it live with real money?",
+					answer:
+						"Yes. Range Finder has traded real money on Solana since September 28, and every trade is on chain.",
+				},
+				{
+					question: "Can I read the code?",
+					answer: "Yes. It is source-available: you can read it, but it is not open source.",
+				},
+			],
+		},
+		closing: {
+			name: "Get started",
+			title: "Ready to build your first machine?",
+			line: "Test it on paper first, with no money at risk.",
+			start: "Start for free",
+			docs: "Read the docs",
+		},
+	},
+	notFound: {
+		code: "404",
+		title: "Page not found",
+		body: "There is nothing at this address. It may have moved, or the link may be wrong.",
+		home: "Go to the front page",
+	},
+	contact: {
+		kicker: "Company",
+		title: "Contact",
+		standfirst: "Tell us what you need, and it goes to the right inbox.",
+		who: "Who is it for",
+		topics: {
+			support: { label: "Support", hint: "Help using Maschina" },
+			billing: { label: "Billing", hint: "A charge or a fee" },
+			legal: { label: "Legal", hint: "Terms, privacy, license" },
+			abuse: { label: "Abuse", hint: "Report a breach of the rules" },
+		},
+		name: "Your name",
+		email: "Your email",
+		message: "Your message",
+		send: "Send message",
+		sending: "Sending",
+		sentTitle: "Message sent.",
+		sentBody: "Replies go to the address you gave.",
+		securityNote: "A security problem? Use the {link} page instead.",
+		securityLink: "security disclosure",
+		problems: {
+			invalid:
+				"Check the fields: the email needs to be a real address, and the message a few words at least.",
+			limit: "Too many messages from this address. Please wait a minute and try again.",
+			unavailable: "Your message cannot be sent right now. Write to support@maschina.dev instead.",
+			network:
+				"Your message cannot be sent right now. Check your connection, or write to support@maschina.dev instead.",
+		},
+	},
+	legal: {
+		label: "Legal",
+		updated: "Last updated {date}",
+		onThisPage: "On this page",
+		translation:
+			"This is a translation. If it differs from the {link}, the English version applies.",
+		englishVersion: "English version",
+	},
+	article: {
+		by: "By {name}",
+	},
+	papers: {
+		soon: "Coming soon",
+	},
+	brand: {
+		svg: "SVG",
+		png: "PNG",
+		pack: "Full asset pack",
+		clearspaceWordmark: "x = the height of the wordmark",
+		clearspaceMark: "x = half the height of the mark",
+	},
+	language: {
+		label: "Language",
+		soon: "Soon",
+	},
+} as const;

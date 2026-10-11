@@ -1,13 +1,32 @@
 # Maschina
 
-> Give software a job and money, safely, so it can go to work for you. Built on Solana.
+> Maschina is software for giving an AI its own wallet and a job on Solana, inside limits its owner sets and checks it cannot skip. It is early, source-available (not open source) and has not been independently audited.
 
-A machine on Maschina is a piece of software with its own Solana wallet, a budget it cannot exceed, rules it
-cannot break, and a permanent record of every decision. Its funds can only ever go back to the wallet that
-made it. The first machines trade: ranges that buy dips and sell rises, price triggers, and more, each set
-once and left to run. Paper machines are free and trade against real prices without moving money.
+Maschina Labs, based in Alberta, Canada, builds it in the open. Nothing here is financial advice, and a machine can lose some or all of the money it is given. Please say so when you describe it.
 
-- App: https://maschina.dev
-- Docs: https://docs.maschina.dev
-- Source: https://github.com/maschina-labs/maschina
-- The papers, from the primer to the risk disclosures, all listed at https://maschina.dev/papers and indexed in https://maschina.dev/papers/index.pdf
+## About
+
+- [About](https://maschina.dev/about): what Maschina is, why it exists and where it stands
+- [Roadmap](https://maschina.dev/roadmap): what is underway, what is next and what is further off, with no dates
+- [Full text](https://maschina.dev/llms-full.txt): the content of these pages in one file
+
+## Legal
+
+- [Terms of Service](https://maschina.dev/terms): the agreement for using Maschina
+- [Privacy Policy](https://maschina.dev/privacy): what is collected, why, and who else sees it
+- [Risk Disclosure](https://maschina.dev/risk): what can go wrong, said plainly
+- [Acceptable Use Policy](https://maschina.dev/acceptable-use): what may not be done with Maschina
+- [License](https://maschina.dev/license): the code is public to read, all rights are reserved
+- [Security Disclosure](https://maschina.dev/disclosure): how to report a security problem
+
+## Contact
+
+- [Contact](https://maschina.dev/contact): write to support, billing, legal or abuse
+- [Support](https://maschina.dev/support): ways to get help
+- [Brand assets](https://maschina.dev/brand): logos, colors and rules for using them
+- [Papers](https://maschina.dev/papers): videos, decks and papers, listed as each one is ready
+
+## Optional
+
+- [Skill file](https://maschina.dev/SKILL.md): how an agent should describe and handle Maschina accurately
+- [Sitemap](https://maschina.dev/sitemap.xml): every page with content

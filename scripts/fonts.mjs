@@ -18,7 +18,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const into = fileURLToPath(new URL("../apps/web/public/fonts/", import.meta.url));
+const into = fileURLToPath(new URL("../apps/app/public/fonts/", import.meta.url));
 const from = process.env["MASCHINA_FONTS_FROM"] ?? "ubuntu@148.113.245.175:/opt/maschina/fonts/*";
 const key = process.env["MASCHINA_FONTS_KEY"] ?? `${process.env["HOME"]}/.ssh/maschina_ovh`;
 
@@ -34,4 +34,4 @@ try {
 }
 
 const got = readdirSync(into).filter((name) => /\.(woff2|otf)$/.test(name));
-console.log(`${got.length} font files in apps/web/public/fonts.`);
+console.log(`${got.length} font files in apps/app/public/fonts.`);

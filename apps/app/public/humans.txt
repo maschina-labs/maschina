@@ -1,0 +1,7 @@
+/* TEAM */
+Founder: Asher Wilson
+From: Canada
+
+/* SITE */
+Built with: TypeScript, React, Solana
+Standards: HTML, CSS, OKLCH

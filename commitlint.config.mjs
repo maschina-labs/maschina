@@ -8,6 +8,8 @@ export default {
 			"always",
 			[
 				"web",
+				"app",
+				"docs",
 				"gateway",
 				"orchestrator",
 				"signer",

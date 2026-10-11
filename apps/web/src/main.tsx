@@ -1,29 +1,28 @@
-import { QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
-import { createApi } from "./lib/api.ts";
-import { config } from "./lib/env.ts";
-import { createQueryClient } from "./lib/query.ts";
-import { createAppRouter } from "./router.tsx";
+import { startAnalytics } from "./analytics.ts";
+import { App } from "./app.tsx";
+import { loadLanguage } from "./i18n/languages.ts";
+import { parsePath } from "./i18n/locales.ts";
 
-// Loaded only when configured, so the first page doesn't wait for them.
-if (config.VITE_SENTRY_DSN) {
-	const dsn = config.VITE_SENTRY_DSN;
-	void import("./lib/errors.ts").then(({ startErrorReporting }) => startErrorReporting(dsn));
-}
+// Where sign in and sign up live: auth.maschina.dev, or the local auth app while developing (.env).
+const authUrl = import.meta.env.VITE_AUTH_URL ?? "https://auth.maschina.dev";
 
-const queryClient = createQueryClient();
-const router = createAppRouter({ api: createApi(config.VITE_GATEWAY_URL), queryClient });
+// Product analytics: PostHog, and only once the visitor has accepted optional cookies. With no key it does nothing.
+startAnalytics({
+	key: import.meta.env.VITE_POSTHOG_KEY,
+	host: import.meta.env.VITE_POSTHOG_HOST ?? "https://us.i.posthog.com",
+});
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root is missing from index.html");
 
+// The words of the language in the address come first, as a file of their own, so the page is drawn once, in it.
+await loadLanguage(parsePath(window.location.pathname).locale);
+
 createRoot(root).render(
 	<StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<RouterProvider router={router} />
-		</QueryClientProvider>
+		<App authUrl={authUrl} />
 	</StrictMode>,
 );

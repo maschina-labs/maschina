@@ -14,7 +14,7 @@
  * The files are not in this repository. A font licence covers serving the font for your own site, not
  * handing the files to everybody who clones it, so they are served from `/fonts` at runtime rather than
  * bundled: a fresh clone builds and runs, and falls back to the system stack until somebody with the
- * licence puts the files in `apps/web/public/fonts`. `pnpm fonts` does that.
+ * licence puts the files in `apps/app/public/fonts`. `pnpm fonts` does that.
  */
 @font-face {
 	font-family: "Sohne";

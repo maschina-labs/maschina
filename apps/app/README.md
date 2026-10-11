@@ -1,0 +1,26 @@
+# @maschina/app
+
+The web app. The first place owners create, fund, talk to and stop their machines.
+
+- Vite, React, TanStack Router (file-based routes in `src/routes`) and TanStack Query.
+- Styling and components come from `@maschina/ui`.
+- Talks to the gateway through a client typed from the gateway's own routes.
+- Wallet connection arrives with the first real screens.
+
+```bash
+pnpm app      # http://localhost:3002
+```
+
+Deploys to Vercel as a static site.
+
+**Owns:** what owners see and do in a browser.
+
+**Never:** holds a secret, reaches the database, or talks to any service but the gateway. Only
+`VITE_` variables reach the browser.
+
+## The landing page is a test page
+
+`src/routes/index.tsx` is a placeholder put up on 2026-09-18 so maschina.dev serves something true
+instead of a blank page while the product is built. Plain text, no design. It says what a machine is
+and what it cannot do, promises nothing about returns, and needs no running service. It gets replaced
+by the real front page (public machines and their records, D-076) once machines are running.

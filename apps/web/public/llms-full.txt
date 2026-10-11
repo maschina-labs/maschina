@@ -1,0 +1,76 @@
+# Maschina
+
+> Maschina is software for giving an AI its own wallet and a job on Solana, inside limits its owner sets and checks it cannot skip. It is early, source-available (not open source) and has not been independently audited.
+
+This file holds the content of the pages on https://maschina.dev in one place, for reading by AI agents. The pages themselves are the source of truth, and where this file and a page differ, the page wins. Nothing here is financial advice.
+
+## About
+
+An AI that can only produce text is easy to oversee. An AI that can spend is not. Once it holds money, each mistake has a cost, and each claim about its behavior needs a way to be verified.
+
+Maschina is built around that problem. A machine is an AI with its own wallet and a defined job. Its owner sets what it may do and how much it may spend. Before anything is signed, Maschina checks the action against those rules, and an action that fails the check does not happen. The AI decides. Maschina decides what it is allowed to do.
+
+How it works:
+- Each machine has its own wallet, and its limits are set before it starts.
+- A separate signer is the only component that can request a signature, and only after the rules pass.
+- Every decision, including those that were refused, is written to a permanent record.
+- A machine can run on paper first, with no real money, so its behavior can be observed before it is funded.
+
+Where it stands: Maschina is early. It is developed in the open: the source code is public. It is source-available, not open source, and it has not been independently audited. Maschina Labs does not publish figures it cannot support.
+
+The company: Maschina is built by Maschina Labs, founded by Asher Wilson in Alberta, Canada. The work is public at https://github.com/maschina-labs/maschina.
+
+More: https://maschina.dev/about
+
+## Roadmap
+
+This is a statement of direction, not a commitment. Plans change, and there are no dates.
+
+Now: the front pages of the site and the documents that go with them; risk limits at the signer (a position's share of the book, and drawdown); paper machines that run on live prices with no real money; sign in on its own address, with more ways to sign in than a wallet; the public record of what a machine decided, including what it refused.
+
+Next: a stop switch for every machine, and loss caps across all of an owner's machines; reconciliation of a machine's record against what is on chain; a tested way to withdraw everything; alerts to the owner when a machine does something that matters; a developer interface for proposing a trade to a machine's rules; documentation on its own address.
+
+Later: machine rules held on chain, after an independent audit; a way to publish a proven machine, and for others to copy it; machines that run on other people's computers, with those people paid for it; a phone app.
+
+No date is set for an audit. More: https://maschina.dev/roadmap
+
+## Risk
+
+Using Maschina with real money carries real risk.
+- A person can lose some or all of the money put into a machine, and in some cases a machine can lose it quickly.
+- A machine acts on its own, at any hour, and does exactly what its settings allow, even when that turns out to be a mistake.
+- Limits keep a machine inside a boundary. They do not make it safe.
+- An AI can be wrong, and nobody checks its decisions as they happen.
+- Transactions cannot be undone, and Maschina is early software that has not been independently audited.
+- Maschina is not a bank, a broker, an exchange or an investment adviser. Money in a machine's wallet is not insured.
+- Results shown on the site may use sample data. Past results do not predict future results, and no result is promised.
+
+More: https://maschina.dev/risk
+
+## Terms
+
+The terms of service are the agreement between a person and Maschina Labs about using Maschina. In short: a person must be at least 18 and not barred from using the service by law; each machine has its own wallet whose keys are held by a third party wallet provider; the owner decides what a machine does and is responsible for it; the service may change or stop; liability is limited; and the governing law is that of Alberta, Canada. The full text is the only one that counts.
+
+More: https://maschina.dev/terms
+
+## Privacy
+
+A person can sign in with a Solana wallet, an email and password, Google, GitHub or single sign-on. Maschina keeps what it needs to run the service: the way a person signs in (never a password in readable form), the machines they make, their settings and their records. Analytics runs only if a person accepts optional cookies. The policy names the third parties that see information (the network and wallet provider, a content delivery network, an analytics service, sign in providers, an AI provider where a person uses the manager, and mail and messaging services), and says what it does not collect. The full text is the only one that counts.
+
+More: https://maschina.dev/privacy
+
+## Acceptable use, license and security
+
+- Acceptable use: no illegal activity, no market manipulation, no machines built to take money they have no right to, and no attacks on the service. Abuse reports go to abuse@maschina.dev. https://maschina.dev/acceptable-use
+- License: the source code is public so it can be read and checked. All rights are reserved by Maschina Labs, there is no open source license, and permission for anything more has to be asked for in writing. https://maschina.dev/license
+- Security: report a problem privately to security@maschina.dev or through GitHub's private vulnerability reporting. Test only with your own accounts and funds. Good faith research that follows the rules is treated as authorized. There is no bug bounty yet. https://maschina.dev/disclosure
+
+## Contact
+
+- Support: support@maschina.dev
+- Billing: billing@maschina.dev
+- Legal: legal@maschina.dev
+- Abuse: abuse@maschina.dev
+- Security: security@maschina.dev
+
+https://maschina.dev/contact
