@@ -90,6 +90,11 @@ describe("the header", () => {
 			const link = pages.getByRole("link", { name });
 			expect(link.querySelector("svg")).toBeNull();
 		}
+		// The live record is an app of its own, so this link leaves the site for it.
+		expect(pages.getByRole("link", { name: "Live Record" })).toHaveAttribute(
+			"href",
+			"https://live.maschina.dev",
+		);
 	});
 
 	it("opens on hover, full width, with the big links on the left and the small ones beside them", () => {

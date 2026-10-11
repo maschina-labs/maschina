@@ -2,7 +2,7 @@
  * What each dropdown holds. The big links on the left are the pages; the small ones beside them are the
  * way on. A link with no address is not built yet: it shows dimmed and tagged Soon, and is never a link.
  */
-import { DOCS, DOCS_PAGES } from "./links.ts";
+import { DOCS, DOCS_PAGES, LIVE } from "./links.ts";
 
 type Item = { label: string; href?: string };
 
@@ -31,7 +31,7 @@ export const MENUS: Record<string, Menu> = {
 		],
 		asideTitle: "See It Work",
 		aside: [
-			{ label: "Live Record", href: "/live" },
+			{ label: "Live Record", href: LIVE },
 			{ label: "Changelog", href: CHANGELOG },
 		],
 	},

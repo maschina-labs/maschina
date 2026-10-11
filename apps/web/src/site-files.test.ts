@@ -52,6 +52,14 @@ describe("robots.txt", () => {
 	});
 });
 
+describe("the live record's address", () => {
+	it("is its own app: the old address here is redirected to it, in any language", () => {
+		const redirects = readFileSync(resolve(root, "public/_redirects"), "utf8");
+		expect(redirects).toMatch(/^\/live https:\/\/live\.maschina\.dev 301$/m);
+		expect(redirects).toMatch(/^\/:language\/live https:\/\/live\.maschina\.dev 301$/m);
+	});
+});
+
 describe("sitemap.xml", () => {
 	const text = read("sitemap.xml");
 	const blocks = [...text.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => match[1] ?? "");

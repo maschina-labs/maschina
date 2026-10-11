@@ -81,6 +81,7 @@ describe("the sitemap", () => {
 			"Docs",
 			"Examples",
 			"GitHub",
+			"Live Record",
 			"Machine Spec",
 			"Quickstart",
 			"SDK",

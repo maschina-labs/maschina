@@ -4,6 +4,9 @@
  */
 export const DOCS = "https://docs.maschina.dev";
 
+/** The live record: its own app on its own address, so no page here is called /live (an old link to it is redirected). */
+export const LIVE = "https://live.maschina.dev";
+
 /** The pages of the docs app that the menus and the footer name, by their address in it. */
 export const DOCS_PAGES = {
 	quickstart: `${DOCS}/quickstart`,

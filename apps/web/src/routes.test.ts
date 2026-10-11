@@ -22,8 +22,8 @@ describe("the pages", () => {
 		expect(missing).toEqual([]);
 	});
 
-	it("has the pages that are only tagged Soon as well, the docs and the live record", () => {
-		for (const href of ["/marketplace", "/network", "/mobile", "/live"])
+	it("has the pages that are only tagged Soon as well", () => {
+		for (const href of ["/marketplace", "/network", "/mobile"])
 			expect(ROUTES[href], href).toBeDefined();
 	});
 

@@ -5,7 +5,7 @@ import { useLocale } from "./i18n/locale-context.tsx";
 import { localizePath } from "./i18n/locales.ts";
 import { label } from "./i18n/messages.ts";
 import { useMessages } from "./i18n/use-messages.ts";
-import { DOCS } from "./links.ts";
+import { DOCS, LIVE } from "./links.ts";
 import { Logo } from "./logo.tsx";
 import { MENUS } from "./menus.ts";
 import { usePresence } from "./presence.ts";
@@ -24,7 +24,7 @@ const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
 	{ label: "Developers", href: DOCS, dropdown: true },
 	{ label: "Company", href: "/company", dropdown: true },
-	{ label: "Live Record", href: "/live", dropdown: false },
+	{ label: "Live Record", href: LIVE, dropdown: false },
 	{ label: "Papers", href: "/papers", dropdown: false },
 	{ label: "Pricing", href: "/pricing", dropdown: false },
 ];
