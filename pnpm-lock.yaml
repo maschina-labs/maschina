@@ -715,6 +715,9 @@ importers:
 
   packages/integration-tests:
     devDependencies:
+      '@maschina/accounts':
+        specifier: workspace:*
+        version: link:../accounts
       '@maschina/config':
         specifier: workspace:*
         version: link:../config

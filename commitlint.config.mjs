@@ -31,6 +31,7 @@ export default {
 				"field",
 				"site",
 				"auth",
+				"accounts",
 				"config",
 				"testing",
 				"deps",
