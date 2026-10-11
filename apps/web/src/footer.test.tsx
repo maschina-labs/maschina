@@ -60,39 +60,51 @@ describe("the footer", () => {
 
 	it("lights TX amber and RX green, so the two directions can be told apart", async () => {
 		render(<Footer />);
-		const status = within(screen.getByRole("status"));
-		const tx = status.getByText("TX").parentElement as HTMLElement;
-		const rx = status.getByText("RX").parentElement as HTMLElement;
-		// Read inside the wait: a blink is short, and a slow machine can let it end between the wait and a later check.
-		await waitFor(() => {
-			expect(tx).toHaveAttribute("data-on", "true");
-			expect(tx.firstElementChild?.className).toContain("oklch(0.82_0.17_70)");
-		});
-		await waitFor(() => {
-			expect(rx).toHaveAttribute("data-on", "true");
-			expect(rx.firstElementChild?.className).toContain("oklch(0.8_0.2_145)");
-		});
+		const status = screen.getByRole("status");
+		const tx = within(status).getByText("TX").parentElement as HTMLElement;
+		const rx = within(status).getByText("RX").parentElement as HTMLElement;
+		// A blink is short and a slow machine can miss it between two checks, so every change is written down as it happens.
+		const seen = { tx: "", rx: "" };
+		const note = () => {
+			if (tx.getAttribute("data-on") === "true") seen.tx = tx.firstElementChild?.className ?? "";
+			if (rx.getAttribute("data-on") === "true") seen.rx = rx.firstElementChild?.className ?? "";
+		};
+		const watch = new MutationObserver(note);
+		watch.observe(status, { attributes: true, childList: true, subtree: true });
+		note();
+		await waitFor(
+			() => {
+				expect(seen.tx).toContain("oklch(0.82_0.17_70)");
+				expect(seen.rx).toContain("oklch(0.8_0.2_145)");
+			},
+			{ timeout: 4000 },
+		);
+		watch.disconnect();
 	});
 
 	it("never lights TX and RX at the same moment, even when the answer is instant", async () => {
 		render(<Footer />);
-		const status = within(screen.getByRole("status"));
-		const tx = status.getByText("TX").parentElement as HTMLElement;
-		const rx = status.getByText("RX").parentElement as HTMLElement;
+		const status = screen.getByRole("status");
+		const tx = within(status).getByText("TX").parentElement as HTMLElement;
+		const rx = within(status).getByText("RX").parentElement as HTMLElement;
 		let both = false;
 		let txSeen = false;
 		let rxSeen = false;
-		const end = Date.now() + 900;
-		while (Date.now() < end) {
+		// Every change is written down as it happens, so a slow machine cannot step over a short blink.
+		const note = () => {
 			const t = tx.getAttribute("data-on") === "true";
 			const r = rx.getAttribute("data-on") === "true";
 			txSeen ||= t;
 			rxSeen ||= r;
 			both ||= t && r;
-			await new Promise((resolve) => setTimeout(resolve, 5));
-		}
-		expect(txSeen).toBe(true);
-		expect(rxSeen).toBe(true);
+		};
+		const watch = new MutationObserver(note);
+		watch.observe(status, { attributes: true, childList: true, subtree: true });
+		note();
+		await waitFor(() => expect(txSeen && rxSeen).toBe(true), { timeout: 4000 });
+		// Let the blinks end, so a late overlap would show.
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		watch.disconnect();
 		expect(both).toBe(false);
 	});
 
