@@ -132,14 +132,25 @@ export function authRoutes(ports: AuthPorts, cookie: CookieSettings) {
 				expires: started.expiresAt,
 			});
 			return c.json(
-				{ ownerId: started.owner.ownerId, walletAddress: started.owner.walletAddress },
+				{
+					ownerId: started.owner.ownerId,
+					walletAddress: started.owner.walletAddress,
+					email: started.owner.email ?? null,
+				},
 				200,
 			);
 		})
 		.openapi(me, async (c) => {
 			const owner = await ports.ownerOf(c.req.raw.headers);
 			if (!owner) throw new MaschinaError("unauthenticated", "sign in first");
-			return c.json({ ownerId: owner.ownerId, walletAddress: owner.walletAddress }, 200);
+			return c.json(
+				{
+					ownerId: owner.ownerId,
+					walletAddress: owner.walletAddress,
+					email: owner.email ?? null,
+				},
+				200,
+			);
 		})
 		.openapi(signOut, async (c) => {
 			const token = getCookie(c, SESSION_COOKIE);

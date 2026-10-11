@@ -47,7 +47,9 @@ function app(ports: Partial<MachinePorts> = {}) {
 		ownerOf: async (headers) =>
 			headers.get("authorization") === "Bearer signed-in"
 				? { ownerId, walletAddress: OWNER }
-				: undefined,
+				: headers.get("authorization") === "Bearer person"
+					? { ownerId, walletAddress: null }
+					: undefined,
 		list: async () => [summary],
 		read: async (_owner, id) => (id === machineId ? detail : undefined),
 		record: async () => [
@@ -301,6 +303,46 @@ describe("the machines API", () => {
 		expect(res.status).toBe(201);
 		expect(await res.json()).toMatchObject({ walletAddress: WALLET });
 		expect(asked[0]?.ownerWallet).toBe(OWNER);
+	});
+});
+
+describe("a person who signed in without a wallet", () => {
+	const person = { "content-type": "application/json", authorization: "Bearer person" };
+
+	it("can look at their machines", async () => {
+		const res = await app().request("/v1/machines", { headers: person });
+		expect(res.status).toBe(200);
+	});
+
+	it("cannot create a machine until a wallet is linked, because a machine pays only its owner's wallet", async () => {
+		const asked: unknown[] = [];
+		const res = await app({
+			create: async (request) => {
+				asked.push(request);
+				return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: person,
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+		expect(res.status).toBe(403);
+		expect(JSON.stringify(await res.json())).toContain("link a wallet");
+		expect(asked).toEqual([]);
+	});
+
+	it("cannot build a funding transaction, for the same reason", async () => {
+		const res = await app().request(`/v1/machines/${machineId}/funding`, {
+			method: "POST",
+			headers: person,
+			body: JSON.stringify({ usdc: "40350000", lamports: "12000000" }),
+		});
+		expect(res.status).toBe(403);
 	});
 });
 

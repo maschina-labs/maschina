@@ -35,7 +35,15 @@ export const SignInRequest = z
 	.meta({ id: "SignInRequest" });
 export type SignInRequest = z.infer<typeof SignInRequest>;
 
+/**
+ * Who is signed in. A person who came in with an email, Google, GitHub or their company has an email and no
+ * wallet until they link one; a wallet that signed in has a wallet and, until it links one, no email.
+ */
 export const SignedInOwner = z
-	.strictObject({ ownerId: z.string(), walletAddress: address })
+	.strictObject({
+		ownerId: z.string(),
+		walletAddress: address.nullable(),
+		email: z.string().nullable(),
+	})
 	.meta({ id: "SignedInOwner" });
 export type SignedInOwner = z.infer<typeof SignedInOwner>;

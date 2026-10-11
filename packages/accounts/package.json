@@ -1,0 +1,30 @@
+{
+	"name": "@maschina/accounts",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "People signing in: email and password, Google, GitHub and company single sign-on.",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@better-auth/drizzle-adapter": "1.7.7",
+		"@better-auth/sso": "1.7.7",
+		"@maschina/core": "workspace:*",
+		"@maschina/db": "workspace:*",
+		"better-auth": "1.7.7",
+		"drizzle-orm": "catalog:"
+	},
+	"devDependencies": {
+		"@maschina/config": "workspace:*",
+		"@types/node": "catalog:",
+		"@vitest/coverage-v8": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}
