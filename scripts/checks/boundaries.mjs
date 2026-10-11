@@ -60,6 +60,7 @@ export const RULES = [
 				"apps/app",
 				"apps/auth",
 				"apps/docs",
+				"apps/live",
 				"apps/web",
 				"packages/core",
 				"packages/rules",
