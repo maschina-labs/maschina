@@ -148,6 +148,13 @@
       "when": 1791010052348,
       "tag": "0020_trader_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791690758144,
+      "tag": "0021_people",
+      "breakpoints": true
     }
   ]
 }

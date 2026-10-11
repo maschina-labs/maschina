@@ -81,7 +81,7 @@ export async function startSession(
 	return { id, token, expiresAt };
 }
 
-export type SessionOwner = { sessionId: string; ownerId: string; walletAddress: string };
+export type SessionOwner = { sessionId: string; ownerId: string; walletAddress: string | null };
 
 /** Who is holding this token, if anybody still is. */
 export async function ownerOfSession(
@@ -89,7 +89,11 @@ export async function ownerOfSession(
 	token: string,
 	now: Date,
 ): Promise<SessionOwner | undefined> {
-	const rows = await db.execute<{ id: string; owner_id: string; wallet_address: string }>(sql`
+	const rows = await db.execute<{
+		id: string;
+		owner_id: string;
+		wallet_address: string | null;
+	}>(sql`
 		select sessions.id, sessions.owner_id, owners.wallet_address
 		from sessions
 		join owners on owners.id = sessions.owner_id

@@ -8,6 +8,7 @@ export * from "./ledger.ts";
 export * from "./owner-machines.ts";
 export * from "./owner-secrets.ts";
 export * from "./owners.ts";
+export * from "./people.ts";
 export * from "./read-events.ts";
 export * from "./record.ts";
 export * from "./retune.ts";
