@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.41](https://github.com/maschina-labs/maschina/compare/v0.0.40...v0.0.41) (2026-10-11)
+
+
+### Added
+
+* **auth:** email sign in, the status page and the new apps ([#778](https://github.com/maschina-labs/maschina/issues/778)) ([bf0c80f](https://github.com/maschina-labs/maschina/commit/bf0c80fc47b12ad91b5705eb2fc977b9bb76f416))
+
 ## [0.0.40](https://github.com/maschina-labs/maschina/compare/v0.0.39...v0.0.40) (2026-10-11)
 
 
