@@ -176,6 +176,13 @@ describe("the page's own head, for browsers, search engines and shared links", (
 		expect(meta("property", "og:description")).toBeTruthy();
 	});
 
+	it("names the front page, in the tab and on shared links, by what Maschina is", () => {
+		const name = "Maschina: The Operating System for Autonomous Capital";
+		expect(/<title>([^<]*)<\/title>/.exec(html)?.[1]).toBe(name);
+		expect(meta("property", "og:title")).toBe(name);
+		expect(meta("name", "twitter:title")).toBe(name);
+	});
+
 	it("has a card for shared links on Open Graph and on X, at the size they ask for, with a description of the picture", () => {
 		expect(meta("property", "og:image")).toBe(`${ORIGIN}/og-image.png`);
 		expect(meta("property", "og:image:width")).toBe("1200");
