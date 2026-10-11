@@ -48,8 +48,11 @@
 		"services/gateway": {
 			"entry": ["api/index.ts"],
 			"ignoreDependencies": [
+				"@better-auth/drizzle-adapter",
+				"@better-auth/sso",
 				"@hono/node-server",
 				"@sentry/node",
+				"better-auth",
 				"drizzle-orm",
 				"pino",
 				"postgres",
