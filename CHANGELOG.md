@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.39](https://github.com/maschina-labs/maschina/compare/v0.0.38...v0.0.39) (2026-10-11)
+
+
+### Added
+
+* **site:** the company site in 23 languages, app on its own address ([#772](https://github.com/maschina-labs/maschina/issues/772)) ([3b67ed1](https://github.com/maschina-labs/maschina/commit/3b67ed1b6a1b8dfa286060a62a94fba5a0d436fd))
+
 ## [0.0.38](https://github.com/maschina-labs/maschina/compare/v0.0.37...v0.0.38) (2026-10-09)
 
 
