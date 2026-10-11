@@ -10,9 +10,9 @@ export const ROUTES: Record<string, string> = {
 	"/marketplace": "Marketplace",
 	"/network": "Network",
 	"/mobile": "Mobile",
-	"/live": "Live record",
+	"/live": "Live Record",
 	"/security": "Security",
-	"/how-it-works": "How it works",
+	"/how-it-works": "How It Works",
 	"/machines": "Machines",
 	"/pricing": "Pricing",
 	"/papers": "Papers",
@@ -21,13 +21,13 @@ export const ROUTES: Record<string, string> = {
 	"/roadmap": "Roadmap",
 	"/contact": "Contact",
 	"/support": "Support",
-	"/brand": "Brand assets",
+	"/brand": "Brand Assets",
 	"/terms": "Terms",
 	"/privacy": "Privacy",
-	"/risk": "Risk disclosure",
-	"/acceptable-use": "Acceptable use",
+	"/risk": "Risk Disclosure",
+	"/acceptable-use": "Acceptable Use",
 	"/license": "License",
-	"/disclosure": "Security disclosure",
+	"/disclosure": "Security Disclosure",
 };
 
 /**
@@ -35,9 +35,9 @@ export const ROUTES: Record<string, string> = {
  * other sites: an agent or a crawler reads them, and the header and the footer link to a few, with no arrow. Each one is a real file, and a test checks that it exists.
  */
 export const FILES: Record<string, string> = {
-	"/llms.txt": "AI index",
+	"/llms.txt": "AI Index",
 	"/llms-full.txt": "Full text",
-	"/SKILL.md": "Skill file",
+	"/SKILL.md": "Skill File",
 	"/robots.txt": "Robots",
 	"/sitemap.xml": "Sitemap",
 	"/humans.txt": "Humans",

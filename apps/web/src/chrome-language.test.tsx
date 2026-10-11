@@ -113,7 +113,7 @@ describe("the footer in another language", () => {
 			"href",
 			"https://github.com/maschina-labs",
 		);
-		expect(nav.getByRole("link", { name: "AI index" })).toHaveAttribute("href", "/llms.txt");
+		expect(nav.getByRole("link", { name: "AI Index" })).toHaveAttribute("href", "/llms.txt");
 		for (const link of nav.getAllByRole("link")) {
 			const href = link.getAttribute("href") ?? "";
 			if (href.startsWith("/") && !/\.[a-z]+$/.test(href))

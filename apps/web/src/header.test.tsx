@@ -27,7 +27,7 @@ describe("the header", () => {
 
 	it("has Log in as plain text, in no box, like the pages, on a desktop (the pearl button beside the menu button on a phone)", () => {
 		render(<Header authUrl={AUTH} />);
-		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
+		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Sign In" });
 		// On a desktop it has no box at all: its only background classes are for a phone.
 		expect(logIn.className).not.toMatch(/(^|\s)(xl:)?bg-/);
 		expect(logIn.className).toContain("xl:inline-block");
@@ -36,7 +36,7 @@ describe("the header", () => {
 	it("leads to log in and sign up, wherever auth lives", () => {
 		render(<Header authUrl="http://localhost:3001" />);
 		const header = within(screen.getByRole("banner"));
-		expect(header.getByRole("link", { name: "Log in" })).toHaveAttribute(
+		expect(header.getByRole("link", { name: "Sign In" })).toHaveAttribute(
 			"href",
 			"http://localhost:3001/sign-in",
 		);
@@ -53,7 +53,7 @@ describe("the header", () => {
 			"Product",
 			"Developers",
 			"Company",
-			"Live record",
+			"Live Record",
 			"Papers",
 			"Pricing",
 		]);
@@ -64,7 +64,7 @@ describe("the header", () => {
 		const pages = screen.getByRole("navigation", { name: "Pages" });
 		const left = screen.getByRole("link", { name: "Maschina, home" }).parentElement as HTMLElement;
 		expect(left.contains(pages)).toBe(true);
-		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Log in" });
+		const logIn = within(screen.getByRole("banner")).getByRole("link", { name: "Sign In" });
 		expect(left.contains(logIn)).toBe(false);
 	});
 
@@ -86,7 +86,7 @@ describe("the header", () => {
 			expect(trigger).toHaveAttribute("aria-expanded", "false");
 			expect(trigger.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
 		}
-		for (const name of ["Live record", "Papers", "Pricing"]) {
+		for (const name of ["Live Record", "Papers", "Pricing"]) {
 			const link = pages.getByRole("link", { name });
 			expect(link.querySelector("svg")).toBeNull();
 		}
@@ -100,18 +100,18 @@ describe("the header", () => {
 		const panel = screen.getByRole("region", { name: "Developers" });
 		expect((panel.parentElement as HTMLElement).className).toContain("inset-x-0");
 		const inside = within(panel);
-		for (const name of ["Docs", "API", "SDK", "Machine spec", "Templates"]) {
+		for (const name of ["Docs", "API", "SDK", "Machine Spec", "Templates"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
 		expect(inside.getByRole("link", { name: "GitHub" })).toHaveAttribute(
 			"href",
 			"https://github.com/maschina-labs",
 		);
-		for (const name of ["AI index", "Skill file"]) {
+		for (const name of ["AI Index", "Skill File"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
 		// Not built yet: named, tagged Soon, and not a link.
-		for (const name of ["Status", "MCP server"]) {
+		for (const name of ["Status", "MCP Server"]) {
 			expect(inside.queryByRole("link", { name: new RegExp(name) })).toBeNull();
 			expect(inside.getByText(name)).toBeInTheDocument();
 		}
@@ -249,9 +249,9 @@ describe("the header", () => {
 			"opacity-100",
 		);
 		const open = within(panel);
-		expect(open.getByRole("link", { name: "Live record" })).toBeInTheDocument();
+		expect(open.getByRole("link", { name: "Live Record" })).toBeInTheDocument();
 		expect(open.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
-		expect(open.getByRole("link", { name: "Log in" })).toHaveAttribute("href", `${AUTH}/sign-in`);
+		expect(open.getByRole("link", { name: "Sign In" })).toHaveAttribute("href", `${AUTH}/sign-in`);
 		expect(open.getByRole("link", { name: "Try Maschina" })).toHaveAttribute(
 			"href",
 			`${AUTH}/sign-up`,
@@ -272,7 +272,7 @@ describe("the header", () => {
 
 		fireEvent.click(panel.getByRole("button", { name: "Product" }));
 		expect(panel.getByRole("button", { name: "Product" })).toHaveAttribute("aria-expanded", "true");
-		for (const name of ["Overview", "Security", "Live record", "Changelog"]) {
+		for (const name of ["Overview", "Security", "Live Record", "Changelog"]) {
 			expect(panel.getAllByRole("link", { name }).length).toBeGreaterThan(0);
 		}
 		for (const name of ["Marketplace", "Network", "Mobile"]) {
@@ -290,8 +290,8 @@ describe("the header", () => {
 		);
 		expect(panel.queryByRole("link", { name: "Overview" })).toBeNull();
 		expect(panel.getByRole("link", { name: "Docs" })).toBeInTheDocument();
-		expect(panel.queryByRole("link", { name: /MCP server/ })).toBeNull();
-		expect(panel.getByText("MCP server")).toBeInTheDocument();
+		expect(panel.queryByRole("link", { name: /MCP Server/ })).toBeNull();
+		expect(panel.getByText("MCP Server")).toBeInTheDocument();
 
 		fireEvent.click(panel.getByRole("button", { name: "Developers" }));
 		expect(panel.queryByRole("link", { name: "Docs" })).toBeNull();
@@ -389,7 +389,7 @@ describe("the header", () => {
 		expect(panel.queryByText("No pages match.")).toBeNull();
 
 		fireEvent.change(box, { target: { value: "spec" } });
-		expect(panel.getByRole("link", { name: /Machine spec/ })).toHaveAttribute(
+		expect(panel.getByRole("link", { name: /Machine Spec/ })).toHaveAttribute(
 			"href",
 			"https://docs.maschina.dev/machine-spec",
 		);
@@ -492,7 +492,7 @@ describe("the header", () => {
 		const tryIt = banner.getByRole("link", { name: "Try Maschina" });
 		expect(tryIt.className).toContain("hidden");
 		expect(tryIt.className).toMatch(/xl:inline-(block|flex)/);
-		expect(banner.getByRole("link", { name: "Log in" }).className).toMatch(
+		expect(banner.getByRole("link", { name: "Sign In" }).className).toMatch(
 			/xl:inline-(block|flex)/,
 		);
 	});
@@ -720,12 +720,12 @@ describe("the header's motion", () => {
 		render(<Header authUrl={AUTH} />);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const inside = within(screen.getByRole("region", { name: "Developers" }));
-		for (const name of ["Docs", "API", "SDK", "Machine spec", "Templates", "GitHub"])
+		for (const name of ["Docs", "API", "SDK", "Machine Spec", "Templates", "GitHub"])
 			expect(
 				inside.getByRole("link", { name }).querySelector("svg[data-arrow=external]"),
 				name,
 			).not.toBeNull();
-		for (const name of ["AI index", "Skill file"])
+		for (const name of ["AI Index", "Skill File"])
 			expect(inside.getByRole("link", { name }).querySelector("svg"), name).toBeNull();
 	});
 });

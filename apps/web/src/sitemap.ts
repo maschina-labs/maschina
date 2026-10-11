@@ -45,7 +45,7 @@ export const SITEMAP: Column[] = [
 		items: once(
 			[
 				...(overview ? [overview] : []),
-				{ label: "How it works", href: "/how-it-works" },
+				{ label: "How It Works", href: "/how-it-works" },
 				{ label: "Machines", href: "/machines" },
 				...moreProduct,
 				{ label: "Pricing", href: "/pricing" },
@@ -82,7 +82,7 @@ export const SITEMAP: Column[] = [
 			[
 				...(menu("Company")?.main ?? []),
 				{ label: "Support", href: "/support" },
-				{ label: "Brand assets", href: "/brand" },
+				{ label: "Brand Assets", href: "/brand" },
 				...(menu("Company")?.aside ?? []),
 			],
 			taken,
@@ -94,10 +94,10 @@ export const SITEMAP: Column[] = [
 			[
 				{ label: "Terms", href: "/terms" },
 				{ label: "Privacy", href: "/privacy" },
-				{ label: "Risk disclosure", href: "/risk" },
-				{ label: "Acceptable use", href: "/acceptable-use" },
+				{ label: "Risk Disclosure", href: "/risk" },
+				{ label: "Acceptable Use", href: "/acceptable-use" },
 				{ label: "License", href: "/license" },
-				{ label: "Security disclosure", href: "/disclosure" },
+				{ label: "Security Disclosure", href: "/disclosure" },
 				{ label: "Preferences", action: "preferences" },
 			],
 			taken,

@@ -36,8 +36,8 @@ describe("the pages", () => {
 	});
 
 	it("keeps the plain files for agents out of the pages: they are files served as they are, never a page of the site", () => {
-		expect(FILES["/llms.txt"]).toBe("AI index");
-		expect(FILES["/SKILL.md"]).toBe("Skill file");
+		expect(FILES["/llms.txt"]).toBe("AI Index");
+		expect(FILES["/SKILL.md"]).toBe("Skill File");
 		for (const href of Object.keys(FILES)) {
 			expect(ROUTES[href], href).toBeUndefined();
 			expect(href).toMatch(/^\/[A-Za-z-]+\.[a-z]+$/);
@@ -62,7 +62,7 @@ describe("the pages", () => {
 	});
 
 	it("leaves the MCP server unlinked, tagged Soon, until there is one", () => {
-		const mcp = MENUS["Developers"]?.aside.find((item) => item.label === "MCP server");
+		const mcp = MENUS["Developers"]?.aside.find((item) => item.label === "MCP Server");
 		expect(mcp).toBeDefined();
 		expect(mcp?.href).toBeUndefined();
 		expect(ROUTES["/mcp"]).toBeUndefined();
@@ -76,7 +76,7 @@ describe("the pages", () => {
 	it("names each page, and finds a name with or without a trailing slash, and nothing for an unknown address", () => {
 		expect(titleFor("/papers")).toBe("Papers");
 		expect(titleFor("/papers/")).toBe("Papers");
-		expect(titleFor("/risk")).toBe("Risk disclosure");
+		expect(titleFor("/risk")).toBe("Risk Disclosure");
 		expect(titleFor("/")).toBeUndefined();
 		expect(titleFor("/nope")).toBeUndefined();
 	});
@@ -94,7 +94,7 @@ describe("the pages", () => {
 			Docs: "https://docs.maschina.dev",
 			API: "https://docs.maschina.dev/api",
 			SDK: "https://docs.maschina.dev/sdk",
-			"Machine spec": "https://docs.maschina.dev/machine-spec",
+			"Machine Spec": "https://docs.maschina.dev/machine-spec",
 			Templates: "https://docs.maschina.dev/templates",
 		});
 		const footer = SITEMAP.find((column) => column.title === "Developers")?.items ?? [];

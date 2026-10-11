@@ -7,7 +7,7 @@ const AUTH = "https://auth.maschina.dev";
 describe("the closing section", () => {
 	it("asks you to build your first machine, says it can be tried on paper first, and has two buttons", () => {
 		render(<Closing authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Get started" });
+		const section = screen.getByRole("region", { name: "Get Started" });
 		const heading = within(section).getByRole("heading", {
 			level: 2,
 			name: "Ready to build your first machine?",
@@ -49,7 +49,7 @@ describe("the closing section", () => {
 
 	it("is centered on black and a full screen of calm: no particles, no canvas, no motion", () => {
 		const { container } = render(<Closing authUrl={AUTH} />);
-		const { className } = screen.getByRole("region", { name: "Get started" });
+		const { className } = screen.getByRole("region", { name: "Get Started" });
 		expect(className).toContain("bg-black");
 		expect(className).toContain("min-h-[70lvh]");
 		expect(className).toContain("flex-col");
@@ -64,7 +64,7 @@ describe("the closing section", () => {
 
 	it("has a soft glow along its bottom edge, rising from the seam with the footer: no beams, no cones", () => {
 		const { container } = render(<Closing authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Get started" });
+		const section = screen.getByRole("region", { name: "Get Started" });
 		const glow = container.querySelector("[data-glow]") as HTMLElement;
 		expect(container.querySelector("[data-stage-lights]")).toBeNull();
 		expect(glow).toHaveAttribute("aria-hidden", "true");

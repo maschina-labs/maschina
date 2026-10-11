@@ -24,7 +24,7 @@ const PAGES = [
 	{ label: "Product", href: "/product", dropdown: true },
 	{ label: "Developers", href: DOCS, dropdown: true },
 	{ label: "Company", href: "/company", dropdown: true },
-	{ label: "Live record", href: "/live", dropdown: false },
+	{ label: "Live Record", href: "/live", dropdown: false },
 	{ label: "Papers", href: "/papers", dropdown: false },
 	{ label: "Pricing", href: "/pricing", dropdown: false },
 ];

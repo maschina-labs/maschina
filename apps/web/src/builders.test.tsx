@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Builders } from "./builders.tsx";
 import { SOCIALS } from "./socials.ts";
 
-const section = () => screen.getByRole("region", { name: "For builders" });
+const section = () => screen.getByRole("region", { name: "For Builders" });
 
 describe("the section for builders", () => {
 	it("has a centered headline in the pearl gradient with the thin outline, like the other headlines", () => {

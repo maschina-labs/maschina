@@ -23,7 +23,7 @@ beforeEach(() => {
 
 const SECTIONS = [
 	{
-		name: "How it works",
+		name: "How It Works",
 		title: "Give a machine a wallet and a job.",
 		element: <HowItWorks authUrl={AUTH} />,
 		links: [
@@ -32,7 +32,7 @@ const SECTIONS = [
 		],
 	},
 	{
-		name: "Inside the app",
+		name: "Inside the App",
 		title: "See every move it makes.",
 		element: <Features authUrl={AUTH} />,
 		links: [["Try it on paper", `${AUTH}/sign-up`]],
@@ -53,7 +53,7 @@ const SECTIONS = [
 		links: [["Make a machine", `${AUTH}/sign-up`]],
 	},
 	{
-		name: "Live record",
+		name: "Live Record",
 		title: "Every decision, on the record.",
 		element: <LiveRecord />,
 		links: [],
@@ -185,7 +185,7 @@ describe("customize", () => {
 
 describe("what is not built yet says so", () => {
 	it.each([
-		["Live record", <LiveRecord key="l" />],
+		["Live Record", <LiveRecord key="l" />],
 		["Network", <Network key="n" />],
 		["Marketplace", <Marketplace key="m" />],
 	])("%s is tagged Coming soon, and has no link to a page that does not exist", (name, element) => {
