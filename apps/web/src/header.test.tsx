@@ -115,8 +115,13 @@ describe("the header", () => {
 		for (const name of ["AI Index", "Skill File"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
+		// The status page is run by someone else, on its own address.
+		expect(inside.getByRole("link", { name: "Status" })).toHaveAttribute(
+			"href",
+			"https://status.maschina.dev",
+		);
 		// Not built yet: named, tagged Soon, and not a link.
-		for (const name of ["Status", "MCP Server"]) {
+		for (const name of ["MCP Server"]) {
 			expect(inside.queryByRole("link", { name: new RegExp(name) })).toBeNull();
 			expect(inside.getByText(name)).toBeInTheDocument();
 		}

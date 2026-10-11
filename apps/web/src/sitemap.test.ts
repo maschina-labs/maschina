@@ -27,10 +27,10 @@ describe("the sitemap", () => {
 			"Live Record",
 			"Changelog",
 			"GitHub",
+			"Status",
 			"AI Index",
 			"Skill File",
-			// Not built yet, so they come last and are tagged Soon.
-			"Status",
+			// Not built yet, so it comes last and is tagged Soon.
 			"MCP Server",
 		]);
 	});
@@ -85,6 +85,7 @@ describe("the sitemap", () => {
 			"Machine Spec",
 			"Quickstart",
 			"SDK",
+			"Status",
 			"Templates",
 			"X",
 		]);

@@ -2,7 +2,7 @@
  * What each dropdown holds. The big links on the left are the pages; the small ones beside them are the
  * way on. A link with no address is not built yet: it shows dimmed and tagged Soon, and is never a link.
  */
-import { DOCS, DOCS_PAGES, LIVE } from "./links.ts";
+import { DOCS, DOCS_PAGES, LIVE, STATUS } from "./links.ts";
 
 type Item = { label: string; href?: string };
 
@@ -47,8 +47,7 @@ export const MENUS: Record<string, Menu> = {
 		asideTitle: "For Builders and Agents",
 		aside: [
 			{ label: "GitHub", href: ORG },
-			// Tagged Soon until the status page exists: it will be hosted by someone else (Better Stack).
-			{ label: "Status" },
+			{ label: "Status", href: STATUS },
 			{ label: "AI Index", href: "/llms.txt" },
 			{ label: "Skill File", href: "/SKILL.md" },
 			{ label: "MCP Server" },

@@ -44,10 +44,9 @@ describe("the pages", () => {
 		}
 	});
 
-	it("tags the status page Soon until there is one, since it will be run by someone else and there is nothing to link to yet", () => {
+	it("sends Status to the status page, which is run by someone else on its own address, so it is not a page here", () => {
 		const status = MENUS["Developers"]?.aside.find((item) => item.label === "Status");
-		expect(status).toBeDefined();
-		expect(status?.href).toBeUndefined();
+		expect(status?.href).toBe("https://status.maschina.dev");
 		expect(ROUTES["/status"]).toBeUndefined();
 	});
 

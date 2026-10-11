@@ -4,6 +4,9 @@
  */
 export const DOCS = "https://docs.maschina.dev";
 
+/** The status page: run by Better Stack on its own address, so it stays up when we are down. */
+export const STATUS = "https://status.maschina.dev";
+
 /** The live record: its own app on its own address, so no page here is called /live (an old link to it is redirected). */
 export const LIVE = "https://live.maschina.dev";
 
