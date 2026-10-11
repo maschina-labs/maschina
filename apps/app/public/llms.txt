@@ -7,7 +7,7 @@ cannot break, and a permanent record of every decision. Its funds can only ever 
 made it. The first machines trade: ranges that buy dips and sell rises, price triggers, and more, each set
 once and left to run. Paper machines are free and trade against real prices without moving money.
 
-- App: https://maschina.dev
+- App: https://app.maschina.dev
 - Docs: https://docs.maschina.dev
 - Source: https://github.com/maschina-labs/maschina
 - The papers, from the primer to the risk disclosures, all listed at https://maschina.dev/papers and indexed in https://maschina.dev/papers/index.pdf

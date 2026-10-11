@@ -1,7 +1,4 @@
-# Maschina. Every public page may be read; the app's private pages are signed in and not listed.
+# Maschina's app. It is a product to sign in to, not a site to search. The company site at
+# https://maschina.dev is the one to list.
 User-agent: *
-Allow: /
-Disallow: /settings
-Disallow: /wallet
-
-Sitemap: https://maschina.dev/sitemap.xml
+Disallow: /
