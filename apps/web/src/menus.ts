@@ -47,7 +47,7 @@ export const MENUS: Record<string, Menu> = {
 		asideTitle: "For Builders and Agents",
 		aside: [
 			{ label: "GitHub", href: ORG },
-			// Tagged Soon until the status page exists: it will be hosted by someone else (Atlassian Statuspage).
+			// Tagged Soon until the status page exists: it will be hosted by someone else (Better Stack).
 			{ label: "Status" },
 			{ label: "AI Index", href: "/llms.txt" },
 			{ label: "Skill File", href: "/SKILL.md" },

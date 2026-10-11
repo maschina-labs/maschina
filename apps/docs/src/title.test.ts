@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 describe("the docs tab", () => {
-	it("is named Docs, in Title Case, after the site's own pattern of the page then Maschina", () => {
+	it("is named Docs before any script runs, so a crawler and a slow connection see it too", () => {
 		const html = readFileSync(
 			resolve(dirname(fileURLToPath(import.meta.url)), "../index.html"),
 			"utf8",
