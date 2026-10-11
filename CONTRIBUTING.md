@@ -1,7 +1,7 @@
 # Contributing
 
-Maschina has no licence yet, so outside contributions can't be accepted until one is chosen. This
-file describes how work is done in the repository.
+Outside contributions can't be accepted yet, because a contributor agreement has to be in place first so every
+contribution can be licensed like the rest of the code. This file describes how work is done in the repository.
 
 ## Setup
 

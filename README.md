@@ -10,9 +10,9 @@ Trading is the first job, because it is the hardest test: real money, around the
 machines sell services, hire each other and work in teams, proven machines are published, copied and
 sold, and machines run on a network of people's computers, which get paid.
 
-**This repository is source-available for review. It is not open source.** All rights are reserved: no
-licence is granted to use, copy, modify or distribute this code. It is public while Maschina is in the
-Crypto World's Fair hackathon so judges and readers can see how it is built.
+**This repository is source-available. It is not open source.** It is under the Functional Source License
+(FSL-1.1-Apache-2.0): you may read it, run it, change it and build on it for any purpose except a competing one, and
+each version becomes available under Apache 2.0 two years after it is published. See LICENSE.
 
 ## Status
 
@@ -197,5 +197,7 @@ than the issue tracker.
 
 ## Licence
 
-None, deliberately. All rights reserved: you may read this code, and you may not use, copy, modify or
-distribute it. Public is not the same as open source.
+The Functional Source License, Version 1.1, with an Apache 2.0 future license (FSL-1.1-Apache-2.0). Read, run,
+change and share the code for any purpose except a competing one. Each version becomes available under Apache 2.0 two
+years after it is published. Public is not the same as open source. The full text is in [LICENSE](LICENSE), and
+third party code keeps its own licenses in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

@@ -16,7 +16,7 @@ Maschina Labs, based in Alberta, Canada, builds it in the open. Nothing here is 
 - [Privacy Policy](https://maschina.dev/privacy): what is collected, why, and who else sees it
 - [Risk Disclosure](https://maschina.dev/risk): what can go wrong, said plainly
 - [Acceptable Use Policy](https://maschina.dev/acceptable-use): what may not be done with Maschina
-- [License](https://maschina.dev/license): the code is public to read, all rights are reserved
+- [License](https://maschina.dev/license): the code is public, source-available under the Functional Source License (FSL-1.1-Apache-2.0)
 - [Security Disclosure](https://maschina.dev/disclosure): how to report a security problem
 
 ## Contact
