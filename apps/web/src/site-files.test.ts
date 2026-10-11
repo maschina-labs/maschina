@@ -272,8 +272,16 @@ describe("how Cloudflare serves the site: _headers and _redirects", () => {
 		expect(headers).toMatch(/\/SKILL\.md\n\s+Content-Type: text\/markdown; charset=utf-8/);
 	});
 
-	it("sends the old address of the security file to the standard one, and any other address to the app", () => {
+	it("sends the old address of the security file to the standard one", () => {
 		expect(redirects).toContain("/security.txt /.well-known/security.txt 301");
-		expect(redirects.trim().split("\n").at(-1)).toBe("/* /index.html 200");
+	});
+
+	it("leaves every other address to wrangler.jsonc, because Workers do not rewrite with a 200 rule", () => {
+		expect(redirects).not.toMatch(/ 200\s*$/m);
+		const config = readFileSync(resolve(root, "wrangler.jsonc"), "utf8");
+		expect(config).toContain('"not_found_handling": "single-page-application"');
+		expect(config).toContain('"run_worker_first": ["/fonts/*"]');
+		expect(config).toContain('"bucket_name": "maschina-fonts"');
+		expect(config).toMatch(/"name": "maschina-web"/);
 	});
 });
