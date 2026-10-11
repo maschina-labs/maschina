@@ -78,3 +78,7 @@ catalog:
 # esbuild's transform functions, which are unchanged in 0.25.
 overrides:
   "@esbuild-kit/core-utils>esbuild": 0.25.12
+  # Advisories published against tools that only run on this machine and in CI: patched releases.
+  smol-toml: ">=1.8.1"
+  source-map-js: ">=1.2.2"
+  handlebars: ">=4.7.10"

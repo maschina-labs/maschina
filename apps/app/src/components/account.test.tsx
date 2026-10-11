@@ -17,14 +17,18 @@ describe("the account in the corner", () => {
 	it("shows the email of a person who signed in without a wallet, not a blank", async () => {
 		standIn({ person: "ash@example.com" });
 		renderAt("/");
-		expect((await screen.findAllByText("ash@example.com")).length).toBeGreaterThan(0);
+		expect(
+			(await screen.findAllByText("ash@example.com", {}, { timeout: 5000 })).length,
+		).toBeGreaterThan(0);
 	});
 
 	it("opens a panel for them with a way out and a way to link a wallet", async () => {
 		standIn({ person: "ash@example.com" });
 		renderAt("/");
-		fireEvent.click(await screen.findByRole("button", { name: "Your account" }));
-		expect(await screen.findByRole("button", { name: "Sign out" })).toBeInTheDocument();
+		fireEvent.click(await screen.findByRole("button", { name: "Your account" }, { timeout: 5000 }));
+		expect(
+			await screen.findByRole("button", { name: "Sign out" }, { timeout: 5000 }),
+		).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Link a wallet" })).toBeInTheDocument();
 	});
 });

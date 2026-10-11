@@ -10,26 +10,31 @@ describe("the owners table", () => {
 		expect(table.columns.map((column) => column.name).sort()).toEqual([
 			"created_at",
 			"id",
+			"user_id",
 			"wallet_address",
 		]);
 	});
 
-	it("needs an id and a wallet address, and fills in the rest", () => {
+	it("needs only an id, because an owner is a wallet, a person or both and a check holds the rest", () => {
 		const required = table.columns
 			.filter((column) => column.notNull && !column.hasDefault)
 			.map((column) => column.name)
 			.sort();
 		// The id comes from the code, because the database's own default was not a v7 id (#551).
-		expect(required).toEqual(["id", "wallet_address"]);
+		expect(required).toEqual(["id"]);
 	});
 
-	it("allows one owner per wallet address", () => {
-		const unique = table.columns.filter((column) => column.isUnique).map((column) => column.name);
-		expect(unique).toEqual(["wallet_address"]);
+	it("allows one owner per wallet address and one per person", () => {
+		const unique = table.columns
+			.filter((column) => column.isUnique)
+			.map((column) => column.name)
+			.sort();
+		expect(unique).toEqual(["user_id", "wallet_address"]);
 	});
 
 	it("checks the shape of the address and the id in the database itself", () => {
 		expect(table.checks.map((check) => check.name).sort()).toEqual([
+			"owners_has_an_identity",
 			"owners_id_is_v7",
 			"owners_wallet_address_shape",
 		]);
