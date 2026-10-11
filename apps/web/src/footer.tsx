@@ -54,24 +54,44 @@ const COLOR = {
 	down: "bg-[oklch(0.62_0.24_25)] animate-blink motion-reduce:animate-none",
 } as const;
 
-/** Green, like the activity light on a network port. The label says which direction it is. */
-const ACTIVITY = "bg-[oklch(0.8_0.2_145)]";
+/** Amber for what goes out and green for what comes back, like the two activity lights on a network port. */
+const TX_COLOR = "bg-[oklch(0.82_0.17_70)]";
+const RX_COLOR = "bg-[oklch(0.8_0.2_145)]";
 
 /** How long a light stays on for each piece of traffic: a blink, not a state. */
-const BLINK_MS = 220;
+const BLINK_MS = 140;
+
+/**
+ * The answer is lit only after the request's blink is over. Against a near gateway the two happen within a few
+ * milliseconds, and lit together they would read as one light; this keeps them two, in the order they happen.
+ */
+const RX_AFTER_MS = BLINK_MS + 60;
 
 /**
  * One light and its label. It goes on each time `count` goes up, which is each time a real request leaves or
- * a real answer arrives, and off again a moment later.
+ * a real answer arrives, `after` milliseconds later if it is asked to wait, and off again a moment after that.
  */
-function Light({ label, count, color }: { label: string; count: number; color: string }) {
+function Light({
+	label,
+	count,
+	color,
+	after = 0,
+}: {
+	label: string;
+	count: number;
+	color: string;
+	after?: number;
+}) {
 	const [lit, setLit] = useState(false);
 	useEffect(() => {
 		if (count === 0) return;
-		setLit(true);
-		const off = setTimeout(() => setLit(false), BLINK_MS);
-		return () => clearTimeout(off);
-	}, [count]);
+		const on = setTimeout(() => setLit(true), after);
+		const off = setTimeout(() => setLit(false), after + BLINK_MS);
+		return () => {
+			clearTimeout(on);
+			clearTimeout(off);
+		};
+	}, [count, after]);
 	return (
 		<span data-on={lit} className="flex items-center gap-1.5 text-[11px] text-neutral-500">
 			<span aria-hidden="true" className={`size-2 ${lit ? color : "bg-neutral-700"}`} />
@@ -95,8 +115,8 @@ function StatusMark() {
 			<span aria-hidden="true" className={`size-2 ${COLOR[status.state]}`} />
 			<span>{m.footer.status[status.state]}</span>
 			<span aria-hidden="true" className="h-4 w-px bg-white/10" />
-			<Light label="TX" count={tx} color={ACTIVITY} />
-			<Light label="RX" count={rx} color={ACTIVITY} />
+			<Light label="TX" count={tx} color={TX_COLOR} />
+			<Light label="RX" count={rx} color={RX_COLOR} after={RX_AFTER_MS} />
 		</div>
 	);
 }
