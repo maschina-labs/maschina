@@ -30,4 +30,13 @@ describe("the app's files, now that it has its own address", () => {
 	it("tells an assistant where the app is", () => {
 		expect(read("public/llms.txt")).toContain("- App: https://app.maschina.dev");
 	});
+
+	it("claims app.maschina.dev as a custom domain of its own Worker, and no other address", () => {
+		const config = read("wrangler.jsonc");
+		expect(config).toContain(
+			'"routes": [{ "pattern": "app.maschina.dev", "custom_domain": true }]',
+		);
+		expect(config).not.toContain('"pattern": "maschina.dev"');
+		expect(config).not.toContain("api.maschina.dev");
+	});
 });

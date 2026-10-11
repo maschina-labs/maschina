@@ -7,6 +7,10 @@
 {
 	"$schema": "../../node_modules/wrangler/config-schema.json",
 	"name": "maschina",
+	// The app's own address. A custom domain makes this Worker its origin: Cloudflare adds the DNS record and the
+	// certificate on deploy. The bare domain belongs to the company site (apps/web), and the api address to
+	// the server tunnel, so neither is listed here.
+	"routes": [{ "pattern": "app.maschina.dev", "custom_domain": true }],
 	"compatibility_date": "2026-09-18",
 	"main": "./src/worker.ts",
 	"assets": {
