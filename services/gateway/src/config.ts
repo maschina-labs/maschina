@@ -1,10 +1,11 @@
-import { type EnvSource, env, loadEnv, serviceEnv } from "@maschina/env";
+import { type EnvSource, env, loadEnv, serviceEnv, statusHeartbeatEnv } from "@maschina/env";
 import { z } from "zod";
 
 export function loadConfig(source?: EnvSource) {
 	return loadEnv(
 		{
 			...serviceEnv,
+			...statusHeartbeatEnv("GATEWAY"),
 			GATEWAY_PORT: env.port(4000),
 			GATEWAY_CORS_ORIGINS: env.list(),
 			DATABASE_URL: env.postgresUrl(),

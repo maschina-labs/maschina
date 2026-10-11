@@ -1,10 +1,11 @@
-import { type EnvSource, env, loadEnv, serviceEnv } from "@maschina/env";
+import { type EnvSource, env, loadEnv, serviceEnv, statusHeartbeatEnv } from "@maschina/env";
 import { z } from "zod";
 
 export function loadConfig(source?: EnvSource) {
 	return loadEnv(
 		{
 			...serviceEnv,
+			...statusHeartbeatEnv("PROVISIONER"),
 			PROVISIONER_PORT: env.port(4400),
 			/** The gateway presents this. Nothing else may create a machine. */
 			PROVISIONER_GATEWAY_TOKEN: env.secret(),

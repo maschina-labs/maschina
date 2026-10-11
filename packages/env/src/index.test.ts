@@ -1,7 +1,7 @@
 import { MaschinaError } from "@maschina/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { env, loadEnv } from "./index.ts";
+import { env, loadEnv, statusHeartbeatEnv } from "./index.ts";
 
 describe("loadEnv", () => {
 	it("returns typed, defaulted values", () => {
@@ -44,6 +44,23 @@ describe("loadEnv", () => {
 	it("treats empty strings as not set", () => {
 		const config = loadEnv({ SENTRY_DSN: env.optional(env.url()) }, { SENTRY_DSN: "" });
 		expect(config.SENTRY_DSN).toBeUndefined();
+	});
+
+	it("gives each service its own optional status heartbeat address, because they share one .env file", () => {
+		const shape = statusHeartbeatEnv("SIGNER");
+		expect(Object.keys(shape)).toEqual(["SIGNER_STATUS_HEARTBEAT_URL"]);
+		expect(loadEnv(shape, {}).SIGNER_STATUS_HEARTBEAT_URL).toBeUndefined();
+		const url = "https://uptime.betterstack.com/api/v1/heartbeat/abc123";
+		expect(loadEnv(shape, { SIGNER_STATUS_HEARTBEAT_URL: url }).SIGNER_STATUS_HEARTBEAT_URL).toBe(
+			url,
+		);
+		// One service's address is never read as another's.
+		expect(
+			loadEnv(shape, { ORCHESTRATOR_STATUS_HEARTBEAT_URL: url }).SIGNER_STATUS_HEARTBEAT_URL,
+		).toBeUndefined();
+		expect(() => loadEnv(shape, { SIGNER_STATUS_HEARTBEAT_URL: "not a url" })).toThrow(
+			/SIGNER_STATUS_HEARTBEAT_URL/,
+		);
 	});
 
 	it("refuses the placeholder secret from .env.example", () => {

@@ -6,9 +6,14 @@ import {
 	rpcBalanceReader,
 	solanaRpc,
 } from "@maschina/solana";
-import { createLogger, initErrorReporting, onShutdown } from "@maschina/telemetry";
+import {
+	createLogger,
+	initErrorReporting,
+	onShutdown,
+	startStatusHeartbeat,
+} from "@maschina/telemetry";
 import { loadConfig } from "./config.ts";
-import { runHeartbeat } from "./heartbeat.ts";
+import { checkIn, runHeartbeat } from "./heartbeat.ts";
 import { loadOrCreateIdentity } from "./identity.ts";
 import { NODE_KINDS } from "./kinds.ts";
 import { machineRunner } from "./machine-runner.ts";
@@ -57,6 +62,13 @@ const beating = runHeartbeat(
 	},
 	stop.signal,
 );
+// The daemon has no listener to ask, so it tells the status page itself: it is ready while the orchestrator answers it.
+const stopStatusHeartbeat = startStatusHeartbeat({
+	url: config.DAEMON_STATUS_HEARTBEAT_URL,
+	intervalMs: 60_000,
+	ready: () => checkIn(config.ORCHESTRATOR_URL, config.ORCHESTRATOR_DAEMON_TOKEN, fetch),
+	logger,
+});
 const working = runWorkLoop(
 	{
 		orchestrator,
@@ -100,6 +112,7 @@ onShutdown(
 			name: "work",
 			run: async () => {
 				stop.abort();
+				stopStatusHeartbeat();
 				await Promise.all([working, beating]);
 			},
 		},

@@ -1,5 +1,5 @@
 import { MaschinaError } from "@maschina/core";
-import { type EnvSource, env, loadEnv, serviceEnv } from "@maschina/env";
+import { type EnvSource, env, loadEnv, serviceEnv, statusHeartbeatEnv } from "@maschina/env";
 import { z } from "zod";
 
 /** Solana's public endpoints: rate limited, and no place to send real money through. */
@@ -9,6 +9,7 @@ export function loadConfig(source?: EnvSource) {
 	const config = loadEnv(
 		{
 			...serviceEnv,
+			...statusHeartbeatEnv("SIGNER"),
 			SIGNER_PORT: env.port(4200),
 			/** The orchestrator presents this. Nothing else may ask for a signature. */
 			SIGNER_ORCHESTRATOR_TOKEN: env.secret(),

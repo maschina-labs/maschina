@@ -59,6 +59,7 @@ startServer({
 	}),
 	port: config.PROVISIONER_PORT,
 	logger,
+	statusHeartbeatUrl: config.PROVISIONER_STATUS_HEARTBEAT_URL,
 	shutdown: [
 		{ name: "database", run: database.close },
 		{ name: "error reporting", run: () => reporter.flush() },

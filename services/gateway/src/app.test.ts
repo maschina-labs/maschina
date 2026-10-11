@@ -57,6 +57,13 @@ describe("gateway", () => {
 		expect((await app().request("/health")).status).toBe(200);
 	});
 
+	it("says it is not ready when the database cannot be reached, so its status heartbeat goes quiet", async () => {
+		const down = app({ checks: [{ name: "database", check: async () => false }] });
+		expect((await down.request("/ready")).status).toBe(503);
+		const up = app({ checks: [{ name: "database", check: async () => true }] });
+		expect((await up.request("/ready")).status).toBe(200);
+	});
+
 	it("serves the status route with its documented shape", async () => {
 		const res = await app().request("/v1/status");
 		expect(res.status).toBe(200);

@@ -144,6 +144,7 @@ startServer({
 	}),
 	port: config.SIGNER_PORT,
 	logger,
+	statusHeartbeatUrl: config.SIGNER_STATUS_HEARTBEAT_URL,
 	shutdown: [
 		{ name: "database", run: database.close },
 		{ name: "error reporting", run: () => reporter.flush() },

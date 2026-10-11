@@ -38,10 +38,12 @@ startServer({
 		manager: gateway.manager,
 		news: newsDesk({ clock: systemClock }),
 		publicRecord: gateway.publicRecord,
+		checks: [{ name: "database", check: gateway.ready }],
 		contact: config.RESEND_API_KEY ? contactDesk({ apiKey: config.RESEND_API_KEY }) : undefined,
 	}),
 	port: config.GATEWAY_PORT,
 	logger,
+	statusHeartbeatUrl: config.GATEWAY_STATUS_HEARTBEAT_URL,
 	shutdown: [
 		{ name: "database", run: gateway.close },
 		{ name: "error reporting", run: () => reporter.flush() },

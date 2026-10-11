@@ -295,6 +295,7 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 		halt,
 		manager,
 		runner,
+		ready: database.ping,
 		close: async () => {
 			runner?.stop();
 			await database.close();

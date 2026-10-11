@@ -1,6 +1,11 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { type Clock, systemClock } from "@maschina/core";
-import { createServiceApp, rateLimit, registerHealth } from "@maschina/service";
+import {
+	createServiceApp,
+	type ReadinessCheck,
+	rateLimit,
+	registerHealth,
+} from "@maschina/service";
 import type { ErrorReporter, Logger } from "@maschina/telemetry";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
@@ -39,6 +44,8 @@ export type GatewayDeps = {
 	people?: PeopleDesk | undefined;
 	/** Sends the contact page's messages by email. Left out, the contact route answers that it is not available. */
 	contact?: ContactDesk | undefined;
+	/** What must work for the gateway to be ready: the database. Left out, it is ready whenever it is up. */
+	checks?: ReadinessCheck[] | undefined;
 };
 
 export const SERVICE = "gateway";
@@ -132,7 +139,7 @@ export function buildApp(deps: GatewayDeps) {
 	app.get("/v1", welcome(deps.version));
 	app.get("/v1/", welcome(deps.version));
 
-	registerHealth(app, { service: SERVICE, version: deps.version });
+	registerHealth(app, { service: SERVICE, version: deps.version, checks: deps.checks ?? [] });
 
 	const api = v1(deps);
 
