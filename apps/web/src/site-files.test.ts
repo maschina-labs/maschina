@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CONTENT_PATHS } from "./app.tsx";
+import { LOCALES, type LocaleCode, localizePath } from "./i18n/locales.ts";
 import { FILES, ROUTES } from "./routes.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -53,11 +54,15 @@ describe("robots.txt", () => {
 
 describe("sitemap.xml", () => {
 	const text = read("sitemap.xml");
-	const urls = [...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1] ?? "");
+	const blocks = [...text.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => match[1] ?? "");
+	const locOf = (block: string) => block.match(/<loc>([^<]+)<\/loc>/)?.[1] ?? "";
+	const urls = blocks.map(locOf);
+	const address = (code: string, path: string) =>
+		`${ORIGIN}${localizePath(path, code as LocaleCode)}`;
 
-	it("lists the pages that have something on them, each once, and not the blank ones", () => {
-		const expected = CONTENT_PATHS.map((path) =>
-			path === "/" ? `${ORIGIN}/` : `${ORIGIN}${path}`,
+	it("lists every page that has something on it in every language, each once, and not the blank ones", () => {
+		const expected = CONTENT_PATHS.flatMap((path) =>
+			LOCALES.map((l) => address(l.code, path)),
 		).sort();
 		expect([...urls].sort()).toEqual(expected);
 		expect(new Set(urls).size).toBe(urls.length);
@@ -65,8 +70,23 @@ describe("sitemap.xml", () => {
 			expect(urls, path).not.toContain(`${ORIGIN}${path}`);
 	});
 
+	it("gives each address the same page in every language, and the English one as the default", () => {
+		for (const path of CONTENT_PATHS)
+			for (const l of LOCALES) {
+				const block = blocks.find((entry) => locOf(entry) === address(l.code, path)) ?? "";
+				for (const other of LOCALES)
+					expect(block, `${l.code} ${path} -> ${other.code}`).toContain(
+						`<xhtml:link rel="alternate" hreflang="${other.tag}" href="${address(other.code, path)}"/>`,
+					);
+				expect(block).toContain(
+					`<xhtml:link rel="alternate" hreflang="x-default" href="${address("en", path)}"/>`,
+				);
+			}
+	});
+
 	it("is a sitemap, and promises no date it does not know", () => {
-		expect(text).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+		expect(text).toContain('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
+		expect(text).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
 		expect(text).not.toMatch(/<lastmod>|<changefreq>|<priority>/);
 	});
 });

@@ -3,6 +3,12 @@ import { ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { BrandPage } from "./brand-page.tsx";
 import { ContactPage } from "./contact-page.tsx";
+/**
+ * Which page an address shows: the front page at the root, a blank page for each address in routes.ts that has nothing
+ * on it yet, and a page saying there is none for any other address. The address is a plain argument so a test can stand in
+ * for the browser's.
+ */
+import { CONTENT_PATHS } from "./content-paths.ts";
 import { contentFor } from "./i18n/content.ts";
 import { readLanguage } from "./i18n/language.ts";
 import { AVAILABLE } from "./i18n/languages.ts";
@@ -19,25 +25,7 @@ import { Site } from "./site.tsx";
 import { SupportPage } from "./support-page.tsx";
 import { useMeta } from "./use-meta.ts";
 
-/**
- * Which page an address shows: the front page at the root, a blank page for each address in routes.ts that has nothing
- * on it yet, and a page saying there is none for any other address. The address is a plain argument so a test can stand in
- * for the browser's.
- */
-/**
- * The addresses that have something on them: the front page, the legal documents, the articles, and the three pages
- * written by hand. The sitemap lists exactly these, and a test keeps the two in step, so a blank page is never offered
- * to a search engine.
- */
-export const CONTENT_PATHS = [
-	"/",
-	...Object.keys(contentFor("en").documents),
-	...Object.keys(contentFor("en").articles),
-	"/contact",
-	"/support",
-	"/brand",
-	"/papers",
-];
+export { CONTENT_PATHS };
 
 /** The page for an address, with the language already taken off it. */
 function Page({ authUrl, clean, locale }: { authUrl: string; clean: string; locale: LocaleCode }) {
