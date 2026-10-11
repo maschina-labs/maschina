@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Söhne, the same licensed files the other apps use. They are not in the repository: they are served from the
+   private bucket in production and copied in for local work (pnpm fonts). */
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-400.woff2") format("woff2");
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: "Sohne";
+	src: url("/fonts/Sohne-500.woff2") format("woff2");
+	font-weight: 500;
+	font-display: swap;
+}
+
+@theme {
+	--font-display: "Sohne", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+	background: #000;
+}

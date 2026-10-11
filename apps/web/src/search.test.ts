@@ -40,7 +40,7 @@ describe("the page index", () => {
 
 describe("searching the pages", () => {
 	it("matches on the name, ignoring case and spaces at the ends", () => {
-		expect(search("  MACHINE ").map((hit) => hit.label)).toEqual(["Machine spec"]);
+		expect(search("  MACHINE ").map((hit) => hit.label)).toEqual(["Machine Spec"]);
 	});
 
 	it("matches on the section too", () => {

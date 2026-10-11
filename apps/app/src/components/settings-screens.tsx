@@ -19,7 +19,7 @@ import { useActivity } from "./portfolio.tsx";
 export function SettingsScreen() {
 	const { api } = useRouter().options.context;
 	const session = useSession(api);
-	const wallet = session.data?.walletAddress;
+	const wallet = session.data?.walletAddress ?? undefined;
 	return (
 		<>
 			<Panel size="wide" name="Wallet">

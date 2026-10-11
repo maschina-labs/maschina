@@ -1,0 +1,3 @@
+# The sign in screens. Nothing here is a page to search.
+User-agent: *
+Disallow: /

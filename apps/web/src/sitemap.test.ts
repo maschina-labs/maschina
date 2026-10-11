@@ -24,14 +24,14 @@ describe("the sitemap", () => {
 		const labels = SITEMAP.find((c) => c.title === "Resources")?.items.map((i) => i.label);
 		expect(labels).toEqual([
 			"Papers",
-			"Live record",
+			"Live Record",
 			"Changelog",
 			"GitHub",
-			"AI index",
-			"Skill file",
-			// Not built yet, so they come last and are tagged Soon.
 			"Status",
-			"MCP server",
+			"AI Index",
+			"Skill File",
+			// Not built yet, so it comes last and is tagged Soon.
+			"MCP Server",
 		]);
 	});
 
@@ -81,9 +81,11 @@ describe("the sitemap", () => {
 			"Docs",
 			"Examples",
 			"GitHub",
-			"Machine spec",
+			"Live Record",
+			"Machine Spec",
 			"Quickstart",
 			"SDK",
+			"Status",
 			"Templates",
 			"X",
 		]);
@@ -95,10 +97,10 @@ describe("the sitemap", () => {
 		expect(legal?.map((item) => item.label)).toEqual([
 			"Terms",
 			"Privacy",
-			"Risk disclosure",
-			"Acceptable use",
+			"Risk Disclosure",
+			"Acceptable Use",
 			"License",
-			"Security disclosure",
+			"Security Disclosure",
 			"Preferences",
 		]);
 		expect(legal?.map((item) => item.href)).toEqual([
@@ -118,18 +120,18 @@ describe("the sitemap", () => {
 		const find = (column: string) => SITEMAP.find((c) => c.title === column)?.items ?? [];
 		const hrefOf = (column: string, label: string) =>
 			find(column).find((item) => item.label === label)?.href;
-		expect(hrefOf("Product", "How it works")).toBe("/how-it-works");
+		expect(hrefOf("Product", "How It Works")).toBe("/how-it-works");
 		expect(hrefOf("Product", "Machines")).toBe("/machines");
 		expect(hrefOf("Developers", "Quickstart")).toBe("https://docs.maschina.dev/quickstart");
 		expect(hrefOf("Developers", "Examples")).toBe("https://docs.maschina.dev/examples");
 		expect(hrefOf("Company", "Support")).toBe("/support");
-		expect(hrefOf("Company", "Brand assets")).toBe("/brand");
+		expect(hrefOf("Company", "Brand Assets")).toBe("/brand");
 	});
 
 	it("reads Overview, how it works and machines first in Product, and Docs then Quickstart in Developers", () => {
 		const labels = (column: string) =>
 			SITEMAP.find((c) => c.title === column)?.items.map((i) => i.label);
-		expect(labels("Product")?.slice(0, 3)).toEqual(["Overview", "How it works", "Machines"]);
+		expect(labels("Product")?.slice(0, 3)).toEqual(["Overview", "How It Works", "Machines"]);
 		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "Quickstart"]);
 	});
 });

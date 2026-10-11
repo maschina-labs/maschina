@@ -4,6 +4,7 @@
  * Both ways of starting the gateway use this, so neither can drift from the other.
  */
 
+import { createAccounts, resendMailer } from "@maschina/accounts";
 import { hintFor, openSecret, parseSealingKey, sealSecret } from "@maschina/auth/sealed";
 import { type Clock, MaschinaError, newId, systemClock } from "@maschina/core";
 import {
@@ -32,7 +33,7 @@ import type { AuthPorts } from "./routes/auth.ts";
 import type { MachinePorts } from "./routes/machines.ts";
 import type { ManagerPorts } from "./routes/manager.ts";
 import type { PublicRecordDesk } from "./routes/public-record.ts";
-import { walletSessions } from "./session.ts";
+import { firstOwner, walletSessions } from "./session.ts";
 import { asDetail, asRecord, asSummary } from "./shapes.ts";
 import { traderRunner } from "./trader-runner.ts";
 import { traderView } from "./trader-view.ts";
@@ -54,10 +55,25 @@ export type GatewayConfig = {
 	GATEWAY_DOMAIN: string;
 	GATEWAY_APP_URL: string;
 	GATEWAY_COOKIE_DOMAIN?: string | undefined;
+	GATEWAY_CORS_ORIGINS: string[];
+	GATEWAY_PUBLIC_URL: string;
+	GATEWAY_AUTH_SECRET?: string | undefined;
+	RESEND_API_KEY?: string | undefined;
+	GOOGLE_CLIENT_ID?: string | undefined;
+	GOOGLE_CLIENT_SECRET?: string | undefined;
+	GITHUB_CLIENT_ID?: string | undefined;
+	GITHUB_CLIENT_SECRET?: string | undefined;
 	GATEWAY_SECRETS_KEY?: string | undefined;
 	JUPITER_API_KEY?: string | undefined;
 	PUBLIC_RECORD_MACHINE_ID?: string | undefined;
 };
+
+/** A sign in provider that is offered only when both its halves are set. */
+function socialProvider(clientId: string | undefined, clientSecret: string | undefined) {
+	return clientId !== undefined && clientSecret !== undefined
+		? { clientId, clientSecret }
+		: undefined;
+}
 
 export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, logger?: Logger) {
 	const database = createDatabase({ url: config.DATABASE_URL, applicationName: "gateway" });
@@ -85,8 +101,29 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 		sessionValidForMs: SESSION_MS,
 	});
 
+	// People who sign in with an email, Google, GitHub or their company. Off unless there is a secret to sign their
+	// cookies with and a way to send them the link that confirms their address.
+	const accounts =
+		config.GATEWAY_AUTH_SECRET !== undefined && config.RESEND_API_KEY !== undefined
+			? createAccounts({
+					db: database.db,
+					secret: config.GATEWAY_AUTH_SECRET,
+					baseUrl: config.GATEWAY_PUBLIC_URL,
+					trustedOrigins: config.GATEWAY_CORS_ORIGINS,
+					cookieDomain: config.GATEWAY_COOKIE_DOMAIN,
+					secureCookies: config.NODE_ENV === "production",
+					mailer: resendMailer({ apiKey: config.RESEND_API_KEY }),
+					google: socialProvider(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET),
+					github: socialProvider(config.GITHUB_CLIENT_ID, config.GITHUB_CLIENT_SECRET),
+					onMailError: (error) =>
+						logger?.error({ err: error }, "a sign in email could not be sent"),
+				})
+			: undefined;
+	// A wallet's session first, then a person's.
+	const ownerOf = firstOwner(sessions.ownerOf, accounts?.ownerOf);
+
 	const ports: MachinePorts = {
-		ownerOf: sessions.ownerOf,
+		ownerOf,
 		list: async (ownerId) => (await machinesOf(database.db, ownerId)).map(asSummary),
 		read: async (ownerId, machineId) => {
 			const machine = await machineForOwner(database.db, ownerId, machineId);
@@ -134,8 +171,9 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 	const auth: AuthPorts = {
 		challenge: sessions.challenge,
 		verify: sessions.verify,
-		ownerOf: sessions.ownerOf,
+		ownerOf,
 		signOut: sessions.signOut,
+		linkWallet: sessions.linkWallet,
 	};
 
 	const cookie = {
@@ -251,11 +289,13 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 	return {
 		ports,
 		publicRecord,
+		people: accounts ? { handler: accounts.handler } : undefined,
 		auth,
 		cookie,
 		halt,
 		manager,
 		runner,
+		ready: database.ping,
 		close: async () => {
 			runner?.stop();
 			await database.close();

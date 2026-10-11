@@ -10,7 +10,7 @@ const publicDir = resolve(dirname(fileURLToPath(import.meta.url)), "../public");
 describe("the showcase", () => {
 	it("shows a real screenshot of the app, as one figure", () => {
 		render(<Showcase />);
-		const section = screen.getByRole("region", { name: "The app" });
+		const section = screen.getByRole("region", { name: "The App" });
 		const figure = within(section).getByRole("figure");
 		const image = within(figure).getByRole("img");
 		expect(image).toHaveAttribute("src", "/showcase/dashboard.jpg");
@@ -122,7 +122,7 @@ describe("the showcase", () => {
 
 	it("fills the width between the page margins, on black, with square corners", () => {
 		const { container } = render(<Showcase />);
-		const { className } = screen.getByRole("region", { name: "The app" });
+		const { className } = screen.getByRole("region", { name: "The App" });
 		expect(className).toContain("px-(--gutter)");
 		expect(className).toContain("bg-black");
 		expect(container.innerHTML).not.toMatch(/rounded/);

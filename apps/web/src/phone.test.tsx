@@ -154,7 +154,7 @@ describe("the header on a phone", () => {
 
 	it("has Log in as the pearl button on a phone, since it is the only call to action in the bar, right beside the menu button", () => {
 		const banner = header();
-		const logIn = within(banner).getByRole("link", { name: "Log in" });
+		const logIn = within(banner).getByRole("link", { name: "Sign In" });
 		const menu = screen.getByRole("button", { name: "Menu" });
 		// Pearl and black like the other main buttons, on a phone only: the desktop's plain text link is not touched.
 		expect(logIn.className).toContain("max-xl:bg-[oklch(0.93_0.02_300)]");

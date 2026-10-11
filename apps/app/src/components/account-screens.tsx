@@ -107,7 +107,7 @@ export function SignInScreen() {
 					<>
 						<Headline>Signed in</Headline>
 						<p className="break-all font-mono text-[13px] text-neutral-300">
-							{session.data.walletAddress}
+							{session.data.walletAddress ?? session.data.email}
 						</p>
 					</>
 				) : (

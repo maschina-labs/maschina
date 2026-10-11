@@ -8,6 +8,7 @@
 		"test:integration": "vitest run"
 	},
 	"devDependencies": {
+		"@maschina/accounts": "workspace:*",
 		"@maschina/config": "workspace:*",
 		"@maschina/core": "workspace:*",
 		"@maschina/db": "workspace:*",

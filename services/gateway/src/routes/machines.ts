@@ -30,7 +30,19 @@ import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
 
 /** Who is asking. The session decides; nothing else may. */
-export type Owner = { ownerId: string; walletAddress: string };
+/** A person who signed in without a wallet has none yet, and cannot do what moves money until they link one. */
+export type Owner = { ownerId: string; walletAddress: string | null; email?: string | null };
+
+/** The wallet a machine pays, which a person without one has to link first. */
+function walletOf(who: Owner): string {
+	if (!who.walletAddress) {
+		throw new MaschinaError(
+			"forbidden",
+			"link a wallet first: a machine can only ever pay its owner's wallet",
+		);
+	}
+	return who.walletAddress;
+}
 
 export type MachinePorts = {
 	/** The owner of this request, or nothing when nobody is signed in. */
@@ -311,7 +323,7 @@ export function machineRoutes(ports: MachinePorts) {
 			const built = await ports.funding({
 				ownerId: who.ownerId,
 				// The session's wallet pays. A request cannot name somebody else's.
-				ownerWallet: who.walletAddress,
+				ownerWallet: walletOf(who),
 				machineId: id,
 				usdc: BigInt(body.usdc),
 				lamports: BigInt(body.lamports),
@@ -362,7 +374,7 @@ export function machineRoutes(ports: MachinePorts) {
 			const asked = c.req.valid("json");
 			// The owner's wallet comes from the session, never from the request: a machine's funds can
 			// only ever reach the person who created it.
-			const made = await ports.create({ ...asked, ownerWallet: who.walletAddress });
+			const made = await ports.create({ ...asked, ownerWallet: walletOf(who) });
 			return c.json(CreateMachineResponse.parse(made), 201);
 		});
 }

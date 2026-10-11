@@ -58,6 +58,7 @@ function app(ports: Partial<ManagerPorts> = {}, offered = true) {
 			verify: unused,
 			ownerOf,
 			signOut: async () => undefined,
+			linkWallet: async (_request, owner) => owner,
 		},
 		cookie: { secure: false },
 		...(offered ? { manager } : {}),

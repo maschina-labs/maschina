@@ -57,9 +57,9 @@ describe("which page an address shows", () => {
 		for (const path of ["/anything/else", "/sign-in", "/papers/extra"]) {
 			const view = render(<App authUrl={AUTH} path={path} />);
 			const main = within(screen.getByRole("main"));
-			expect(main.getByRole("heading", { level: 1 })).toHaveTextContent("Page not found");
+			expect(main.getByRole("heading", { level: 1 })).toHaveTextContent("Page Not Found");
 			expect(main.getByRole("link", { name: "Go to the front page" })).toHaveAttribute("href", "/");
-			expect(document.title).toBe("Page not found | Maschina");
+			expect(document.title).toBe("Page Not Found | Maschina");
 			view.unmount();
 		}
 	});
@@ -146,7 +146,7 @@ describe("the legal pages", () => {
 
 	it("shows the brand assets page at /brand", () => {
 		render(<App authUrl={AUTH} path="/brand" />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand assets");
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand Assets");
 	});
 });
 

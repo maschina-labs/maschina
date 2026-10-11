@@ -26,7 +26,9 @@ export function Account() {
 		return (
 			<div className="hidden items-center gap-4 md:flex">
 				<span className="font-display text-[20px] text-neutral-100">
-					{short(session.data.walletAddress)}
+					{session.data.walletAddress
+						? short(session.data.walletAddress)
+						: (session.data.email ?? "Signed in")}
 				</span>
 				<button
 					type="button"

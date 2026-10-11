@@ -52,6 +52,14 @@ describe("robots.txt", () => {
 	});
 });
 
+describe("the live record's address", () => {
+	it("is its own app: the old address here is redirected to it, in any language", () => {
+		const redirects = readFileSync(resolve(root, "public/_redirects"), "utf8");
+		expect(redirects).toMatch(/^\/live https:\/\/live\.maschina\.dev 301$/m);
+		expect(redirects).toMatch(/^\/:language\/live https:\/\/live\.maschina\.dev 301$/m);
+	});
+});
+
 describe("sitemap.xml", () => {
 	const text = read("sitemap.xml");
 	const blocks = [...text.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => match[1] ?? "");
@@ -174,6 +182,13 @@ describe("the page's own head, for browsers, search engines and shared links", (
 		expect(meta("property", "og:locale")).toBe("en_US");
 		expect(meta("name", "description")).toBeTruthy();
 		expect(meta("property", "og:description")).toBeTruthy();
+	});
+
+	it("names the front page, in the tab and on shared links, by what Maschina is", () => {
+		const name = "Maschina: The Operating System for Autonomous Capital";
+		expect(/<title>([^<]*)<\/title>/.exec(html)?.[1]).toBe(name);
+		expect(meta("property", "og:title")).toBe(name);
+		expect(meta("name", "twitter:title")).toBe(name);
 	});
 
 	it("has a card for shared links on Open Graph and on X, at the size they ask for, with a description of the picture", () => {

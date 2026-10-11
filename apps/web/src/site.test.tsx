@@ -16,17 +16,17 @@ describe("the front page", () => {
 		const main = screen.getByRole("main");
 		const names = [
 			"Maschina",
-			"The app",
-			"How it works",
-			"Inside the app",
+			"The App",
+			"How It Works",
+			"Inside the App",
 			"Safety",
 			"Customize",
-			"Live record",
+			"Live Record",
 			"Network",
 			"Marketplace",
-			"For builders",
+			"For Builders",
 			"Questions",
-			"Get started",
+			"Get Started",
 		];
 		const sections = names.map((name) => within(main).getByRole("region", { name }));
 		for (const [index, section] of sections.entries()) {
@@ -41,14 +41,14 @@ describe("the front page", () => {
 		render(<Site authUrl="https://auth.maschina.dev" />);
 		const main = screen.getByRole("main");
 		for (const name of [
-			"How it works",
-			"Inside the app",
+			"How It Works",
+			"Inside the App",
 			"Safety",
 			"Customize",
-			"Live record",
+			"Live Record",
 			"Network",
 			"Marketplace",
-			"For builders",
+			"For Builders",
 			"Questions",
 		]) {
 			const { className } = within(main).getByRole("region", { name });

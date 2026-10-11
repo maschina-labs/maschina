@@ -37,6 +37,36 @@ describe("gateway config", () => {
 		expect(loadConfig(complete).PUBLIC_RECORD_MACHINE_ID).toBeUndefined();
 	});
 
+	it("takes the sign in secret only when it is long enough, and leaves signing in off without it", () => {
+		const secret = "s".repeat(40);
+		expect(loadConfig({ ...complete, GATEWAY_AUTH_SECRET: secret }).GATEWAY_AUTH_SECRET).toBe(
+			secret,
+		);
+		expect(() => loadConfig({ ...complete, GATEWAY_AUTH_SECRET: "short" })).toThrow(
+			/GATEWAY_AUTH_SECRET/,
+		);
+		expect(loadConfig(complete).GATEWAY_AUTH_SECRET).toBeUndefined();
+	});
+
+	it("says where the gateway is reached from outside, with a local default", () => {
+		expect(loadConfig(complete).GATEWAY_PUBLIC_URL).toBe("http://localhost:4000");
+		expect(
+			loadConfig({ ...complete, GATEWAY_PUBLIC_URL: "https://api.maschina.dev" })
+				.GATEWAY_PUBLIC_URL,
+		).toBe("https://api.maschina.dev");
+	});
+
+	it("takes Google and GitHub as a client id and a secret together or not at all", () => {
+		const both = {
+			GOOGLE_CLIENT_ID: "gid",
+			GOOGLE_CLIENT_SECRET: "g".repeat(12),
+			GITHUB_CLIENT_ID: "hid",
+			GITHUB_CLIENT_SECRET: "h".repeat(12),
+		};
+		expect(loadConfig({ ...complete, ...both })).toMatchObject(both);
+		expect(loadConfig(complete).GOOGLE_CLIENT_ID).toBeUndefined();
+	});
+
 	it("takes a Jupiter key when one is set", () => {
 		expect(loadConfig({ ...complete, JUPITER_API_KEY: "jup-key-123" }).JUPITER_API_KEY).toBe(
 			"jup-key-123",

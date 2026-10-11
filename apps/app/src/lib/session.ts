@@ -11,7 +11,12 @@ import type { Api } from "./api.ts";
 import { ApiError } from "./machines.ts";
 import { connect, forgetActiveWallet, signMessage } from "./wallet.ts";
 
-export type SignedInOwner = { ownerId: string; walletAddress: string };
+export type SignedInOwner = {
+	ownerId: string;
+	/** A person who signed in with an email has no wallet until they link one. */
+	walletAddress: string | null;
+	email: string | null;
+};
 
 /** The API says why in its body, and that reason is the one worth showing a person. */
 async function read<T>(response: Response): Promise<T> {
@@ -63,10 +68,43 @@ export function useSignIn(api: Api, queryClient: QueryClient) {
 	});
 }
 
+/**
+ * A person signed in by email proves a wallet and attaches it to their account, which is what lets them move money.
+ * The same sentence is signed as for a wallet sign in; the gateway checks it and links it to the owner already signed in.
+ */
+export function useLinkWallet(api: Api, queryClient: QueryClient) {
+	return useMutation({
+		mutationFn: async (): Promise<SignedInOwner> => {
+			const walletAddress = await connect();
+			const challenge = await read<{ message: string }>(
+				await api.v1.auth.challenge.$post({ json: { walletAddress } }),
+			);
+			const signature = await signMessage(challenge.message);
+			return read<SignedInOwner>(
+				await api.v1.auth["link-wallet"].$post({
+					json: { walletAddress, message: challenge.message, signature },
+				}),
+			);
+		},
+		onSuccess: (owner) => {
+			queryClient.setQueryData(sessionQuery(api).queryKey, owner);
+		},
+	});
+}
+
 export function useSignOut(api: Api, queryClient: QueryClient) {
 	return useMutation({
 		mutationFn: async () => {
+			const who = queryClient.getQueryData<SignedInOwner | null>(sessionQuery(api).queryKey);
 			await api.v1.auth["sign-out"].$post();
+			// An email session is Better Auth's, with a cookie of its own, so it is ended at its own route.
+			if (who && who.walletAddress === null) {
+				const origin = new URL(api.v1.auth["sign-out"].$url()).origin;
+				await fetch(`${origin}/v1/auth/people/sign-out`, {
+					method: "POST",
+					credentials: "include",
+				});
+			}
 			forgetActiveWallet();
 		},
 		onSuccess: () => {

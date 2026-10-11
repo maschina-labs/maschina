@@ -185,12 +185,15 @@ const NEWS = {
 /** Answers the API as a signed in owner with one machine at work, or as nobody. */
 export function standIn({
 	signedIn = true,
+	person,
 	machines = [machine],
 	halt,
 	aiKey,
 	trader,
 }: {
 	signedIn?: boolean;
+	/** Signed in by email with no wallet linked yet, as this address. */
+	person?: string;
 	machines?: (typeof machine)[];
 	/** The stop switch, on with this reason, or off when left out. */
 	halt?: string;
@@ -238,7 +241,7 @@ export function standIn({
 		if (url.pathname === "/v1/news") return json(NEWS);
 		if (url.pathname === "/v1/auth/me")
 			return signedIn
-				? json({ ownerId: "o", walletAddress: OWNER })
+				? json({ ownerId: "o", walletAddress: person ? null : OWNER, email: person ?? null })
 				: json({ error: "signed out" }, 401);
 		if (!signedIn) return json({ error: "signed out" }, 401);
 		if (url.pathname === "/v1/machines" && request.method === "GET") return json({ machines });

@@ -2,7 +2,7 @@
  * What each dropdown holds. The big links on the left are the pages; the small ones beside them are the
  * way on. A link with no address is not built yet: it shows dimmed and tagged Soon, and is never a link.
  */
-import { DOCS, DOCS_PAGES } from "./links.ts";
+import { DOCS, DOCS_PAGES, LIVE, STATUS } from "./links.ts";
 
 type Item = { label: string; href?: string };
 
@@ -29,9 +29,9 @@ export const MENUS: Record<string, Menu> = {
 			{ label: "Network" },
 			{ label: "Mobile" },
 		],
-		asideTitle: "See it work",
+		asideTitle: "See It Work",
 		aside: [
-			{ label: "Live record", href: "/live" },
+			{ label: "Live Record", href: LIVE },
 			{ label: "Changelog", href: CHANGELOG },
 		],
 	},
@@ -41,21 +41,20 @@ export const MENUS: Record<string, Menu> = {
 			{ label: "Docs", href: DOCS },
 			{ label: "API", href: DOCS_PAGES.api },
 			{ label: "SDK", href: DOCS_PAGES.sdk },
-			{ label: "Machine spec", href: DOCS_PAGES.spec },
+			{ label: "Machine Spec", href: DOCS_PAGES.spec },
 			{ label: "Templates", href: DOCS_PAGES.templates },
 		],
-		asideTitle: "For builders and agents",
+		asideTitle: "For Builders and Agents",
 		aside: [
 			{ label: "GitHub", href: ORG },
-			// Tagged Soon until the status page exists: it will be hosted by someone else (Atlassian Statuspage).
-			{ label: "Status" },
-			{ label: "AI index", href: "/llms.txt" },
-			{ label: "Skill file", href: "/SKILL.md" },
-			{ label: "MCP server" },
+			{ label: "Status", href: STATUS },
+			{ label: "AI Index", href: "/llms.txt" },
+			{ label: "Skill File", href: "/SKILL.md" },
+			{ label: "MCP Server" },
 		],
 	},
 	Company: {
-		intro: "The company",
+		intro: "The Company",
 		main: [
 			{ label: "About", href: "/about" },
 			{ label: "Roadmap", href: "/roadmap" },

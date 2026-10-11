@@ -60,6 +60,7 @@ function fakeAuth() {
 			ended.push(token);
 			signedIn = undefined;
 		},
+		linkWallet: async (_request, owner) => owner,
 	};
 	return { ports, ended };
 }

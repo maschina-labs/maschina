@@ -21,7 +21,7 @@ export type BrandDoc = {
 };
 
 export const BRAND: BrandDoc = {
-	title: "Brand assets",
+	title: "Brand Assets",
 	standfirst:
 		"The Maschina logos, colors and rules for using them, for press, partners and anyone writing about us.",
 	pack: "/brand/maschina-brand-kit.zip",

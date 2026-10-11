@@ -28,7 +28,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("the brand assets page", () => {
 	it("has the held mesh head with a button for the full asset pack, and a black sheet over it", () => {
 		const { container } = render(<BrandPage authUrl={AUTH} doc={BRAND} />);
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand assets");
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Brand Assets");
 		const head = container.querySelector("[data-head]") as HTMLElement;
 		expect(head.className).toContain("sticky");
 		expect(head.nextElementSibling).toBe(container.querySelector("[data-sheet]"));
@@ -40,7 +40,7 @@ describe("the brand assets page", () => {
 		expect(icon).not.toBeNull();
 		expect(icon).toHaveAttribute("aria-hidden", "true");
 		expect(pack.firstElementChild).toBe(icon);
-		expect(document.title).toBe("Brand assets | Maschina");
+		expect(document.title).toBe("Brand Assets | Maschina");
 	});
 
 	it("shows six logo tiles, three on dark and three on light, each with an SVG and a PNG to download", () => {

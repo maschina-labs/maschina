@@ -52,6 +52,7 @@ startServer({
 	app: buildApp({ version: config.SERVICE_VERSION, platforms, logger, reporter }),
 	port: config.BOTS_PORT,
 	logger,
+	statusHeartbeatUrl: config.BOTS_STATUS_HEARTBEAT_URL,
 	shutdown: [
 		{ name: "alerts", run: async () => telling.abort() },
 		{ name: "error reporting", run: () => reporter.flush() },

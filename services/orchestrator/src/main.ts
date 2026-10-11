@@ -133,6 +133,7 @@ startServer({
 	app,
 	port: config.ORCHESTRATOR_PORT,
 	logger,
+	statusHeartbeatUrl: config.ORCHESTRATOR_STATUS_HEARTBEAT_URL,
 	shutdown: [
 		{
 			name: "price watcher",

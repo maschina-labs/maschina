@@ -87,3 +87,14 @@ export const serviceEnv = {
 	/** Set by the release pipeline. */
 	SERVICE_VERSION: z.string().default("dev"),
 };
+
+/**
+ * Where a service tells the status page it is up, as `<SERVICE>_STATUS_HEARTBEAT_URL`. Every service reads the same
+ * .env file on the server, so each needs a name of its own. Only the gateway can be reached from outside, so the rest
+ * report from the inside: a ping while ready, and silence when not. Unset, the service does not report.
+ */
+export const statusHeartbeatEnv = <P extends string>(prefix: P) =>
+	({ [`${prefix}_STATUS_HEARTBEAT_URL`]: env.optional(env.url()) }) as Record<
+		`${P}_STATUS_HEARTBEAT_URL`,
+		z.ZodOptional<z.ZodURL>
+	>;

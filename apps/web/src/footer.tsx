@@ -4,6 +4,7 @@ import { Link } from "./i18n/link.tsx";
 import { fill, label } from "./i18n/messages.ts";
 import { useMessages } from "./i18n/use-messages.ts";
 import { LanguageSwitcher } from "./language-switcher.tsx";
+import { STATUS } from "./links.ts";
 import { Logo } from "./logo.tsx";
 import { openPreferences } from "./preferences.ts";
 import { SITEMAP } from "./sitemap.ts";
@@ -104,23 +105,25 @@ function Light({
 }
 
 /**
- * A square dot and a word, read from the API's own status check, and two lights that blink with the traffic
- * to it: TX as the request goes out, RX as the answer comes back. Nothing here is animated for show.
+ * A square dot and a word, read from the status page's own feed, and two lights that blink with the traffic to
+ * it: TX as the request goes out, RX as the answer comes back. The whole mark links to the status page. Nothing here is animated for show.
  */
 function StatusMark() {
 	const m = useMessages();
 	const { status, tx, rx } = useStatus();
 	return (
-		<div
-			role="status"
-			className="flex h-9 w-max items-center gap-3 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
-		>
-			<span aria-hidden="true" className={`size-2 ${COLOR[status.state]}`} />
-			<span>{m.footer.status[status.state]}</span>
-			<span aria-hidden="true" className="h-4 w-px bg-white/10" />
-			<Light label="TX" count={tx} color={TX_COLOR} />
-			<Light label="RX" count={rx} color={RX_COLOR} after={RX_AFTER_MS} />
-		</div>
+		<a href={STATUS} className="block w-max transition-opacity hover:opacity-80">
+			<div
+				role="status"
+				className="flex h-9 w-max items-center gap-3 bg-white/[0.07] px-3 text-[13px] text-neutral-300"
+			>
+				<span aria-hidden="true" className={`size-2 ${COLOR[status.state]}`} />
+				<span>{m.footer.status[status.state]}</span>
+				<span aria-hidden="true" className="h-4 w-px bg-white/10" />
+				<Light label="TX" count={tx} color={TX_COLOR} />
+				<Light label="RX" count={rx} color={RX_COLOR} after={RX_AFTER_MS} />
+			</div>
+		</a>
 	);
 }
 

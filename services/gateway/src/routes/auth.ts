@@ -33,6 +33,8 @@ export type AuthPorts = {
 	verify(request: SignInRequest): Promise<StartedSession>;
 	ownerOf(headers: Headers): Promise<Owner | undefined>;
 	signOut(token: string): Promise<void>;
+	/** Checks a signed sentence the same way, spends its nonce, and gives the owner that wallet. Starts no session. */
+	linkWallet(request: SignInRequest, owner: Owner): Promise<Owner>;
 };
 
 export type CookieSettings = {
@@ -86,6 +88,27 @@ const verify = createRoute({
 	},
 });
 
+const linkWallet = createRoute({
+	method: "post",
+	path: "/auth/link-wallet",
+	tags: ["Sign in"],
+	summary: "Add a wallet to the owner who is signed in",
+	request: {
+		body: { content: { "application/json": { schema: SignInRequest } }, required: true },
+	},
+	responses: {
+		200: {
+			description: "The owner, now with that wallet",
+			content: { "application/json": { schema: SignedInOwner } },
+		},
+		...problem,
+		409: {
+			description: "That wallet belongs to another owner, or this owner has a different one",
+			content: { "application/json": { schema: ErrorBody } },
+		},
+	},
+});
+
 const me = createRoute({
 	method: "get",
 	path: "/auth/me",
@@ -132,14 +155,40 @@ export function authRoutes(ports: AuthPorts, cookie: CookieSettings) {
 				expires: started.expiresAt,
 			});
 			return c.json(
-				{ ownerId: started.owner.ownerId, walletAddress: started.owner.walletAddress },
+				{
+					ownerId: started.owner.ownerId,
+					walletAddress: started.owner.walletAddress,
+					email: started.owner.email ?? null,
+				},
+				200,
+			);
+		})
+		.openapi(linkWallet, async (c) => {
+			const who = await ports.ownerOf(c.req.raw.headers);
+			if (!who) throw new MaschinaError("unauthenticated", "sign in first");
+			// The wallet has to sign a sentence this server wrote, the same as signing in: owning an address is
+			// shown by signing with it, never by saying so.
+			const linked = await ports.linkWallet(c.req.valid("json"), who);
+			return c.json(
+				{
+					ownerId: linked.ownerId,
+					walletAddress: linked.walletAddress,
+					email: linked.email ?? null,
+				},
 				200,
 			);
 		})
 		.openapi(me, async (c) => {
 			const owner = await ports.ownerOf(c.req.raw.headers);
 			if (!owner) throw new MaschinaError("unauthenticated", "sign in first");
-			return c.json({ ownerId: owner.ownerId, walletAddress: owner.walletAddress }, 200);
+			return c.json(
+				{
+					ownerId: owner.ownerId,
+					walletAddress: owner.walletAddress,
+					email: owner.email ?? null,
+				},
+				200,
+			);
 		})
 		.openapi(signOut, async (c) => {
 			const token = getCookie(c, SESSION_COOKIE);

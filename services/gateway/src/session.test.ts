@@ -10,7 +10,7 @@ import { ManualClock, newId } from "@maschina/core";
 import type { Database } from "@maschina/db";
 import { testWallet } from "@maschina/solana/testing";
 import { describe, expect, it, vi } from "vitest";
-import { walletSessions } from "./session.ts";
+import { firstOwner, walletSessions } from "./session.ts";
 
 const SETTINGS = {
 	domain: "maschina.dev",
@@ -166,5 +166,83 @@ describe("carrying a session", () => {
 		await walletSessions(db, clock(), SETTINGS).signOut("a-token");
 
 		expect(db.execute).toHaveBeenCalledOnce();
+	});
+});
+
+describe("linking a wallet to an owner who signed in another way", () => {
+	const person = { ownerId: newId<"owner">(), walletAddress: null, email: "a@example.com" };
+	const signedFor = async (domain = SETTINGS.domain) => {
+		const wallet = await testWallet();
+		const message = signInMessage({
+			domain,
+			uri: SETTINGS.uri,
+			address: wallet.address,
+			nonce: "link123",
+			issuedAt: new Date("2026-09-25T12:00:00.000Z"),
+			expiresAt: new Date("2026-09-25T12:05:00.000Z"),
+		});
+		return { walletAddress: wallet.address, message, signature: await wallet.sign(message) };
+	};
+
+	it("checks the signed sentence like a sign in, spends its nonce, and gives the owner that wallet", async () => {
+		const request = await signedFor();
+		const db = fakeDatabase(
+			[{ nonce: "link123" }],
+			[{ wallet_address: null }],
+			[{ id: person.ownerId }],
+		);
+		const linked = await walletSessions(db, clock(), SETTINGS).linkWallet(request, person);
+		expect(linked).toMatchObject({
+			ownerId: person.ownerId,
+			walletAddress: request.walletAddress,
+			email: "a@example.com",
+		});
+	});
+
+	it("refuses a sentence written for another site, and touches nothing", async () => {
+		const request = await signedFor("evil.example");
+		const db = fakeDatabase();
+		await expect(
+			walletSessions(db, clock(), SETTINGS).linkWallet(request, person),
+		).rejects.toThrow();
+		expect(db.execute).not.toHaveBeenCalled();
+	});
+
+	it("refuses a message that is not a sign in message", async () => {
+		const request = { ...(await signedFor()), message: "hello" };
+		await expect(
+			walletSessions(fakeDatabase(), clock(), SETTINGS).linkWallet(request, person),
+		).rejects.toThrow("not a sign in message");
+	});
+
+	it("refuses a wallet that belongs to somebody else", async () => {
+		const request = await signedFor();
+		const db = fakeDatabase([{ nonce: "link123" }], [{ wallet_address: null }], []);
+		await expect(walletSessions(db, clock(), SETTINGS).linkWallet(request, person)).rejects.toThrow(
+			"already belongs",
+		);
+	});
+});
+
+describe("asking whoever can tell", () => {
+	const wallet = { ownerId: "w", walletAddress: "x" };
+	const email = { ownerId: "e", walletAddress: null, email: "a@b.c" };
+	const headers = new Headers();
+
+	it("takes the first that knows, and does not ask the rest", async () => {
+		const second = vi.fn(async () => email);
+		const found = await firstOwner(async () => wallet, second)(headers);
+		expect(found).toEqual(wallet);
+		expect(second).not.toHaveBeenCalled();
+	});
+
+	it("goes on to the next when one knows nobody, and gives nobody when none do", async () => {
+		expect(
+			await firstOwner(
+				async () => undefined,
+				async () => email,
+			)(headers),
+		).toEqual(email);
+		expect(await firstOwner(async () => undefined, undefined)(headers)).toBeUndefined();
 	});
 });

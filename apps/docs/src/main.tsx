@@ -8,6 +8,6 @@ if (!root) throw new Error("#root is missing from index.html");
 
 createRoot(root).render(
 	<StrictMode>
-		<Site />
+		<Site path={window.location.pathname} />
 	</StrictMode>,
 );

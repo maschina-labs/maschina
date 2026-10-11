@@ -1,10 +1,11 @@
-import { type EnvSource, env, loadEnv, serviceEnv } from "@maschina/env";
+import { type EnvSource, env, loadEnv, serviceEnv, statusHeartbeatEnv } from "@maschina/env";
 import { z } from "zod";
 
 export function loadConfig(source?: EnvSource) {
 	return loadEnv(
 		{
 			...serviceEnv,
+			...statusHeartbeatEnv("DAEMON"),
 			ORCHESTRATOR_URL: env.url(),
 			ORCHESTRATOR_DAEMON_TOKEN: env.secret(),
 			DAEMON_IDENTITY_PATH: z.string().min(1).default(".maschina/daemon-identity.json"),
