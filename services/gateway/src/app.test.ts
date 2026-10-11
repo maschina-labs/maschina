@@ -36,6 +36,7 @@ const noAuth = {
 	},
 	ownerOf: async () => undefined,
 	signOut: async () => undefined,
+	linkWallet: async () => ({ ownerId: "o", walletAddress: null }),
 };
 const noCookie = { secure: false };
 

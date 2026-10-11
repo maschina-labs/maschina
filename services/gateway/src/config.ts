@@ -54,6 +54,19 @@ export function loadConfig(source?: EnvSource) {
 			 * answers that it is not available, and nothing pretends to send.
 			 */
 			RESEND_API_KEY: env.optional(env.secret()),
+			/** Where the gateway is reached from outside: where Google, GitHub and a company's identity provider send a person back to. */
+			GATEWAY_PUBLIC_URL: env.url().default("http://localhost:4000"),
+			/**
+			 * What signs a person's session cookie and encrypts what Better Auth stores (`openssl rand -base64 48`).
+			 * Unset, signing in with an email, Google, GitHub or a company is off and its routes say so. It also needs
+			 * the Resend key, because an address is confirmed by a link sent to it.
+			 */
+			GATEWAY_AUTH_SECRET: env.optional(env.secret()),
+			/** Sign in with Google and with GitHub: an OAuth app's client id and secret. Each is offered only when both are set. */
+			GOOGLE_CLIENT_ID: env.optional(z.string().min(1)),
+			GOOGLE_CLIENT_SECRET: env.optional(z.string().min(8)),
+			GITHUB_CLIENT_ID: env.optional(z.string().min(1)),
+			GITHUB_CLIENT_SECRET: env.optional(z.string().min(8)),
 			GATEWAY_SECRETS_KEY: z
 				.string()
 				.refine((value) => Buffer.from(value, "base64").length === 32, "must be 32 bytes as base64")

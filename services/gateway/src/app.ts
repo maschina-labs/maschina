@@ -11,6 +11,7 @@ import { contactRoutes } from "./routes/contact.ts";
 import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
 import { newsRoutes } from "./routes/news.ts";
+import { type PeopleDesk, peopleRoutes } from "./routes/people.ts";
 import { type PublicRecordDesk, publicRecordRoutes } from "./routes/public-record.ts";
 import { type HaltReader, systemRoutes } from "./routes/system.ts";
 import { welcome } from "./welcome.ts";
@@ -34,6 +35,8 @@ export type GatewayDeps = {
 	news?: NewsDesk | undefined;
 	/** The finished trades of the one machine chosen to be shown to everyone. Left out, the public record is empty. */
 	publicRecord?: PublicRecordDesk | undefined;
+	/** Signing in with an email, Google, GitHub or a company. Left out, its routes answer that they are not available. */
+	people?: PeopleDesk | undefined;
 	/** Sends the contact page's messages by email. Left out, the contact route answers that it is not available. */
 	contact?: ContactDesk | undefined;
 };
@@ -65,6 +68,7 @@ function v1(deps: GatewayDeps) {
 		)
 		.route("/", machineRoutes(deps.machines))
 		.route("/", authRoutes(deps.auth, deps.cookie))
+		.route("/", peopleRoutes(deps.people))
 		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))
 		.route("/", newsRoutes(deps.news, deps.clock ?? systemClock))
 		.route("/", publicRecordRoutes(deps.publicRecord))
@@ -95,6 +99,18 @@ export function buildApp(deps: GatewayDeps) {
 		rateLimit({
 			capacity: 60,
 			refillPerSecond: 2,
+			key: clientKey,
+			clock: deps.clock ?? systemClock,
+		}),
+	);
+
+	// Signing in is where passwords are guessed and emails are triggered, so it is slowed well below the rest: ten
+	// at once, then one every six seconds, from one address.
+	app.use(
+		"/v1/auth/people/*",
+		rateLimit({
+			capacity: 10,
+			refillPerSecond: 1 / 6,
 			key: clientKey,
 			clock: deps.clock ?? systemClock,
 		}),

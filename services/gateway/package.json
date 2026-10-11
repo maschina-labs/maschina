@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@hono/node-server": "catalog:",
 		"@hono/zod-openapi": "catalog:",
+		"@maschina/accounts": "workspace:*",
 		"@maschina/auth": "workspace:*",
 		"@maschina/db": "workspace:*",
 		"@sentry/node": "catalog:",

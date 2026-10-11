@@ -88,6 +88,7 @@ function app(ports: Partial<MachinePorts> = {}) {
 			},
 			ownerOf: base.ownerOf,
 			signOut: async () => undefined,
+			linkWallet: async (_request, owner) => owner,
 		},
 		cookie: { secure: false },
 	});

@@ -18,6 +18,7 @@ import {
 	createOwner,
 	endSession,
 	issueNonce,
+	linkWallet,
 	ownerOfSession,
 	spendNonce,
 	startSession,
@@ -40,9 +41,48 @@ export type Sessions = {
 	verify(request: SignInRequest): Promise<StartedSession>;
 	ownerOf(headers: Headers): Promise<Owner | undefined>;
 	signOut(token: string): Promise<void>;
+	linkWallet(request: SignInRequest, owner: Owner): Promise<Owner>;
 };
 
+/** Whoever is asked first who knows the request: a wallet's session, then a person's. */
+export function firstOwner(
+	...finders: (((headers: Headers) => Promise<Owner | undefined>) | undefined)[]
+): (headers: Headers) => Promise<Owner | undefined> {
+	return async (headers) => {
+		for (const find of finders) {
+			const found = await find?.(headers);
+			if (found) return found;
+		}
+		return undefined;
+	};
+}
+
 export function walletSessions(db: Database, clock: Clock, settings: SessionSettings): Sessions {
+	/**
+	 * The proof that a wallet is this wallet: the nonce comes out of the message, so a message claiming a different
+	 * one cannot pass, the signature is checked before anything is spent, and spending the nonce is what makes it
+	 * unrepeatable.
+	 */
+	async function proveWallet(request: SignInRequest, now: Date): Promise<void> {
+		const nonce = request.message.match(/^Nonce: (.+)$/m)?.[1];
+		if (!nonce) throw new MaschinaError("unauthenticated", "that is not a sign in message");
+
+		const checked = await verifySignIn({
+			message: request.message,
+			signature: request.signature,
+			domain: settings.domain,
+			nonce,
+			now,
+		});
+		if (!checked.ok) throw checked.error;
+		if (checked.value.address !== request.walletAddress) {
+			throw new MaschinaError("unauthenticated", "that message names a different wallet");
+		}
+
+		const spent = await spendNonce(db, { nonce, walletAddress: request.walletAddress, now });
+		if (!spent.ok) throw spent.error;
+	}
+
 	return {
 		async challenge(walletAddress) {
 			const now = clock.now();
@@ -66,29 +106,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 
 		async verify(request) {
 			const now = clock.now();
-			// The nonce comes out of the message, so a message claiming a different one cannot pass.
-			const nonce = request.message.match(/^Nonce: (.+)$/m)?.[1];
-			if (!nonce) throw new MaschinaError("unauthenticated", "that is not a sign in message");
-
-			const checked = await verifySignIn({
-				message: request.message,
-				signature: request.signature,
-				domain: settings.domain,
-				nonce,
-				now,
-			});
-			if (!checked.ok) throw checked.error;
-			if (checked.value.address !== request.walletAddress) {
-				throw new MaschinaError("unauthenticated", "that message names a different wallet");
-			}
-
-			// Spending the nonce is what makes this unrepeatable, and it happens before a session exists.
-			const spent = await spendNonce(db, {
-				nonce,
-				walletAddress: request.walletAddress,
-				now,
-			});
-			if (!spent.ok) throw spent.error;
+			await proveWallet(request, now);
 
 			const owner = await createOwner(db, request.walletAddress);
 			if (!owner.ok) throw owner.error;
@@ -103,6 +121,14 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 				expiresAt: session.expiresAt,
 				owner: { ownerId: owner.value.id, walletAddress: owner.value.walletAddress },
 			};
+		},
+
+		async linkWallet(request, owner) {
+			// The same proof as signing in: a sentence this server wrote, signed by that wallet, once.
+			await proveWallet(request, clock.now());
+			const linked = await linkWallet(db, owner.ownerId, request.walletAddress);
+			if (!linked.ok) throw linked.error;
+			return { ...owner, walletAddress: linked.value.walletAddress };
 		},
 
 		async ownerOf(headers) {

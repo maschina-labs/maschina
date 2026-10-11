@@ -32,6 +32,7 @@ startServer({
 		reporter,
 		machines: gateway.ports,
 		auth: gateway.auth,
+		people: gateway.people,
 		cookie: gateway.cookie,
 		halt: gateway.halt,
 		manager: gateway.manager,
