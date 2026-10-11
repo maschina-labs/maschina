@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.42](https://github.com/maschina-labs/maschina/compare/v0.0.41...v0.0.42) (2026-10-11)
+
+
+### Added
+
+* **docs:** deploy the docs app at docs.maschina.dev ([#781](https://github.com/maschina-labs/maschina/issues/781)) ([a897bbc](https://github.com/maschina-labs/maschina/commit/a897bbcea7af31e57c5f003f97a1c787fda60501))
+
 ## [0.0.41](https://github.com/maschina-labs/maschina/compare/v0.0.40...v0.0.41) (2026-10-11)
 
 
