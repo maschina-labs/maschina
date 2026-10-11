@@ -202,8 +202,13 @@ describe("what is not built yet says so", () => {
 
 	it("the network has a globe a reader who cannot see it is told about", async () => {
 		render(<Network />);
+		// The globe loads in a piece of its own, which a slow or busy machine takes longer than a second to fetch.
 		expect(
-			await screen.findByRole("img", { name: "The network, on a turning globe" }),
+			await screen.findByRole(
+				"img",
+				{ name: "The network, on a turning globe" },
+				{ timeout: 10_000 },
+			),
 		).toBeInTheDocument();
 	});
 
