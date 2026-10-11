@@ -1,4 +1,4 @@
-import { type FormEvent, type ReactNode, useId, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useId, useState } from "react";
 import { safeNext } from "./next.ts";
 import type { PeopleApi } from "./people-api.ts";
 
@@ -43,7 +43,11 @@ export function AuthApp(props: AuthAppProps) {
 	}
 }
 
+/** The page's name is its heading and its browser tab, in Title Case, like every page name on the site. */
 function Frame({ title, children }: { title: string; children: ReactNode }) {
+	useEffect(() => {
+		document.title = `${title} | Maschina`;
+	}, [title]);
 	return (
 		<main className="flex min-h-svh items-center justify-center bg-black px-6 py-16 font-display text-neutral-200">
 			<div className="w-full max-w-sm">
@@ -131,7 +135,7 @@ function SignIn({ api, next, keep, appUrl, go }: AuthAppProps & { next: string; 
 	}
 
 	return (
-		<Frame title="Sign in">
+		<Frame title="Sign In">
 			<Problem message={problem} />
 			<form onSubmit={submit}>
 				<Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
@@ -238,7 +242,7 @@ function SignUp({ api, next, keep, origin }: AuthAppProps & { next: string; keep
 
 	if (sentTo) {
 		return (
-			<Frame title="Check your email">
+			<Frame title="Check Your Email">
 				<p className="text-neutral-300">
 					We sent a link to <span className="text-white">{sentTo}</span>. Open it to confirm the
 					address, then you are in.
@@ -254,7 +258,7 @@ function SignUp({ api, next, keep, origin }: AuthAppProps & { next: string; keep
 	}
 
 	return (
-		<Frame title="Create an account">
+		<Frame title="Sign Up">
 			<Problem message={problem} />
 			<form onSubmit={submit}>
 				<Field label="Name" value={name} onChange={setName} autoComplete="name" />
@@ -294,7 +298,7 @@ function Forgot({ api, origin }: AuthAppProps) {
 	}
 
 	return (
-		<Frame title="A new password">
+		<Frame title="Forgot Password">
 			{done ? (
 				<p className="text-neutral-300">
 					If there is an account with that email, we sent it a link to choose a new password.
@@ -332,7 +336,7 @@ function Reset({ api, token }: AuthAppProps & { token: string | null }) {
 
 	if (!token) {
 		return (
-			<Frame title="A new password">
+			<Frame title="Reset Password">
 				<Problem message="That link is not complete. Ask for a new one." />
 				<a href="/forgot" className={quiet}>
 					Ask for a new link
@@ -351,7 +355,7 @@ function Reset({ api, token }: AuthAppProps & { token: string | null }) {
 	}
 
 	return (
-		<Frame title="A new password">
+		<Frame title="Reset Password">
 			{done ? (
 				<>
 					<p className="mb-6 text-neutral-300">Your password is changed. Sign in with it.</p>
@@ -382,7 +386,7 @@ function Reset({ api, token }: AuthAppProps & { token: string | null }) {
 
 function Verified({ next }: { next: string }) {
 	return (
-		<Frame title="Email confirmed">
+		<Frame title="Email Confirmed">
 			<p className="mb-6 text-neutral-300">That address is yours now, and you are signed in.</p>
 			<a href={next} className={`${primary} flex items-center justify-center`}>
 				Continue

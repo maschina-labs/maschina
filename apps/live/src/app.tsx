@@ -44,7 +44,7 @@ export function LiveApp({ state }: { state: RecordState }) {
 				<a href="https://maschina.dev" aria-label="Maschina">
 					<img src="/brand/wordmark.svg" alt="" className="mb-10 h-5 w-auto" />
 				</a>
-				<h1 className="mb-2 text-3xl font-medium text-white">The live record</h1>
+				<h1 className="mb-2 text-3xl font-medium text-white">Live Record</h1>
 				<p className="mb-10 max-w-xl text-neutral-400">
 					Every trade this machine finishes, with the signature that proves it on Solana. Nothing
 					here can be edited after the fact.

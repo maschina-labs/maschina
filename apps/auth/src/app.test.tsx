@@ -35,7 +35,7 @@ const type = (label: RegExp | string, value: string) =>
 describe("signing in", () => {
 	it("is the first screen, and offers every way in", () => {
 		setup("/");
-		expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: "Sign In" })).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Continue with Google" })).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Continue with GitHub" })).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: "Continue with a wallet" })).toHaveAttribute(
@@ -134,7 +134,7 @@ describe("making an account", () => {
 		type("Email", "a@example.com");
 		type("Password", "a long enough password");
 		fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-		expect(await screen.findByRole("heading", { name: "Check your email" })).toBeInTheDocument();
+		expect(await screen.findByRole("heading", { name: "Check Your Email" })).toBeInTheDocument();
 		expect(api.signUpEmail).toHaveBeenCalledWith(
 			"Ash",
 			"a@example.com",
@@ -209,12 +209,26 @@ describe("a new password", () => {
 describe("after the link in the email", () => {
 	it("says the email is confirmed and goes on to the app", () => {
 		setup("/verified", `?next=${encodeURIComponent(APP)}`);
-		expect(screen.getByRole("heading", { name: "Email confirmed" })).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: "Email Confirmed" })).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute("href", APP);
 	});
 
 	it("is the sign in screen for any address nobody has heard of", () => {
 		setup("/nowhere");
-		expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+		expect(screen.getByRole("heading", { name: "Sign In" })).toBeInTheDocument();
+	});
+});
+
+describe("the browser tab", () => {
+	it.each([
+		["/sign-in", "Sign In"],
+		["/sign-up", "Sign Up"],
+		["/forgot", "Forgot Password"],
+		["/reset", "Reset Password"],
+		["/verified", "Email Confirmed"],
+		["/", "Sign In"],
+	])("names %s as %s, in Title Case, after the page", (path, name) => {
+		setup(path);
+		expect(document.title).toBe(`${name} | Maschina`);
 	});
 });
