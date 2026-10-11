@@ -29,5 +29,6 @@
 		"typescript": "catalog:",
 		"vite": "catalog:",
 		"vitest": "catalog:"
-	}
+	},
+	"description": "The sign in screens: auth.maschina.dev."
 }

@@ -8,6 +8,9 @@
 		"apps/web": {
 			"entry": ["src/worker.ts", "scripts/*.ts"]
 		},
+		"apps/auth": {
+			"entry": ["src/worker.ts"]
+		},
 		"apps/app": {
 			"entry": ["src/worker.ts", "src/dev/seed-boot.ts"]
 		},
