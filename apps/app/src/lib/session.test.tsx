@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { installWallet } from "../test/wallets.ts";
 import type { Api } from "./api.ts";
 import { createQueryClient } from "./query.ts";
-import { useSession, useSignIn, useSignOut } from "./session.ts";
+import { useLinkWallet, useSession, useSignIn, useSignOut } from "./session.ts";
 import { choose, discoverWallets, forgetActiveWallet, isPicking } from "./wallet.ts";
 
 const json = (body: unknown, status = 200) =>
@@ -30,6 +30,9 @@ function fakeApi(answers: Record<string, () => Response>) {
 				},
 				verify: { $post: (body: { json: Record<string, unknown> }) => answer("verify", body) },
 				"sign-out": { $post: () => answer("sign-out") },
+				"link-wallet": {
+					$post: (body: { json: Record<string, unknown> }) => answer("link-wallet", body),
+				},
 			},
 		},
 	} as unknown as Api;
@@ -131,5 +134,44 @@ describe("signing out", () => {
 		await result.current.mutateAsync();
 
 		expect(queryClient.getQueryData(["session"])).toBeNull();
+	});
+
+	it("ends an email session too, at the gateway's own sign out, for a person with no wallet", async () => {
+		const { api } = fakeApi({ "sign-out": () => json({}) });
+		(api.v1.auth["sign-out"] as unknown as { $url: () => URL }).$url = () =>
+			new URL("https://api.maschina.dev/v1/auth/sign-out");
+		const calls: string[] = [];
+		const real = globalThis.fetch;
+		globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+			calls.push(`${init?.method} ${String(input)} ${init?.credentials}`);
+			return json({});
+		}) as typeof fetch;
+		try {
+			const { queryClient, wrapper } = wrap();
+			queryClient.setQueryData(["session"], { ownerId: "o", walletAddress: null, email: "a@b.c" });
+			const { result } = renderHook(() => useSignOut(api, queryClient), { wrapper });
+			await result.current.mutateAsync();
+			expect(calls).toEqual(["POST https://api.maschina.dev/v1/auth/people/sign-out include"]);
+			expect(queryClient.getQueryData(["session"])).toBeNull();
+		} finally {
+			globalThis.fetch = real;
+		}
+	});
+});
+
+describe("linking a wallet", () => {
+	it("signs the sentence and hands it to the link route, then is the owner with the wallet", async () => {
+		stop = injectWallet();
+		const linked = { ownerId: "o", walletAddress: "WaLLet", email: "a@b.c" };
+		const { api, sent } = fakeApi({
+			challenge: () => json({ message: "Sign me" }),
+			"link-wallet": () => json(linked),
+		});
+		const { queryClient, wrapper } = wrap();
+		queryClient.setQueryData(["session"], { ownerId: "o", walletAddress: null, email: "a@b.c" });
+		const { result } = renderHook(() => useLinkWallet(api, queryClient), { wrapper });
+		await result.current.mutateAsync();
+		expect(sent.at(-1)).toMatchObject({ walletAddress: "WaLLet", message: "Sign me" });
+		expect(queryClient.getQueryData(["session"])).toEqual(linked);
 	});
 });

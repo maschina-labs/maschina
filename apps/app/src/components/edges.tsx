@@ -35,7 +35,7 @@ import { amount, useMachines } from "../lib/machines.ts";
 import { useManagerKey } from "../lib/manager-key.ts";
 import { onPaper, totalsOf } from "../lib/portfolio.ts";
 import { preview } from "../lib/preview.ts";
-import { useSession, useSignIn, useSignOut } from "../lib/session.ts";
+import { useLinkWallet, useSession, useSignIn, useSignOut } from "../lib/session.ts";
 import { setSide, useSide } from "../lib/side.ts";
 import { toast } from "../lib/toasts.ts";
 import { LookControls } from "./look-controls.tsx";
@@ -678,6 +678,44 @@ function AccountPanel() {
 	useEffect(() => {
 		if (address) rememberWallet(address);
 	}, [address]);
+	const link = useLinkWallet(api, queryClient);
+	if (!address && session.data) {
+		// Signed in by email: no wallet yet, so no money to show, only the way to add one and the way out.
+		const row =
+			"flex items-center justify-center gap-2 bg-white/[0.06] px-4 py-3 text-[14px] text-neutral-100 transition-colors hover:bg-white/[0.12] disabled:opacity-50";
+		return (
+			<div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-10 pb-8">
+				<span className="break-all text-[15px] text-neutral-100">{session.data.email}</span>
+				<p className="text-[13px] text-neutral-500">
+					Link a wallet to make machines and move money. It stays yours.
+				</p>
+				<button
+					type="button"
+					disabled={link.isPending}
+					onClick={() =>
+						link.mutate(undefined, {
+							onError: (error) => {
+								if (error.name !== "NoWalletChosen") toast(error.message, "problem");
+							},
+						})
+					}
+					className={row}
+				>
+					<Wallet size={16} weight="light" />
+					Link a wallet
+				</button>
+				<button
+					type="button"
+					disabled={signOut.isPending}
+					onClick={() => signOut.mutate()}
+					className={`${row} mt-auto`}
+				>
+					<SignOut size={16} weight="light" />
+					Sign out
+				</button>
+			</div>
+		);
+	}
 	if (!address) return null;
 
 	const totals = totalsOf(machines.data ?? [], side);
