@@ -69,7 +69,7 @@ const RX_AFTER_MS = BLINK_MS + 60;
 
 /**
  * One light and its label. It goes on each time `count` goes up, which is each time a real request leaves or
- * a real answer arrives, `after` milliseconds later if it is asked to wait, and off again a moment after that.
+ * a real answer arrives, `after` milliseconds later if it is asked to wait, and off again a moment after it is on.
  */
 function Light({
 	label,
@@ -86,12 +86,15 @@ function Light({
 	useEffect(() => {
 		if (count === 0) return;
 		const on = setTimeout(() => setLit(true), after);
-		const off = setTimeout(() => setLit(false), after + BLINK_MS);
-		return () => {
-			clearTimeout(on);
-			clearTimeout(off);
-		};
+		return () => clearTimeout(on);
 	}, [count, after]);
+	// The blink is timed from the moment the light is really on. Starting both timers together would let a slow page
+	// run them in one go, and the light would never be drawn.
+	useEffect(() => {
+		if (!lit) return;
+		const off = setTimeout(() => setLit(false), BLINK_MS);
+		return () => clearTimeout(off);
+	}, [lit]);
 	return (
 		<span data-on={lit} className="flex items-center gap-1.5 text-[11px] text-neutral-500">
 			<span aria-hidden="true" className={`size-2 ${lit ? color : "bg-neutral-700"}`} />
