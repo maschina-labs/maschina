@@ -1,3 +1,4 @@
+import { CaretDown, List, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
 import { Link } from "./i18n/link.tsx";
@@ -136,35 +137,16 @@ const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
 function Magnifier() {
-	return (
-		<svg
-			viewBox="0 0 20 20"
-			className="size-4"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth={1.5}
-			strokeLinecap="square"
-			aria-hidden="true"
-		>
-			<circle cx="8.5" cy="8.5" r="5.5" />
-			<path d="M13 13l4 4" />
-		</svg>
-	);
+	return <MagnifyingGlass weight="light" className="size-[18px]" aria-hidden="true" />;
 }
 
 function Caret({ open }: { open: boolean }) {
 	return (
-		<svg
-			viewBox="0 0 12 12"
-			className={`size-2.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth={1.5}
-			strokeLinecap="square"
+		<CaretDown
+			weight="regular"
+			className={`size-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
 			aria-hidden="true"
-		>
-			<path d="M2.5 4.5 6 8l3.5-3.5" />
-		</svg>
+		/>
 	);
 }
 
@@ -424,23 +406,16 @@ export function Header({
 								}}
 								className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 							>
-								{/* Phosphor's List and X, regular weight, drawn from the library's own paths. */}
-								<svg
-									viewBox="0 0 256 256"
+								<List
+									weight="regular"
+									aria-hidden="true"
 									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
-									fill="currentColor"
+								/>
+								<X
+									weight="regular"
 									aria-hidden="true"
-								>
-									<path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z" />
-								</svg>
-								<svg
-									viewBox="0 0 256 256"
 									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
-									fill="currentColor"
-									aria-hidden="true"
-								>
-									<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
-								</svg>
+								/>
 							</button>
 						</div>
 					</div>
@@ -655,14 +630,7 @@ export function Header({
 												className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
 											>
 												<span className="sr-only">{L(social.label)}</span>
-												<svg
-													viewBox="0 0 24 24"
-													className="size-4"
-													fill="currentColor"
-													aria-hidden="true"
-												>
-													<path d={social.icon} />
-												</svg>
+												<social.Icon weight="fill" className="size-5" aria-hidden="true" />
 											</Link>
 										))}
 									</div>

@@ -1,3 +1,5 @@
+import { ArrowUpRight, CaretRight } from "@phosphor-icons/react";
+
 /**
  * Two pieces the text pages share, so they look like one site: the glass a picture sits on (a faint fill and a thin
  * pearl outline, the footer wordmark's look) and the small pearl chip with an arrow that says a thing can be opened.
@@ -16,24 +18,14 @@ export function ArrowChip({
 	/** `out` points up and to the right, for something that opens; `next` is the chevron the site's other buttons carry. */
 	direction?: "out" | "next";
 }) {
+	const Arrow = direction === "out" ? ArrowUpRight : CaretRight;
 	return (
 		<span
 			data-chip
 			aria-hidden="true"
 			className={`grid size-8 shrink-0 place-items-center ${tone === "pearl" ? "bg-[oklch(0.93_0.02_300)] text-black" : "bg-black text-white"} ${className}`}
 		>
-			<svg
-				aria-hidden="true"
-				data-icon="arrow"
-				viewBox="0 0 12 12"
-				className="size-3.5"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				strokeLinecap="square"
-			>
-				<path d={direction === "out" ? "M3 9 9 3M4 3h5v5" : "M4.5 2.5 8 6l-3.5 3.5"} />
-			</svg>
+			<Arrow data-icon="arrow" weight="regular" className="size-3.5" aria-hidden="true" />
 		</span>
 	);
 }

@@ -465,6 +465,9 @@ importers:
       '@maschina/field':
         specifier: workspace:*
         version: link:../../packages/field
+      '@phosphor-icons/react':
+        specifier: 2.1.10
+        version: 2.1.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       d3-geo:
         specifier: 3.1.1
         version: 3.1.1

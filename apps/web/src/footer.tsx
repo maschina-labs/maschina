@@ -211,9 +211,7 @@ export function Footer() {
 							className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
 						>
 							<span className="sr-only">{social.label}</span>
-							<svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
-								<path d={social.icon} />
-							</svg>
+							<social.Icon weight="fill" className="size-4" aria-hidden="true" />
 						</Link>
 					))}
 				</div>

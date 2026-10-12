@@ -1,3 +1,4 @@
+import { Check } from "@phosphor-icons/react";
 import { useId, useState } from "react";
 import { CONTACT_TOPICS, type ContactMessage, sendMessage } from "./contact-send.ts";
 import { Frame } from "./frame.tsx";
@@ -78,17 +79,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 									aria-hidden="true"
 									className="grid size-12 place-items-center bg-[oklch(0.93_0.02_300)] text-black"
 								>
-									<svg
-										aria-hidden="true"
-										viewBox="0 0 20 20"
-										className="size-5"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={1.8}
-										strokeLinecap="square"
-									>
-										<path d="M4 10.5 8.5 15 16 6" />
-									</svg>
+									<Check weight="bold" className="size-5" aria-hidden="true" />
 								</span>
 								<h2 className="mt-8 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em]">
 									{m.sentTitle}

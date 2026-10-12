@@ -1,3 +1,11 @@
+import {
+	BookOpen,
+	CaretRight,
+	FileText,
+	Info,
+	MagnifyingGlass,
+	ShieldCheck,
+} from "@phosphor-icons/react";
 import { useId, useState } from "react";
 import type { SupportDoc } from "./company/support.ts";
 import { Frame } from "./frame.tsx";
@@ -9,32 +17,15 @@ import { useMessages } from "./i18n/use-messages.ts";
 import { titleFor } from "./routes.ts";
 import { useTitle } from "./use-title.ts";
 
-const ICON = {
-	className: "size-6",
-	fill: "none",
-	stroke: "currentColor",
-	strokeWidth: 1.4,
-	strokeLinecap: "square" as const,
-	viewBox: "0 0 24 24",
-};
-
-/** One small drawing for each topic, in the order the topics are written: start, safety, terms, about. */
-const ICONS = [
-	<svg aria-hidden="true" key="start" {...ICON}>
-		<path d="M4 4h7v16H4zM13 4h7v16h-7zM6.5 8h2M6.5 11h2M15.5 8h2M15.5 11h2" />
-	</svg>,
-	<svg aria-hidden="true" key="safety" {...ICON}>
-		<path d="M12 3 4 6v6c0 4.5 3.2 7.6 8 9 4.8-1.4 8-4.5 8-9V6zM9 12l2.2 2.2L15.5 10" />
-	</svg>,
-	<svg aria-hidden="true" key="terms" {...ICON}>
-		<path d="M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 15.5h7M9 8.5h3" />
-	</svg>,
-	<svg aria-hidden="true" key="about" {...ICON}>
-		<path d="M4 4h16v16H4zM12 11v6M12 7.5v.5" />
-	</svg>,
-];
+/** One drawing for each topic, in the order the topics are written: start, safety, terms, about. */
+const ICONS = [BookOpen, ShieldCheck, FileText, Info];
 
 type Topic = SupportDoc["center"]["topics"][number];
+
+function TopicIcon({ index }: { index: number }) {
+	const Icon = ICONS[index] ?? ICONS[0] ?? BookOpen;
+	return <Icon weight="light" className="size-6" aria-hidden="true" />;
+}
 
 /** A page of the site as a help page: its name in the reader's language, and where it is. */
 function usePageName() {
@@ -53,17 +44,11 @@ function PageRow({ href, name, topic }: { href: string; name: string; topic?: st
 				{name}
 				{topic ? <span className="ml-3 text-[14px] text-neutral-500">{topic}</span> : null}
 			</span>
-			<svg
+			<CaretRight
+				weight="regular"
+				className="size-3.5 shrink-0 text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:text-white"
 				aria-hidden="true"
-				viewBox="0 0 12 12"
-				className="size-3 shrink-0 text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:text-white"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth={1.5}
-				strokeLinecap="square"
-			>
-				<path d="M4.5 2.5 8 6l-3.5 3.5" />
-			</svg>
+			/>
 		</Link>
 	);
 }
@@ -107,17 +92,11 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
 					<div data-content className="mx-auto w-full max-w-[64rem]">
 						<search className={`flex items-center gap-4 px-5 ${PANEL}`}>
-							<svg
-								aria-hidden="true"
-								viewBox="0 0 24 24"
+							<MagnifyingGlass
+								weight="light"
 								className="size-5 shrink-0 text-neutral-400"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth={1.5}
-								strokeLinecap="square"
-							>
-								<path d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15zM16 16l5 5" />
-							</svg>
+								aria-hidden="true"
+							/>
 							<label htmlFor={`${id}-search`} className="sr-only">
 								{doc.center.search}
 							</label>
@@ -170,7 +149,7 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 											aria-hidden="true"
 											className="grid size-11 place-items-center bg-white/[0.06] text-neutral-200 outline outline-1 outline-white/[0.12]"
 										>
-											{ICONS[index] ?? ICONS[0]}
+											<TopicIcon index={index} />
 										</span>
 										<h2 className="mt-6 font-display font-medium text-[1.5rem] text-white tracking-[-0.025em]">
 											{topic.title}

@@ -1,3 +1,4 @@
+import { DownloadSimple, Play, Presentation } from "@phosphor-icons/react";
 import type { PapersDoc } from "./company/papers.ts";
 import { Frame } from "./frame.tsx";
 import { ArrowChip, PANEL } from "./glass.tsx";
@@ -20,21 +21,9 @@ function Glyph({ kind }: { kind: "videos" | "decks" }) {
 			className="grid size-16 place-items-center bg-[oklch(0.93_0.02_300)] text-black"
 		>
 			{kind === "videos" ? (
-				<svg aria-hidden="true" viewBox="0 0 16 16" className="size-6" fill="currentColor">
-					<path d="M4 2.5v11l9.5-5.5z" />
-				</svg>
+				<Play weight="fill" className="size-7" aria-hidden="true" />
 			) : (
-				<svg
-					aria-hidden="true"
-					viewBox="0 0 20 20"
-					className="size-7"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					strokeLinecap="square"
-				>
-					<path d="M3 5.5h11v8H3zM6 3h11v8M6 16.5h8" />
-				</svg>
+				<Presentation weight="regular" className="size-8" aria-hidden="true" />
 			)}
 		</span>
 	);
@@ -142,18 +131,7 @@ function RowItem({ item, soon }: { item: Item; soon: string }) {
 }
 
 const DOWNLOAD_ICON = (
-	<svg
-		data-icon="download"
-		viewBox="0 0 20 20"
-		className="size-4"
-		fill="none"
-		stroke="currentColor"
-		strokeWidth={1.5}
-		strokeLinecap="square"
-		aria-hidden="true"
-	>
-		<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
-	</svg>
+	<DownloadSimple data-icon="download" weight="regular" className="size-4" aria-hidden="true" />
 );
 
 /**
