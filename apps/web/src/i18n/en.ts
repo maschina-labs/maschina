@@ -98,7 +98,7 @@ export const en = {
 			line: "AI decides. Maschina decides what it's allowed to do.",
 			start: "Start for free",
 			docs: "Read the docs",
-			facts: "Source-available, built on Solana, free to try on paper.",
+			facts: "Source-available, built on Solana.",
 		},
 		showcase: {
 			name: "The App",
@@ -326,5 +326,6 @@ export const en = {
 		proof: "Proof",
 		next: "Next",
 		code: "Code",
+		hero: "Free to try on paper",
 	},
 } as const;
