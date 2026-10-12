@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SectionChip } from "./chip.tsx";
 import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 import { DOCS } from "./links.ts";
@@ -72,7 +73,8 @@ const STREAM =
  * is nothing here about an SDK, a package, an MCP server or a skill file, because none of those is published.
  */
 export function Builders() {
-	const m = useMessages().home.builders;
+	const messages = useMessages();
+	const m = messages.home.builders;
 	const { box, live } = useLive("200px 0px");
 	return (
 		<section
@@ -102,6 +104,7 @@ export function Builders() {
 					className="pointer-events-none absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,black_55%,transparent)]"
 				/>
 				<div className="relative flex w-full flex-col items-start lg:ml-auto lg:w-[50%]">
+					<SectionChip icon="code">{messages.chips.code}</SectionChip>
 					<h2 className="-mb-[0.14em] max-w-[14ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-left font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
 						{m.title}
 					</h2>

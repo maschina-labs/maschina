@@ -170,4 +170,11 @@ describe("the section for builders", () => {
 		const { container } = render(<Builders />);
 		expect(container.querySelector("[data-code]")).toHaveAttribute("data-live", "true");
 	});
+
+	it("opens with the same tiny chip, Code, directly above its headline", () => {
+		const { container } = render(<Builders />);
+		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
+		expect(chip).toHaveTextContent("Code");
+		expect(chip.nextElementSibling).toBe(screen.getByRole("heading", { level: 2 }));
+	});
 });

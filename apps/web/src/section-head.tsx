@@ -7,6 +7,7 @@ export function SectionHead({
 	line,
 	tag,
 	align = "center",
+	chip,
 }: {
 	title: string;
 	line: string;
@@ -14,10 +15,13 @@ export function SectionHead({
 	tag?: string;
 	/** Centered is for a statement to look at; left is for a chapter to read. */
 	align?: "center" | "left";
+	/** A tiny chip above the headline, saying where this chapter is in the story. */
+	chip?: React.ReactNode;
 }) {
 	const left = align === "left";
 	return (
 		<>
+			{chip}
 			<h2
 				className={`-mb-[0.14em] max-w-[18ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] ${left ? "text-left" : "text-center"} font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]`}
 			>
