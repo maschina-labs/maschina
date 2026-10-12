@@ -60,6 +60,14 @@ describe("the live record's address", () => {
 	});
 });
 
+describe("the Company address", () => {
+	it("is not a page of its own: it goes to the first page in the Company column, in any language", () => {
+		const redirects = readFileSync(resolve(root, "public/_redirects"), "utf8");
+		expect(redirects).toMatch(/^\/company \/about 301$/m);
+		expect(redirects).toMatch(/^\/:language\/company \/:language\/about 301$/m);
+	});
+});
+
 describe("sitemap.xml", () => {
 	const text = read("sitemap.xml");
 	const blocks = [...text.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => match[1] ?? "");

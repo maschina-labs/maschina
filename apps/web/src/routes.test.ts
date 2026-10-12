@@ -11,7 +11,6 @@ const links = [
 	"/marketplace",
 	"/network",
 	"/mobile",
-	"/company",
 	"/papers",
 	"/pricing",
 ].filter(internal);
