@@ -152,8 +152,8 @@ function Caret({ open }: { open: boolean }) {
 
 /**
  * The top of the page: the mark and the word on the left with the pages beside them, the way in on the
- * right. It is one attached bar, sticky: it stays on screen as the page scrolls, and takes a solid black
- * background once it does, so nothing passes through the links. Every box is square, like the rest of
+ * right. It is one attached bar, sticky: it stays on screen as the page scrolls, and turns into frosted glass once
+ * it does: a dark tint and a blur over the page, so the links stay readable and the page still shows through. Every box is square, like the rest of
  * Maschina.
  *
  * Product, Developers and Company open a full-width dropdown under the bar when the cursor rests on them,
@@ -324,20 +324,20 @@ export function Header({
 					className="absolute inset-x-0 top-0"
 				>
 					{/*
-					 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to solid black, with
-					 * a hard bottom edge. While a dropdown, the search or the phone menu
+					 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to frosted glass, with
+					 * a thin pearl line along the bottom. While a dropdown, the search or the phone menu
 					 * is open it fills in solid, so the panel and the bar read as one piece.
 					 */}
 					<div
 						ref={fade}
 						data-fade
 						aria-hidden="true"
-						className="pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black opacity-(--fade)"
+						className={`pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black/50 opacity-(--fade) backdrop-blur-xl backdrop-saturate-150 ${anyPanel ? "xl:opacity-0!" : ""}`}
 					/>
 					<div
 						data-solid
 						aria-hidden="true"
-						className={`pointer-events-none absolute inset-0 -z-10 bg-black transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
+						className={`pointer-events-none absolute inset-0 -z-10 bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150 transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
 					/>
 					<div className="flex items-center justify-between px-(--gutter) py-5 xl:py-4">
 						<div className="flex items-center gap-10">
@@ -439,7 +439,10 @@ export function Header({
 							inert={dropdown.closing}
 							className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label={L(shownName)} className="min-h-0 overflow-hidden bg-black">
+							<section
+								aria-label={L(shownName)}
+								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
+							>
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 									<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 										<div className="flex flex-col gap-5">
@@ -496,7 +499,10 @@ export function Header({
 							inert={searchPanel.closing}
 							className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label={m.header.search} className="min-h-0 overflow-hidden bg-black">
+							<section
+								aria-label={m.header.search}
+								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
+							>
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 									<SearchInput
 										ref={box}
