@@ -3,4 +3,7 @@
 # The live record is its own app. Its old address here, in any language, goes to it.
 /live https://live.maschina.dev 301
 /:language/live https://live.maschina.dev 301
+# The Company menu's own address is not a page: it goes to the first page in the column, in any language.
+/company /about 301
+/:language/company /:language/about 301
 # Every other address is the app: wrangler.jsonc sends it to index.html, which shows the page or says there is none.
