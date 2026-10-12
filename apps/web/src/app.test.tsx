@@ -17,6 +17,10 @@ const LEGAL = {
 	"/brand": 1,
 	"/papers": 1,
 	"/contact": 1,
+	"/product": 1,
+	"/how-it-works": 1,
+	"/machines": 1,
+	"/security": 1,
 };
 
 beforeEach(() => {
