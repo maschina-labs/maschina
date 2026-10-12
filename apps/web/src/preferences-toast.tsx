@@ -67,7 +67,7 @@ export function PreferencesToast() {
 				<button
 					type="button"
 					onClick={() => answer("accepted")}
-					className="inline-flex h-10 items-center justify-center bg-[oklch(0.93_0.02_300)] px-5 text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] max-sm:font-medium"
+					className="inline-flex h-10 items-center justify-center silver-button px-5 text-black max-sm:font-medium"
 				>
 					{m.preferences.accept}
 				</button>

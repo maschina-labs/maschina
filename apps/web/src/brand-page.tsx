@@ -219,7 +219,7 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 						<Link
 							href={doc.pack}
 							download
-							className="mt-8 inline-flex h-11 items-center gap-4 bg-[oklch(0.93_0.02_300)] pr-1.5 pl-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+							className="mt-8 inline-flex h-11 items-center gap-4 silver-button pr-1.5 pl-6 text-[15px] text-black"
 						>
 							<span>{m.pack}</span>
 							<span data-chip className="grid size-8 place-items-center bg-black text-white">

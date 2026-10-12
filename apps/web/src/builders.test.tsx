@@ -39,7 +39,7 @@ describe("the section for builders", () => {
 		const github = SOCIALS.find((social) => social.label === "Maschina on GitHub")?.href;
 		const code = within(section()).getByRole("link", { name: "View the code" });
 		expect(code).toHaveAttribute("href", github);
-		expect(code.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(code.className).toContain("silver-button");
 		const docs = within(section()).getByRole("link", { name: "Read the docs" });
 		expect(docs).toHaveAttribute("href", "https://docs.maschina.dev");
 		expect(docs.className).toContain("bg-white/[0.13]");

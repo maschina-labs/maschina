@@ -45,7 +45,7 @@ describe("the brand assets page", () => {
 		expect(icon).not.toBeNull();
 		expect(icon).toHaveAttribute("aria-hidden", "true");
 		expect(pack.firstElementChild?.textContent).toBe("Full asset pack");
-		expect(pack.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(pack.className).toContain("silver-button");
 		expect(document.title).toBe("Brand Assets | Maschina");
 	});
 

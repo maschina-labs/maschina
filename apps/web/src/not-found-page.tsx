@@ -20,7 +20,7 @@ export function NotFoundPage({ authUrl }: { authUrl: string }) {
 				<p className="mt-6 text-[19px] text-neutral-400 leading-[1.6]">{m.body}</p>
 				<Link
 					href="/"
-					className="mt-10 inline-flex h-11 items-center bg-[oklch(0.93_0.02_300)] px-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+					className="mt-10 inline-flex h-11 items-center silver-button px-6 text-[15px] text-black"
 				>
 					{m.home}
 				</Link>

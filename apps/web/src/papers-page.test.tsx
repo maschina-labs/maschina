@@ -177,7 +177,7 @@ describe("the papers page", () => {
 		});
 		expect(link).toHaveAttribute("href", "/papers/maschina-papers.zip");
 		expect(link).toHaveAttribute("download");
-		expect(link.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(link.className).toContain("silver-button");
 		const chip = link.lastElementChild as HTMLElement;
 		expect(chip).toHaveAttribute("data-chip");
 		expect(chip.className).toContain("bg-black");

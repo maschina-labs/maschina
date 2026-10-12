@@ -39,7 +39,7 @@ describe("the closing section", () => {
 		expect(heading.className).toContain("text-transparent");
 		expect(heading.className).toContain("linear-gradient(105deg");
 		const start = screen.getByRole("link", { name: "Start for free" });
-		expect(start.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(start.className).toContain("silver-button");
 		expect(start.className).toContain("h-10");
 		expect(start.className).toContain("xl:h-8");
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
