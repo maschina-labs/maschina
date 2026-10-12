@@ -510,15 +510,16 @@ describe("the privacy policy", () => {
 		expect(words).not.toMatch(/advertis|tracking/i);
 	});
 
-	it("tells the truth about how people sign in: a wallet, or an email and password, Google, GitHub or single sign-on", () => {
+	it("tells the truth about how people sign in: with a wallet today, and the other ways only as plans", () => {
 		const all = text(PRIVACY);
-		expect(all).not.toMatch(/there is no account with an email and a password/i);
-		expect(all).not.toMatch(/not your name, your email or a password/i);
-		expect(all).not.toMatch(/do not ask for your name, your email, a password/i);
-		for (const method of [/email and password/i, /Google/, /GitHub/, /single sign-on/i, /wallet/i])
+		expect(all).toMatch(/Today you sign in with a Solana wallet/);
+		// The other ways are named, but only as something to come: never as something that works now.
+		for (const method of [/email and password/i, /Google/, /GitHub/, /single sign-on/i])
 			expect(all).toMatch(method);
-		// A password is never kept in a form that can be read back.
-		expect(all).toMatch(/never stored as you typed it|one way hash/i);
+		expect(all).toMatch(/we will update this page before any of them works/i);
+		expect(all).not.toMatch(/You can sign in with a Solana wallet, with an email and password/i);
+		// If a password is ever kept, it is never in a form that can be read back.
+		expect(all).toMatch(/never store a password as you typed it|one way hash/i);
 	});
 
 	it("says analytics is PostHog, collected only if you allow it, and says what it collects", () => {
@@ -771,7 +772,7 @@ describe("the security disclosure", () => {
 	});
 
 	describe("what the terms say about signing in", () => {
-		it("names every way to sign in, and says a wallet is only one of them", () => {
+		it("says a wallet is how you sign in today, names the other ways only as plans, and says they will be added here first", () => {
 			const section = TERMS.sections.find((entry) => /signing in/i.test(entry.heading));
 			const words = (section?.body ?? []).filter((block) => typeof block === "string").join(" ");
 			for (const method of [
@@ -782,6 +783,9 @@ describe("the security disclosure", () => {
 				/single sign-on/i,
 			])
 				expect(words).toMatch(method);
+			expect(words).toMatch(/We plan to add/i);
+			expect(words).toMatch(/we will update these terms before they work/i);
+			expect(words).not.toMatch(/with an email and password, with Google or GitHub, or through/i);
 			expect(words).toMatch(/Anyone who has access to your sign in can act as you/i);
 			expect(words).not.toMatch(
 				/You sign in to Maschina with a Solana wallet, and your wallet address is how/,
