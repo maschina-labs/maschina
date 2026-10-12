@@ -9,7 +9,7 @@ import type { LegalDoc } from "../legal.tsx";
  */
 export const TERMS: LegalDoc = {
 	title: "Terms of Service",
-	updated: "October 9, 2026",
+	updated: "October 11, 2026",
 	intro: [
 		"These terms are the agreement between you and Maschina Labs about your use of Maschina. Please read them. By using Maschina you agree to them. If you do not agree, please do not use it.",
 	],
@@ -55,7 +55,7 @@ export const TERMS: LegalDoc = {
 		{
 			heading: "Your wallet and signing in",
 			body: [
-				"You can sign in to Maschina with a Solana wallet, with an email and password, with Google or GitHub, or through your organization's single sign-on. If you use a wallet, your wallet address is how we know who you are. We do not hold your wallet's private keys and we cannot recover them if you lose them. Keep your wallet, your recovery phrase and your password safe. Anyone who has access to your sign in can act as you in Maschina.",
+				"You can sign in to Maschina with a Solana wallet, and your wallet address is how we know who you are. We plan to add an email and password, Google, GitHub and your organization's single sign-on, and we will update these terms before they work. We do not hold your wallet's private keys and we cannot recover them if you lose them. Keep your wallet and your recovery phrase safe. Anyone who has access to your sign in can act as you in Maschina.",
 				"You are responsible for everything done through your account, including by anyone you let use your wallet or your sign in. Tell us quickly if you think someone else has got into it.",
 			],
 		},

@@ -2,14 +2,14 @@ import type { LegalDoc } from "../legal.tsx";
 
 /**
  * Maschina's privacy policy: what is collected, why, who else sees it, how long it is kept, and what a person can ask
- * for. It is written from what the product actually does today (sign in with a wallet, an email, Google, GitHub or single sign-on, machines and
+ * for. It is written from what the product actually does today (sign in with a wallet today, with other ways planned, machines and
  * their permanent record, secrets stored sealed, no third party ads, and analytics only if you allow it) and says plainly where the design
  * limits what can be deleted: a record that cannot be rewritten, and a chain that cannot be erased. It has not yet been
  * reviewed by a lawyer.
  */
 export const PRIVACY: LegalDoc = {
 	title: "Privacy Policy",
-	updated: "October 9, 2026",
+	updated: "October 11, 2026",
 	intro: [
 		"This policy explains what information Maschina collects, why, who else sees it, how long it is kept, and what you can ask us to do with it. Maschina is built to need as little about you as possible: you can sign in with nothing but a Solana wallet, and we do not ask for a phone number or a government ID.",
 	],
@@ -20,7 +20,7 @@ export const PRIVACY: LegalDoc = {
 				"This is a summary. The full policy below is what counts.",
 				{
 					list: [
-						"You can sign in with a Solana wallet, with an email and password, with Google or GitHub, or through your organization's single sign-on. We store the address or account you sign in with. We never store a password as you typed it, only a one way hash of it.",
+						"Today you sign in with a Solana wallet, and we store the address you sign in with. We plan to add an email and password, Google, GitHub and your organization's single sign-on, and we will update this page before any of them works. If we keep a password, we never store it as you typed it, only a one way hash of it.",
 						"We keep your machines' settings and a permanent record of what each machine does. That record is built so it cannot be rewritten, which limits what can be deleted.",
 						"Transactions on the Solana network are public and permanent. We cannot erase them and neither can you.",
 						"If you give us a key for an AI provider, we store it encrypted, and we use it only to run your own manager and machines.",
@@ -48,7 +48,7 @@ export const PRIVACY: LegalDoc = {
 				"We collect only what the service needs. It falls into these groups:",
 				{
 					list: [
-						"Your account: the way you sign in. That is the address of your wallet, or your email address and a one way hash of your password, or the identifier Google or GitHub gives us for your account together with the name and picture they pass on if you allow it, or the identity your organization's single sign-on sends us. We also keep a record that a sign in happened. A wallet address is public on the Solana network already.",
+						"Your account: the way you sign in. Today that is the address of your wallet, which is public on the Solana network already. We also keep a record that a sign in happened. When we add other ways to sign in, we will say here what each one stores.",
 						"Your machines: each machine's name, kind, settings, limits and wallet address, and the permanent record of what it does, including its decisions, its trades, the ones that were refused and the reasons.",
 						"Secrets you give us: a key for an AI provider, if you choose to give one, and a link to a Telegram chat, if you set up alerts. We store them sealed, meaning encrypted with a key that is kept apart from the database, and show you only a hint of them. Passwords are different: we never store one, only a one way hash from which it cannot be worked out.",
 						"Your conversations with the manager: what you ask it and what it answers. They are sent to the AI provider whose key you gave us, and may be kept with your account so you can read them again.",
@@ -112,7 +112,7 @@ export const PRIVACY: LegalDoc = {
 				{
 					list: [
 						"Hosting and network services, such as Cloudflare, which carry requests to and from the site and the API.",
-						"Sign in providers: Google or GitHub, if you sign in with them, and your organization's identity provider, if you use single sign-on. They tell us who you are, and they learn that you signed in to Maschina.",
+						"Sign in providers: none today. When we add Google, GitHub or your organization's single sign-on, we will name them here. They would tell us who you are, and they would learn that you signed in to Maschina.",
 						"PostHog, our analytics service, which receives how Maschina is used, if you accept optional cookies.",
 						"The wallet provider that holds the keys of your machines' wallets, which receives what it needs to create a wallet and to sign a transaction we ask it to.",
 						"Node, price and swap services that we ask for prices, quotes and transactions on the Solana network.",

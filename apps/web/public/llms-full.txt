@@ -55,7 +55,7 @@ More: https://maschina.dev/terms
 
 ## Privacy
 
-A person can sign in with a Solana wallet, an email and password, Google, GitHub or single sign-on. Maschina keeps what it needs to run the service: the way a person signs in (never a password in readable form), the machines they make, their settings and their records. Analytics runs only if a person accepts optional cookies. The policy names the third parties that see information (the network and wallet provider, a content delivery network, an analytics service, sign in providers, an AI provider where a person uses the manager, and mail and messaging services), and says what it does not collect. The full text is the only one that counts.
+A person signs in with a Solana wallet today. An email and password, Google, GitHub and single sign-on are planned and not available yet. Maschina keeps what it needs to run the service: the way a person signs in (a wallet address), the machines they make, their settings and their records. Analytics runs only if a person accepts optional cookies. The policy names the third parties that see information (the network and wallet provider, a content delivery network, an analytics service, sign in providers, an AI provider where a person uses the manager, and mail and messaging services), and says what it does not collect. The full text is the only one that counts.
 
 More: https://maschina.dev/privacy
 
