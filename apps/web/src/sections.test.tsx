@@ -457,3 +457,28 @@ describe("make it yours: the lines draw themselves", () => {
 		}
 	});
 });
+
+describe("the chapter chips", () => {
+	it.each([
+		["How It Works", <HowItWorks key="a" authUrl={AUTH} />, "Start"],
+		["Inside the App", <Features key="b" authUrl={AUTH} />, "Watch"],
+		["Safety", <Safety key="c" />, "Limits"],
+		["Customize", <Customize key="d" authUrl={AUTH} />, "Shape"],
+		["Live Record", <LiveRecord key="e" />, "Proof"],
+		["Network", <Network key="f" />, "Next"],
+		["Marketplace", <Marketplace key="g" />, "Next"],
+	])(
+		"%s opens with a tiny chip above its headline that names its place in the story: %s",
+		(name, element, word) => {
+			render(element);
+			const section = screen.getByRole("region", { name });
+			const chip = section.querySelector("[data-chip-tag]") as HTMLElement;
+			expect(chip).toHaveTextContent(word);
+			const heading = within(section).getByRole("heading", { level: 2 });
+			expect(chip.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+			expect(chip.nextElementSibling).toBe(heading);
+			// Left-aligned with the headline, never centered.
+			expect(chip.parentElement?.className).not.toContain("items-center");
+		},
+	);
+});

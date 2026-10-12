@@ -317,4 +317,14 @@ export const en = {
 	downloads: {
 		papers: "Download everything",
 	},
+	// The chapter chips on the front page, one word each, in the order of the story.
+	chips: {
+		start: "Start",
+		watch: "Watch",
+		limits: "Limits",
+		shape: "Shape",
+		proof: "Proof",
+		next: "Next",
+		code: "Code",
+	},
 } as const;
