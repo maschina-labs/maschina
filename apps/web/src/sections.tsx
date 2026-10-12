@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "./i18n/link.tsx";
 import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
@@ -14,7 +14,7 @@ function Section({ name, children }: { name: string; children: React.ReactNode }
 	return (
 		<section
 			aria-label={name}
-			className="relative flex flex-col items-center bg-black px-(--gutter) py-20 sm:py-32"
+			className="relative flex flex-col items-center overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			{children}
 		</section>
@@ -76,17 +76,57 @@ function Chapter({
 	flip?: boolean;
 	children: React.ReactNode;
 }) {
+	const chapter = useRef<HTMLDivElement>(null);
+	// Shown at once where the browser cannot watch for scrolling, so nothing is ever hidden for good.
+	const [seen, setSeen] = useState(typeof IntersectionObserver === "undefined");
+	useEffect(() => {
+		const node = chapter.current;
+		if (seen || !node) return;
+		const watcher = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				setSeen(true);
+				// It arrives once. Scrolling back up never hides it again.
+				watcher.disconnect();
+			},
+			{ threshold: 0.15 },
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
+	}, [seen]);
+	const arrive =
+		"transition duration-700 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:translate-y-6 group-data-[seen=false]/chapter:opacity-0";
 	return (
 		<Section name={name}>
 			<div
+				ref={chapter}
 				data-chapter
-				className="grid w-full max-w-[72rem] gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
+				data-seen={seen}
+				className="group/chapter grid w-full max-w-[72rem] gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
 			>
-				<div data-words className="flex flex-col items-start">
+				{/* A hairline that fades out at both ends and draws itself out from the middle, so each chapter reads as its own scene. */}
+				<div
+					data-rule
+					aria-hidden="true"
+					className="absolute inset-x-(--gutter) top-0 h-px origin-center group-data-[seen=false]/chapter:scale-x-0 bg-gradient-to-r from-transparent via-white/[0.14] to-transparent transition-transform duration-1000 ease-out motion-reduce:transition-none"
+				/>
+				{/* Pearl light behind the visual, faint, drifting slowly, on the side the visual is on. */}
+				<div
+					data-glow
+					aria-hidden="true"
+					className={`pointer-events-none absolute top-1/2 size-[28rem] animate-drift bg-[radial-gradient(closest-side,oklch(0.93_0.02_300/0.1),transparent)] motion-reduce:animate-none lg:size-[44rem] ${flip ? "left-[-14rem] lg:left-[-8rem]" : "right-[-14rem] lg:right-[-8rem]"}`}
+				/>
+				<div data-words className={`flex flex-col items-start ${arrive}`}>
 					{head}
 					{buttons}
 				</div>
-				<div data-visual className={flip ? "lg:order-first" : ""}>
+				<div data-visual className={`relative delay-150 ${arrive} ${flip ? "lg:order-first" : ""}`}>
+					{/* A fine dot texture that fades out toward its edges, so the visual sits on something. */}
+					<div
+						data-texture
+						aria-hidden="true"
+						className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(oklch(1_0_0/0.16)_1px,transparent_1px)] bg-[length:16px_16px] [mask-image:radial-gradient(closest-side,black,transparent)]"
+					/>
 					{children}
 				</div>
 			</div>
