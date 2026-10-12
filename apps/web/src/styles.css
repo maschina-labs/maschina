@@ -145,6 +145,23 @@ body {
 		oklch(0.92 0.008 260) 64%,
 		oklch(0.84 0.01 260) 100%
 	);
+	--silver-shine: linear-gradient(
+		105deg,
+		oklch(0.9 0.008 260) 0%,
+		oklch(0.98 0.004 260) 32%,
+		oklch(1 0 0) 48%,
+		oklch(0.95 0.006 260) 66%,
+		oklch(0.88 0.01 260) 100%
+	);
+	--opal-shimmer: linear-gradient(
+		105deg,
+		oklch(0.9 0.07 340) 0%,
+		oklch(0.92 0.08 290) 20%,
+		oklch(0.94 0.08 220) 40%,
+		oklch(0.96 0.08 170) 58%,
+		oklch(0.95 0.07 100) 78%,
+		oklch(0.92 0.07 20) 100%
+	);
 	--pearl-shimmer: linear-gradient(
 		105deg,
 		oklch(0.9 0.05 300) 0%,
@@ -155,13 +172,21 @@ body {
 	);
 }
 .silver-button {
+	--shimmer: var(--pearl-shimmer);
 	background-image: var(--silver-fill);
 	background-size: 200% 100%;
 	background-position: 0% 0;
 	transition: background-position 260ms ease-out;
 }
+/* A button picks one finish, never two. Pearl is the default. */
+.finish-silver {
+	--shimmer: var(--silver-shine);
+}
+.finish-opal {
+	--shimmer: var(--opal-shimmer);
+}
 .silver-button:hover {
-	background-image: var(--pearl-shimmer);
+	background-image: var(--shimmer);
 	background-position: var(--shine-x, 100%) 0;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -176,17 +201,24 @@ body {
 		background-image: var(--silver-fill);
 		background-position: 0% 0;
 	}
+	/* No hover on a phone, so the pearl shows while the button is pressed. */
+	.silver-button:active,
+	.silver-button-mobile:active {
+		background-image: var(--shimmer, var(--pearl-shimmer));
+		background-position: 60% 0;
+	}
 }
 /* The same, for the Sign In box, which is a button only below the desktop size. */
 @media (max-width: 1279px) {
 	.silver-button-mobile {
+		--shimmer: var(--pearl-shimmer);
 		background-image: var(--silver-fill);
 		background-size: 200% 100%;
 		background-position: 0% 0;
 		transition: background-position 260ms ease-out;
 	}
 	.silver-button-mobile:hover {
-		background-image: var(--pearl-shimmer);
+		background-image: var(--shimmer, var(--pearl-shimmer));
 		background-position: var(--shine-x, 100%) 0;
 	}
 }

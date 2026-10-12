@@ -20,4 +20,17 @@ describe("the try button", () => {
 		expect(className).not.toMatch(/shadow-|ring|border|outline/);
 		expect(className).not.toMatch(/rounded/);
 	});
+
+	it("takes one finish, silver, pearl or opal, never two: pearl by default, and the others by a class of their own", () => {
+		const { rerender } = render(<TryButton {...props} />);
+		expect(screen.getByRole("link").className).not.toMatch(/finish-/);
+		rerender(<TryButton {...props} finish="silver" />);
+		expect(screen.getByRole("link").className).toContain("finish-silver");
+		expect(screen.getByRole("link").className).not.toContain("finish-opal");
+		rerender(<TryButton {...props} finish="opal" />);
+		expect(screen.getByRole("link").className).toContain("finish-opal");
+		expect(screen.getByRole("link").className).not.toContain("finish-silver");
+		rerender(<TryButton {...props} finish="pearl" />);
+		expect(screen.getByRole("link").className).not.toMatch(/finish-/);
+	});
 });
