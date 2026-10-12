@@ -104,6 +104,19 @@ body {
 	}
 }
 
+/* The same slide the other way, for the second row. */
+@theme {
+	--animate-marquee-reverse: marquee-reverse 55s linear infinite;
+	@keyframes marquee-reverse {
+		from {
+			transform: translateX(-50%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+}
+
 /* A very slow drift for the light behind a chapter: it moves a little and back, like light through glass. */
 @theme {
 	--animate-drift: drift 18s ease-in-out infinite;
