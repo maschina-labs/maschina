@@ -83,6 +83,22 @@ describe("the contact page", () => {
 		expect(rows[0]?.contains(screen.getByLabelText("Your message"))).toBe(true);
 	});
 
+	it("brings the address you pick to the top of the view, so you never have to scroll to find where you are, and does nothing when the page first opens", () => {
+		const scrollIntoView = vi.fn();
+		Element.prototype.scrollIntoView = scrollIntoView;
+		const { container } = render(<ContactPage authUrl={AUTH} />);
+		expect(scrollIntoView).not.toHaveBeenCalled();
+		fireEvent.click(screen.getByRole("radio", { name: /Billing/ }));
+		expect(scrollIntoView).toHaveBeenCalledTimes(1);
+		const rows = [...container.querySelectorAll("[data-inbox]")];
+		expect(scrollIntoView.mock.contexts[0]).toBe(rows[1]);
+		expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ block: "start" }));
+		// Each row leaves room for the header above it, so it is not hidden under it.
+		expect((rows[1] as HTMLElement).className).toContain("scroll-mt-");
+		fireEvent.click(screen.getByRole("radio", { name: /Legal/ }));
+		expect(scrollIntoView.mock.contexts[1]).toBe(rows[2]);
+	});
+
 	it("opens the address you pick into the form in place, and keeps what you had typed when you pick another", () => {
 		const { container } = render(<ContactPage authUrl={AUTH} />);
 		fill("Ada", "ada@example.com", "A question about my bill.");
