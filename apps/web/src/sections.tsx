@@ -11,9 +11,20 @@ const Globe = lazy(() => import("./globe.tsx").then((module) => ({ default: modu
 
 /** The frame every section sits in: black, between the page margins, centered, with room above and below. */
 function Section({ name, children }: { name: string; children: React.ReactNode }) {
+	// One listener for the whole section: the card under the mouse learns where the mouse is inside it, for its dots. A finger
+	// has no hover, so it is ignored.
+	const follow = (event: React.PointerEvent<HTMLElement>) => {
+		if (event.pointerType === "touch") return;
+		const card = (event.target as HTMLElement).closest<HTMLElement>(".card-dots");
+		if (!card) return;
+		const box = card.getBoundingClientRect();
+		card.style.setProperty("--mx", `${event.clientX - box.left}px`);
+		card.style.setProperty("--my", `${event.clientY - box.top}px`);
+	};
 	return (
 		<section
 			aria-label={name}
+			onPointerMove={follow}
 			className="relative flex flex-col items-center overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			{children}
@@ -56,7 +67,7 @@ function Buttons({
 }
 
 /** A square panel, the one shape every visual here is made of. */
-const PANEL = "bg-white/[0.04] p-5 sm:p-6";
+const PANEL = "card-dots bg-white/[0.04] p-5 sm:p-6";
 
 /**
  * A chapter of the story: the words in one column and a visual in the other, from a large screen up, and the words and
@@ -121,12 +132,6 @@ function Chapter({
 					{buttons}
 				</div>
 				<div data-visual className={`relative delay-150 ${arrive} ${flip ? "lg:order-first" : ""}`}>
-					{/* A fine dot texture that fades out toward its edges, so the visual sits on something. */}
-					<div
-						data-texture
-						aria-hidden="true"
-						className="pointer-events-none absolute -inset-8 -z-10 bg-[radial-gradient(oklch(1_0_0/0.16)_1px,transparent_1px)] bg-[length:16px_16px] [mask-image:radial-gradient(closest-side,black,transparent)]"
-					/>
 					{children}
 				</div>
 			</div>
@@ -273,7 +278,7 @@ export function Safety() {
 					<li
 						key={step}
 						data-flow
-						className="relative flex min-h-24 items-center bg-white/[0.06] p-5 text-[17px] text-white"
+						className="card-dots relative flex min-h-24 items-center bg-white/[0.06] p-5 text-[17px] text-white"
 					>
 						<span className="mr-4 text-[13px] text-neutral-500 tabular-nums">{index + 1}</span>
 						{step}
@@ -312,9 +317,17 @@ export function Customize({ authUrl }: { authUrl: string }) {
 						<div className="flex items-center justify-between text-[14px] text-neutral-300">
 							<span>{setting}</span>
 						</div>
-						<div className="mt-3 h-1.5 w-full bg-white/10" aria-hidden="true">
+						{/* The line draws from the left, and its fill follows; each row starts a beat after the one above. */}
+						<div
+							data-track
+							aria-hidden="true"
+							style={{ transitionDelay: `${index * 180}ms` }}
+							className="mt-3 h-1.5 w-full origin-left bg-white/10 transition-transform duration-700 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:scale-x-0"
+						>
 							<div
-								className={`h-full bg-[oklch(0.93_0.02_300)] ${positions[index % positions.length]}`}
+								data-fill
+								style={{ transitionDelay: `${index * 180 + 350}ms` }}
+								className={`h-full origin-left bg-[oklch(0.93_0.02_300)] transition-transform duration-1000 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:scale-x-0 ${positions[index % positions.length]}`}
 							/>
 						</div>
 					</div>
@@ -353,6 +366,34 @@ export function LiveRecord() {
 	);
 }
 
+/**
+ * Renders its children once it is near the screen, so what is heavy (the globe's map libraries) is not fetched while the
+ * page is opening. Where the browser cannot watch for scrolling it renders at once, so nothing is ever left out.
+ */
+function Near({ children }: { children: React.ReactNode }) {
+	const box = useRef<HTMLDivElement>(null);
+	const [near, setNear] = useState(typeof IntersectionObserver === "undefined");
+	useEffect(() => {
+		const node = box.current;
+		if (near || !node) return;
+		const watcher = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				setNear(true);
+				watcher.disconnect();
+			},
+			{ rootMargin: "800px 0px" },
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
+	}, [near]);
+	return (
+		<div ref={box} data-near={near} className="size-full">
+			{near ? children : null}
+		</div>
+	);
+}
+
 /** The network: a turning globe, and that machines running on other people's computers is not here yet. */
 export function Network() {
 	const m = useMessages().home.network;
@@ -363,9 +404,11 @@ export function Network() {
 			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
 		>
 			<div className="mx-auto aspect-square w-full max-w-[34rem]">
-				<Suspense fallback={null}>
-					<Globe label={m.globe} />
-				</Suspense>
+				<Near>
+					<Suspense fallback={null}>
+						<Globe label={m.globe} />
+					</Suspense>
+				</Near>
 			</div>
 		</Chapter>
 	);

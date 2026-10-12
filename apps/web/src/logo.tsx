@@ -30,7 +30,7 @@ export function Logo() {
 		<Link href="/" aria-label={m.header.home} className="flex w-fit items-center">
 			<Mark />
 			<span data-word className="ml-1.5">
-				<img src="/brand/word.svg" alt="" className="h-5 w-auto" />
+				<img src="/brand/word.svg" alt="" width={120} height={20} className="h-5 w-auto" />
 			</span>
 		</Link>
 	);

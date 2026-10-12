@@ -1,4 +1,7 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	Customize,
@@ -311,6 +314,31 @@ describe("the light behind the chapters", () => {
 	});
 });
 
+describe("the globe", () => {
+	afterEach(() => vi.unstubAllGlobals());
+
+	it("does not load its map libraries until the network chapter is near the screen, so the page never pays for it on the way in", async () => {
+		const watchers: ((entries: { isIntersecting: boolean }[]) => void)[] = [];
+		vi.stubGlobal(
+			"IntersectionObserver",
+			class {
+				constructor(callback: (entries: { isIntersecting: boolean }[]) => void) {
+					watchers.push(callback);
+				}
+				observe() {}
+				disconnect() {}
+			},
+		);
+		const { container } = render(<Network />);
+		expect(container.querySelector("[data-near]")).toHaveAttribute("data-near", "false");
+		expect(container.querySelector("[aria-label]")).not.toBeNull();
+		act(() => {
+			for (const notify of watchers) notify([{ isIntersecting: true }]);
+		});
+		expect(container.querySelector("[data-near]")).toHaveAttribute("data-near", "true");
+	});
+});
+
 describe("how a chapter arrives and what is behind it", () => {
 	afterEach(() => vi.unstubAllGlobals());
 
@@ -353,13 +381,79 @@ describe("how a chapter arrives and what is behind it", () => {
 		expect(rule.className).toContain("group-data-[seen=false]/chapter:scale-x-0");
 	});
 
-	it("has a fine dot texture behind the visual that fades out toward its edges, drawn in CSS with no image", () => {
+	it("has no dot texture behind the visuals any more: it is under the cursor, on the cards, instead", () => {
 		const { container } = render(<HowItWorks authUrl={AUTH} />);
-		const dots = container.querySelector("[data-texture]") as HTMLElement;
-		expect(dots).not.toBeNull();
-		expect(dots).toHaveAttribute("aria-hidden", "true");
-		expect(dots.className).toContain("radial-gradient");
-		expect(dots.className).toContain("mask-image");
-		expect(container.innerHTML).not.toMatch(/<img|url\(/);
+		expect(container.querySelector("[data-texture]")).toBeNull();
+	});
+});
+
+describe("the dots under the cursor", () => {
+	const cards = (container: HTMLElement) => [...container.querySelectorAll(".card-dots")];
+
+	it("is on the cards of every chapter that has them, and on nothing else", () => {
+		for (const [element, expected] of [
+			[<HowItWorks key="a" authUrl={AUTH} />, 3],
+			[<Features key="b" authUrl={AUTH} />, 4],
+			[<Safety key="c" />, 4 + 4],
+			[<Customize key="d" authUrl={AUTH} />, 1],
+			[<LiveRecord key="e" />, 1],
+			[<Marketplace key="f" />, 3],
+		] as const) {
+			const { container, unmount } = render(element);
+			expect(cards(container), String(expected)).toHaveLength(expected);
+			unmount();
+		}
+	});
+
+	it("is not on the globe, where it looks wrong", () => {
+		const { container } = render(<Network />);
+		expect(cards(container)).toHaveLength(0);
+		expect(container.innerHTML).not.toContain("card-dots");
+	});
+
+	it("follows the mouse across a card, in the card's own coordinates, and ignores a finger", () => {
+		const { container } = render(<HowItWorks authUrl={AUTH} />);
+		const card = cards(container)[0] as HTMLElement;
+		card.getBoundingClientRect = () => ({ left: 100, top: 40, width: 300, height: 120 }) as DOMRect;
+		fireEvent.pointerMove(card, { clientX: 160, clientY: 90 });
+		expect(card.style.getPropertyValue("--mx")).toBe("60px");
+		expect(card.style.getPropertyValue("--my")).toBe("50px");
+		fireEvent.pointerMove(card, { clientX: 300, clientY: 60, pointerType: "touch" });
+		expect(card.style.getPropertyValue("--mx")).toBe("60px");
+	});
+
+	it("is drawn by the stylesheet, only while the pointer is over the card and only where there is a pointer to hover with", () => {
+		const css = readFileSync(
+			resolve(dirname(fileURLToPath(import.meta.url)), "styles.css"),
+			"utf8",
+		);
+		expect(css).toMatch(/\.card-dots::before/);
+		expect(css).toMatch(/\.card-dots:hover::before/);
+		expect(css).toContain("var(--mx");
+		expect(css).toMatch(/@media \(hover: none\)/);
+	});
+});
+
+describe("make it yours: the lines draw themselves", () => {
+	it("draws each setting's line from left to right, one row after the next from the top, when the section arrives", () => {
+		const { container } = render(<Customize authUrl={AUTH} />);
+		const rows = [...container.querySelectorAll("[data-setting]")];
+		expect(rows).toHaveLength(4);
+		let before = -1;
+		for (const row of rows) {
+			const track = row.querySelector("[data-track]") as HTMLElement;
+			const fill = row.querySelector("[data-fill]") as HTMLElement;
+			for (const line of [track, fill]) {
+				expect(line.className).toContain("origin-left");
+				expect(line.className).toContain("group-data-[seen=false]/chapter:scale-x-0");
+				expect(line.className).toContain("motion-reduce:transition-none");
+			}
+			// The track draws, then its fill follows, and each row starts after the one above it.
+			const start = Number.parseInt(track.style.transitionDelay, 10);
+			const follow = Number.parseInt(fill.style.transitionDelay, 10);
+			expect(follow).toBeGreaterThan(start);
+			expect(start).toBeGreaterThan(before);
+			before = start;
+		}
 	});
 });

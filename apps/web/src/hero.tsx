@@ -21,7 +21,23 @@ export function Hero({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.hero;
 	const [ready, setReady] = useState(false);
 
-	useEffect(() => setReady(true), []);
+	// The ribbon is three.js, so it waits for the page to finish loading and the browser to be idle: it never competes with
+	// the first paint or the fonts.
+	useEffect(() => {
+		let handle = 0;
+		const start = () => {
+			handle = window.requestIdleCallback
+				? window.requestIdleCallback(() => setReady(true), { timeout: 2500 })
+				: window.setTimeout(() => setReady(true), 200);
+		};
+		if (document.readyState === "complete") start();
+		else window.addEventListener("load", start, { once: true });
+		return () => {
+			window.removeEventListener("load", start);
+			if (window.cancelIdleCallback) window.cancelIdleCallback(handle);
+			else window.clearTimeout(handle);
+		};
+	}, []);
 	const heading = useRef<HTMLHeadingElement>(null);
 
 	// The light on the letters follows the mouse by setting two properties directly: moving the cursor never
