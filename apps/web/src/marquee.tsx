@@ -2,19 +2,21 @@ import { useMessages } from "./i18n/use-messages.ts";
 
 /**
  * What Maschina really runs on: the chain, the swap router, the signing service, the node provider, the host and the
- * database. Each is the company's own file, unmodified, shown gray and dim by a filter and in its own colors on hover. The
- * ones that are only a symbol get the name set beside them; Solana, Turnkey and Helius already spell it. `w` and `h` are the size it is shown at, in pixels.
+ * database. Each is the company's own published logo file, unmodified, whole: the mark with its wordmark where the company
+ * has one. `w` and `h` are the size it is shown at, in pixels. Jupiter publishes a grayscale logo of its own, so that is its
+ * resting state (`gray`); the others are shown gray by a filter and in their own colors on hover. PostgreSQL's logo is the
+ * elephant alone.
  */
 const STACK = [
-	{ name: "Solana", file: "solana", w: 175, h: 26, word: false },
-	{ name: "Jupiter", file: "jupiter", w: 27, h: 26, word: true },
-	{ name: "Turnkey", file: "turnkey", w: 100, h: 26, word: false },
-	{ name: "Helius", file: "helius", w: 133, h: 28, word: false },
-	{ name: "Cloudflare", file: "cloudflare", w: 34, h: 34, word: true },
-	{ name: "PostgreSQL", file: "postgresql", w: 30, h: 30, word: true },
+	{ name: "Solana", file: "solana", w: 175, h: 26 },
+	{ name: "Jupiter", file: "jupiter", gray: "jupiter-gray", w: 85, h: 26 },
+	{ name: "Turnkey", file: "turnkey", w: 100, h: 26 },
+	{ name: "Helius", file: "helius", w: 133, h: 28 },
+	{ name: "Cloudflare", file: "cloudflare", w: 97, h: 36 },
+	{ name: "PostgreSQL", file: "postgresql", w: 38, h: 40 },
 ];
 
-/** One copy of the marks, as a list. The hidden copy is only there to close the loop, so its pictures say nothing. */
+/** One copy of the logos, as a list. The hidden copy is only there to close the loop, so its pictures say nothing. */
 function Copy({ hidden }: { hidden?: boolean }) {
 	return (
 		<ul
@@ -22,36 +24,51 @@ function Copy({ hidden }: { hidden?: boolean }) {
 			{...(hidden ? { "aria-hidden": true } : {})}
 			className={`flex shrink-0 items-center gap-16 pr-16 motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:pr-0 ${hidden ? "motion-reduce:hidden" : ""}`}
 		>
-			{STACK.map((item) => (
-				<li key={item.name} className="group flex items-center gap-3">
-					<img
-						src={`/brand/stack/${item.file}.svg`}
-						alt={hidden ? "" : item.name}
-						width={item.w}
-						height={item.h}
-						decoding="async"
-						className="opacity-60 brightness-200 grayscale transition duration-300 hover:opacity-100 hover:brightness-100 hover:grayscale-0"
-					/>
-					{item.word ? (
-						<span
-							data-word
-							aria-hidden="true"
-							className="font-display font-medium text-[1.375rem] text-white/60 tracking-[-0.02em] transition-colors duration-300 group-hover:text-white"
-						>
-							{item.name}
-						</span>
-					) : null}
-				</li>
-			))}
+			{STACK.map((item) => {
+				const size = { width: item.w, height: item.h };
+				const alt = hidden ? "" : item.name;
+				return (
+					<li key={item.name} className="group grid place-items-center">
+						{"gray" in item ? (
+							<>
+								<img
+									data-rest
+									src={`/brand/stack/${item.gray}.svg`}
+									alt=""
+									decoding="async"
+									{...size}
+									className="col-start-1 row-start-1 opacity-60 transition-opacity duration-300 group-hover:opacity-0"
+								/>
+								<img
+									data-logo
+									src={`/brand/stack/${item.file}.svg`}
+									alt={alt}
+									decoding="async"
+									{...size}
+									className="col-start-1 row-start-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+								/>
+							</>
+						) : (
+							<img
+								data-logo
+								src={`/brand/stack/${item.file}.svg`}
+								alt={alt}
+								decoding="async"
+								{...size}
+								className="opacity-60 brightness-200 grayscale transition duration-300 group-hover:opacity-100 group-hover:brightness-100 group-hover:grayscale-0"
+							/>
+						)}
+					</li>
+				);
+			})}
 		</ul>
 	);
 }
 
 /**
- * A slow strip of the marks of what Maschina is built with, under the hero: it says where it stands, without a claim. They
- * are plain marks with no links and a label that says "Built with", never "partners". It
- * slides left, stops under the mouse, fades at both edges, and for anyone who asked for less motion it is a still, centered
- * row.
+ * A slow strip of the logos of what Maschina is built with, under the hero: it says where it stands, without a claim. They
+ * are the companies' own logos with no links and a label that says "Built with", never "partners". It slides left, stops
+ * under the mouse, fades at both edges, and for anyone who asked for less motion it is a still, centered row.
  */
 export function Marquee() {
 	const m = useMessages().marquee;
