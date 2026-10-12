@@ -46,7 +46,7 @@ describe("the pages of the site, by language", () => {
 			"/security",
 		]);
 		expect(english.support.ways).toHaveLength(4);
-		expect(english.papers.groups).toHaveLength(4);
+		expect(english.papers.groups).toHaveLength(3);
 		expect(english.brand.logos.items).toHaveLength(3);
 	});
 

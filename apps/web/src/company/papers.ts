@@ -16,6 +16,11 @@ export type PapersDoc = {
 	kicker: string;
 	title: string;
 	standfirst: string;
+	/**
+	 * Where the one download of everything on the page is: every video's script, deck and paper, and the figures used in
+	 * them. Left out until the file exists, so the button is shown but is not a link, and there is no dead link.
+	 */
+	pack?: string;
 	groups: {
 		id: string;
 		heading: string;
@@ -25,7 +30,7 @@ export type PapersDoc = {
 	}[];
 };
 
-/** The fourteen papers, in their order. The index comes before them and is not numbered. */
+/** The fourteen papers, in their order. The index comes before them, as 00. */
 const PAPER_NAMES = [
 	"Primer",
 	"Whitepaper",
@@ -79,21 +84,11 @@ export const PAPERS: PapersDoc = {
 			heading: "The papers",
 			compact: true,
 			items: [
-				{ name: "Index", body: "Where to start, and how the papers fit together." },
+				{ name: "Index", number: "00", body: "Where to start, and how the papers fit together." },
 				...PAPER_NAMES.map((name, index) => ({
 					name,
 					number: String(index + 1).padStart(2, "0"),
 				})),
-			],
-		},
-		{
-			id: "figures",
-			heading: "Figures",
-			items: [
-				{
-					name: "All figures",
-					body: "Every figure used in the papers, as images you can download.",
-				},
 			],
 		},
 	],

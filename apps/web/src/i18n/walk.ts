@@ -70,7 +70,18 @@ export function mapSupport(doc: SupportDoc, say: Say): SupportDoc {
 		href: way.href,
 	}));
 	const articles = { heading: say(doc.articles.heading), body: say(doc.articles.body) };
-	return { kicker, title, standfirst, ways, articles };
+	// The help center's words come last, so every sentence before them keeps its place in each translation.
+	const center = {
+		search: say(doc.center.search),
+		none: say(doc.center.none),
+		topics: doc.center.topics.map((topic) => ({
+			title: say(topic.title),
+			body: say(topic.body),
+			pages: topic.pages,
+		})),
+		moreWays: say(doc.center.moreWays),
+	};
+	return { kicker, title, standfirst, ways, articles, center };
 }
 
 export function mapPapers(doc: PapersDoc, say: Say): PapersDoc {
@@ -86,7 +97,7 @@ export function mapPapers(doc: PapersDoc, say: Say): PapersDoc {
 			...(item.body ? { body: say(item.body) } : {}),
 		})),
 	}));
-	return { kicker, title, standfirst, groups };
+	return { kicker, title, standfirst, groups, ...(doc.pack ? { pack: doc.pack } : {}) };
 }
 
 export function mapBrand(doc: BrandDoc, say: Say): BrandDoc {
