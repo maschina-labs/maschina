@@ -233,8 +233,8 @@ describe("the header", () => {
 		const header = screen.getByRole("banner");
 		const bar = header.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
-		expect(bar.className).toContain("py-5");
-		expect(bar.className).toContain("xl:py-4");
+		expect(bar.className).toContain("py-4");
+		expect(bar.className).not.toContain("py-5");
 		expect(bar.className).toContain("px-(--gutter)");
 	});
 
@@ -498,7 +498,7 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
 	});
 
-	it("shows try Maschina as a button only on a wide screen, and log in as a button there and a small gray box on a phone", () => {
+	it("shows try Maschina as a button only on a wide screen, and Sign In as plain text there and nowhere on a phone, where the menu has it", () => {
 		render(<Header authUrl={AUTH} />);
 		const banner = within(screen.getByRole("banner"));
 		const tryIt = banner.getByRole("link", { name: "Try Maschina" });
@@ -507,22 +507,6 @@ describe("the header", () => {
 		expect(banner.getByRole("link", { name: "Sign In" }).className).toMatch(
 			/xl:inline-(block|flex)/,
 		);
-	});
-
-	it("gives Sign In the black chip with a white arrow on a phone, like the pearl buttons, and no chip on a wide screen where it is plain text", () => {
-		render(<Header authUrl={AUTH} />);
-		const signIn = within(screen.getByRole("banner")).getByRole("link", { name: "Sign In" });
-		const chip = signIn.querySelector("[data-chip]") as HTMLElement;
-		expect(chip).not.toBeNull();
-		expect(chip.className).toContain("bg-black");
-		expect(chip.className).toContain("text-white");
-		expect(chip.className).toContain("xl:hidden");
-		const arrow = chip.querySelector("svg") as SVGElement;
-		expect(arrow).toHaveAttribute("data-arrow", "chevron");
-		expect(arrow).toHaveAttribute("aria-hidden", "true");
-		// The words come first and the chip is last, as on Try Maschina.
-		expect(signIn.lastElementChild).toBe(chip);
-		expect(signIn.firstChild?.textContent).toBe("Sign In");
 	});
 
 	it("is a hamburger in a box of its own on a phone: an icon, no words", () => {

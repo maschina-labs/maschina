@@ -1,4 +1,4 @@
-import { CaretDown, CaretRight, List, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { CaretDown, List, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
 import { Link } from "./i18n/link.tsx";
@@ -339,7 +339,7 @@ export function Header({
 						aria-hidden="true"
 						className={`pointer-events-none absolute inset-0 -z-10 bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150 transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
 					/>
-					<div className="flex items-center justify-between px-(--gutter) py-5 xl:py-4">
+					<div className="flex items-center justify-between px-(--gutter) py-4">
 						<div className="flex items-center gap-10">
 							<Logo />
 							<div className="hidden items-center gap-5 xl:flex">
@@ -381,23 +381,12 @@ export function Header({
 							</div>
 						</div>
 						<div className="flex items-center gap-2 text-[14px] xl:gap-3">
+							{/* Plain text on a desktop. On a phone it is not in the bar at all: the menu has it, and the hero has the way in. */}
 							<Link
 								href={signIn}
-								className={`${LINK} inline-flex h-9 items-center max-xl:gap-3 silver-button-mobile max-xl:pr-1.5 max-xl:pl-4 max-xl:text-black xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
+								className={`${LINK} max-xl:hidden xl:inline-block xl:px-2 xl:py-2`}
 							>
 								{m.header.login}
-								{/* On a phone and a tablet the button carries the same black chip as the other pearl buttons. */}
-								<span
-									data-chip
-									className="grid size-6 place-items-center bg-black text-white xl:hidden"
-								>
-									<CaretRight
-										weight="regular"
-										data-arrow="chevron"
-										className="size-3.5"
-										aria-hidden="true"
-									/>
-								</span>
 							</Link>
 							<TryButton
 								href={signUp}
@@ -416,17 +405,17 @@ export function Header({
 									setQuery("");
 									setOpen((now) => !now);
 								}}
-								className="grid size-9 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
+								className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 							>
 								<List
 									weight="regular"
 									aria-hidden="true"
-									className={`col-start-1 row-start-1 size-5 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
+									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
 								/>
 								<X
 									weight="regular"
 									aria-hidden="true"
-									className={`col-start-1 row-start-1 size-5 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
+									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
 								/>
 							</button>
 						</div>

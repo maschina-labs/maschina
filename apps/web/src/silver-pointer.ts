@@ -1,5 +1,5 @@
-/** What a silver button is: the shared class on the real buttons, and the phone-only one on the Sign In box. */
-const SILVER = ".silver-button, .silver-button-mobile";
+/** What a silver button is: the shared class on the real buttons. */
+const SILVER = ".silver-button";
 
 /**
  * Makes the pearl shimmer on a silver button follow the pointer. It is one listener on the whole page: when the pointer

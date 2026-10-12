@@ -37,14 +37,9 @@ describe("the silver button", () => {
 		expect(css).toMatch(/@media \(hover: none\)[^}]*\.silver-button:hover/s);
 	});
 
-	it("has a phone-only version for the Sign In box, which is plain text on a desktop", () => {
-		expect(css).toMatch(/@media \(max-width: 1279px\)[^@]*\.silver-button-mobile/s);
-	});
-
 	it("shows the pearl while it is pressed on a screen with no hover, so a phone sees it on a tap", () => {
 		const block = /@media \(hover: none\)\s*\{[\s\S]*?\n\}/.exec(css)?.[0] ?? "";
 		expect(block).toMatch(/\.silver-button:active/);
-		expect(block).toMatch(/\.silver-button-mobile:active/);
 		const active = /\.silver-button:active[^{]*\{[^}]*\}/.exec(block)?.[0] ?? "";
 		expect(active).toContain("var(--shimmer)");
 	});
@@ -63,7 +58,7 @@ describe("the silver button", () => {
 		const shown = hovers.filter(
 			(block) => block.includes("--shimmer") || block.includes("--silver-fill"),
 		);
-		expect(shown.length).toBeGreaterThanOrEqual(4);
+		expect(shown.length).toBeGreaterThanOrEqual(3);
 		for (const block of hovers) expect(block).not.toMatch(/var\(--(pearl|opal)-shimmer\)/);
 	});
 });

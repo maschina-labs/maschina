@@ -42,14 +42,6 @@ describe("the pearl shimmer on a silver button follows the pointer", () => {
 		expect(button.style.getPropertyValue("--shine-x")).toBe("75%");
 	});
 
-	it("also works for the phone-only Sign In box", () => {
-		document.body.innerHTML = '<a class="silver-button-mobile" href="/">In</a>';
-		const box = document.querySelector(".silver-button-mobile") as HTMLElement;
-		box.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 40 }) as DOMRect;
-		move(box, { clientX: 25 });
-		expect(box.style.getPropertyValue("--shine-x")).toBe("25%");
-	});
-
 	it("lets go when the pointer leaves, so the next visit starts from the far end again", () => {
 		move(button, { clientX: 150 });
 		expect(button.style.getPropertyValue("--shine-x")).toBe("25%");

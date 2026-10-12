@@ -190,36 +190,19 @@ body {
 	background-position: var(--shine-x, 100%) 0;
 }
 @media (prefers-reduced-motion: reduce) {
-	.silver-button,
-	.silver-button-mobile {
+	.silver-button {
 		transition: none;
 	}
 }
 @media (hover: none) {
-	.silver-button:hover,
-	.silver-button-mobile:hover {
+	.silver-button:hover {
 		background-image: var(--silver-fill);
 		background-position: 0% 0;
 	}
 	/* No hover on a phone, so the pearl shows while the button is pressed. */
-	.silver-button:active,
-	.silver-button-mobile:active {
+	.silver-button:active {
 		background-image: var(--shimmer);
 		background-position: 60% 0;
-	}
-}
-/* The same, for the Sign In box, which is a button only below the desktop size. */
-@media (max-width: 1279px) {
-	.silver-button-mobile {
-		--shimmer: var(--pearl-shimmer);
-		background-image: var(--silver-fill);
-		background-size: 200% 100%;
-		background-position: 0% 0;
-		transition: background-position 260ms ease-out;
-	}
-	.silver-button-mobile:hover {
-		background-image: var(--shimmer);
-		background-position: var(--shine-x, 100%) 0;
 	}
 }
 
