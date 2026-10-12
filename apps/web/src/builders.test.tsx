@@ -70,7 +70,8 @@ describe("the section for builders", () => {
 		expect(code.className).toMatch(/mask-image:linear-gradient\(to_right/);
 		expect(code.className).toContain("blur-");
 		const columns = [...container.querySelectorAll("[data-stream]")];
-		expect(columns.length).toBeGreaterThanOrEqual(2);
+		// One page of code, not two layers: a second column made the motion busy.
+		expect(columns).toHaveLength(1);
 		for (const column of columns) {
 			expect(column.className).toContain("animate-stream");
 			expect(column.className).toContain("motion-reduce:animate-none");
@@ -82,6 +83,20 @@ describe("the section for builders", () => {
 			expect(text).toMatch(/\bfn \w+\(&self/);
 			expect(text).toMatch(/Result<\(\), Refusal>/);
 		}
+	});
+
+	it("keeps everything, the code included, inside the page margins, on the same edges as every other chapter", () => {
+		const { container } = render(<Builders />);
+		const frame = container.querySelector("[data-frame]") as HTMLElement;
+		expect(frame.className).toContain("max-w-[72rem]");
+		expect(frame.className).toContain("mx-auto");
+		expect(frame.className).toContain("overflow-hidden");
+		expect(frame.parentElement).toBe(section());
+		for (const part of ["[data-code]", "[data-fog]", "h2"]) {
+			expect(frame.querySelector(part), part).not.toBeNull();
+		}
+		// Nothing of the section is a direct child of the page-wide section except the frame.
+		expect([...section().children]).toEqual([frame]);
 	});
 
 	it("is not part of what is read aloud or counted as the section's words", () => {

@@ -78,53 +78,51 @@ export function Builders() {
 		<section
 			ref={box}
 			aria-label={m.name}
-			className="relative flex flex-col items-center overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
+			className="relative overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			<div
-				data-code
-				data-live={live}
-				aria-hidden="true"
-				className="group/code pointer-events-none absolute inset-y-0 left-0 w-full overflow-hidden blur-[1px] opacity-80 [mask-image:linear-gradient(to_right,black,black_30%,transparent_75%),linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in] lg:w-[70%]"
+				data-frame
+				className="relative mx-auto w-full max-w-[72rem] overflow-hidden py-10 sm:py-16"
 			>
-				<div data-stream className={`absolute top-0 left-4 w-[28rem] sm:left-10 ${STREAM}`}>
-					<Source />
-					<Source />
-				</div>
 				<div
-					data-stream
-					className={`absolute top-0 left-[28rem] hidden w-[28rem] opacity-60 lg:block ${STREAM} [animation-duration:140s]`}
+					data-code
+					data-live={live}
+					aria-hidden="true"
+					className="group/code pointer-events-none absolute inset-y-0 left-0 w-full overflow-hidden blur-[1px] opacity-35 lg:opacity-80 [mask-image:linear-gradient(to_right,black,black_45%,transparent_95%),linear-gradient(to_bottom,transparent,black_18%,black_82%,transparent)] [mask-composite:intersect] [-webkit-mask-composite:source-in] lg:w-[52%]"
 				>
-					<Source />
-					<Source />
+					<div data-stream className={`absolute top-0 left-0 w-full ${STREAM}`}>
+						<Source />
+						<Source />
+					</div>
 				</div>
-			</div>
-			{/* Frosted glass over the whole section: it softens the code into fog, and fades out toward the right. */}
-			<div
-				data-fog
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,black_55%,transparent)]"
-			/>
-			<div className="relative flex w-full max-w-[72rem] flex-col items-start py-6 lg:ml-auto lg:w-[50%] lg:max-w-none">
-				<h2 className="-mb-[0.14em] max-w-[14ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-left font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
-					{m.title}
-				</h2>
-				<p className="mt-6 max-w-[44ch] text-left text-[clamp(1rem,1.3vw,1.125rem)] text-neutral-400 leading-snug">
-					{m.line}
-				</p>
-				<div className="mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-start">
-					<TryButton
-						href={GITHUB}
-						label={m.view}
-						className="flex h-10 px-5 sm:inline-flex sm:pr-1 xl:h-8"
-						labelClassName="flex-1 text-center sm:text-left"
-						chipClassName="size-7 xl:size-6"
-					/>
-					<Link
-						href={DOCS}
-						className="inline-flex h-10 items-center justify-center bg-white/[0.13] xl:h-8 px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
-					>
-						{m.docs}
-					</Link>
+				{/* Frosted glass over the whole section: it softens the code into fog, and fades out toward the right. */}
+				<div
+					data-fog
+					aria-hidden="true"
+					className="pointer-events-none absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_right,black,black_55%,transparent)]"
+				/>
+				<div className="relative flex w-full flex-col items-start lg:ml-auto lg:w-[50%]">
+					<h2 className="-mb-[0.14em] max-w-[14ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-left font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
+						{m.title}
+					</h2>
+					<p className="mt-6 max-w-[44ch] text-left text-[clamp(1rem,1.3vw,1.125rem)] text-neutral-400 leading-snug">
+						{m.line}
+					</p>
+					<div className="mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-start">
+						<TryButton
+							href={GITHUB}
+							label={m.view}
+							className="flex h-10 px-5 sm:inline-flex sm:pr-1 xl:h-8"
+							labelClassName="flex-1 text-center sm:text-left"
+							chipClassName="size-7 xl:size-6"
+						/>
+						<Link
+							href={DOCS}
+							className="inline-flex h-10 items-center justify-center bg-white/[0.13] xl:h-8 px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
+						>
+							{m.docs}
+						</Link>
+					</div>
 				</div>
 			</div>
 		</section>
