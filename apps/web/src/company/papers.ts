@@ -84,7 +84,7 @@ export const PAPERS: PapersDoc = {
 			heading: "The papers",
 			compact: true,
 			items: [
-				{ name: "Index", number: "00", body: "Where to start, and how the papers fit together." },
+				{ name: "Index", number: "00" },
 				...PAPER_NAMES.map((name, index) => ({
 					name,
 					number: String(index + 1).padStart(2, "0"),

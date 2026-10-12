@@ -1,5 +1,5 @@
 import { Check } from "@phosphor-icons/react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CONTACT_TOPICS, type ContactMessage, sendMessage } from "./contact-send.ts";
 import { Frame } from "./frame.tsx";
 import { ArrowChip, PANEL } from "./glass.tsx";
@@ -33,6 +33,16 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 	const [fields, setFields] = useState({ name: "", email: "", message: "" });
 	const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 	const [problem, setProblem] = useState<string | null>(null);
+	// Opening one address closes the one that was open, so the page moves under you. Bring the new one to the top of the
+	// view, under the header, so you never have to scroll to find where you are. Not on the first view of the page.
+	const rows = useRef<Record<string, HTMLDivElement | null>>({});
+	const shown = useRef(topic);
+	useEffect(() => {
+		if (shown.current === topic) return;
+		shown.current = topic;
+		const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+		rows.current[topic]?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+	}, [topic]);
 	const set = (name: keyof typeof fields) => (event: { target: { value: string } }) =>
 		setFields((now) => ({ ...now, [name]: event.target.value }));
 
@@ -102,9 +112,12 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 											return (
 												<div
 													key={value}
+													ref={(node) => {
+														rows.current[value] = node;
+													}}
 													data-inbox
 													data-open={open}
-													className="border-white/[0.1] border-b"
+													className="scroll-mt-24 border-white/[0.1] border-b"
 												>
 													<label className="group flex cursor-pointer items-center gap-5 py-6 sm:gap-8">
 														<input
