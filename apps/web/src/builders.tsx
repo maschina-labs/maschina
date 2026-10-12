@@ -82,10 +82,7 @@ export function Builders() {
 			aria-label={m.name}
 			className="relative overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
 		>
-			<div
-				data-frame
-				className="relative mx-auto w-full max-w-[72rem] overflow-hidden py-10 sm:py-16"
-			>
+			<div data-frame className="relative w-full overflow-hidden py-10 sm:py-16">
 				<div
 					data-code
 					data-live={live}

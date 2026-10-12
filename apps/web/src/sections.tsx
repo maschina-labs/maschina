@@ -114,7 +114,7 @@ function Chapter({
 				ref={chapter}
 				data-chapter
 				data-seen={seen}
-				className="group/chapter grid w-full max-w-[72rem] gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
+				className="group/chapter grid w-full gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
 			>
 				{/* A hairline that fades out at both ends and draws itself out from the middle, so each chapter reads as its own scene. */}
 				<div
@@ -469,7 +469,7 @@ export function Marketplace() {
 	const chips = useMessages().chips;
 	return (
 		<Section name={m.name}>
-			<div className="flex w-full max-w-[72rem] flex-col items-start">
+			<div className="flex w-full flex-col items-start">
 				<SectionHead
 					title={m.title}
 					line={m.line}
@@ -478,7 +478,7 @@ export function Marketplace() {
 					chip={<SectionChip icon="next">{chips.next}</SectionChip>}
 				/>
 			</div>
-			<ul className="mt-14 grid w-full max-w-[72rem] gap-3 sm:mt-16 md:grid-cols-3">
+			<ul className="mt-14 grid w-full gap-3 sm:mt-16 md:grid-cols-3">
 				{m.cards.map((card, index) => (
 					<li key={index} data-card className={`${PANEL} min-h-44 opacity-70`}>
 						<span className="block text-[14px] text-neutral-500">{card}</span>
