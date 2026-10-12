@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.43](https://github.com/maschina-labs/maschina/compare/v0.0.42...v0.0.43) (2026-10-12)
+
+
+### Added
+
+* **repo:** license the code under the Functional Source License ([#784](https://github.com/maschina-labs/maschina/issues/784)) ([06f42b9](https://github.com/maschina-labs/maschina/commit/06f42b941c571989bd9082f0737b64af1df12767))
+
 ## [0.0.42](https://github.com/maschina-labs/maschina/compare/v0.0.41...v0.0.42) (2026-10-11)
 
 
