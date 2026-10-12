@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	Customize,
 	Features,
@@ -116,7 +116,10 @@ describe.each(SECTIONS)("the $name section", ({ name, title, element, links }) =
 		expect(section.className).toContain("px-(--gutter)");
 		expect(section.className).toContain("py-20");
 		expect(section.className).toContain("sm:py-32");
-		expect(container.innerHTML).not.toMatch(/rounded|animate-|<canvas|<img/);
+		// Square and still apart from the one slow drift of the light behind a chapter, which has its own test.
+		expect(container.innerHTML.replace(/(motion-reduce:)?animate-(drift|none)/g, "")).not.toMatch(
+			/rounded|animate-|<canvas|<img/,
+		);
 	});
 
 	it("claims nothing that is not true: no users, no customers, no returns, no promise, no audit it has not had", () => {
@@ -252,7 +255,9 @@ describe("the chapters between the preview and the questions", () => {
 			expect(chapter?.querySelector("[data-words]")).not.toBeNull();
 			expect(chapter?.querySelector("[data-visual]")).not.toBeNull();
 			// The words come first in reading order, so a phone and a screen reader meet them before the picture.
-			expect(chapter?.firstElementChild).toHaveAttribute("data-words");
+			const words = chapter?.querySelector("[data-words]") as HTMLElement;
+			const visual = chapter?.querySelector("[data-visual]") as HTMLElement;
+			expect(words.compareDocumentPosition(visual) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 		},
 	);
 
@@ -280,5 +285,81 @@ describe("the chapters between the preview and the questions", () => {
 		const chapter = side("Marketplace", <Marketplace />);
 		expect(chapter).toBeNull();
 		expect(screen.getAllByRole("listitem")).toHaveLength(3);
+	});
+});
+
+describe("the light behind the chapters", () => {
+	it("gives each chapter a faint pearl glow on the side of its visual, and a hairline above it, with no color and no motion", () => {
+		for (const [element, flip] of [
+			[<HowItWorks key="a" authUrl={AUTH} />, false],
+			[<Features key="b" authUrl={AUTH} />, true],
+		] as const) {
+			const { container, unmount } = render(element);
+			const glow = container.querySelector("[data-glow]") as HTMLElement;
+			expect(glow).not.toBeNull();
+			expect(glow).toHaveAttribute("aria-hidden", "true");
+			expect(glow.className).toContain("pointer-events-none");
+			expect(glow.className).toContain(flip ? "left-" : "right-");
+			// It drifts, slowly, and stops for anyone who has asked their device for less motion.
+			expect(glow.className).toContain("animate-drift");
+			expect(glow.className).toContain("motion-reduce:animate-none");
+			// Pearl only: the page's own hue, never a bright color.
+			expect(glow.className).toContain("oklch(0.93_0.02_300");
+			expect(container.querySelector("[data-rule]")).not.toBeNull();
+			unmount();
+		}
+	});
+});
+
+describe("how a chapter arrives and what is behind it", () => {
+	afterEach(() => vi.unstubAllGlobals());
+
+	it("shows at once when the browser cannot watch for scrolling, so nothing is ever hidden for good", () => {
+		const { container } = render(<HowItWorks authUrl={AUTH} />);
+		expect(container.querySelector("[data-chapter]")).toHaveAttribute("data-seen", "true");
+	});
+
+	it("waits out of sight until it is scrolled to, then rises into place, words first and the visual a beat later", () => {
+		let notify: (entries: { isIntersecting: boolean }[]) => void = () => {};
+		const disconnect = vi.fn();
+		vi.stubGlobal(
+			"IntersectionObserver",
+			class {
+				constructor(callback: typeof notify) {
+					notify = callback;
+				}
+				observe() {}
+				disconnect = disconnect;
+			},
+		);
+		const { container } = render(<HowItWorks authUrl={AUTH} />);
+		const chapter = container.querySelector("[data-chapter]") as HTMLElement;
+		expect(chapter).toHaveAttribute("data-seen", "false");
+		const words = chapter.querySelector("[data-words]") as HTMLElement;
+		const visual = chapter.querySelector("[data-visual]") as HTMLElement;
+		expect(words.className).toContain("group-data-[seen=false]/chapter:opacity-0");
+		expect(words.className).toContain("motion-reduce:transition-none");
+		expect(visual.className).toContain("delay-");
+		act(() => notify([{ isIntersecting: true }]));
+		expect(chapter).toHaveAttribute("data-seen", "true");
+		// It arrives once: after that it stops watching, so scrolling back up never hides it again.
+		expect(disconnect).toHaveBeenCalled();
+	});
+
+	it("draws the hairline out from the middle when the chapter arrives", () => {
+		const { container } = render(<HowItWorks authUrl={AUTH} />);
+		const rule = container.querySelector("[data-rule]") as HTMLElement;
+		expect(rule.className).toContain("origin-center");
+		expect(rule.className).toContain("group-data-[seen=false]/chapter:scale-x-0");
+	});
+
+	it("has a fine dot texture behind the visual that fades out toward its edges, drawn in CSS with no image", () => {
+		const { container } = render(<HowItWorks authUrl={AUTH} />);
+		const dots = container.querySelector("[data-texture]") as HTMLElement;
+		expect(dots).not.toBeNull();
+		expect(dots).toHaveAttribute("aria-hidden", "true");
+		expect(dots.className).toContain("radial-gradient");
+		expect(dots.className).toContain("mask-image");
+		expect(container.innerHTML).not.toMatch(/<img|url\(/);
 	});
 });

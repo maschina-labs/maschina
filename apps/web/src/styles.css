@@ -91,6 +91,20 @@ body {
 	}
 }
 
+/* A very slow drift for the light behind a chapter: it moves a little and back, like light through glass. */
+@theme {
+	--animate-drift: drift 18s ease-in-out infinite;
+	@keyframes drift {
+		0%,
+		100% {
+			translate: 0 -50%;
+		}
+		50% {
+			translate: 3rem calc(-50% + 2rem);
+		}
+	}
+}
+
 /* A slow fade for things that arrive on their own, such as the ribbon once it has loaded. */
 @theme {
 	--animate-fade-in: fade-in 1.4s ease-out both;
