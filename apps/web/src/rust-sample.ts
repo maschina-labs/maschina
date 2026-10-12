@@ -177,7 +177,7 @@ const RULES: [RegExp, Kind][] = [
 ];
 
 /** One line of the module, cut into pieces that each have a kind. */
-export function tokenize(line: string): { text: string; kind: Kind }[] {
+function tokenize(line: string): { text: string; kind: Kind }[] {
 	const pieces: { text: string; kind: Kind }[] = [];
 	let rest = line;
 	while (rest.length > 0) {
