@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Hero } from "./hero.tsx";
 
@@ -232,6 +232,26 @@ describe("the hero", () => {
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
 			"clamp(2.5rem,6.4vw,7.5rem)",
 		);
+	});
+
+	it("holds the ribbon back until the page has finished loading and the browser is idle, so three.js never competes with the first paint", async () => {
+		const idle = vi.fn((callback: () => void) => {
+			callback();
+			return 1;
+		});
+		vi.stubGlobal("requestIdleCallback", idle);
+		const state = vi.spyOn(document, "readyState", "get").mockReturnValue("loading");
+		render(<Hero authUrl={AUTH} />);
+		expect(screen.queryByTestId("ribbon")).toBeNull();
+		expect(idle).not.toHaveBeenCalled();
+		act(() => {
+			state.mockReturnValue("complete");
+			window.dispatchEvent(new Event("load"));
+		});
+		expect(await screen.findByTestId("ribbon")).toBeInTheDocument();
+		expect(idle).toHaveBeenCalledTimes(1);
+		state.mockRestore();
+		vi.unstubAllGlobals();
 	});
 
 	it("always draws the ribbon calmly, as before: nothing about it changes with the scroll", async () => {

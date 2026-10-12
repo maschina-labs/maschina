@@ -11,6 +11,9 @@ describe("the header", () => {
 		expect(home).toHaveAttribute("href", "/");
 		expect(home.querySelector("[data-mark]")).toHaveAttribute("src", "/brand/favicon.svg");
 		expect(home.querySelector("[data-word] img")).toHaveAttribute("src", "/brand/word.svg");
+		// Its size is declared (the file is 1054 by 175, shown 20 high), so nothing shifts as it loads.
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("height", "20");
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("width", "120");
 	});
 
 	it("turns the mark a full turn forward each time the cursor arrives, and never back", () => {

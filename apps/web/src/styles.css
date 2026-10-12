@@ -105,6 +105,49 @@ body {
 	}
 }
 
+/* Code that streams slowly down a column. The column holds its text twice, so moving half its height loops without a seam. */
+@theme {
+	--animate-stream: stream 90s linear infinite;
+	@keyframes stream {
+		from {
+			transform: translateY(-50%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+}
+
+/*
+ * A card that shows a fine field of dots under the pointer: a spotlight of dots that follows the mouse across it and is
+ * gone when the mouse leaves. The page sets --mx and --my on the card. Nothing on a screen with no hover, such as a phone.
+ */
+.card-dots {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+}
+.card-dots::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 250ms ease-out;
+	background-image: radial-gradient(oklch(1 0 0 / 0.55) 1px, transparent 1px);
+	background-size: 14px 14px;
+	mask-image: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), black, transparent);
+}
+.card-dots:hover::before {
+	opacity: 1;
+}
+@media (hover: none) {
+	.card-dots::before {
+		display: none;
+	}
+}
+
 /* A slow fade for things that arrive on their own, such as the ribbon once it has loaded. */
 @theme {
 	--animate-fade-in: fade-in 1.4s ease-out both;

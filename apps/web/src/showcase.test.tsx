@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { render, screen, within } from "@testing-library/react";
@@ -77,10 +77,28 @@ describe("the showcase", () => {
 		}
 	});
 
+	it("offers the picture as AVIF first, a fraction of the JPEG's weight, and keeps the JPEG for browsers that cannot read it", () => {
+		const { container } = render(<Showcase />);
+		const source = container.querySelector("picture > source") as HTMLSourceElement;
+		expect(source).toHaveAttribute("type", "image/avif");
+		expect(source.getAttribute("srcset")).toBe(
+			"/showcase/dashboard.avif 2838w, /showcase/dashboard-4x.avif 5676w",
+		);
+		expect(source.getAttribute("sizes")).toBe(screen.getByRole("img").getAttribute("sizes"));
+		expect(screen.getByRole("img").parentElement?.tagName).toBe("PICTURE");
+		for (const file of ["dashboard.avif", "dashboard-4x.avif"]) {
+			const bytes = statSync(resolve(publicDir, "showcase", file)).size;
+			const jpeg = statSync(resolve(publicDir, "showcase", file.replace("avif", "jpg"))).size;
+			expect(bytes, file).toBeLessThan(jpeg / 8);
+		}
+	});
+
 	it("has no window frame or title bar around the picture: just the picture", () => {
 		const { container } = render(<Showcase />);
 		expect(container.querySelector("[data-window], [data-titlebar], [data-control]")).toBeNull();
-		expect(screen.getByRole("img").parentElement).toBe(container.querySelector("[data-backdrop]"));
+		expect(screen.getByRole("img").closest("picture")?.parentElement).toBe(
+			container.querySelector("[data-backdrop]"),
+		);
 	});
 
 	it("sits centered in a backdrop of its own: a wide panel of soft pearl and silver light, with room all around", () => {

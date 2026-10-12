@@ -192,6 +192,16 @@ describe("the page's own head, for browsers, search engines and shared links", (
 		expect(meta("property", "og:description")).toBeTruthy();
 	});
 
+	it("starts fetching both fonts at once, before the stylesheet asks for them, so the words never flash in another face", () => {
+		for (const weight of ["400", "500"]) {
+			expect(html).toMatch(
+				new RegExp(
+					`<link rel="preload" href="/fonts/Sohne-${weight}\\.woff2" as="font" type="font/woff2" crossorigin`,
+				),
+			);
+		}
+	});
+
 	it("names the front page, in the tab and on shared links, by what Maschina is", () => {
 		const name = "Maschina: The Operating System for Autonomous Capital";
 		expect(/<title>([^<]*)<\/title>/.exec(html)?.[1]).toBe(name);
