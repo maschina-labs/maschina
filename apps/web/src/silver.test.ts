@@ -46,7 +46,7 @@ describe("the silver button", () => {
 		expect(block).toMatch(/\.silver-button:active/);
 		expect(block).toMatch(/\.silver-button-mobile:active/);
 		const active = /\.silver-button:active[^{]*\{[^}]*\}/.exec(block)?.[0] ?? "";
-		expect(active).toContain("var(--pearl-shimmer)");
+		expect(active).toContain("var(--shimmer)");
 	});
 
 	it("has three finishes to choose from, each its own gradient: silver (white metal), pearl and opal, which are never mixed in one button", () => {
