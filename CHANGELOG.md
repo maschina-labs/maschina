@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.47](https://github.com/maschina-labs/maschina/compare/v0.0.46...v0.0.47) (2026-10-12)
+
+
+### Fixed
+
+* **web:** send the Company address to About ([#795](https://github.com/maschina-labs/maschina/issues/795)) ([a9ac7de](https://github.com/maschina-labs/maschina/commit/a9ac7decb04850894fccd6f1da86992740c12eff))
+
 ## [0.0.46](https://github.com/maschina-labs/maschina/compare/v0.0.45...v0.0.46) (2026-10-12)
 
 
