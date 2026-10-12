@@ -33,19 +33,15 @@ const DOC: ArticleDoc = {
 };
 
 describe("an article page", () => {
-	it("opens like a newsletter: a small label, a big centered headline, a standfirst, and who wrote it and when", () => {
+	it("opens like a newsletter: a big centered headline, a standfirst, and who wrote it and when", () => {
 		const { container } = render(<ArticlePage authUrl={AUTH} doc={DOC} />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("A plain headline");
 		const head = container.querySelector("[data-head]") as HTMLElement;
-		expect(head.className).not.toContain("text-center");
-		// Everything in the head sits on the same left edge as the text under it, so the page has one edge.
+		// Everything in the head is centered, as one block, in the middle of the page.
 		const inner = container.querySelector("[data-head-text]") as HTMLElement;
 		expect(inner.className).toContain("max-w-[48rem]");
 		expect(inner.className).toContain("mx-auto");
-		expect(inner.className).not.toMatch(/text-center|items-center/);
-		for (const node of inner.querySelectorAll("p, h1"))
-			expect(node.className).not.toMatch(/mx-auto|text-center/);
-		expect(head).toHaveTextContent("Company");
+		expect(inner.className).toContain("text-center");
 		expect(head).toHaveTextContent("One sentence that says what this is.");
 		expect(head).toHaveTextContent("By Asher Wilson");
 		const time = container.querySelector("time") as HTMLElement;

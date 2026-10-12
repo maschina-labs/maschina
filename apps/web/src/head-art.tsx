@@ -8,7 +8,7 @@ const Field = lazy(() =>
 
 /** What every page head shares: held in place at the top, 50lvh tall, so a black sheet can roll over it. */
 export const HEAD =
-	"sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col justify-end overflow-hidden px-(--gutter) pt-24 pb-12 sm:pb-16";
+	"sticky top-0 flex h-[50lvh] min-h-[28rem] flex-col justify-center overflow-hidden px-(--gutter) pt-24 pb-12 sm:pb-16";
 
 /** What every page body shares: a solid black sheet above the head, with the page margins. */
 export const SHEET = "relative z-10 bg-black px-(--gutter)";
@@ -29,7 +29,11 @@ export function HeadArt() {
 					</div>
 				</Suspense>
 			) : null}
-			<div className="absolute inset-0 bg-[oklch(0_0_0/0.15)]" />
+			{/* Frosted glass over the mesh: the blur takes the smudge out of its detail, and the light tint keeps the words clear. */}
+			<div
+				data-glass
+				className="absolute inset-0 bg-[oklch(0_0_0/0.28)] backdrop-blur-[36px] backdrop-saturate-[0.85]"
+			/>
 		</div>
 	);
 }
