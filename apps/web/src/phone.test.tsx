@@ -102,7 +102,8 @@ describe("the header on a phone", () => {
 		expect(bar.className).toContain("py-5");
 		expect(bar.className).toContain("xl:py-4");
 		const menu = screen.getByRole("button", { name: "Menu" });
-		expect(menu.className).toContain("size-10");
+		expect(menu.className).toContain("size-9");
+		expect(menu.className).not.toContain("size-10");
 		expect(menu.className).toContain("xl:hidden");
 	});
 
@@ -159,7 +160,10 @@ describe("the header on a phone", () => {
 		expect(logIn.className).toContain("max-xl:text-black");
 		expect(logIn.className).not.toContain("bg-[oklch(0.93_0.02_300)]");
 		expect(logIn.className).not.toMatch(/(^|\s)bg-white\/\[0\.13\]/);
-		expect(logIn.className).toContain("h-10");
+		// Smaller than it was: 36 high, with a 24 chip, so the two header buttons do not crowd the logo.
+		expect(logIn.className).toContain("h-9");
+		expect(logIn.className).not.toContain("h-10");
+		expect(logIn.querySelector("[data-chip]")?.className).toContain("size-6");
 		expect(logIn.className).not.toMatch(/(^|\s)hidden(\s|$)/);
 		expect(logIn.className).not.toMatch(/rounded/);
 		// In the same row as the menu button, just before it (only the desktop's own Try button, hidden on a phone, may sit between).
