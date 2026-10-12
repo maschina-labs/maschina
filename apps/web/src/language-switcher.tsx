@@ -1,3 +1,4 @@
+import { CaretDown, Check, Globe } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { saveLanguage } from "./i18n/language.ts";
 import { AVAILABLE } from "./i18n/languages.ts";
@@ -68,28 +69,13 @@ export function LanguageSwitcher({
 				onClick={() => setOpen((now) => !now)}
 				className="flex h-9 items-center gap-2 bg-white/[0.07] pr-3 pl-3 text-[13px] text-neutral-300 transition-colors hover:bg-white/[0.11]"
 			>
-				<svg
-					viewBox="0 0 24 24"
-					className="size-[14px]"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					aria-hidden="true"
-				>
-					<circle cx="12" cy="12" r="9" />
-					<path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
-				</svg>
+				<Globe weight="light" className="size-[16px]" aria-hidden="true" />
 				<span>{locale.toUpperCase()}</span>
-				<svg
-					viewBox="0 0 24 24"
-					className={`size-[12px] transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
+				<CaretDown
+					weight="regular"
+					className={`size-3 transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
 					aria-hidden="true"
-				>
-					<path d="m6 9 6 6 6-6" />
-				</svg>
+				/>
 			</button>
 			{popover.mounted ? (
 				<div
@@ -122,19 +108,7 @@ export function LanguageSwitcher({
 										data-box
 										className={`${ready ? "ml-auto" : ""} grid size-4 shrink-0 place-items-center border ${chosen ? "border-transparent bg-[oklch(0.93_0.02_300)] text-black" : "border-white/25"}`}
 									>
-										{chosen ? (
-											<svg
-												viewBox="0 0 24 24"
-												className="size-3"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth={3}
-												strokeLinecap="square"
-												aria-hidden="true"
-											>
-												<path d="m5 12.5 4.5 4.5L19 7.5" />
-											</svg>
-										) : null}
+										{chosen ? <Check weight="bold" className="size-3" aria-hidden="true" /> : null}
 									</span>
 								</button>
 							);

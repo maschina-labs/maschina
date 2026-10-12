@@ -164,7 +164,8 @@ describe("the footer", () => {
 			// The arrow takes its color from the link: gray like the words, and light with them on hover.
 			const arrow = link.querySelector("svg");
 			expect(arrow?.getAttribute("class")).not.toMatch(/\btext-/);
-			expect(arrow).toHaveAttribute("stroke", "currentColor");
+			// Phosphor draws in the current color, so the arrow is whatever color the link is.
+			expect(arrow).toHaveAttribute("fill", "currentColor");
 			expect(link.className).toContain("text-neutral-500");
 			expect(link.className).toContain("hover:text-white");
 		}

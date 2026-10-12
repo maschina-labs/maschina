@@ -1,3 +1,4 @@
+import { CaretRight } from "@phosphor-icons/react";
 import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 
@@ -31,18 +32,7 @@ export function TryButton({
 				data-chip
 				className={`relative z-10 grid place-items-center bg-black text-white max-sm:hidden ${chipClassName}`}
 			>
-				<svg
-					viewBox="0 0 12 12"
-					className="size-3"
-					data-arrow="chevron"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={1.5}
-					strokeLinecap="square"
-					aria-hidden="true"
-				>
-					<path d="M4.5 2.5 8 6 4.5 9.5" />
-				</svg>
+				<CaretRight weight="regular" className="size-3.5" data-arrow="chevron" aria-hidden="true" />
 			</span>
 		</Link>
 	);

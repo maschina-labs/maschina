@@ -1,3 +1,4 @@
+import { DownloadSimple, X } from "@phosphor-icons/react";
 import type { BrandDoc, Logo } from "./company/brand.ts";
 import { Frame } from "./frame.tsx";
 import { PANEL } from "./glass.tsx";
@@ -184,17 +185,7 @@ function Misuse({ rules }: { rules: string[] }) {
 								aria-hidden="true"
 								className="absolute top-3 right-3 grid size-7 place-items-center bg-[oklch(0.93_0.02_300)] text-black"
 							>
-								<svg
-									aria-hidden="true"
-									viewBox="0 0 12 12"
-									className="size-3"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth={1.6}
-									strokeLinecap="square"
-								>
-									<path d="M2.5 2.5l7 7M9.5 2.5l-7 7" />
-								</svg>
+								<X weight="bold" className="size-3" aria-hidden="true" />
 							</span>
 						</div>
 						<p className="mt-4 text-[16px] text-neutral-300 leading-[1.55]">{rule}</p>
@@ -232,18 +223,12 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 						>
 							<span>{m.pack}</span>
 							<span data-chip className="grid size-8 place-items-center bg-black text-white">
-								<svg
+								<DownloadSimple
 									data-icon="download"
-									viewBox="0 0 20 20"
+									weight="regular"
 									className="size-4"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth={1.5}
-									strokeLinecap="square"
 									aria-hidden="true"
-								>
-									<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
-								</svg>
+								/>
 							</span>
 						</Link>
 					</div>
