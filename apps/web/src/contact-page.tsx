@@ -225,7 +225,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 																<button
 																	type="submit"
 																	disabled={state === "sending"}
-																	className="inline-flex h-11 items-center gap-4 bg-[oklch(0.93_0.02_300)] pr-1.5 pl-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] disabled:opacity-60"
+																	className="inline-flex h-11 items-center gap-4 silver-button pr-1.5 pl-6 text-[15px] text-black disabled:opacity-60"
 																>
 																	<span>{state === "sending" ? m.sending : m.send}</span>
 																	<ArrowChip tone="black" direction="next" />

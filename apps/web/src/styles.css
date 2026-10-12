@@ -131,6 +131,66 @@ body {
 	}
 }
 
+/*
+ * The silver button: the same cool silver as the headlines, a gradient through near-white and back, so a button is metal and
+ * not a flat pale color. At rest it is silver. On hover the pearl comes in as a shimmer, soft peach, lavender, mint and
+ * blush, that follows the pointer across the button (silver-pointer.ts sets --shine-x). The pearl lives here and nowhere on a button at rest, because a flat pearl reads as pink.
+ */
+:root {
+	--silver-fill: linear-gradient(
+		105deg,
+		oklch(0.86 0.01 260) 0%,
+		oklch(0.96 0.006 260) 30%,
+		oklch(0.995 0.002 260) 46%,
+		oklch(0.92 0.008 260) 64%,
+		oklch(0.84 0.01 260) 100%
+	);
+	--pearl-shimmer: linear-gradient(
+		105deg,
+		oklch(0.9 0.05 300) 0%,
+		oklch(0.94 0.05 195) 28%,
+		oklch(0.97 0.03 95) 48%,
+		oklch(0.93 0.06 345) 70%,
+		oklch(0.9 0.05 270) 100%
+	);
+}
+.silver-button {
+	background-image: var(--silver-fill);
+	background-size: 200% 100%;
+	background-position: 0% 0;
+	transition: background-position 260ms ease-out;
+}
+.silver-button:hover {
+	background-image: var(--pearl-shimmer);
+	background-position: var(--shine-x, 100%) 0;
+}
+@media (prefers-reduced-motion: reduce) {
+	.silver-button,
+	.silver-button-mobile {
+		transition: none;
+	}
+}
+@media (hover: none) {
+	.silver-button:hover,
+	.silver-button-mobile:hover {
+		background-image: var(--silver-fill);
+		background-position: 0% 0;
+	}
+}
+/* The same, for the Sign In box, which is a button only below the desktop size. */
+@media (max-width: 1279px) {
+	.silver-button-mobile {
+		background-image: var(--silver-fill);
+		background-size: 200% 100%;
+		background-position: 0% 0;
+		transition: background-position 260ms ease-out;
+	}
+	.silver-button-mobile:hover {
+		background-image: var(--pearl-shimmer);
+		background-position: var(--shine-x, 100%) 0;
+	}
+}
+
 /* Code that streams slowly down a column. The column holds its text twice, so moving half its height loops without a seam. */
 @theme {
 	--animate-stream: stream 90s linear infinite;

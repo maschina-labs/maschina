@@ -73,7 +73,7 @@ describe("the preferences toast", () => {
 		const buttons = within(toast).getAllByRole("button");
 		expect(buttons.map((button) => button.textContent)).toEqual(["Decline", "Accept"]);
 		// Accept is the pearl button, Decline the gray one, the same two as the rest of the site.
-		expect(buttons[1]?.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(buttons[1]?.className).toContain("silver-button");
 		expect(buttons[0]?.className).toContain("bg-white/[0.13]");
 		expect(toast.querySelectorAll("a")).toHaveLength(0);
 	});

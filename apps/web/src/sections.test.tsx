@@ -107,7 +107,7 @@ describe.each(SECTIONS)("the $name section", ({ name, title, element, links }) =
 			expect(anchors[index]).toHaveAccessibleName(label);
 			expect(anchors[index]).toHaveAttribute("href", href);
 		}
-		const buttons = anchors.filter((link) => link.className.includes("bg-[oklch(0.93_0.02_300)]"));
+		const buttons = anchors.filter((link) => link.className.includes("silver-button"));
 		if (links.some(([label]) => label !== "risk disclosure"))
 			expect(buttons.length).toBeGreaterThan(0);
 	});

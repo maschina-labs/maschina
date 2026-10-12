@@ -22,7 +22,7 @@ describe("the buttons on the front page", () => {
 			const { container, unmount } = render(part);
 			for (const link of container.querySelectorAll("a")) {
 				// A button is a link with a fill: the pearl and the gray ones. Plain text links are not.
-				if (!/bg-\[oklch\(0\.93|bg-white\/\[0\.13\]/.test(link.className)) continue;
+				if (!/silver-button|bg-white\/\[0\.13\]/.test(link.className)) continue;
 				buttons++;
 				expect(link.className, link.textContent ?? "").toContain("h-10");
 				expect(link.className, link.textContent ?? "").toContain("xl:h-8");

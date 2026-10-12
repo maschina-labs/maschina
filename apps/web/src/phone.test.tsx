@@ -22,7 +22,7 @@ describe("the main buttons on a phone", () => {
 		render(element());
 		const pearl = screen
 			.getAllByRole("link")
-			.find((link) => link.className.includes("bg-[oklch(0.93_0.02_300)]")) as HTMLElement;
+			.find((link) => link.className.includes("silver-button")) as HTMLElement;
 		// The chip is only for a screen wide enough to have room for it.
 		expect(pearl.querySelector("[data-chip]")?.className).toContain("max-sm:hidden");
 		// The label is centered on a phone and left on a wider screen, where the chip sits beside it.
@@ -45,9 +45,7 @@ describe("the main buttons on a phone", () => {
 			const { unmount } = render(element);
 			const links = screen.getAllByRole("link");
 			const gray = links.find((link) => link.className.includes("bg-white/[0.13]")) as HTMLElement;
-			const pearl = links.find((link) =>
-				link.className.includes("bg-[oklch(0.93_0.02_300)]"),
-			) as HTMLElement;
+			const pearl = links.find((link) => link.className.includes("silver-button")) as HTMLElement;
 			expect(gray.className).toContain("justify-center");
 			expect(gray.className).toContain("max-sm:font-medium");
 			expect(gray.className).toContain("max-sm:text-white");
@@ -157,9 +155,9 @@ describe("the header on a phone", () => {
 		const logIn = within(banner).getByRole("link", { name: "Sign In" });
 		const menu = screen.getByRole("button", { name: "Menu" });
 		// Pearl and black like the other main buttons, on a phone only: the desktop's plain text link is not touched.
-		expect(logIn.className).toContain("max-xl:bg-[oklch(0.93_0.02_300)]");
+		expect(logIn.className).toContain("silver-button-mobile");
 		expect(logIn.className).toContain("max-xl:text-black");
-		expect(logIn.className).toContain("max-xl:hover:bg-[oklch(0.98_0.015_300)]");
+		expect(logIn.className).not.toContain("bg-[oklch(0.93_0.02_300)]");
 		expect(logIn.className).not.toMatch(/(^|\s)bg-white\/\[0\.13\]/);
 		expect(logIn.className).toContain("h-10");
 		expect(logIn.className).not.toMatch(/(^|\s)hidden(\s|$)/);

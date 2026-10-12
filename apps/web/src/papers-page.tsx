@@ -157,7 +157,7 @@ function Download({
 			data-download
 			href={href}
 			download
-			className="mt-8 inline-flex h-11 items-center gap-4 bg-[oklch(0.93_0.02_300)] pr-1.5 pl-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+			className="mt-8 inline-flex h-11 items-center gap-4 silver-button pr-1.5 pl-6 text-[15px] text-black"
 		>
 			<span>{label}</span>
 			{chip("bg-black text-white")}
