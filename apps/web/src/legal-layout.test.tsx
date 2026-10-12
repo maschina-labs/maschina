@@ -34,7 +34,6 @@ describe("the centered legal page", () => {
 		const inner = container.querySelector("[data-head-text]") as HTMLElement;
 		expect(inner.className).toContain("mx-auto");
 		expect(inner.className).toContain("max-w-[44rem]");
-		expect(inner).toHaveTextContent("Legal");
 		expect(inner).toHaveTextContent("Last updated October 9, 2026");
 		expect(inner.contains(screen.getByRole("heading", { level: 1 }))).toBe(true);
 	});

@@ -7,15 +7,28 @@ const words = import.meta.glob<{ default: Translation }>("./translations/*.ts", 
 const stamps = import.meta.glob<{ default: Seal }>("./translations/*.seal.json", { eager: true });
 const sources = sourcesOf();
 
-const flat = (translation: Translation): string[] =>
-	[
-		translation.catalog,
-		...Object.values(translation.documents),
-		...Object.values(translation.articles),
-		translation.support,
-		translation.papers,
-		translation.brand,
-	].flat();
+/**
+ * Every English sentence beside what a language has for it, found by the page and the place in it and never by a running
+ * position, so a page that exists only in English yet (a new page waiting for its translation) shifts nothing and is
+ * simply not paired. `text` and `stamp` are missing for such a sentence.
+ */
+type Pair = { source: string; text: string | undefined; stamp: string | undefined };
+const pairsOf = (translation: Translation, seal: Seal): Pair[] => {
+	const out: Pair[] = [];
+	const walk = (english: string[], mine: string[] | undefined, stamped: string[] | undefined) => {
+		for (const [index, source] of english.entries())
+			out.push({ source, text: mine?.[index], stamp: stamped?.[index] });
+	};
+	walk(sources.catalog, translation.catalog, seal.catalog);
+	for (const [key, list] of Object.entries(sources.documents))
+		walk(list, translation.documents[key], seal.documents[key]);
+	for (const [key, list] of Object.entries(sources.articles))
+		walk(list, translation.articles[key], seal.articles[key]);
+	walk(sources.support, translation.support, seal.support);
+	walk(sources.papers, translation.papers, seal.papers);
+	walk(sources.brand, translation.brand, seal.brand);
+	return out;
+};
 
 /** What must come through a translation unchanged: the names of things, every number, every address of mail. */
 const NAMES = [
@@ -74,29 +87,23 @@ describe("the languages that have translations", () => {
 		});
 
 		it("writes the way the site does: nothing empty, no long dashes, no exclamation marks, no placeholders, no English pasted over a sentence", () => {
-			const english = flat(sources);
-			const mine = flat(translation);
-			for (const [index, text] of mine.entries()) {
+			for (const [index, { source, text }] of pairsOf(translation, seal).entries()) {
+				if (text === undefined) continue;
 				expect(typeof text, `${code} #${index}`).toBe("string");
 				expect(text.trim().length, `${code} #${index} is empty`).toBeGreaterThan(0);
 				expect(text, `${code} #${index}`).not.toMatch(LONG_DASH);
 				expect(text, `${code} #${index}`).not.toMatch(/!|！|¡/);
 				expect(text, `${code} #${index}`).not.toMatch(/lorem|\bTODO\b|\bTBD\b/);
-				const source = english[index];
-				if (source && source.length >= 40)
+				if (source.length >= 40)
 					expect(text, `${code} #${index} is still English`).not.toBe(source);
 			}
 		});
 
 		it("keeps what must not change in every sentence that is still the English it was made from: names, numbers, addresses and the braces a value goes in", () => {
-			const english = flat(sources);
-			const mine = flat(translation);
-			const sealed = flat(seal);
 			let checked = 0;
-			for (const [index, source] of english.entries()) {
-				const text = mine[index];
+			for (const [index, { source, text, stamp }] of pairsOf(translation, seal).entries()) {
 				// Only a sentence whose English has not changed since can be held to it.
-				if (text === undefined || sealed[index] !== hash(source)) continue;
+				if (text === undefined || stamp !== hash(source)) continue;
 				checked++;
 				for (const token of invariants(source))
 					expect(text, `${code} #${index} lost "${token}" from: ${source.slice(0, 60)}`).toContain(

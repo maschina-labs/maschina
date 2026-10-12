@@ -129,11 +129,11 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 			<article className="w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
-					<div data-head-text className="relative mx-auto w-full max-w-[72rem]">
+					<div data-head-text className="relative mx-auto w-full text-center max-w-[72rem]">
 						<h1 className="font-display font-medium text-[clamp(2.5rem,6vw,4.5rem)] text-white leading-[0.98] tracking-[-0.04em]">
 							{doc.title}
 						</h1>
-						<p className="mt-6 max-w-[40rem] text-[clamp(1.125rem,2vw,1.375rem)] text-neutral-200 leading-[1.45]">
+						<p className="mx-auto mt-6 max-w-[40rem] text-[clamp(1.125rem,2vw,1.375rem)] text-neutral-200 leading-[1.45]">
 							{doc.standfirst}
 						</p>
 						<Link

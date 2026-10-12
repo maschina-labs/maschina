@@ -32,14 +32,13 @@ const SMALL: LegalDoc = {
 };
 
 describe("a legal page", () => {
-	it("opens with a big plain title, a small label above it, the date under it, and the first words as a lead", () => {
+	it("opens with a big plain title, the date under it, and the first words as a lead", () => {
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const main = screen.getByRole("main");
 		const title = within(main).getByRole("heading", { level: 1, name: "Example" });
 		for (const part of ["font-medium", "text-white", "tracking-[-0.04em]"])
 			expect(title.className).toContain(part);
 		expect(title.className).not.toMatch(/bg-clip-text|text-stroke|text-transparent/);
-		expect(within(main).getByText("Legal")).toBeInTheDocument();
 		expect(within(main).getByText("Last updated October 9, 2026")).toBeInTheDocument();
 		const lead = within(main).getByText("First paragraph.");
 		expect(lead.className).toMatch(/text-\[(18|19|20)px\]/);

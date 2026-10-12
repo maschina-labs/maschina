@@ -2,6 +2,7 @@ import type { ArticleDoc } from "../article.tsx";
 import { ABOUT } from "../company/about.ts";
 import { BRAND, type BrandDoc } from "../company/brand.ts";
 import { PAPERS, type PapersDoc } from "../company/papers.ts";
+import { HOW_IT_WORKS, MACHINES, PRODUCT, SECURITY } from "../company/product.ts";
 import { ROADMAP } from "../company/roadmap.ts";
 import { SUPPORT, type SupportDoc } from "../company/support.ts";
 import { ACCEPTABLE_USE } from "../legal/acceptable-use.ts";
@@ -31,7 +32,14 @@ const english: Content = {
 		"/license": LICENSE,
 		"/disclosure": DISCLOSURE,
 	},
-	articles: { "/about": ABOUT, "/roadmap": ROADMAP },
+	articles: {
+		"/about": ABOUT,
+		"/roadmap": ROADMAP,
+		"/product": PRODUCT,
+		"/how-it-works": HOW_IT_WORKS,
+		"/machines": MACHINES,
+		"/security": SECURITY,
+	},
 	support: SUPPORT,
 	papers: PAPERS,
 	brand: BRAND,

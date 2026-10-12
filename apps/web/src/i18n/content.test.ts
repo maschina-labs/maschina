@@ -37,7 +37,14 @@ describe("the pages of the site, by language", () => {
 			"/risk",
 			"/terms",
 		]);
-		expect(Object.keys(english.articles).sort()).toEqual(["/about", "/roadmap"]);
+		expect(Object.keys(english.articles).sort()).toEqual([
+			"/about",
+			"/how-it-works",
+			"/machines",
+			"/product",
+			"/roadmap",
+			"/security",
+		]);
 		expect(english.support.ways).toHaveLength(4);
 		expect(english.papers.groups).toHaveLength(4);
 		expect(english.brand.logos.items).toHaveLength(3);
