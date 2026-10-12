@@ -482,3 +482,26 @@ describe("the chapter chips", () => {
 		},
 	);
 });
+
+describe("the chapters share the header's edges", () => {
+	it.each([
+		["How It Works", <HowItWorks key="a" authUrl={AUTH} />],
+		["Inside the App", <Features key="b" authUrl={AUTH} />],
+		["Safety", <Safety key="c" />],
+		["Customize", <Customize key="d" authUrl={AUTH} />],
+		["Live Record", <LiveRecord key="e" />],
+		["Network", <Network key="f" />],
+		["Marketplace", <Marketplace key="g" />],
+	])(
+		"%s fills the full width between the page margins, with no narrower cap of its own",
+		(name, element) => {
+			const { container } = render(element);
+			const section = screen.getByRole("region", { name });
+			expect(section.className).toContain("px-(--gutter)");
+			for (const node of section.querySelectorAll("[data-chapter], [data-chapter] ~ *, ul, ol")) {
+				expect((node as HTMLElement).className, name).not.toMatch(/max-w-\[(64|72)rem\]/);
+			}
+			expect(container.innerHTML, name).not.toMatch(/max-w-\[72rem\]/);
+		},
+	);
+});

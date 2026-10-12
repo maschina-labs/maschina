@@ -88,8 +88,9 @@ describe("the section for builders", () => {
 	it("keeps everything, the code included, inside the page margins, on the same edges as every other chapter", () => {
 		const { container } = render(<Builders />);
 		const frame = container.querySelector("[data-frame]") as HTMLElement;
-		expect(frame.className).toContain("max-w-[72rem]");
-		expect(frame.className).toContain("mx-auto");
+		// The full width between the page margins, exactly the header's and the footer's: no narrower cap of its own.
+		expect(frame.className).toContain("w-full");
+		expect(frame.className).not.toMatch(/max-w-/);
 		expect(frame.className).toContain("overflow-hidden");
 		expect(frame.parentElement).toBe(section());
 		for (const part of ["[data-code]", "[data-fog]", "h2"]) {
