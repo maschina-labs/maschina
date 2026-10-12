@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.48](https://github.com/maschina-labs/maschina/compare/v0.0.47...v0.0.48) (2026-10-12)
+
+
+### Added
+
+* **web:** rebuild the brand, papers, support and contact pages ([#799](https://github.com/maschina-labs/maschina/issues/799)) ([b1987b4](https://github.com/maschina-labs/maschina/commit/b1987b42dc826e0b47d247dd4d7f1c7a122b59a8))
+
 ## [0.0.47](https://github.com/maschina-labs/maschina/compare/v0.0.46...v0.0.47) (2026-10-12)
 
 
