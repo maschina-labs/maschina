@@ -84,9 +84,7 @@ describe("the hero", () => {
 	it("ends with one plain line of facts, with no link and no claim about results", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		const line = within(section).getByText(
-			"Source-available, built on Solana, free to try on paper.",
-		);
+		const line = within(section).getByText("Source-available, built on Solana.");
 		expect(line.tagName).toBe("P");
 		expect(section.lastElementChild).toBe(line);
 		expect(line.querySelector("a")).toBeNull();
@@ -169,7 +167,7 @@ describe("the hero", () => {
 
 	it("keeps that line at the foot of the screen, off the stack", () => {
 		render(<Hero authUrl={AUTH} />);
-		const line = screen.getByText("Source-available, built on Solana, free to try on paper.");
+		const line = screen.getByText("Source-available, built on Solana.");
 		expect(line.className).toContain("absolute");
 		expect(line.className).toContain("inset-x-0");
 		expect(line.className).toContain("bottom-[calc(2rem+100lvh-100svh)]");
@@ -184,6 +182,23 @@ describe("the hero", () => {
 			const link = hero.getByRole("link", { name });
 			expect(link.querySelector("[data-glint]")).toBeNull();
 		}
+	});
+
+	it("opens with a dark, solid chip above the headline that says something true, with no icon in it", () => {
+		const { container } = render(<Hero authUrl={AUTH} />);
+		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
+		expect(chip).toHaveTextContent("Free to try on paper");
+		expect(chip.className).toContain("bg-neutral-900");
+		expect(chip.querySelector("svg")).toBeNull();
+		// Bigger than the chapter chips, which are 20 high with 11 pixel words.
+		expect(chip.className).toContain("h-7");
+		expect(chip.className).toContain("text-[13px]");
+		expect(chip.className).not.toContain("h-5");
+		const heading = screen.getByRole("heading", { level: 1 });
+		expect(chip.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		// It sits above the glow and the ribbon, and is not part of the headline's own text.
+		expect(heading.textContent).not.toContain("Free to try");
+		expect(chip.className).toContain("z-20");
 	});
 
 	it("has buttons that wrap closely around the chip, both the same height", () => {

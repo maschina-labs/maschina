@@ -29,6 +29,35 @@ describe("a section chip", () => {
 		expect(screen.getByText("Limits")).toBeInTheDocument();
 	});
 
+	it("is wider than it is tall by a good margin: room on each side of the word", () => {
+		const { container } = render(<SectionChip icon="start">Start</SectionChip>);
+		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
+		expect(chip.className).toContain("px-2.5");
+		expect(chip.className).not.toContain("px-1.5");
+	});
+
+	it("can be dark instead, opaque like the hero's buttons are not: a near-black fill with light text, and no icon at all", () => {
+		const { container } = render(<SectionChip tone="dark">Free to try on paper</SectionChip>);
+		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
+		expect(chip).toHaveTextContent("Free to try on paper");
+		expect(chip.className).toContain("bg-neutral-900");
+		expect(chip.className).toContain("text-neutral-200");
+		expect(chip.className).not.toMatch(/backdrop|outline|bg-white|text-black|bg-\[oklch/);
+		expect(chip.querySelector("svg")).toBeNull();
+	});
+
+	it("comes in a larger size for the hero: taller, with bigger words and more room around them", () => {
+		const { container } = render(
+			<SectionChip tone="dark" size="large">
+				Free to try on paper
+			</SectionChip>,
+		);
+		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
+		expect(chip.className).toContain("h-7");
+		expect(chip.className).toContain("px-3.5");
+		expect(chip.className).toContain("text-[13px]");
+	});
+
 	it("has an icon for every chapter of the story it names", () => {
 		for (const icon of ["start", "watch", "limits", "shape", "proof", "next", "code"] as const) {
 			const { container, unmount } = render(<SectionChip icon={icon}>Word</SectionChip>);
