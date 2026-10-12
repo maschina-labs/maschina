@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.46](https://github.com/maschina-labs/maschina/compare/v0.0.45...v0.0.46) (2026-10-12)
+
+
+### Fixed
+
+* **web:** take the glint off every button ([#792](https://github.com/maschina-labs/maschina/issues/792)) ([8603254](https://github.com/maschina-labs/maschina/commit/86032545f04b550fc497fe6bd0c25b99049668cc))
+
 ## [0.0.45](https://github.com/maschina-labs/maschina/compare/v0.0.44...v0.0.45) (2026-10-12)
 
 
