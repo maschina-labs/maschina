@@ -82,7 +82,7 @@ describe("the marquee", () => {
 		expect(read("cloudflare")).toContain("#f48120");
 		expect(read("cloudflare")).toContain(".st0{fill:#fff}");
 		// PostgreSQL's three color elephant, from the project's own wiki.
-		expect(read("postgresql")).toContain("PostgreSQL");
+		expect(read("postgresql").toLowerCase()).toContain("#336791");
 	});
 
 	it("shows them gray and dim until you look at them, then the whole logo in its own colors, by a filter and not by editing the file", () => {
