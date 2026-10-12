@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import { Glint } from "./glint.tsx";
 import { Link } from "./i18n/link.tsx";
 import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
@@ -23,7 +22,7 @@ function Section({ name, children }: { name: string; children: React.ReactNode }
 }
 
 const GHOST =
-	"group relative inline-flex h-9 items-center justify-center overflow-hidden bg-white/[0.13] px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white";
+	"inline-flex h-9 items-center justify-center bg-white/[0.13] px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white";
 
 /** One or two buttons, in the hero's two kinds: the pearl one, then the gray one. */
 function Buttons({
@@ -41,11 +40,9 @@ function Buttons({
 				className="flex h-9 px-5 sm:inline-flex sm:pr-1"
 				labelClassName="flex-1 text-center sm:text-left"
 				chipClassName="size-7"
-				glint
 			/>
 			{secondary ? (
 				<Link href={secondary.href} className={GHOST}>
-					<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(1_0_0/0.25)_50%,transparent)]" />
 					{secondary.label}
 				</Link>
 			) : null}

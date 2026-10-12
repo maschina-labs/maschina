@@ -1,4 +1,3 @@
-import { Glint } from "./glint.tsx";
 import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 
@@ -14,26 +13,20 @@ export function TryButton({
 	labelClassName,
 	chipClassName,
 	label,
-	glint = false,
 }: {
 	href: string;
 	className: string;
 	labelClassName: string;
 	chipClassName: string;
 	label?: string;
-	/** A sweep of light on hover. */
-	glint?: boolean;
 }) {
 	const m = useMessages();
 	return (
 		<Link
 			href={href}
-			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors max-sm:font-medium hover:bg-[oklch(0.98_0.015_300)] ${glint ? "group relative overflow-hidden " : ""}${className}`}
+			className={`items-center gap-3 bg-[oklch(0.93_0.02_300)] text-black transition-colors max-sm:font-medium hover:bg-[oklch(0.98_0.015_300)] ${className}`}
 		>
 			<span className={labelClassName}>{label ?? m.header.tryMaschina}</span>
-			{glint ? (
-				<Glint tone="bg-[linear-gradient(90deg,transparent,oklch(0.78_0.04_290/0.5)_36%,oklch(1_0_0)_50%,oklch(0.78_0.04_290/0.5)_64%,transparent)]" />
-			) : null}
 			<span
 				data-chip
 				className={`relative z-10 grid place-items-center bg-black text-white max-sm:hidden ${chipClassName}`}

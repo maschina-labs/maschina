@@ -410,7 +410,6 @@ export function Header({
 								className="hidden py-1 pr-1 pl-4 xl:inline-flex"
 								labelClassName=""
 								chipClassName="size-6"
-								glint
 							/>
 							{/* On a phone: just a hamburger, in a square box of its own. It turns into a cross when open. */}
 							<button
@@ -643,7 +642,6 @@ export function Header({
 													className="flex py-2 pr-2 pl-4"
 													labelClassName="flex-1 text-center"
 													chipClassName="size-8"
-													glint
 												/>
 											</div>
 										</>

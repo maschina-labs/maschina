@@ -351,16 +351,15 @@ describe("the header", () => {
 		expect(link.firstElementChild?.textContent).toBe("Try Maschina");
 	});
 
-	it("has the glint on Try Maschina, in the bar and in the phone menu, behind the words and the chip", () => {
+	it("has no glint on Try Maschina, in the bar or in the phone menu", () => {
 		render(<Header authUrl={AUTH} />);
 		const bar = within(screen.getByRole("banner")).getByRole("link", { name: "Try Maschina" });
-		expect(bar.querySelector("[data-glint]")).toHaveAttribute("aria-hidden", "true");
-		expect(bar.className).toContain("overflow-hidden");
+		expect(bar.querySelector("[data-glint]")).toBeNull();
 		fireEvent.click(screen.getByRole("button", { name: "Menu" }));
 		const panel = within(screen.getByRole("navigation", { name: "Pages, menu" }));
 		expect(
 			panel.getByRole("link", { name: "Try Maschina" }).querySelector("[data-glint]"),
-		).not.toBeNull();
+		).toBeNull();
 	});
 
 	it("has the same chip on the phone menu's button", () => {

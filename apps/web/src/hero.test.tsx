@@ -177,13 +177,12 @@ describe("the hero", () => {
 		expect(line.className).toContain("text-neutral-500");
 	});
 
-	it("puts a glint on both buttons, without changing what they are called", () => {
+	it("has plain buttons, with no glint sweeping across them", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
 		for (const name of ["Start for free", "Read the docs"]) {
 			const link = hero.getByRole("link", { name });
-			expect(link.querySelector("[data-glint]")).toHaveAttribute("aria-hidden", "true");
-			expect(link.className).toContain("overflow-hidden");
+			expect(link.querySelector("[data-glint]")).toBeNull();
 		}
 	});
 
