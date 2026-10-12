@@ -1,4 +1,4 @@
-import { CaretDown, List, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { CaretDown, CaretRight, List, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
 import { Link } from "./i18n/link.tsx";
@@ -383,9 +383,21 @@ export function Header({
 						<div className="flex items-center gap-2 text-[14px] xl:gap-3">
 							<Link
 								href={signIn}
-								className={`${LINK} inline-flex h-10 items-center px-3.5 max-xl:bg-[oklch(0.93_0.02_300)] max-xl:text-black max-xl:hover:bg-[oklch(0.98_0.015_300)] sm:px-5 xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
+								className={`${LINK} inline-flex h-10 items-center max-xl:gap-3 max-xl:bg-[oklch(0.93_0.02_300)] max-xl:pr-1.5 max-xl:pl-4 max-xl:text-black max-xl:hover:bg-[oklch(0.98_0.015_300)] xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
 							>
 								{m.header.login}
+								{/* On a phone and a tablet the button carries the same black chip as the other pearl buttons. */}
+								<span
+									data-chip
+									className="grid size-7 place-items-center bg-black text-white xl:hidden"
+								>
+									<CaretRight
+										weight="regular"
+										data-arrow="chevron"
+										className="size-3.5"
+										aria-hidden="true"
+									/>
+								</span>
 							</Link>
 							<TryButton
 								href={signUp}
