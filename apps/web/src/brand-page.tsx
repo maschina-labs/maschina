@@ -1,16 +1,19 @@
 import type { BrandDoc, Logo } from "./company/brand.ts";
 import { Frame } from "./frame.tsx";
+import { PANEL } from "./glass.tsx";
 import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
+import { SectionHead } from "./section-head.tsx";
 import { useTitle } from "./use-title.ts";
 
 const KIT = "/brand/kit";
-const BUTTON =
-	"inline-flex h-9 items-center bg-white/[0.08] px-4 text-[14px] text-neutral-200 transition-colors hover:bg-white/[0.16] hover:text-white";
+const BUTTON = "inline-flex h-9 items-center px-4 text-[14px] transition-colors";
+const BUTTON_DARK = `${BUTTON} bg-white/[0.08] text-neutral-200 hover:bg-white/[0.16] hover:text-white`;
+const BUTTON_LIGHT = `${BUTTON} bg-black/[0.07] text-neutral-800 hover:bg-black/[0.13] hover:text-black`;
 
-/** A section of the page: its name and a few words on the left, what it shows on the right. */
-function Row({
+/** A section of the page: the same silver headline as the front page, a line under it, and what it shows below, full width. */
+function Block({
 	heading,
 	body,
 	children,
@@ -20,27 +23,24 @@ function Row({
 	children: React.ReactNode;
 }) {
 	return (
-		<section className="grid gap-10 py-14 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 lg:py-20">
-			<div>
-				<h2 className="font-display font-medium text-[2rem] text-white leading-tight tracking-[-0.03em]">
-					{heading}
-				</h2>
-				<p className="mt-5 text-[17px] text-neutral-400 leading-[1.65]">{body}</p>
+		<section className="py-14 lg:py-20">
+			<div className="flex flex-col items-center">
+				<SectionHead title={heading} line={body} />
 			</div>
-			<div>{children}</div>
+			<div className="mt-12">{children}</div>
 		</section>
 	);
 }
 
 /** One logo on a dark or a light tile, with the files to download under it. */
-function Tile({ logo, tone }: { logo: Logo; tone: "dark" | "light" }) {
+function Tile({ logo, tone, wide }: { logo: Logo; tone: "dark" | "light"; wide: boolean }) {
 	const m = useMessages().brand;
 	const ink = tone === "dark" ? "white" : "black";
 	const base = `${KIT}/${logo.file}-${ink}`;
 	return (
 		<div data-logo data-tone={tone}>
 			<div
-				className={`grid aspect-[4/3] place-items-center p-6 ${tone === "dark" ? "bg-[#111113]" : "bg-[#f4f4f5]"}`}
+				className={`grid ${wide ? "aspect-[16/8]" : "aspect-[4/3]"} place-items-center p-6 ${tone === "dark" ? "bg-[#111113]" : "bg-[#f4f4f5]"}`}
 			>
 				<img
 					src={`${base}.svg`}
@@ -48,11 +48,19 @@ function Tile({ logo, tone }: { logo: Logo; tone: "dark" | "light" }) {
 					className={logo.name === "mark" ? "size-16" : "w-4/5"}
 				/>
 			</div>
-			<div className="mt-3 flex gap-2">
-				<Link href={`${base}.svg`} download className={BUTTON}>
+			<div className="flex gap-2 p-4">
+				<Link
+					href={`${base}.svg`}
+					download
+					className={tone === "dark" ? BUTTON_DARK : BUTTON_LIGHT}
+				>
 					{m.svg}
 				</Link>
-				<Link href={`${base}.png`} download className={BUTTON}>
+				<Link
+					href={`${base}.png`}
+					download
+					className={tone === "dark" ? BUTTON_DARK : BUTTON_LIGHT}
+				>
 					{m.png}
 				</Link>
 			</div>
@@ -116,6 +124,87 @@ function Clearspace({
 	);
 }
 
+const wordmark = `${KIT}/wordmark-white.svg`;
+const letters = `${KIT}/word-white.svg`;
+const markOnly = `${KIT}/mark-white.svg`;
+
+/** The pictures of what not to do, in the order the rules are written: stretched, recolored, on a busy image, rearranged, and implying a partner. */
+const MISUSE: { picture: React.ReactNode; busy?: boolean }[] = [
+	{
+		picture: (
+			<img src={wordmark} alt="" className="w-3/5 -rotate-[14deg] scale-x-[1.35] scale-y-[0.7]" />
+		),
+	},
+	{
+		picture: (
+			<img
+				src={wordmark}
+				alt=""
+				className="w-3/5 [filter:drop-shadow(3px_3px_0_oklch(0.7_0.2_20))_drop-shadow(-3px_-3px_0_oklch(0.75_0.15_240))]"
+			/>
+		),
+	},
+	{ picture: <img src={wordmark} alt="" className="w-3/5" />, busy: true },
+	{
+		picture: (
+			<div className="flex items-center gap-3">
+				<img src={letters} alt="" className="w-28" />
+				<img src={markOnly} alt="" className="size-9" />
+			</div>
+		),
+	},
+	{
+		picture: (
+			<div className="flex items-center gap-3">
+				<img src={wordmark} alt="" className="w-28" />
+				<span className="text-[22px] text-neutral-500">+</span>
+				<span className="size-9 border border-white/30" />
+			</div>
+		),
+	},
+];
+
+function Misuse({ rules }: { rules: string[] }) {
+	return (
+		<ul className="flex flex-wrap justify-center gap-x-6 gap-y-10">
+			{rules.map((rule, index) => {
+				const example = MISUSE[index] ?? MISUSE[0];
+				return (
+					<li
+						key={rule}
+						data-misuse
+						className="w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+					>
+						<div
+							className={`relative grid aspect-[4/3] place-items-center overflow-hidden ${PANEL} ${example?.busy ? "bg-[repeating-conic-gradient(#3a3a3f_0%_25%,#8a8a92_0%_50%)] bg-[length:28px_28px]" : "bg-[#111113]"}`}
+						>
+							{example?.picture}
+							<span
+								data-cross
+								aria-hidden="true"
+								className="absolute top-3 right-3 grid size-7 place-items-center bg-[oklch(0.93_0.02_300)] text-black"
+							>
+								<svg
+									aria-hidden="true"
+									viewBox="0 0 12 12"
+									className="size-3"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth={1.6}
+									strokeLinecap="square"
+								>
+									<path d="M2.5 2.5l7 7M9.5 2.5l-7 7" />
+								</svg>
+							</span>
+						</div>
+						<p className="mt-4 text-[16px] text-neutral-300 leading-[1.55]">{rule}</p>
+					</li>
+				);
+			})}
+		</ul>
+	);
+}
+
 /**
  * The brand assets page, set out like a brand kit: the held mesh head with the full pack to download, then rows of a
  * name and a few words on the left and what they are about on the right: logos to download, colors, clearspace, the
@@ -139,45 +228,60 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 						<Link
 							href={doc.pack}
 							download
-							className="mt-8 inline-flex h-11 items-center gap-3 bg-[oklch(0.93_0.02_300)] px-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
+							className="mt-8 inline-flex h-11 items-center gap-4 bg-[oklch(0.93_0.02_300)] pr-1.5 pl-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)]"
 						>
-							<svg
-								data-icon="download"
-								viewBox="0 0 20 20"
-								className="size-4"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth={1.5}
-								strokeLinecap="square"
-								aria-hidden="true"
-							>
-								<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
-							</svg>
-							{m.pack}
+							<span>{m.pack}</span>
+							<span data-chip className="grid size-8 place-items-center bg-black text-white">
+								<svg
+									data-icon="download"
+									viewBox="0 0 20 20"
+									className="size-4"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth={1.5}
+									strokeLinecap="square"
+									aria-hidden="true"
+								>
+									<path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M3.5 16.5h13" />
+								</svg>
+							</span>
 						</Link>
 					</div>
 				</div>
 				<div data-sheet className={`${SHEET} pb-24 sm:pb-32`}>
 					<div className="mx-auto w-full max-w-[72rem]">
-						<Row heading={doc.logos.heading} body={doc.logos.body}>
-							<div className="grid gap-x-3 gap-y-8 sm:grid-cols-3">
-								{(["dark", "light"] as const).flatMap((tone) =>
-									doc.logos.items.map((logo) => (
-										<Tile key={`${tone}-${logo.name}`} logo={logo} tone={tone} />
-									)),
-								)}
+						<Block heading={doc.logos.heading} body={doc.logos.body}>
+							<div className="grid gap-6 lg:grid-cols-2">
+								{doc.logos.items.map((logo, index) => (
+									<figure
+										key={logo.name}
+										data-specimen
+										className={`${PANEL} ${index === 0 ? "lg:col-span-2" : ""}`}
+									>
+										<figcaption className="px-5 pt-4 pb-3 text-[14px] text-neutral-400">
+											{logo.label}
+										</figcaption>
+										<div className="grid grid-cols-2">
+											{(["dark", "light"] as const).map((tone) => (
+												<div key={tone} className={tone === "light" ? "bg-[#f4f4f5]" : ""}>
+													<Tile logo={logo} tone={tone} wide={index === 0} />
+												</div>
+											))}
+										</div>
+									</figure>
+								))}
 							</div>
-						</Row>
-						<Row heading={doc.colors.heading} body={doc.colors.body}>
-							<div className="grid gap-3 sm:grid-cols-2">
+						</Block>
+						<Block heading={doc.colors.heading} body={doc.colors.body}>
+							<div data-spectrum className="flex flex-col gap-1 lg:flex-row">
 								{doc.colors.items.map((color) => (
 									<div
 										key={color.name}
 										data-swatch
 										style={{ backgroundColor: color.hex }}
-										className={`flex min-h-44 flex-col justify-between p-5 ${color.light ? "text-black" : "bg-[#0a0a0a] text-white outline outline-1 outline-white/15"}`}
+										className={`flex min-h-52 flex-1 flex-col justify-between p-6 transition-[flex-grow] duration-500 ease-out lg:min-h-96 lg:hover:flex-[2.2] ${color.light ? "text-black" : "bg-[#0a0a0a] text-white outline outline-1 outline-white/15"}`}
 									>
-										<span className="text-[17px]">{color.name}</span>
+										<span className="text-[19px]">{color.name}</span>
 										<span className="block text-[13px] leading-[1.6]">
 											<span className="block">{color.hex}</span>
 											<span className="block opacity-70">{color.oklch}</span>
@@ -185,9 +289,9 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 									</div>
 								))}
 							</div>
-						</Row>
-						<Row heading={doc.clearspace.heading} body={doc.clearspace.body}>
-							<div className="space-y-12">
+						</Block>
+						<Block heading={doc.clearspace.heading} body={doc.clearspace.body}>
+							<div className={`grid gap-12 p-8 lg:grid-cols-2 lg:p-12 ${PANEL}`}>
 								<Clearspace
 									file="wordmark"
 									label="Wordmark with clearspace"
@@ -203,21 +307,26 @@ export function BrandPage({ authUrl, doc }: { authUrl: string; doc: BrandDoc }) 
 									down={2}
 								/>
 							</div>
-						</Row>
-						<Row heading={doc.typeface.heading} body={doc.typeface.body}>
-							<p className="font-display text-[clamp(3rem,8vw,6rem)] text-white leading-none tracking-[-0.04em]">
-								Aa
-							</p>
-						</Row>
-						<Row heading={doc.rules.heading} body={doc.rules.body}>
-							<ul className="list-[square] space-y-3 pl-5 marker:text-neutral-600">
-								{doc.rules.dont.map((rule) => (
-									<li key={rule} className="pl-1 text-[18px] text-neutral-300 leading-[1.6]">
-										{rule}
-									</li>
-								))}
-							</ul>
-						</Row>
+						</Block>
+						<Block heading={doc.typeface.heading} body={doc.typeface.body}>
+							<div
+								data-specimen-type
+								className={`grid items-center gap-10 p-8 lg:grid-cols-[auto_1fr] lg:gap-16 lg:p-12 ${PANEL}`}
+							>
+								<div className="flex items-baseline gap-8 font-display text-white leading-none tracking-[-0.04em]">
+									<span className="font-normal text-[clamp(5rem,12vw,9rem)]">Aa</span>
+									<span className="font-medium text-[clamp(5rem,12vw,9rem)]">Aa</span>
+								</div>
+								<div className="space-y-3 font-display text-[clamp(1.125rem,2.2vw,1.625rem)] text-neutral-300 leading-snug tracking-[-0.01em]">
+									<p>ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+									<p>abcdefghijklmnopqrstuvwxyz</p>
+									<p>0123456789</p>
+								</div>
+							</div>
+						</Block>
+						<Block heading={doc.rules.heading} body={doc.rules.body}>
+							<Misuse rules={doc.rules.dont} />
+						</Block>
 					</div>
 				</div>
 			</article>

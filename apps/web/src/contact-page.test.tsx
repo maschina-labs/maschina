@@ -65,6 +65,37 @@ describe("the contact page", () => {
 		expect(within(group).getByRole("radio", { name: /Support/ })).toBeChecked();
 	});
 
+	it("makes the four addresses the page: each a line of large type, support first and open, and the others closed", () => {
+		const { container } = render(<ContactPage authUrl={AUTH} />);
+		const group = screen.getByRole("radiogroup", { name: "Who is it for" });
+		const rows = [...group.querySelectorAll("[data-inbox]")] as HTMLElement[];
+		expect(rows).toHaveLength(4);
+		expect(rows.map((row) => row.querySelector("[data-address]")?.textContent)).toEqual([
+			"support@maschina.dev",
+			"billing@maschina.dev",
+			"legal@maschina.dev",
+			"abuse@maschina.dev",
+		]);
+		expect(rows[0]).toHaveAttribute("data-open", "true");
+		for (const row of rows.slice(1)) expect(row).toHaveAttribute("data-open", "false");
+		// Only the open one has the form under it, so the form is on the page once.
+		expect(container.querySelectorAll("textarea")).toHaveLength(1);
+		expect(rows[0]?.contains(screen.getByLabelText("Your message"))).toBe(true);
+	});
+
+	it("opens the address you pick into the form in place, and keeps what you had typed when you pick another", () => {
+		const { container } = render(<ContactPage authUrl={AUTH} />);
+		fill("Ada", "ada@example.com", "A question about my bill.");
+		fireEvent.click(screen.getByRole("radio", { name: /Billing/ }));
+		const rows = [...container.querySelectorAll("[data-inbox]")] as HTMLElement[];
+		expect(rows[1]).toHaveAttribute("data-open", "true");
+		expect(rows[0]).toHaveAttribute("data-open", "false");
+		expect(rows[1]?.contains(screen.getByLabelText("Your message"))).toBe(true);
+		expect(screen.getByLabelText("Your name")).toHaveValue("Ada");
+		expect(screen.getByLabelText("Your message")).toHaveValue("A question about my bill.");
+		expect(container.querySelector("[data-recipient]")).toHaveTextContent("billing@maschina.dev");
+	});
+
 	it("sends the message to the API with the chosen topic, then says it was sent and shows the form no more", async () => {
 		render(<ContactPage authUrl={AUTH} />);
 		fireEvent.click(screen.getByRole("radio", { name: /Billing/ }));

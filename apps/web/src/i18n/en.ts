@@ -313,4 +313,8 @@ export const en = {
 		label: "Language",
 		soon: "Soon",
 	},
+	// Last, on purpose: a string added anywhere else would move every string after it.
+	downloads: {
+		papers: "Download everything",
+	},
 } as const;
