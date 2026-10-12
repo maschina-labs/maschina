@@ -76,13 +76,13 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				<TryButton
 					href={`${authUrl}/sign-up`}
 					label={m.start}
-					className="flex h-9 px-5 sm:inline-flex sm:pr-1"
+					className="flex h-10 px-5 sm:inline-flex sm:pr-1 xl:h-8"
 					labelClassName="flex-1 text-center sm:text-left"
-					chipClassName="size-7"
+					chipClassName="size-7 xl:size-6"
 				/>
 				<Link
 					href={DOCS}
-					className="inline-flex items-center justify-center bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
+					className="inline-flex items-center justify-center bg-white/[0.13] px-5 h-10 xl:h-8 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 				>
 					{m.docs}
 				</Link>
