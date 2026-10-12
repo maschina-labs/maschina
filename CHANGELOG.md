@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.45](https://github.com/maschina-labs/maschina/compare/v0.0.44...v0.0.45) (2026-10-12)
+
+
+### Added
+
+* **web:** the product pages and centered page heads ([#790](https://github.com/maschina-labs/maschina/issues/790)) ([b9c6ac6](https://github.com/maschina-labs/maschina/commit/b9c6ac696545f68588d4fadaf687771a87fd0697))
+
 ## [0.0.44](https://github.com/maschina-labs/maschina/compare/v0.0.43...v0.0.44) (2026-10-12)
 
 
