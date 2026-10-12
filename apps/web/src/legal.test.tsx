@@ -370,7 +370,8 @@ describe.each([
 	["the security disclosure", DISCLOSURE],
 ])("%s", (_name, doc) => {
 	it("is dated, and only ever writes the way the site does: no long dashes, no placeholders, no AI wording, no shouting", () => {
-		expect(doc.updated).toBe("October 9, 2026");
+		// Each document carries the date it was last changed, which is not the same day for all of them.
+		expect(doc.updated).toMatch(/^October \d{1,2}, 2026$/);
 		const all = text(doc);
 		expect(all).not.toMatch(
 			new RegExp(`[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]`),
@@ -661,22 +662,27 @@ describe("the acceptable use policy", () => {
 });
 
 describe("the license", () => {
-	it("says what the repository's own notice says: public to be read, all rights reserved, not open source", () => {
+	it("says what the repository's own notice says: public, source-available under the Functional Source License, not open source", () => {
 		const all = text(LICENSE);
 		expect(all).toMatch(/source.available, which is not the same as open source/i);
-		expect(all).toMatch(/all rights are reserved/i);
-		expect(all).toMatch(/There is no open source license/i);
+		expect(all).toMatch(/Functional Source License/);
+		expect(all).toMatch(/FSL-1\.1-Apache-2\.0/);
+		expect(all).toMatch(/two years/i);
 		expect(all).toMatch(/not accepting outside contributions/i);
 		expect(all).toMatch(/Söhne/);
 	});
 
-	it("grants nothing it does not mean to: no open source license is named as applying, and permission is only ever in writing", () => {
+	it("allows playing with it and forbids a competing product, and says so in plain words", () => {
 		const all = text(LICENSE);
-		expect(all).not.toMatch(
-			/\b(MIT|Apache|GPL|BSD|MPL|AGPL|Creative Commons|BUSL|Business Source)\b/,
-		);
+		expect(all).toMatch(/competing/i);
+		expect(all).toMatch(/keep our copyright notices/i);
+		expect(all).toMatch(/THIRD-PARTY-NOTICES/);
+	});
+
+	it("names no license as applying but the one it is under, and permission beyond it is only ever in writing", () => {
+		const all = text(LICENSE);
+		expect(all).not.toMatch(/\b(MIT|GPL|BSD|MPL|AGPL|Creative Commons|BUSL|Business Source)\b/);
 		expect(all).toMatch(/in writing/i);
-		expect(all).toMatch(/Silence is not permission/i);
 	});
 
 	it("covers each part of a license page, under its own heading", () => {

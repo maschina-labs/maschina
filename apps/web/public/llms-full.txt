@@ -62,7 +62,7 @@ More: https://maschina.dev/privacy
 ## Acceptable use, license and security
 
 - Acceptable use: no illegal activity, no market manipulation, no machines built to take money they have no right to, and no attacks on the service. Abuse reports go to abuse@maschina.dev. https://maschina.dev/acceptable-use
-- License: the source code is public so it can be read and checked. All rights are reserved by Maschina Labs, there is no open source license, and permission for anything more has to be asked for in writing. https://maschina.dev/license
+- License: the source code is public so it can be read and checked. It is source-available, not open source, under the Functional Source License (FSL-1.1-Apache-2.0): anyone may run, change and share it for any purpose except a competing one, and each version becomes Apache 2.0 two years after it is published. https://maschina.dev/license
 - Security: report a problem privately to security@maschina.dev or through GitHub's private vulnerability reporting. Test only with your own accounts and funds. Good faith research that follows the rules is treated as authorized. There is no bug bounty yet. https://maschina.dev/disclosure
 
 ## Contact
