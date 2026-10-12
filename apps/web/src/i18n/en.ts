@@ -328,4 +328,8 @@ export const en = {
 		code: "Code",
 		hero: "Free to try on paper",
 	},
+	marquee: {
+		name: "Built With",
+		label: "Built with",
+	},
 } as const;
