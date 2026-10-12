@@ -14,18 +14,21 @@ export function TryButton({
 	labelClassName,
 	chipClassName,
 	label,
+	finish = "pearl",
 }: {
 	href: string;
 	className: string;
 	labelClassName: string;
 	chipClassName: string;
 	label?: string;
+	/** Which finish shows on hover: `pearl` (the default), `silver` (white metal) or `opal`. One per button, never mixed. */
+	finish?: "silver" | "pearl" | "opal";
 }) {
 	const m = useMessages();
 	return (
 		<Link
 			href={href}
-			className={`items-center gap-3 silver-button text-black max-sm:font-medium ${className}`}
+			className={`items-center gap-3 silver-button ${finish === "pearl" ? "" : `finish-${finish}`} text-black max-sm:font-medium ${className}`}
 		>
 			<span className={labelClassName}>{label ?? m.header.tryMaschina}</span>
 			<span
