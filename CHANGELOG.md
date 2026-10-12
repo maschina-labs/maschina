@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.44](https://github.com/maschina-labs/maschina/compare/v0.0.43...v0.0.44) (2026-10-12)
+
+
+### Fixed
+
+* **web:** say only the sign in methods that work today ([#786](https://github.com/maschina-labs/maschina/issues/786)) ([4b25777](https://github.com/maschina-labs/maschina/commit/4b257777d6eb896d18ba67ac69ace6dbe8a95d39))
+
 ## [0.0.43](https://github.com/maschina-labs/maschina/compare/v0.0.42...v0.0.43) (2026-10-12)
 
 
