@@ -91,6 +91,19 @@ body {
 	}
 }
 
+/* A slow, steady slide to the left. The track holds its names twice, so moving half its width loops without a gap. */
+@theme {
+	--animate-marquee: marquee 45s linear infinite;
+	@keyframes marquee {
+		from {
+			transform: translateX(0);
+		}
+		to {
+			transform: translateX(-50%);
+		}
+	}
+}
+
 /* A very slow drift for the light behind a chapter: it moves a little and back, like light through glass. */
 @theme {
 	--animate-drift: drift 18s ease-in-out infinite;
