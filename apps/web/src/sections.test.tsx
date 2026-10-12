@@ -73,12 +73,12 @@ const SECTIONS = [
 ] as const;
 
 describe.each(SECTIONS)("the $name section", ({ name, title, element, links }) => {
-	it("is a centered section with the pearl headline and the thin outline, and one gray line under it", () => {
+	it("is a left-aligned chapter with the pearl headline and the thin outline, and one gray line under it", () => {
 		render(element);
 		const section = screen.getByRole("region", { name });
 		const heading = within(section).getByRole("heading", { level: 2, name: title });
 		for (const part of [
-			"text-center",
+			"text-left",
 			"bg-clip-text",
 			"text-transparent",
 			"[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]",
@@ -89,7 +89,10 @@ describe.each(SECTIONS)("the $name section", ({ name, title, element, links }) =
 		const line = heading.nextElementSibling as HTMLElement;
 		expect(line.tagName).toBe("P");
 		expect(line.className).toContain("text-neutral-400");
-		expect(line.className).toContain("text-center");
+		expect(line.className).toContain("text-left");
+		// Reading, not ceremony: nothing in the head is centered.
+		expect(heading.className).not.toContain("text-center");
+		expect(line.className).not.toContain("text-center");
 	});
 
 	it("has the buttons and links it should, and the first button is the pearl one", () => {
@@ -127,7 +130,7 @@ describe.each(SECTIONS)("the $name section", ({ name, title, element, links }) =
 });
 
 describe("how it works", () => {
-	it("has three steps, in order, side by side from a tablet up and one under the other on a phone", () => {
+	it("has three steps, in order, one under the other beside the words, numbered 01 to 03", () => {
 		const { container } = render(<HowItWorks authUrl={AUTH} />);
 		const steps = [...container.querySelectorAll("[data-step]")];
 		expect(steps).toHaveLength(3);
@@ -136,9 +139,13 @@ describe("how it works", () => {
 			"Set its limits",
 			"Let it work",
 		]);
+		expect(steps.map((step) => step.querySelector("span")?.textContent)).toEqual([
+			"01",
+			"02",
+			"03",
+		]);
 		const list = steps[0]?.parentElement as HTMLElement;
-		expect(list.className).toContain("md:grid-cols-3");
-		expect(list.className).not.toMatch(/(^|\s)grid-cols-3/);
+		expect(list.className).not.toMatch(/grid-cols-3/);
 	});
 });
 
@@ -218,5 +225,60 @@ describe("what is not built yet says so", () => {
 		expect(cards).toHaveLength(3);
 		const first = cards[0] as HTMLElement;
 		expect((first.parentElement as HTMLElement).className).toContain("md:grid-cols-3");
+	});
+});
+
+describe("the chapters between the preview and the questions", () => {
+	const side = (name: string, element: React.ReactElement) => {
+		render(element);
+		return screen
+			.getByRole("region", { name })
+			.querySelector("[data-chapter]") as HTMLElement | null;
+	};
+
+	it.each([
+		["How It Works", <HowItWorks key="a" authUrl={AUTH} />],
+		["Inside the App", <Features key="b" authUrl={AUTH} />],
+		["Safety", <Safety key="c" />],
+		["Customize", <Customize key="d" authUrl={AUTH} />],
+		["Live Record", <LiveRecord key="e" />],
+		["Network", <Network key="f" />],
+	])(
+		"%s puts its words and its visual in two columns from a large screen up, one under the other on a phone",
+		(name, element) => {
+			const chapter = side(name, element);
+			expect(chapter).not.toBeNull();
+			expect(chapter?.className).toContain("lg:grid-cols-2");
+			expect(chapter?.querySelector("[data-words]")).not.toBeNull();
+			expect(chapter?.querySelector("[data-visual]")).not.toBeNull();
+			// The words come first in reading order, so a phone and a screen reader meet them before the picture.
+			expect(chapter?.firstElementChild).toHaveAttribute("data-words");
+		},
+	);
+
+	it("moves the visual from one side to the other down the page, so the headlines keep one left edge and the page keeps a rhythm", () => {
+		const flipped: string[] = [];
+		for (const [name, element] of [
+			["How It Works", <HowItWorks key="a" authUrl={AUTH} />],
+			["Inside the App", <Features key="b" authUrl={AUTH} />],
+			["Safety", <Safety key="c" />],
+			["Customize", <Customize key="d" authUrl={AUTH} />],
+			["Live Record", <LiveRecord key="e" />],
+			["Network", <Network key="f" />],
+		] as const) {
+			const { unmount } = render(element);
+			const visual = screen
+				.getByRole("region", { name })
+				.querySelector("[data-visual]") as HTMLElement;
+			if (visual.className.includes("lg:order-first")) flipped.push(name);
+			unmount();
+		}
+		expect(flipped).toEqual(["Inside the App", "Customize", "Network"]);
+	});
+
+	it("keeps the marketplace's three places under a left-aligned head, since they are a row and not a picture", () => {
+		const chapter = side("Marketplace", <Marketplace />);
+		expect(chapter).toBeNull();
+		expect(screen.getAllByRole("listitem")).toHaveLength(3);
 	});
 });

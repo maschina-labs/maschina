@@ -28,12 +28,17 @@ const GHOST =
 function Buttons({
 	primary,
 	secondary,
+	left = false,
 }: {
 	primary: { label: string; href: string };
 	secondary?: { label: string; href: string };
+	/** Start at the left edge, for a chapter, instead of in the middle. */
+	left?: boolean;
 }) {
 	return (
-		<div className="mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
+		<div
+			className={`mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row ${left ? "sm:justify-start" : "sm:justify-center"}`}
+		>
 			<TryButton
 				href={primary.href}
 				label={primary.label}
@@ -53,30 +58,73 @@ function Buttons({
 /** A square panel, the one shape every visual here is made of. */
 const PANEL = "bg-white/[0.04] p-5 sm:p-6";
 
-/** How it works: three steps, side by side from a tablet up and one under the other on a phone. */
+/**
+ * A chapter of the story: the words in one column and a visual in the other, from a large screen up, and the words and
+ * then the visual on a phone. The words are left-aligned, so every headline down the page starts at the same edge, and
+ * `flip` moves the visual to the other side for rhythm. It takes the buttons last, so they sit under the words.
+ */
+function Chapter({
+	name,
+	head,
+	buttons,
+	flip = false,
+	children,
+}: {
+	name: string;
+	head: React.ReactNode;
+	buttons?: React.ReactNode;
+	flip?: boolean;
+	children: React.ReactNode;
+}) {
+	return (
+		<Section name={name}>
+			<div
+				data-chapter
+				className="grid w-full max-w-[72rem] gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
+			>
+				<div data-words className="flex flex-col items-start">
+					{head}
+					{buttons}
+				</div>
+				<div data-visual className={flip ? "lg:order-first" : ""}>
+					{children}
+				</div>
+			</div>
+		</Section>
+	);
+}
+
+/** How it works: three steps, one under the other beside the words. */
 export function HowItWorks({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.how;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ol className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-3">
+		<Chapter
+			name={m.name}
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={
+				<Buttons
+					left
+					primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
+					secondary={{ label: m.secondary, href: DOCS }}
+				/>
+			}
+		>
+			<ol className="grid gap-3">
 				{m.steps.map((step, index) => (
-					<li key={step.title} data-step className={`${PANEL} min-h-48`}>
-						<span className="block text-[13px] text-neutral-500 tabular-nums">
+					<li key={step.title} data-step className={`${PANEL} flex gap-5 sm:gap-6`}>
+						<span className="text-[13px] text-neutral-500 tabular-nums">
 							{String(index + 1).padStart(2, "0")}
 						</span>
-						<h3 className="mt-6 font-display font-medium text-[1.375rem] text-white tracking-[-0.015em]">
-							{step.title}
-						</h3>
-						<p className="mt-3 text-[16px] text-neutral-400 leading-[1.55]">{step.body}</p>
+						<div>
+							<h3 className="font-display font-medium text-[1.375rem] text-white tracking-[-0.015em]">
+								{step.title}
+							</h3>
+							<p className="mt-2 text-[16px] text-neutral-400 leading-[1.55]">{step.body}</p>
+						</div>
 					</li>
 				))}
 			</ol>
-			<Buttons
-				primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
-				secondary={{ label: m.secondary, href: DOCS }}
-			/>
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -131,9 +179,13 @@ export function Features({ authUrl }: { authUrl: string }) {
 		<Rows key="d" count={5} />,
 	];
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ul className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 sm:grid-cols-2">
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
+		>
+			<ul className="grid gap-3 sm:grid-cols-2">
 				{m.tiles.map((tile, index) => (
 					<li key={tile.title} data-tile className={`${PANEL} flex flex-col gap-6`}>
 						<div className="flex min-h-24 items-center">{pictures[index]}</div>
@@ -147,8 +199,7 @@ export function Features({ authUrl }: { authUrl: string }) {
 				))}
 			</ul>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-			<Buttons primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -156,9 +207,28 @@ export function Features({ authUrl }: { authUrl: string }) {
 export function Safety() {
 	const m = useMessages().home.safety;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ol className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-4">
+		<Chapter
+			name={m.name}
+			head={
+				<>
+					<SectionHead title={m.title} line={m.line} align="left" />
+					<p className="mt-6 max-w-[48ch] text-left text-[14px] text-neutral-500 leading-[1.6]">
+						{rich(m.audit, {
+							link: (
+								<Link
+									href="/risk"
+									className="text-neutral-300 underline decoration-white/30 underline-offset-4 hover:decoration-white"
+								>
+									{m.auditLink}
+								</Link>
+							),
+						})}
+					</p>
+				</>
+			}
+			buttons={<Buttons left primary={{ label: m.primary, href: DOCS }} />}
+		>
+			<ol className="grid gap-3 sm:grid-cols-2">
 				{m.flow.map((step, index) => (
 					<li
 						key={step}
@@ -170,7 +240,7 @@ export function Safety() {
 					</li>
 				))}
 			</ol>
-			<ul className="mt-3 grid w-full max-w-[64rem] gap-3 md:grid-cols-2">
+			<ul className="mt-3 grid gap-3">
 				{m.points.map((point) => (
 					<li
 						key={point}
@@ -181,20 +251,7 @@ export function Safety() {
 					</li>
 				))}
 			</ul>
-			<p className="mt-6 max-w-[48ch] text-center text-[14px] text-neutral-500 leading-[1.6]">
-				{rich(m.audit, {
-					link: (
-						<Link
-							href="/risk"
-							className="text-neutral-300 underline decoration-white/30 underline-offset-4 hover:decoration-white"
-						>
-							{m.auditLink}
-						</Link>
-					),
-				})}
-			</p>
-			<Buttons primary={{ label: m.primary, href: DOCS }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -203,9 +260,13 @@ export function Customize({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.customize;
 	const positions = ["w-3/5", "w-1/4", "w-2/5", "w-3/4"];
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<div className={`${PANEL} mt-14 w-full max-w-[40rem] space-y-6 sm:mt-16 sm:p-8`}>
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
+		>
+			<div className={`${PANEL} space-y-6 sm:p-8`}>
 				{m.settings.map((setting, index) => (
 					<div key={setting} data-setting>
 						<div className="flex items-center justify-between text-[14px] text-neutral-300">
@@ -220,8 +281,7 @@ export function Customize({ authUrl }: { authUrl: string }) {
 				))}
 			</div>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-			<Buttons primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -229,9 +289,11 @@ export function Customize({ authUrl }: { authUrl: string }) {
 export function LiveRecord() {
 	const m = useMessages().home.live;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<div className={`${PANEL} mt-14 w-full max-w-[44rem] sm:mt-16`}>
+		<Chapter
+			name={m.name}
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
+		>
+			<div className={PANEL}>
 				<ul className="divide-y divide-white/[0.06]">
 					{m.rows.map((row) => (
 						<li
@@ -247,7 +309,7 @@ export function LiveRecord() {
 				</ul>
 			</div>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -255,14 +317,17 @@ export function LiveRecord() {
 export function Network() {
 	const m = useMessages().home.network;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<div className="mt-10 aspect-square w-full max-w-[34rem] sm:mt-14">
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
+		>
+			<div className="mx-auto aspect-square w-full max-w-[34rem]">
 				<Suspense fallback={null}>
 					<Globe label={m.globe} />
 				</Suspense>
 			</div>
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -271,8 +336,10 @@ export function Marketplace() {
 	const m = useMessages().home.marketplace;
 	return (
 		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<ul className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-3">
+			<div className="flex w-full max-w-[72rem] flex-col items-start">
+				<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />
+			</div>
+			<ul className="mt-14 grid w-full max-w-[72rem] gap-3 sm:mt-16 md:grid-cols-3">
 				{m.cards.map((card, index) => (
 					<li key={index} data-card className={`${PANEL} min-h-44 opacity-70`}>
 						<span className="block text-[14px] text-neutral-500">{card}</span>
