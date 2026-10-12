@@ -204,7 +204,7 @@ body {
 	/* No hover on a phone, so the pearl shows while the button is pressed. */
 	.silver-button:active,
 	.silver-button-mobile:active {
-		background-image: var(--shimmer, var(--pearl-shimmer));
+		background-image: var(--shimmer);
 		background-position: 60% 0;
 	}
 }
@@ -218,7 +218,7 @@ body {
 		transition: background-position 260ms ease-out;
 	}
 	.silver-button-mobile:hover {
-		background-image: var(--shimmer, var(--pearl-shimmer));
+		background-image: var(--shimmer);
 		background-position: var(--shine-x, 100%) 0;
 	}
 }
