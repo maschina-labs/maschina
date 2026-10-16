@@ -1,4 +1,4 @@
-<img alt="Maschina" src="apps/web/public/og-image.png">
+<img alt="Maschina" src=".github/banner.png">
 
 ### Software that goes to work.
 
