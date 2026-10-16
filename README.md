@@ -1,7 +1,4 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/kit/wordmark-white.svg">
-  <img alt="Maschina" src="apps/web/public/brand/kit/wordmark-black.svg" width="360">
-</picture>
+<img alt="Maschina" src="apps/web/public/og-image.png">
 
 ### Software that goes to work.
 
