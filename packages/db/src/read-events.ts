@@ -48,3 +48,59 @@ export async function readMachineEvents(
 			}) as StoredEvent,
 	);
 }
+
+/**
+ * The events behind an owner's public record: every machine they own, live or paper, running or
+ * stopped (D-108).
+ *
+ * Bounded in SQL rather than in the application. Reading a whole history to show the last few trades
+ * is how a public page becomes a way to make the database work hard, and the public page is the one
+ * anybody can ask for as often as they like.
+ *
+ * It takes two passes on purpose. The first finds the most recent finished trades, so the limit is
+ * applied to trades rather than to rows; the second fetches only the intents those trades need to say
+ * which way they went. A single limited query would cut intents away from their completions and
+ * silently drop trades from the record.
+ */
+export async function readOwnerPublicEvents(
+	db: Executor,
+	ownerId: string,
+	limit: number,
+): Promise<StoredEvent[]> {
+	const finished = await db.execute<EventRow>(sql`
+		select e.id, e.machine_id, e.type, e.payload, e.occurred_at from events e
+		join machines m on m.id = e.machine_id
+		where m.owner_id = ${ownerId}::uuid
+			and e.type in ('trade.completed', 'trade.simulated')
+		order by e.occurred_at desc, e.id desc
+		limit ${limit * 2}`);
+
+	const tradeIds = finished
+		.map((row) => (row.payload as Record<string, unknown> | null)?.["tradeId"])
+		.filter((id): id is string => typeof id === "string");
+
+	// Only the intents belonging to those trades, so this stays bounded by the limit above.
+	const intents =
+		tradeIds.length === 0
+			? []
+			: await db.execute<EventRow>(sql`
+					select e.id, e.machine_id, e.type, e.payload, e.occurred_at from events e
+					join machines m on m.id = e.machine_id
+					where m.owner_id = ${ownerId}::uuid
+						and e.type = 'trade.intended'
+						and e.payload->>'tradeId' = any(${tradeIds}::text[])`);
+
+	// Oldest first, the order the projection reads in: an intent has to arrive before its completion.
+	return [...intents, ...finished]
+		.map(
+			(row) =>
+				({
+					id: row.id,
+					machineId: row.machine_id,
+					type: row.type,
+					payload: row.payload,
+					occurredAt: new Date(row.occurred_at),
+				}) as StoredEvent,
+		)
+		.sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+}

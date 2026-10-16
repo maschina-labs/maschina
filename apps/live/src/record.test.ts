@@ -12,10 +12,11 @@ const json = (body: unknown, status = 200) =>
 	new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
 describe("reading the public record", () => {
-	it("asks the gateway's open route and gives back the trades", async () => {
-		const call = vi.fn(async () => json({ trades: [trade] }));
+	it("asks the gateway's open route and gives back real money and paper, apart", async () => {
+		const onPaper = { at: trade.at, side: "sell", usdc: "2000000", sol: "9000000" };
+		const call = vi.fn(async () => json({ live: [trade], paper: [onPaper] }));
 		const result = await readRecord("https://api.maschina.dev", call as unknown as typeof fetch);
-		expect(result).toEqual({ ok: true, trades: [trade] });
+		expect(result).toEqual({ ok: true, record: { live: [trade], paper: [onPaper] } });
 		expect(call).toHaveBeenCalledWith(
 			"https://api.maschina.dev/v1/public/record",
 			expect.anything(),
@@ -31,8 +32,17 @@ describe("reading the public record", () => {
 			false,
 		);
 		// A field that should never be public is refused rather than shown.
-		const leaky = { trades: [{ ...trade, wallet: "secret" }] };
+		const leaky = { live: [{ ...trade, wallet: "secret" }], paper: [] };
 		expect((await readRecord("x", (async () => json(leaky)) as unknown as typeof fetch)).ok).toBe(
+			false,
+		);
+	});
+
+	it("refuses a paper trade carrying a signature, so none can be shown as real", async () => {
+		// The one confusion this page must never make. Paper has no signature field at all, so an
+		// answer claiming one fails here rather than being drawn with a link to an explorer.
+		const faked = { live: [], paper: [trade] };
+		expect((await readRecord("x", (async () => json(faked)) as unknown as typeof fetch)).ok).toBe(
 			false,
 		);
 	});

@@ -1,17 +1,17 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { PublicRecord, type PublicTrade } from "@maschina/contracts";
+import { PublicRecord } from "@maschina/contracts";
 import type { ServiceEnv } from "@maschina/service";
 
-/** What the public record needs: the finished trades of the one machine chosen to be shown. */
-export type PublicRecordDesk = { read(): Promise<PublicTrade[]> };
+/** What the public record needs: the finished trades of every machine the house owns. */
+export type PublicRecordDesk = { read(): Promise<PublicRecord> };
 
 const route = createRoute({
 	method: "get",
 	path: "/public/record",
 	tags: ["Public"],
-	summary: "The finished trades of the machine chosen to be shown, newest first",
+	summary: "Every finished trade the house's machines made, newest first, paper kept apart",
 	description:
-		"Open to everyone. Each trade is its time, side, amounts and the signature that proves it on the chain, and nothing else: no machine, owner or wallet.",
+		"Open to everyone. Real money and paper are two separate lists and are never added together. A live trade carries the signature that proves it on the chain; a paper trade carries none, because nothing was signed. Each trade is its time, side and amounts, and nothing else: no machine, owner or wallet.",
 	responses: {
 		200: {
 			description: "The trades",
@@ -22,10 +22,10 @@ const route = createRoute({
 
 export function publicRecordRoutes(desk: PublicRecordDesk | undefined) {
 	return new OpenAPIHono<ServiceEnv>().openapi(route, async (c) => {
-		// No machine chosen here: nothing to show, rather than an error a page has to explain.
-		const trades = desk ? await desk.read() : [];
+		// No owner chosen here: nothing to show, rather than an error a page has to explain.
+		const record = desk ? await desk.read() : { live: [], paper: [] };
 		c.header("cache-control", "public, max-age=30");
 		// Parsed through the strict schema, so a field that should not be public fails here, not on a page.
-		return c.json(PublicRecord.parse({ trades }), 200);
+		return c.json(PublicRecord.parse(record), 200);
 	});
 }

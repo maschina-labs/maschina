@@ -26,15 +26,13 @@ describe("gateway config", () => {
 		expect(loadConfig(complete).GATEWAY_SECRETS_KEY).toBeUndefined();
 	});
 
-	it("takes the one machine to show publicly only when it is a real id, and shows none otherwise", () => {
+	it("takes the owner whose machines are shown publicly only as a real id, and shows none otherwise", () => {
 		const id = "01a0e674-dbbf-75e0-a420-970000000000";
-		expect(loadConfig({ ...complete, PUBLIC_RECORD_MACHINE_ID: id }).PUBLIC_RECORD_MACHINE_ID).toBe(
-			id,
+		expect(loadConfig({ ...complete, PUBLIC_RECORD_OWNER_ID: id }).PUBLIC_RECORD_OWNER_ID).toBe(id);
+		expect(() => loadConfig({ ...complete, PUBLIC_RECORD_OWNER_ID: "range-finder" })).toThrow(
+			/PUBLIC_RECORD_OWNER_ID/,
 		);
-		expect(() => loadConfig({ ...complete, PUBLIC_RECORD_MACHINE_ID: "range-finder" })).toThrow(
-			/PUBLIC_RECORD_MACHINE_ID/,
-		);
-		expect(loadConfig(complete).PUBLIC_RECORD_MACHINE_ID).toBeUndefined();
+		expect(loadConfig(complete).PUBLIC_RECORD_OWNER_ID).toBeUndefined();
 	});
 
 	it("takes the sign in secret only when it is long enough, and leaves signing in off without it", () => {

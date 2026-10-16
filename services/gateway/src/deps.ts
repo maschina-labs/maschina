@@ -15,6 +15,7 @@ import {
 	machineForOwner,
 	machinesOf,
 	readMachineEvents,
+	readOwnerPublicEvents,
 	readOwnerSecret,
 	retuneMachine,
 	setOwnerSecret,
@@ -24,6 +25,7 @@ import { jupiterMarket, rpcBalanceReader, rpcBlockhashReader, solanaRpc } from "
 import type { Logger } from "@maschina/telemetry";
 import { checkAnthropicKey } from "./anthropic-key.ts";
 import { machineBalances } from "./balances.ts";
+import { cached } from "./cached.ts";
 import { fundingTransaction } from "./funding.ts";
 import { brainTools, SYSTEM } from "./manager-brain.ts";
 import { orchestratorClient } from "./orchestrator-client.ts";
@@ -43,6 +45,8 @@ const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CHALLENGE_MS = 5 * 60 * 1000;
 /** How many of the latest trades the public record shows. */
 const PUBLIC_TRADES = 50;
+/** How long one answer is shared for. Long enough to matter, short enough to feel live. */
+const PUBLIC_RECORD_CACHE_MS = 20_000;
 
 export type GatewayConfig = {
 	NODE_ENV: string;
@@ -65,7 +69,7 @@ export type GatewayConfig = {
 	GITHUB_CLIENT_SECRET?: string | undefined;
 	GATEWAY_SECRETS_KEY?: string | undefined;
 	JUPITER_API_KEY?: string | undefined;
-	PUBLIC_RECORD_MACHINE_ID?: string | undefined;
+	PUBLIC_RECORD_OWNER_ID?: string | undefined;
 };
 
 /** A sign in provider that is offered only when both its halves are set. */
@@ -276,15 +280,21 @@ export function machinePorts(config: GatewayConfig, clock: Clock = systemClock, 
 		},
 	};
 
-	// Only the one machine chosen in the configuration, and only what publicTrades lets through.
-	const machineToShow = config.PUBLIC_RECORD_MACHINE_ID;
+	// Every machine the chosen owner has (D-108), bounded in SQL, and only what publicTrades lets
+	// through. Behind a short shared cache, because this is the one route anybody may ask for as
+	// often as they like and it must never become a way to make the database work hard.
+	const ownerToShow = config.PUBLIC_RECORD_OWNER_ID;
 	const publicRecord: PublicRecordDesk | undefined =
-		machineToShow === undefined
+		ownerToShow === undefined
 			? undefined
-			: {
-					read: async () =>
-						publicTrades(await readMachineEvents(database.db, machineToShow), PUBLIC_TRADES),
-				};
+			: cached(
+					async () =>
+						publicTrades(
+							await readOwnerPublicEvents(database.db, ownerToShow, PUBLIC_TRADES),
+							PUBLIC_TRADES,
+						),
+					PUBLIC_RECORD_CACHE_MS,
+				);
 
 	return {
 		ports,

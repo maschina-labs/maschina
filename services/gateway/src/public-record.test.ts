@@ -25,6 +25,15 @@ const intended = (tradeId: string, at: string, inputMint: string, outputMint: st
 		quotedOutputAmount: "1",
 		slippageBps: 50,
 	});
+const simulated = (tradeId: string, at: string, inputMint: string, outputMint: string) =>
+	event("trade.simulated", at, {
+		runId: "r",
+		tradeId,
+		inputMint,
+		outputMint,
+		inputAmount: "24000000",
+		quotedOutputAmount: "196600000",
+	});
 const completed = (tradeId: string, at: string, inputAmount: string, outputAmount: string) =>
 	event("trade.completed", at, {
 		runId: "r",
@@ -46,7 +55,7 @@ describe("the public trades", () => {
 			],
 			50,
 		);
-		expect(trades).toEqual([
+		expect(trades.live).toEqual([
 			{
 				at: "2026-10-01T12:00:04.000Z",
 				side: "sell",
@@ -75,18 +84,24 @@ describe("the public trades", () => {
 			],
 			50,
 		);
-		expect(trades).toEqual([]);
+		expect(trades.live).toEqual([]);
 	});
 
 	it("shows only the six public fields: no ids, runs, fees, reasons or addresses can come through", () => {
-		const [trade] = publicTrades(
+		const { live: oneTrade } = publicTrades(
 			[
 				intended("a", "2026-10-01T10:00:00Z", USDC, SOL),
 				completed("a", "2026-10-01T10:00:04Z", "1000000", "8000000"),
 			],
 			50,
 		);
-		expect(Object.keys(trade ?? {}).sort()).toEqual(["at", "side", "signature", "sol", "usdc"]);
+		expect(Object.keys(oneTrade[0] ?? {}).sort()).toEqual([
+			"at",
+			"side",
+			"signature",
+			"sol",
+			"usdc",
+		]);
 	});
 
 	it("skips a trade that is not between USDC and SOL, rather than guessing a side", () => {
@@ -97,7 +112,7 @@ describe("the public trades", () => {
 			],
 			50,
 		);
-		expect(trades).toEqual([]);
+		expect(trades.live).toEqual([]);
 	});
 
 	it("keeps only the most recent trades up to the limit", () => {
@@ -107,9 +122,52 @@ describe("the public trades", () => {
 			events.push(completed(`t${i}`, `2026-10-01T1${i}:00:04Z`, "1000000", "8000000"));
 		}
 		const trades = publicTrades(events, 2);
-		expect(trades.map((trade) => trade.at)).toEqual([
+		expect(trades.live.map((trade) => trade.at)).toEqual([
 			"2026-10-01T14:00:04.000Z",
 			"2026-10-01T13:00:04.000Z",
 		]);
+	});
+
+	it("keeps paper apart from real money, and gives a paper trade no signature at all", () => {
+		// D-096: no total, chart or figure ever adds a paper number to a live one. Two lists make
+		// adding them a deliberate act. And a paper machine signed nothing, so there is nothing to
+		// link to: the field is absent rather than blank, so no page can render an explorer link for
+		// a trade that never happened.
+		const record = publicTrades(
+			[
+				intended("a", "2026-10-01T10:00:00Z", USDC, SOL),
+				completed("a", "2026-10-01T10:00:04Z", "24000000", "196600000"),
+				simulated("p", "2026-10-01T11:00:00Z", USDC, SOL),
+			],
+			50,
+		);
+
+		expect(record.live).toHaveLength(1);
+		expect(record.paper).toEqual([
+			{ at: "2026-10-01T11:00:00.000Z", side: "buy", usdc: "24000000", sol: "196600000" },
+		]);
+		expect(Object.keys(record.paper[0] ?? {})).not.toContain("signature");
+	});
+
+	it("reads a paper sale the right way round too", () => {
+		const record = publicTrades([simulated("p", "2026-10-01T11:00:00Z", SOL, USDC)], 50);
+
+		expect(record.paper).toEqual([
+			{ at: "2026-10-01T11:00:00.000Z", side: "sell", usdc: "196600000", sol: "24000000" },
+		]);
+	});
+
+	it("limits each list on its own, so a busy paper machine cannot crowd out the real trades", () => {
+		const events: StoredEvent[] = [];
+		for (let i = 0; i < 5; i += 1) simulated(`p${i}`, `2026-10-01T1${i}:00:00Z`, USDC, SOL);
+		for (let i = 0; i < 5; i += 1) {
+			events.push(simulated(`p${i}`, `2026-10-01T1${i}:00:00Z`, USDC, SOL));
+			events.push(intended(`t${i}`, `2026-10-01T1${i}:30:00Z`, USDC, SOL));
+			events.push(completed(`t${i}`, `2026-10-01T1${i}:30:04Z`, "1000000", "8000000"));
+		}
+		const record = publicTrades(events, 2);
+
+		expect(record.live).toHaveLength(2);
+		expect(record.paper).toHaveLength(2);
 	});
 });
