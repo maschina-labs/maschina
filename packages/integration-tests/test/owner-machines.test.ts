@@ -41,6 +41,7 @@ async function aMachineFor(ownerWallet: string, name = "SOL dip buyer") {
 		ownerWallet,
 		name,
 		kind: "price_trigger",
+		paper: false,
 		settings: { spendMint: USDC, buyMint: SOL, level: "142000000", direction: "falls_to" },
 		rules: {},
 		wallet: { address: address(), providerWalletId: "wallet-1", provider: "turnkey" },
@@ -92,6 +93,7 @@ describe("what an owner sees", () => {
 			ownerWallet: address(),
 			name: "Range",
 			kind: "range",
+			paper: false,
 			settings: {
 				quoteMint: USDC,
 				baseMint: SOL,

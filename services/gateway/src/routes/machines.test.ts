@@ -283,6 +283,29 @@ describe("the machines API", () => {
 		expect(asked).toEqual([]);
 	});
 
+	it("refuses a machine that does not say whether it is on paper", async () => {
+		// The one field where absent used to mean real money. Nothing is created until it is said.
+		const asked: unknown[] = [];
+		const res = await app({
+			create: async (request) => {
+				asked.push(request);
+				return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(400);
+		expect(asked).toEqual([]);
+	});
+
 	it("creates a machine and says which wallet to fund", async () => {
 		const asked: { ownerWallet: string }[] = [];
 		const res = await app({
@@ -296,6 +319,7 @@ describe("the machines API", () => {
 			body: JSON.stringify({
 				name: "SOL dip buyer",
 				kind: "price_trigger",
+				paper: false,
 				settings: { level: "142000000" },
 				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
 			}),
@@ -328,6 +352,7 @@ describe("a person who signed in without a wallet", () => {
 			body: JSON.stringify({
 				name: "SOL dip buyer",
 				kind: "price_trigger",
+				paper: false,
 				settings: { level: "142000000" },
 				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
 			}),

@@ -54,6 +54,7 @@ async function aPausedRange() {
 		ownerWallet: address(),
 		name: "Range Finder",
 		kind: "range",
+		paper: false,
 		settings: fixedBand,
 		rules: {},
 		wallet: { address: address(), providerWalletId: "wallet-1", provider: "turnkey" },

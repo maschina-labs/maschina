@@ -16,6 +16,7 @@ const request = {
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",
+	paper: false,
 	settings: {
 		spendMint: USDC,
 		buyMint: SOL,

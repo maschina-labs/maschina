@@ -75,7 +75,7 @@ export function buildApp(deps: ProvisionerDeps) {
 				name: asked.name,
 				kind: asked.kind,
 				settings: asked.settings,
-				...(asked.paper === undefined ? {} : { paper: asked.paper }),
+				paper: asked.paper,
 				...(asked.rules ? { rules: asked.rules } : {}),
 				limits: {
 					budgetGranted: BigInt(asked.limits.budgetGranted),

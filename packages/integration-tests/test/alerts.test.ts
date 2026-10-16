@@ -39,6 +39,7 @@ async function aRangeMachine() {
 		ownerWallet: address(),
 		name: "Range Finder",
 		kind: "range",
+		paper: false,
 		settings: {
 			quoteMint: USDC,
 			baseMint: SOL,

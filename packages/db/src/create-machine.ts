@@ -22,7 +22,8 @@ export type MachineToWrite = {
 	ownerWallet: string;
 	name: string;
 	/** True when the machine only ever pretends to trade. Decided here and never changed after. */
-	paper?: boolean;
+	/** Whether it only pretends to trade. Required: nothing here decides it by default. */
+	paper: boolean;
 	kind: string;
 	settings: Record<string, unknown>;
 	rules: Record<string, unknown>;
@@ -106,7 +107,7 @@ async function writeInOneGo(
 				values (${machineId}::uuid, ${owner.value.id}::uuid, ${machine.wallet.address},
 					${machine.wallet.vaultAddress ?? null}, ${machine.wallet.providerWalletId},
 					${machine.wallet.provider}, ${definition.value.id}, ${machine.name},
-					${machine.paper ?? false})`);
+					${machine.paper})`);
 
 		const limits: { limit: string; to: string }[] = [
 			{ limit: "budgetGranted", to: machine.limits.budgetGranted.toString() },
