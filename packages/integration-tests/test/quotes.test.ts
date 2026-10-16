@@ -78,13 +78,18 @@ describe("a live quote", () => {
 		// mint, so this uses a mint that exists and has no liquidity.
 		const noMarket = parseAddress("HskCS1LhkLU5H3JJBkGAoQjVPdzxNoJdc7L5sLXf1CJh");
 
+		// Through `live` like every other call here, so it waits its turn instead of arriving as a
+		// burst. A rate limit is retried; the refusal this test is about is not retryable and comes
+		// straight back, which is the distinction `live` exists to make.
 		await expect(
-			router.quote({
-				inputMint: SOL,
-				outputMint: noMarket,
-				amount: tenthOfASol,
-				slippageBps: 50,
-			}),
+			live(() =>
+				router.quote({
+					inputMint: SOL,
+					outputMint: noMarket,
+					amount: tenthOfASol,
+					slippageBps: 50,
+				}),
+			),
 		).rejects.toMatchObject({ code: expect.stringMatching(/not_found|invalid_input/) });
 	});
 });
