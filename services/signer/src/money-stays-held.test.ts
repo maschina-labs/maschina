@@ -73,8 +73,8 @@ function reachingTheChain(overrides: Partial<ChainPorts["chain"]> = {}) {
 	return { ports, released, submitted: () => recorded };
 }
 
-/** A ledger that holds, and remembers anything given back. */
-function ledgerThatHolds() {
+/** A ledger that holds, reads the same submissions the signer writes, and remembers what it gave back. */
+function ledgerThatHolds(submitted: () => Submission | undefined) {
 	const returned: string[] = [];
 	const ledger: BudgetLedger = {
 		async hold() {
@@ -82,6 +82,9 @@ function ledgerThatHolds() {
 		},
 		async giveBack(_request, reason) {
 			returned.push(reason);
+		},
+		async submissionFor() {
+			return submitted();
 		},
 	};
 	return { ledger, returned };
@@ -96,7 +99,7 @@ describe("a trade that landed", () => {
 				throw new Error("the rpc node is unavailable");
 			},
 		});
-		const budget = ledgerThatHolds();
+		const budget = ledgerThatHolds(chain.submitted);
 
 		await expect(
 			withBudget(chainSigner(chain.ports), budget.ledger).sign(proposal("426070577")),
@@ -131,7 +134,7 @@ describe("a trade whose expiry came from the node", () => {
 					),
 				),
 		});
-		const budget = ledgerThatHolds();
+		const budget = ledgerThatHolds(chain.submitted);
 
 		await withBudget(chainSigner(chain.ports), budget.ledger).sign(proposal("0"));
 
