@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.49](https://github.com/maschina-labs/maschina/compare/v0.0.48...v0.0.49) (2026-10-16)
+
+
+### Fixed
+
+* **signer:** never release a budget for a trade that may have landed ([#806](https://github.com/maschina-labs/maschina/issues/806)) ([5476bb9](https://github.com/maschina-labs/maschina/commit/5476bb9fa60249a989f41d4f49975012048e3424))
+
 ## [0.0.48](https://github.com/maschina-labs/maschina/compare/v0.0.47...v0.0.48) (2026-10-12)
 
 
