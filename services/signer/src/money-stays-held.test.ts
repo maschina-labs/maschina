@@ -18,6 +18,7 @@ import type { Submission } from "./submit-once.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
 
 const SIGNATURE = "4".repeat(88);
+const BLOCKHASH = "EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N";
 const COST = { inputAmount: 100_000n, outputAmount: 14_010_000n, feeLamports: 25_000n };
 
 const proposal = (lastValidBlockHeight: string): SignRequest => ({
@@ -119,6 +120,8 @@ describe("a trade whose expiry came from the node", () => {
 		const seenNothing: ConfirmationReader = {
 			statusOf: async () => undefined,
 			blockHeight: async () => 426_070_577n,
+			// The chain still accepts the blockhash the transaction was actually built against.
+			blockhashValid: async () => true,
 		};
 
 		const chain = reachingTheChain({
@@ -128,6 +131,7 @@ describe("a trade whose expiry came from the node", () => {
 						seenNothing,
 						{
 							signature: submission.signature,
+							blockhash: BLOCKHASH,
 							lastValidBlockHeight: submission.lastValidBlockHeight,
 						},
 						{ timeoutMs: 20, pollMs: 10, sleep: async () => {} },

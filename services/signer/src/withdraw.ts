@@ -53,7 +53,11 @@ export type WithdrawPorts = {
 	sign(providerWalletId: string, transaction: Uint8Array): Promise<Uint8Array>;
 	signatureOf(signedTransaction: Uint8Array): string;
 	send(signedTransaction: Uint8Array): Promise<void>;
-	confirm(submission: Submission): Promise<ChainAnswer>;
+	/**
+	 * What the chain says about a signature. The blockhash goes with it because expiry is the chain's
+	 * verdict on the transaction's own blockhash, never arithmetic on a height.
+	 */
+	confirm(submission: Submission, blockhash: string | undefined): Promise<ChainAnswer>;
 	/** What the transfer cost to send, read back off the chain. The owner paid it. */
 	costOf(signature: string): Promise<bigint>;
 	/** Builds the transfer. A port so the check above it can be proved to catch a bad build. */
@@ -152,8 +156,8 @@ export async function withdrawFunds(
 			sign: () => ports.sign(machine.providerWalletId, transaction),
 			signatureOf: ports.signatureOf,
 			send: ports.send,
-			waitFor: (_asked, submission) => ports.confirm(submission),
-			askChain: (_asked, submission) => ports.confirm(submission),
+			waitFor: (_asked, submission) => ports.confirm(submission, blockhash),
+			askChain: (_asked, submission) => ports.confirm(submission, blockhash),
 		},
 		sending,
 	);

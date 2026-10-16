@@ -7,7 +7,7 @@
  */
 
 import { MaschinaError } from "@maschina/core";
-import { createSolanaRpc, type Signature } from "@solana/kit";
+import { type Blockhash, createSolanaRpc, type Signature } from "@solana/kit";
 import type { Address } from "./address.ts";
 import type { BalanceReader, FetchedTokenAccount } from "./balances.ts";
 import type { Commitment, ConfirmationReader, SignatureStatus } from "./confirm.ts";
@@ -108,6 +108,15 @@ export function rpcConfirmationReader(rpc: SolanaRpc): ConfirmationReader {
 
 		async blockHeight(): Promise<bigint> {
 			return BigInt(await rpc.getBlockHeight().send());
+		},
+
+		async blockhashValid(blockhash: string): Promise<boolean> {
+			// Confirmed rather than finalized, to match how the blockhash was taken. A node asked at
+			// finalized is looking further back, and would call a usable blockhash dead.
+			const { value } = await rpc
+				.isBlockhashValid(blockhash as Blockhash, { commitment: "confirmed" })
+				.send();
+			return value;
 		},
 	};
 }

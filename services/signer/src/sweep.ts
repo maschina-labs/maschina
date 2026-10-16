@@ -74,7 +74,11 @@ export type SweepPorts = {
 	sign(providerWalletId: string, transaction: Uint8Array): Promise<Uint8Array>;
 	signatureOf(signedTransaction: Uint8Array): string;
 	send(signedTransaction: Uint8Array): Promise<void>;
-	confirm(submission: Submission): Promise<ChainAnswer>;
+	/**
+	 * What the chain says about a signature. The blockhash goes with it because expiry is the chain's
+	 * verdict on the transaction's own blockhash, never arithmetic on a height.
+	 */
+	confirm(submission: Submission, blockhash: string | undefined): Promise<ChainAnswer>;
 	/** What it cost to send, read back off the chain. */
 	costOf(signature: string): Promise<bigint>;
 	/** Builds the sweep. A port so the check after it can be proved to catch a bad build. */
@@ -122,11 +126,14 @@ export async function sweepProfit(
 		if (!decided) {
 			return refused(request.sweepId, "unknown_sweep", "a signature with no decision behind it");
 		}
+		// Resumed after the fact: the transaction is not at hand, so there is no blockhash to read out
+		// of it. The expiry was Maschina's own, taken from its own node, so the height stands here.
 		return finish(
 			ports,
 			request,
 			machine.providerWalletId,
 			decided,
+			undefined,
 			undefined,
 			sent.lastValidBlockHeight,
 		);
@@ -192,6 +199,7 @@ export async function sweepProfit(
 		machine.providerWalletId,
 		decided,
 		transaction,
+		blockhash,
 		lastValidBlockHeight,
 	);
 }
@@ -203,6 +211,8 @@ async function finish(
 	providerWalletId: string,
 	decided: { to: Address; mint: Address; amount: bigint },
 	transaction: Uint8Array | undefined,
+	/** The blockhash the transaction was built against, when it is at hand: what expiry is judged by. */
+	blockhash: string | undefined,
 	lastValidBlockHeight: bigint,
 ): Promise<SweepResponse> {
 	const written = {
@@ -237,8 +247,8 @@ async function finish(
 			},
 			signatureOf: ports.signatureOf,
 			send: ports.send,
-			waitFor: (_asked, submission) => ports.confirm(submission),
-			askChain: (_asked, submission) => ports.confirm(submission),
+			waitFor: (_asked, submission) => ports.confirm(submission, blockhash),
+			askChain: (_asked, submission) => ports.confirm(submission, blockhash),
 		},
 		{ ...request, lastValidBlockHeight: lastValidBlockHeight.toString() },
 	);

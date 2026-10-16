@@ -1,5 +1,6 @@
 export * from "./address.ts";
 export * from "./balances.ts";
+export * from "./blockhash.ts";
 export * from "./cluster.ts";
 export * from "./compare-routers.ts";
 export * from "./compute-budget.ts";

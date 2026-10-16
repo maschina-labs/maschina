@@ -10,6 +10,7 @@ import {
 	type ConfirmationReader,
 	confirmSignature,
 	didItLand,
+	rpcBlockhashReader,
 	rpcConfirmationReader,
 	solanaRpc,
 } from "@maschina/solana";
@@ -23,6 +24,10 @@ const NEVER_SENT =
 	"5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW";
 
 const reader: ConfirmationReader = rpcConfirmationReader(solanaRpc(DEVNET));
+const blockhashes = rpcBlockhashReader(solanaRpc(DEVNET));
+
+/** A well-formed blockhash the chain has long since stopped accepting, if it ever did. */
+const DEAD_BLOCKHASH = "EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N";
 
 /** The public endpoint rate limits hard, so the tests go at a pace it tolerates. */
 afterEach(() => new Promise((resolve) => setTimeout(resolve, 1000)));
@@ -60,7 +65,7 @@ describe("a transaction that landed", () => {
 		// that runs before anything is called expired.
 		const result = await confirmSignature(
 			reader,
-			{ signature: landedSignature, lastValidBlockHeight: 1n },
+			{ signature: landedSignature, blockhash: DEAD_BLOCKHASH, lastValidBlockHeight: 1n },
 			{ pollMs: 1500, timeoutMs: 20_000 },
 		);
 
@@ -72,7 +77,7 @@ describe("a transaction that never landed", () => {
 	it("is reported as expired once it can never land", async () => {
 		const result = await confirmSignature(
 			reader,
-			{ signature: NEVER_SENT, lastValidBlockHeight: 1n },
+			{ signature: NEVER_SENT, blockhash: DEAD_BLOCKHASH, lastValidBlockHeight: 1n },
 			{ pollMs: 1500, timeoutMs: 20_000 },
 		);
 
@@ -84,7 +89,26 @@ describe("a transaction that never landed", () => {
 
 		const result = await confirmSignature(
 			reader,
-			{ signature: NEVER_SENT, lastValidBlockHeight: height + 1000n },
+			{
+				signature: NEVER_SENT,
+				blockhash: DEAD_BLOCKHASH,
+				lastValidBlockHeight: height + 1000n,
+			},
+			{ pollMs: 1500, timeoutMs: 1500 },
+		);
+
+		expect(result.outcome).toBe("unknown");
+	});
+
+	it("is not called expired on a claimed expiry the chain disagrees with", async () => {
+		// What a lying or broken node produces: an expiry height of zero on a transaction built against
+		// a blockhash the chain is still accepting. Believing the number would free the money for a
+		// transaction that can still land. The chain's answer about the blockhash is what decides.
+		const { blockhash } = await blockhashes.latest();
+
+		const result = await confirmSignature(
+			reader,
+			{ signature: NEVER_SENT, blockhash, lastValidBlockHeight: 0n },
 			{ pollMs: 1500, timeoutMs: 1500 },
 		);
 
