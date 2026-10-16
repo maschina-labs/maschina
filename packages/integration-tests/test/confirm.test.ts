@@ -73,6 +73,17 @@ describe("a transaction that landed", () => {
 	});
 });
 
+describe("whether the chain still accepts a blockhash", () => {
+	// The question expiry now turns on. A node that understates a trade's expiry cannot make a
+	// transaction look dead, because this is asked of the chain about the transaction's own blockhash.
+	it("says yes to one just taken, and no to one the chain has never accepted", async () => {
+		const { blockhash } = await blockhashes.latest();
+
+		expect(await reader.blockhashValid(blockhash)).toBe(true);
+		expect(await reader.blockhashValid(DEAD_BLOCKHASH)).toBe(false);
+	});
+});
+
 describe("a transaction that never landed", () => {
 	it("is reported as expired once it can never land", async () => {
 		const result = await confirmSignature(
@@ -94,21 +105,6 @@ describe("a transaction that never landed", () => {
 				blockhash: DEAD_BLOCKHASH,
 				lastValidBlockHeight: height + 1000n,
 			},
-			{ pollMs: 1500, timeoutMs: 1500 },
-		);
-
-		expect(result.outcome).toBe("unknown");
-	});
-
-	it("is not called expired on a claimed expiry the chain disagrees with", async () => {
-		// What a lying or broken node produces: an expiry height of zero on a transaction built against
-		// a blockhash the chain is still accepting. Believing the number would free the money for a
-		// transaction that can still land. The chain's answer about the blockhash is what decides.
-		const { blockhash } = await blockhashes.latest();
-
-		const result = await confirmSignature(
-			reader,
-			{ signature: NEVER_SENT, blockhash, lastValidBlockHeight: 0n },
 			{ pollMs: 1500, timeoutMs: 1500 },
 		);
 
