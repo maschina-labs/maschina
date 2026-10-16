@@ -9,6 +9,7 @@ const SOL = "So11111111111111111111111111111111111111112";
 const OWNER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
 const machine = {
+	paper: false,
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",

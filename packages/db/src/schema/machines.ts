@@ -41,8 +41,12 @@ export const machines = pgTable(
 		 * A machine on paper is priced and recorded like any other and never signs anything, so an owner
 		 * can read what it would have done before trusting it with money. Decided when it is made: a
 		 * machine does not quietly change between pretending and spending.
+		 *
+		 * No default: every caller says which it is, and a trigger refuses any update that changes it.
+		 * Every event a machine writes takes its mode from this column, so if it could be flipped the
+		 * history would describe a machine that no longer exists.
 		 */
-		paper: boolean("paper").notNull().default(false),
+		paper: boolean("paper").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 	},
 	(table) => [

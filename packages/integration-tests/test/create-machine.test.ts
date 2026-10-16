@@ -40,6 +40,7 @@ const aMachine = (overrides: Partial<Parameters<typeof writeMachine>[1]> = {}) =
 	ownerWallet: address(),
 	name: "SOL dip buyer",
 	kind: "price_trigger",
+	paper: false,
 	settings: { spendMint: USDC, buyMint: SOL, level: "142000000", direction: "falls_to" },
 	rules: {},
 	wallet: { address: address(), providerWalletId: "wallet-1", provider: "turnkey" },

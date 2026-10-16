@@ -259,8 +259,13 @@ export function useFund(
 export type NewMachine = {
 	name: string;
 	kind: string;
-	/** A paper machine trades against real quotes and moves no money. */
-	paper?: boolean;
+	/**
+	 * A paper machine trades against real quotes and moves no money.
+	 *
+	 * Always sent, never left out: the API refuses a machine that does not say which it is, so that
+	 * a form bug cannot quietly create one that spends real money.
+	 */
+	paper: boolean;
 	settings: Record<string, unknown>;
 	limits: {
 		budgetGranted: string;

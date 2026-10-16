@@ -31,11 +31,24 @@ const request = {
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",
+	paper: false,
 	settings: { level: "142000000" },
 	limits: { budgetGranted: "20000000", maxPerTrade: "5000000", approvedMints: [SOL] },
 };
 
 describe("the provisioner", () => {
+	it("refuses a machine that does not say whether it is on paper", async () => {
+		// Not a formality. Left out, this used to mean real money, so a caller that forgot the field
+		// got the expensive answer. Now there is no answer to forget.
+		const { paper: _left_out, ...withoutPaper } = request;
+		const res = await create(
+			app({ create: async () => ({ ok: true, value: made }) }),
+			withoutPaper,
+		);
+
+		expect(res.status).toBe(400);
+	});
+
 	it("keeps the provider's own wallet id to itself", async () => {
 		const res = await create(app({ create: async () => ({ ok: true, value: made }) }), request);
 
@@ -113,8 +126,10 @@ describe("the provisioner", () => {
 		expect(res.status).toBe(201);
 		// Absent is not the same as false or zero: the machine's own defaults decide, not this route.
 		const sent = asked[0] ?? {};
-		expect("paper" in sent).toBe(false);
 		expect("rules" in sent).toBe(false);
+		// Except paper, which is never absent. It cannot be left to a default anywhere, because the
+		// default everyone would reach for is the one that spends real money.
+		expect(sent["paper"]).toBe(false);
 		const limits = sent["limits"] as Record<string, unknown>;
 		expect("maxPerTrade" in limits).toBe(false);
 		expect("maxPerDay" in limits).toBe(false);

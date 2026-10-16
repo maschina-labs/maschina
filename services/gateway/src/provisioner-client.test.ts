@@ -9,6 +9,7 @@ const request = {
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",
+	paper: false,
 	settings: { level: "142000000" },
 	limits: { budgetGranted: "20000000", approvedMints: [SOL] },
 };

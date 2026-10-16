@@ -54,9 +54,10 @@ async function aClaimedRun(
 	if (!saved.ok) throw new Error("could not save the definition");
 	const machineId = newId<"machine">();
 	await sql`
-		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id,
+			name, paper)
 		values (${machineId}::uuid, ${ownerId}::uuid, ${wallet}, ${"wallet-1"}, ${"turnkey"},
-			${saved.value.id}, ${"Weekly SOL"})`;
+			${saved.value.id}, ${"Weekly SOL"}, false)`;
 
 	const events = [
 		{

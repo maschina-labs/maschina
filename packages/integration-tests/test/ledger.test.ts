@@ -58,9 +58,10 @@ async function aMachineWith(granted: bigint) {
 
 	const machineId = newId<"machine">();
 	await sql`
-		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id,
+			name, paper)
 		values (${machineId}::uuid, ${owner.id}::uuid, ${address()}, ${"wallet-1"}, ${"turnkey"},
-			${saved.value.id}, ${"Weekly SOL"})`;
+			${saved.value.id}, ${"Weekly SOL"}, false)`;
 
 	const granting = await appendEvent(handle.db, {
 		machineId,
@@ -425,9 +426,10 @@ describe("a sale", () => {
 		if (!owner || !saved.ok) throw new Error("could not set up the test");
 		const machineId = newId<"machine">();
 		await sql`
-			insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+			insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id,
+			name, paper)
 			values (${machineId}::uuid, ${owner.id}::uuid, ${address()}, ${"wallet-1"}, ${"turnkey"},
-				${saved.value.id}, ${"SOL range"})`;
+				${saved.value.id}, ${"SOL range"}, false)`;
 		const granting = await appendEvent(handle.db, {
 			machineId,
 			type: "machine.limits_changed",

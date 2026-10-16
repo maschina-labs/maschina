@@ -432,9 +432,10 @@ describe("machines", () => {
 			name?: string;
 		},
 	) => sql`
-		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id, name)
+		insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider, definition_id,
+			name, paper)
 		values (${newId<"machine">()}, ${values.ownerId}, ${values.wallet}, ${"wallet-1"},
-			${values.provider ?? "turnkey"}, ${values.definitionId}, ${values.name ?? "Weekly SOL"})`;
+			${values.provider ?? "turnkey"}, ${values.definitionId}, ${values.name ?? "Weekly SOL"}, false)`;
 
 	it("stores a machine with its owner, wallet and pinned definition", async () => {
 		const sql = connect(database.appUrl);

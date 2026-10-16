@@ -15,6 +15,7 @@ describe("the events table", () => {
 			"id",
 			"lease_epoch",
 			"machine_id",
+			"mode",
 			"occurred_at",
 			"payload",
 			"type",
@@ -34,7 +35,10 @@ describe("the events table", () => {
 	});
 
 	it("carries a constraint limiting the event type", () => {
-		expect(table.checks.map((constraint) => constraint.name)).toEqual(["events_type_known"]);
+		expect(table.checks.map((constraint) => constraint.name).sort()).toEqual([
+			"events_mode_known",
+			"events_type_known",
+		]);
 	});
 
 	it("has a migration for the constraint, so a running database enforces it too", () => {
@@ -48,7 +52,10 @@ describe("the events table", () => {
 	});
 
 	it("indexes a machine's events by time, for reading a machine's history", () => {
-		expect(table.indexes.map((index) => index.config.name)).toEqual(["events_machine_time"]);
+		expect(table.indexes.map((index) => index.config.name).sort()).toEqual([
+			"events_machine_mode",
+			"events_machine_time",
+		]);
 		expect(
 			table.indexes[0]?.config.columns.map((column) => (column as { name: string }).name),
 		).toEqual(["machine_id", "occurred_at"]);

@@ -39,8 +39,8 @@ export type MachineRequest = {
 	ownerWallet: string;
 	name: string;
 	kind: string;
-	/** True when this machine only ever pretends to trade. */
-	paper?: boolean;
+	/** Whether this machine only ever pretends to trade. Never inferred, always said. */
+	paper: boolean;
 	settings: Record<string, unknown>;
 	rules?: Record<string, unknown>;
 	limits: {
@@ -67,6 +67,8 @@ export type CreateMachinePorts = {
 		kind: string;
 		settings: Record<string, unknown>;
 		rules: Record<string, unknown>;
+		/** Carried all the way through, never defaulted anywhere along the way. */
+		paper: boolean;
 		wallet: { address: string; vaultAddress: string; providerWalletId: string; provider: string };
 		limits: MachineRequest["limits"];
 	}): Promise<Result<WrittenMachine, MaschinaError>>;
@@ -176,7 +178,7 @@ export async function createMachine(
 		kind: request.kind,
 		settings: request.settings,
 		rules: request.rules ?? {},
-		...(request.paper === undefined ? {} : { paper: request.paper }),
+		paper: request.paper,
 		wallet: {
 			address: created.value.address,
 			vaultAddress,

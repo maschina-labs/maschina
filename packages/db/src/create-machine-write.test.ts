@@ -45,6 +45,7 @@ function recording() {
 }
 
 const machine = (wallet: { address: string; vaultAddress?: string }) => ({
+	paper: false,
 	ownerWallet: WALLET,
 	name: "SOL range",
 	kind: "range",

@@ -18,8 +18,14 @@ export const CreateMachineRequest = z
 		ownerWallet: address,
 		name: z.string().min(1).max(60),
 		kind: z.string().min(1).max(40),
-		/** A machine that only pretends to trade, so an owner can read what it would have done. */
-		paper: z.boolean().optional(),
+		/**
+		 * Whether this machine only pretends to trade.
+		 *
+		 * Said out loud, every time, because it is the difference between pretending and spending and
+		 * it is decided once: a machine never changes between the two. Optional used to mean live,
+		 * which is the wrong way round. A mistake here should cost nothing, not everything.
+		 */
+		paper: z.boolean(),
 		settings: z.record(z.string(), z.unknown()),
 		rules: z.record(z.string(), z.unknown()).optional(),
 		limits: z.strictObject({
