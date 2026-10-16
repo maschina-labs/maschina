@@ -13,6 +13,7 @@ import { newId } from "@maschina/core";
 import {
 	type BlockhashReader,
 	balanceOf,
+	blockhashOf,
 	type Confirmation,
 	checkFeeAgainstTransaction,
 	checkSwapInstructions,
@@ -126,10 +127,14 @@ export function tradeSigner(parts: {
 			send: async (signed) => {
 				await sender.send(signed);
 			},
-			confirm: async (_request, submission) =>
+			// The blockhash comes out of the transaction the wallet will sign, not out of what the node
+			// said about it. A node that understates the expiry would otherwise have a transaction
+			// declared dead and its money released while it is still able to land.
+			confirm: async (request, submission) =>
 				answerFrom(
 					await confirmSignature(confirmations, {
 						signature: submission.signature,
+						blockhash: blockhashOf(new Uint8Array(Buffer.from(request.transaction, "base64"))),
 						lastValidBlockHeight: submission.lastValidBlockHeight,
 					}),
 				),
@@ -185,10 +190,11 @@ export function withdrawer(parts: {
 		send: async (signed) => {
 			await sender.send(signed);
 		},
-		confirm: async (submission) =>
+		confirm: async (submission, blockhash) =>
 			answerFrom(
 				await confirmSignature(confirmations, {
 					signature: submission.signature,
+					...(blockhash === undefined ? {} : { blockhash }),
 					lastValidBlockHeight: submission.lastValidBlockHeight,
 				}),
 			),
@@ -243,10 +249,11 @@ export function sweeper(parts: {
 		send: async (signed) => {
 			await sender.send(signed);
 		},
-		confirm: async (submission) =>
+		confirm: async (submission, blockhash) =>
 			answerFrom(
 				await confirmSignature(confirmations, {
 					signature: submission.signature,
+					...(blockhash === undefined ? {} : { blockhash }),
 					lastValidBlockHeight: submission.lastValidBlockHeight,
 				}),
 			),
@@ -308,10 +315,11 @@ export function everythingWithdrawer(parts: {
 		send: async (signed) => {
 			await sender.send(signed);
 		},
-		confirm: async (submission) =>
+		confirm: async (submission, blockhash) =>
 			answerFrom(
 				await confirmSignature(confirmations, {
 					signature: submission.signature,
+					...(blockhash === undefined ? {} : { blockhash }),
 					lastValidBlockHeight: submission.lastValidBlockHeight,
 				}),
 			),

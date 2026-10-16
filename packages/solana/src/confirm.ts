@@ -40,8 +40,15 @@ export type ConfirmationReader = {
 	 * anything older than a couple of minutes.
 	 */
 	statusOf(signature: string, searchHistory: boolean): Promise<SignatureStatus | undefined>;
-	/** The current block height, which is the only way to know a transaction has expired. */
+	/** The current block height. A cheap first question, never the last word on expiry. */
 	blockHeight(): Promise<bigint>;
+	/**
+	 * Whether the chain will still accept a transaction built on this blockhash.
+	 *
+	 * The one authority on whether a transaction can still land. The height a transaction was proposed
+	 * with comes from whoever proposed it, so it is a hint; this is the answer.
+	 */
+	blockhashValid(blockhash: string): Promise<boolean>;
 };
 
 export type Confirmation =
@@ -52,7 +59,17 @@ export type Confirmation =
 
 export type ConfirmRequest = {
 	signature: string;
-	/** The height the transaction was built to expire at. Past this, it can never land. */
+	/**
+	 * The blockhash read out of the transaction's own bytes, which is what the chain enforces. Given
+	 * one, nothing is declared expired without the chain saying that blockhash is finished.
+	 *
+	 * It may only be left out where Maschina set the expiry itself and no longer has the transaction
+	 * to read it from, which today is a resumed sweep or withdrawal. An expiry that came from outside,
+	 * which is every trade, always carries its blockhash: believing an outsider's number is how a
+	 * transaction that can still land gets written off and its money handed back.
+	 */
+	blockhash?: string;
+	/** The height the transaction was proposed to expire at. A hint about when to start asking.	*/
 	lastValidBlockHeight: bigint;
 	/** How settled the answer has to be before a trade counts as done. */
 	wait?: Commitment;
@@ -85,7 +102,7 @@ export async function confirmSignature(
 	request: ConfirmRequest,
 	options: ConfirmOptions = {},
 ): Promise<Confirmation> {
-	const { signature, lastValidBlockHeight } = request;
+	const { signature, blockhash, lastValidBlockHeight } = request;
 	const wanted = request.wait ?? "confirmed";
 	const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 	const pollMs = options.pollMs ?? DEFAULT_POLL_MS;
@@ -126,11 +143,25 @@ export async function confirmSignature(
 						commitment: settled.commitment,
 					};
 				}
-				// Nothing knows this signature and no validator will accept it now. It did not happen.
+				// Nothing knows this signature. Before calling that proof, ask the chain whether the
+				// transaction could still be accepted. The height above came from whoever proposed the
+				// trade, and a proposer that understates it would otherwise have a landing transaction
+				// declared dead and its money handed back while it is still in flight.
+				if (blockhash !== undefined && (await reader.blockhashValid(blockhash))) {
+					return {
+						outcome: "unknown",
+						signature,
+						because: "the chain has no record of it yet, and its blockhash is still good",
+					};
+				}
+				// No validator will accept it now, and nothing has ever heard of it. It did not happen.
 				return {
 					outcome: "expired",
 					signature,
-					because: `the block it was built against passed at height ${lastValidBlockHeight}`,
+					because:
+						blockhash === undefined
+							? `the block it was built against passed at height ${lastValidBlockHeight}`
+							: "the blockhash it was built against is no longer accepted by the chain",
 				};
 			}
 		}

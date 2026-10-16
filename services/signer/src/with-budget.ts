@@ -28,6 +28,14 @@ export type BudgetLedger = {
 	hold(request: SignRequest): Promise<{ reserved: bigint } | undefined>;
 	/** Gives the held money back, for a trade that certainly did not happen. */
 	giveBack(request: SignRequest, reason: string): Promise<void>;
+	/**
+	 * The signature already written down for this trade, when there is one.
+	 *
+	 * This is the only thing that separates a trade that cannot have happened from one that may be on
+	 * the chain right now. It is written before the transaction is sent, so its presence means the
+	 * money may already be spent, whatever went wrong afterwards.
+	 */
+	submissionFor(request: SignRequest): Promise<{ signature: string } | undefined>;
 };
 
 /**
@@ -56,8 +64,13 @@ export function withBudget(inner: TradeSigner, ledger: BudgetLedger): TradeSigne
 			try {
 				answer = await inner.sign(request);
 			} catch (error) {
-				// Nothing was signed, so nothing can have happened. The money goes back and the failure
-				// carries on being a failure.
+				// Something went wrong, and the only question that matters is whether it went wrong before
+				// or after the transaction got a signature. Before, nothing can have happened, so the money
+				// goes back. After, the transaction may be on the chain this moment, and giving the money
+				// back would hand the machine a budget it has already spent and write the trade down as
+				// failed when it is not. So the hold stays and the trade stays open, for recovery to settle
+				// against the chain, which is the only thing that can say what happened.
+				if (await ledger.submissionFor(request)) throw error;
 				await ledger.giveBack(request, whyItFailed(error));
 				throw error;
 			}

@@ -30,7 +30,7 @@ const proposal = (): SignRequest => ({
 });
 
 /** A ledger that holds when told to, and remembers every hold and every release. */
-function fakeLedger(options: { holds?: boolean } = {}) {
+function fakeLedger(options: { holds?: boolean; submitted?: boolean } = {}) {
 	const held: string[] = [];
 	const returned: { tradeId: string; reason: string }[] = [];
 
@@ -42,6 +42,9 @@ function fakeLedger(options: { holds?: boolean } = {}) {
 		},
 		async giveBack(request, reason) {
 			returned.push({ tradeId: request.tradeId, reason });
+		},
+		async submissionFor() {
+			return options.submitted === true ? { signature: SIGNATURE } : undefined;
 		},
 	};
 
@@ -74,6 +77,7 @@ describe("holding the money", () => {
 				return fake.ledger.hold(request);
 			},
 			giveBack: fake.ledger.giveBack,
+			submissionFor: fake.ledger.submissionFor,
 		};
 
 		await withBudget(fakeSigner(order, signs), ledger).sign(proposal());
@@ -149,6 +153,20 @@ describe("giving the money back", () => {
 			"something unexpected",
 		);
 		expect(fake.returned[0]?.reason).toBe("something unexpected");
+	});
+
+	it("does not happen when the trade already has a signature", async () => {
+		const fake = fakeLedger({ submitted: true });
+		const broken: TradeSigner = {
+			async sign() {
+				throw new Error("the rpc node went away after it was sent");
+			},
+		};
+
+		// The signature was written down before the transaction went out, so this trade may be on the
+		// chain. Only the chain can say, and until it does the money stays where it is.
+		await expect(withBudget(broken, fake.ledger).sign(proposal())).rejects.toThrow("went away");
+		expect(fake.returned).toEqual([]);
 	});
 
 	it("gives back once, not twice", async () => {

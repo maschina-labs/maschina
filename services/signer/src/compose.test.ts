@@ -34,6 +34,7 @@ describe("how the signer is put together", () => {
 				return { reserved: 1n };
 			},
 			giveBack: async () => {},
+			submissionFor: async () => undefined,
 		});
 
 		const answer = await signer.sign(request);

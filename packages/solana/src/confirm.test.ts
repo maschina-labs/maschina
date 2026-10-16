@@ -12,6 +12,7 @@ import {
 const SIGNATURE =
 	"2gCEqMVor2LxnpCrgWjhrDMfYF7nfM73f947HkZotuzaMrmd1xff2Bq4eF8z6VPVsSzRse1mvDaTj2sdPZsFCY4X";
 const EXPIRES_AT = 1000n;
+const BLOCKHASH = "EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N";
 
 const status = (over: Partial<SignatureStatus> = {}): SignatureStatus => ({
 	slot: 499_906_176n,
@@ -23,10 +24,16 @@ const status = (over: Partial<SignatureStatus> = {}): SignatureStatus => ({
  * A chain that answers with a scripted sequence, and remembers what it was asked.
  * Each answer is used once, and the last one repeats.
  */
-function fakeChain(options: { statuses: (SignatureStatus | undefined)[]; heights?: bigint[] }) {
+function fakeChain(options: {
+	statuses: (SignatureStatus | undefined)[];
+	heights?: bigint[];
+	/** Whether the chain still accepts the transaction's blockhash. Dead unless a test says otherwise. */
+	blockhashValid?: boolean;
+}) {
 	const asked: { searchHistory: boolean }[] = [];
 	let statusCalls = 0;
 	let heightCalls = 0;
+	let blockhashCalls = 0;
 
 	const reader: ConfirmationReader = {
 		async statusOf(_signature, searchHistory) {
@@ -41,6 +48,10 @@ function fakeChain(options: { statuses: (SignatureStatus | undefined)[]; heights
 			heightCalls += 1;
 			return answer;
 		},
+		async blockhashValid() {
+			blockhashCalls += 1;
+			return options.blockhashValid ?? false;
+		},
 	};
 
 	return {
@@ -51,6 +62,9 @@ function fakeChain(options: { statuses: (SignatureStatus | undefined)[]; heights
 		},
 		get heightCalls() {
 			return heightCalls;
+		},
+		get blockhashCalls() {
+			return blockhashCalls;
 		},
 	};
 }
@@ -76,7 +90,7 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{ sleep: noSleep },
 		);
 
@@ -95,7 +109,12 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT, wait: "finalized" },
+			{
+				signature: SIGNATURE,
+				blockhash: BLOCKHASH,
+				lastValidBlockHeight: EXPIRES_AT,
+				wait: "finalized",
+			},
 			{ sleep: noSleep },
 		);
 
@@ -108,11 +127,25 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{ sleep: noSleep },
 		);
 
 		expect(result).toMatchObject({ outcome: "failed", error: '{"InstructionError":[3,"Custom"]}' });
+	});
+
+	it("never calls it expired while the chain still accepts its blockhash", async () => {
+		// The height says long past due, and the chain has never heard of the signature. Both of those
+		// are what a node understating the expiry produces, and neither is proof. The blockhash is.
+		const chain = fakeChain({ statuses: [undefined], heights: [9_999n], blockhashValid: true });
+
+		const result = await confirmSignature(
+			chain.reader,
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: 0n },
+			{ sleep: noSleep },
+		);
+
+		expect(result.outcome).toBe("unknown");
 	});
 
 	it("only calls it expired once the chain has moved past its expiry", async () => {
@@ -120,13 +153,15 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{ sleep: noSleep },
 		);
 
 		expect(result.outcome).toBe("expired");
 		// Not at 999, not at 1000, only once the height is past it.
 		expect(chain.heightCalls).toBe(3);
+		// And only after the chain itself confirmed the blockhash is finished.
+		expect(chain.blockhashCalls).toBe(1);
 	});
 
 	it("reads the status before believing an expiry, because both can happen at once", async () => {
@@ -135,7 +170,7 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{ sleep: noSleep },
 		);
 
@@ -149,7 +184,7 @@ describe("waiting for a transaction", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{
 				sleep: async () => {
 					clock += 1000;
@@ -170,14 +205,14 @@ describe("waiting for a transaction", () => {
 		await expect(
 			confirmSignature(
 				chain.reader,
-				{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+				{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 				{ timeoutMs: 0 },
 			),
 		).rejects.toThrow(MaschinaError);
 		await expect(
 			confirmSignature(
 				chain.reader,
-				{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+				{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 				{ pollMs: -1 },
 			),
 		).rejects.toThrow(MaschinaError);
@@ -237,7 +272,7 @@ describe("the last check before calling a transaction dead", () => {
 
 		const result = await confirmSignature(
 			chain.reader,
-			{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+			{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 			{ sleep: noSleep },
 		);
 
@@ -255,7 +290,7 @@ describe("the last check before calling a transaction dead", () => {
 		expect(
 			await confirmSignature(
 				chain.reader,
-				{ signature: SIGNATURE, lastValidBlockHeight: EXPIRES_AT },
+				{ signature: SIGNATURE, blockhash: BLOCKHASH, lastValidBlockHeight: EXPIRES_AT },
 				{ sleep: noSleep },
 			),
 		).toMatchObject({ outcome: "failed", error: "InstructionError" });
