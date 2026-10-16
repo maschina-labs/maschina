@@ -41,11 +41,14 @@ describe("the machines table", () => {
 			.filter((column) => column.notNull && !column.hasDefault)
 			.map((column) => column.name)
 			.sort();
+		// `paper` is in this list on purpose: it has no default, so every caller has to say which it
+		// is. Absent used to mean real money, which is the wrong way round.
 		expect(required).toEqual([
 			"definition_id",
 			"id",
 			"name",
 			"owner_id",
+			"paper",
 			"provider",
 			"provider_wallet_id",
 			"wallet_address",

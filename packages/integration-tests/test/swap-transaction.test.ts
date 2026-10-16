@@ -41,7 +41,12 @@ describe("a transaction built from a live quote", () => {
 	it("is refused by default when the router's own simulation failed", async () => {
 		const quote = await liveQuote();
 
-		await expect(router.build({ quote, wallet: WALLET })).rejects.toThrow(/simulation failed/);
+		// Through `live` like every other call, so it waits its turn rather than arriving as a burst.
+		// A rate limit is retried; the refusal this test is about is not retryable and comes straight
+		// back, which is the distinction `live` exists to make.
+		await expect(live(() => router.build({ quote, wallet: WALLET }))).rejects.toThrow(
+			/simulation failed/,
+		);
 	});
 
 	it("is unsigned, pays from the machine's wallet, and calls only swap programs", async () => {
