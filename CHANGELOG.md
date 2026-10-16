@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.50](https://github.com/maschina-labs/maschina/compare/v0.0.49...v0.0.50) (2026-10-16)
+
+
+### Added
+
+* **db:** the record says whether an event was paper or real money ([#811](https://github.com/maschina-labs/maschina/issues/811)) ([46c1330](https://github.com/maschina-labs/maschina/commit/46c1330f539063acc6078e06055cfa3c38117b70))
+
 ## [0.0.49](https://github.com/maschina-labs/maschina/compare/v0.0.48...v0.0.49) (2026-10-16)
 
 
