@@ -1,167 +1,91 @@
-# Maschina
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/kit/wordmark-white.svg">
+  <img alt="Maschina" src="apps/web/public/brand/kit/wordmark-black.svg" width="360">
+</picture>
 
-Give software a job and money, safely, so it can go to work for you.
+### Software that goes to work.
 
-A machine on Maschina has its own Solana wallet, a budget it cannot exceed, rules it cannot break and a
-permanent record, and its money can only ever go back to its owner. An owner sets what a machine may
-do. The machine does that and only that, and writes down everything it did.
+A machine on Maschina has its own Solana wallet, a budget it cannot exceed, rules it cannot break and
+a permanent record. Its money can only ever go back to its owner. The owner sets what a machine may
+do; the machine does that and only that, and writes down everything it did.
 
-Trading is the first job, because it is the hardest test: real money, around the clock, fast. Next,
-machines sell services, hire each other and work in teams, proven machines are published, copied and
-sold, and machines run on a network of people's computers, which get paid.
+AI decides. Maschina decides what it is allowed to do.
 
-**This repository is source-available. It is not open source.** It is under the Functional Source License
-(FSL-1.1-Apache-2.0): you may read it, run it, change it and build on it for any purpose except a competing one, and
-each version becomes available under Apache 2.0 two years after it is published. See LICENSE.
+Trading is the first job because it is the hardest test: real money, around the clock, fast. After it:
+machines that sell services, hire each other, get published and copied, and run on a network of other
+people's computers that get paid for it.
+
+---
+
+## Where to look
+
+|  |  |
+| --- | --- |
+| **The live record** | [live.maschina.dev](https://live.maschina.dev) · what the machines actually did, no sign-in |
+| **The app** | [app.maschina.dev](https://app.maschina.dev) |
+| **The API** | [api.maschina.dev](https://api.maschina.dev) · `/v1/status`, and `/openapi.json` describes every route |
+| **Docs** | [docs.maschina.dev](https://docs.maschina.dev) |
+| **Status** | [status.maschina.dev](https://status.maschina.dev) |
+| **What changed** | [CHANGELOG.md](CHANGELOG.md) |
+| **Reporting something** | [SECURITY.md](SECURITY.md) |
+
+Every package and service has its own README saying what it owns and what it must never do. Start
+with [`services/signer`](services/signer) if you want to see where authority actually lives.
 
 ## Status
 
-Being built, in the open, since 2026-09-16. Not usable yet, and nothing here pretends to be finished
-that is not.
+Early, and built in the open since 2026-09-16.
 
-Working today, each proved against real services rather than mocks:
+A machine has been trading real money on Solana since 2026-09-28, with the founder's own funds. There
+are no outside users. **The system has not had an independent security audit.** Nothing here claims to
+be finished that is not, and there are no promises about returns.
 
-| What | Where to look |
-| --- | --- |
-| Quotes, prices, swap transactions, confirmation | `packages/solana` |
-| Signing through Turnkey, under a policy Turnkey enforces | `services/signer/src/provider` |
-| Maschina's own rules, checked before every signature | `packages/rules/src/trade.ts` |
-| Budgets held and settled inside one database transaction | `packages/db/src/ledger.ts` |
-| A sale held to none of the budget or the caps, because it spends none of the budget: the same rule when a trade is held as when the record is read | `packages/rules/src/trade.ts`, `packages/db/src/ledger.ts` |
-| A trade sent at most once, ever | `services/signer/src/submit-once.ts` |
-| The signer end to end: rules, then the budget, then sign, send and settle at the real cost | `services/signer/src/compose.ts` |
-| What a landed trade actually cost, read back from the chain | `packages/solana/src/trade-cost.ts` |
-| Nodes claiming runs, asking about them and reporting on them, only while they hold the lease | `services/orchestrator`, `services/daemon` |
-| Trades proposed by a node, passed to the signer only for a run it holds | `services/orchestrator/src/propose-route.ts` |
-| A node running a machine: its balances, its decision, a quote checked against an independent price, a proposal | `services/daemon/src/machine-runner.ts` |
-| A node running machines on its own: claim, run, report, repeat, keeping its lease alive | `services/daemon/src/work-loop.ts` |
-| Watching prices for waiting machines, and queueing a run once per crossing | `services/orchestrator/src/price-watcher.ts` |
-| A machine waiting on more than one price at a time, each edge arming and firing on its own | `packages/runtime/src/machine-kind.ts` |
-| A machine on paper: quoted for real, checked for real, recorded, and never signed | `services/orchestrator/src/paper-signer.ts` |
-| What a machine on paper holds, worked out from its own record | `packages/runtime/src/paper-holdings.ts` |
-| The range machine: buys the low edge, sells the high edge, one position at a time | `packages/runtime/src/kinds/range.ts` |
-| Refusing a band too narrow to cover what trading it costs | `packages/rules/src/edge.ts` |
-| Holding a trade to the fee its own bytes will pay, not the fee a router claims | `packages/solana/src/compute-budget.ts` |
-| Stopping everything at once, at the signer, so it works without the cooperation of whatever went wrong | `services/signer/src/while-halted.ts` |
-| Returning a machine's funds to its owner, with the destination looked up rather than accepted | `services/signer/src/withdraw.ts` |
-| Taking everything out: every token and all the SOL, from the trading account and the vault, each account closed so its rent comes home, checked byte by byte | `services/signer/src/withdraw-everything.ts`, `packages/solana/src/token-withdrawal.ts` |
-| Whether a machine has actually made money, net of what it paid | `packages/runtime/src/machine-pnl.ts` |
-| How far above its float a machine is, at every moment, including while it holds the other side | `packages/runtime/src/machine-float.ts` |
-| Refusing to sweep profit for forty cents, or against a position whose value is still an opinion | `packages/rules/src/float.ts` |
-| A wallet policy that pins where a token may go, not only which token may move | `packages/wallet/src/turnkey-policy.ts` |
-| A vault beside every machine, whose key cannot sign a trade, checked against the real Turnkey | `services/provisioner/src/create-machine.ts`, `services/provisioner/scripts/check-vault.ts` |
-| Refusing a transaction that looks like a swap and moves money out around it, checked against real Jupiter routes | `packages/solana/src/swap-instructions.ts` |
-| Banking profit above the float into the vault: decided from the chain and the record, checked byte by byte, sent once | `services/signer/src/sweep.ts`, `packages/solana/src/sweep.ts` |
-| Asking every five minutes which machines have profit to bank, and finishing an open sweep before deciding a new one | `services/orchestrator/src/bank-profit.ts` |
-| A machine's own wallet, made with its policy and checked before the machine exists | `services/provisioner` |
-| Refusing a machine that could never trade, an unknown kind, unreadable settings, a band too narrow or an unapproved token, before a wallet is made | `packages/runtime/src/check-settings.ts` |
-| Signing in with a wallet, by signing a sentence and never a transaction | `packages/auth`, `services/gateway/src/routes/auth.ts` |
-| Choosing which wallet signs you in, from every one installed, found through the Wallet Standard | `apps/app/src/lib/wallet.ts`, `apps/app/src/components/wallet-picker.tsx` |
-| The news from across Solana under Home: read here, with the publisher one plain choice away | `services/gateway/src/news.ts`, `apps/app/src/components/news.tsx` |
-| An API where an owner only ever reaches their own machines | `services/gateway/src/routes/machines.ts` |
-| Making a range machine from the web app, told as it is typed whether its band pays for itself, and taking everything out with one confirmed click | `apps/app/src/routes/new.tsx`, `apps/app/src/lib/range-form.ts` |
-| A range that follows the price: it re-centres on each sale, moves up with a rising price, and sells at a floor below what it paid, with every move of its band in the record | `packages/runtime/src/kinds/following-range.ts`, `services/orchestrator/src/price-watcher.ts` |
-| Changing a paused machine's recipe without losing its wallet, money or record | `packages/db/src/retune.ts` |
-| Owner withdrawals asked for by the gateway alone, never by a node, and only once the machine is paused or stopped | `services/orchestrator/src/withdraw-route.ts` |
-| A signer that is not ready until it can reach the record and the chain, and refuses to start on a quoted URL | `services/signer/src/app.ts`, `packages/env/src/index.ts` |
-| The permanent record, append only | `packages/db/src/record.ts` |
-
-The API is live at `https://api.maschina.dev`: `/v1/status` says it is up and `/openapi.json` describes
-every route. Owner routes need a signed-in wallet, which is a signature over a sentence rather than a
-transaction.
-
-**Not built yet**, and worth being plain about, because the safety layer being finished is not the same
-as the product being finished:
-
-- **Real money is small and new.** The first machine made its first real trade on mainnet on
-  2026-09-28, buying 0.34 SOL with 40.35 USDC, and now runs as a Range Finder. One machine with forty
-  dollars is a start, not a track record.
-- **Where a route sends its output is taken on trust.** A swap's tokens move inside the router's own
-  instruction, and neither the provider nor Maschina yet reads where that instruction delivers the
-  result. Everything around it is checked: a bare token transfer, a delegation, a close into somebody
-  else's wallet or SOL sent anywhere but the machine's own wrapped account is refused before signing.
-  Reaching this needs a node that builds a dishonest route, and every node today is Maschina's.
-- **Schedules.** Runs are queued by price crossings today. Nothing queues a run because the clock said so.
-- **Simulating a proposal** to prove it spends no more than it claims. The fee half is done; the amount
-  half guards against a node Maschina does not run, which cannot happen yet.
-- **The web app** has every screen laid out. What works against the live API: signing in, the terminal
-  following a machine, each machine's page with its record and controls, making a Range Finder, a fixed
-  range or a price trigger, withdrawing, and the manager. Live balances, the stream and chat with other
-  people are laid out and say so. The papers are being rewritten and will return with the docs site.
-- **The manager** is your own AI, on your own Anthropic key, set in Settings. The key is checked with
-  Anthropic, sealed under a key only the server holds, and never shown again. In conversation it can
-  look at your machines, their records and the most active tokens on Solana, and it can do nothing else:
-  it cannot trade or move money from a chat. Every answer says what it cost you.
-
-## How the limits actually hold
+## How the limits hold
 
 Three independent things have to agree before money moves, and any one of them can refuse.
 
-1. **Maschina's rules** (`packages/rules/src/trade.ts`) check the machine is running, the run is inside
-   its window, both tokens are approved, and the trade fits the per-trade cap, the daily cap and the
-   budget. An absent limit is never treated as permission.
+1. **Maschina's rules** check the machine is running, the run is inside its window, both tokens are
+   approved, and the trade fits the per-trade cap, the daily cap and the budget. An absent limit is
+   never treated as permission. → [`packages/rules`](packages/rules)
 2. **The database** holds the money before anything is signed and settles it afterwards, under a lock
-   on that machine. Twenty trades racing for a budget that fits ten: exactly ten get through. That test
-   runs against real Postgres, in `packages/integration-tests`.
-3. **The wallet provider** enforces the wallet's own policy and knows nothing about Maschina. It refuses
-   SOL sent anywhere but the owner or the machine's own wrapped SOL account, and it denies key export to
-   us permanently. A machine's vault gets a narrower policy still: no router, and tokens only into the
-   owner's own accounts. Proved against the real provider with
-   `pnpm --filter @maschina/signer check:turnkey` and `pnpm --filter @maschina/provisioner check:vault`.
+   on that machine. Twenty trades racing for a budget that fits ten: exactly ten get through, proved
+   against real Postgres. → [`packages/db`](packages/db), [`packages/integration-tests`](packages/integration-tests)
+3. **The wallet provider** enforces the wallet's own policy and knows nothing about Maschina. It
+   refuses SOL sent anywhere but the owner or the machine's own wrapped account, and denies key export
+   to us permanently. A machine's vault is narrower still: no router, tokens only into the owner's own
+   accounts. → [`packages/wallet`](packages/wallet)
 
-A trade's signature is written to the record before the transaction is sent, so a crash leaves a
-signature the chain can be asked about rather than a question nobody can answer. Nothing is ever
-retried on an unknown outcome.
+A trade's signature is written to the record **before** the transaction is sent, so a crash leaves a
+signature the chain can be asked about rather than a question nobody can answer. Nothing is retried on
+an unknown outcome.
 
-Above all three, a halt. While one is in force the signer refuses everything, so stopping does not need
-the cooperation of whatever has gone wrong, and it fails closed: not being able to tell whether a halt
-is in force refuses too.
+Above all three, a halt. While one is in force the signer refuses everything, and it fails closed:
+not being able to tell whether a halt is in force refuses too. Stopping never needs the cooperation of
+whatever went wrong.
 
 ## Paper mode, and what it does not prove
 
-A machine made with `paper: true` is quoted by the real router at the real price, checked against an
-independent price, and held to the same budget arithmetic as a machine with money. Then its trade is
-written into the record as `trade.intended` and `trade.simulated`, and nothing is signed.
+A paper machine is quoted by the real router at the real price, checked against an independent price,
+and held to the same budget arithmetic as a machine with money. Then nothing is signed.
 
-What that proves is the decision: whether a machine would have traded, at what price, and what it would
-have done to the budget. A range machine has completed whole round trips this way, and the loss it took
-to fees came out of the record as a number.
-
-What it deliberately does not prove is signing. A paper machine goes to a different route with a request
-that has **no transaction in it**, so the signer could not act on it if it were handed one. Paper mode
-exercises decisions, quotes, price checks, budget arithmetic and refusals. It does not exercise the
-signature path, and saying otherwise would invert the guarantee it is built on.
+That proves the decision: whether a machine would have traded, at what price, and what it would have
+done to the budget. It deliberately does **not** prove signing. A paper machine's request carries no
+transaction at all, so the signer could not act on it if handed one. Saying otherwise would invert the
+guarantee it is built on.
 
 ## Layout
 
 ```text
-apps/
-  web/                 the web app
-services/
-  gateway/             the public API
-  orchestrator/        schedules machines and hands out work
-  signer/              the only service that can request a signature
-  provisioner/         creates a machine: its wallet, its policy, its place in the record
-  daemon/              runs machines on a node
-  bots/                chat platforms, starting with Telegram
-packages/
-  core/                shared types, ids, errors, money
-  runtime/             the loop every machine runs
-  rules/               budgets and limits
-  db/                  the database schema and the permanent record
-  solana/              everything that talks to Solana
-  wallet/              machine wallets and the policies that hold them
-  contracts/           API schemas shared by the gateway and apps
-  env/                 environment validation
-  telemetry/           logging and error reporting
-  sdk/                 for developers building their own machines
-  ui/                  shared interface components
-  config/              shared TypeScript configuration
-  testing/             test factories and helpers
-  integration-tests/   tests against a real database
+apps/          web (the company site), app (the dashboard), auth, docs, live (the public record)
+services/      gateway (the public API), orchestrator (schedules and hands out work),
+               signer (the only service that can request a signature), provisioner (makes a
+               machine's wallet and policy), daemon (runs machines on a node), bots (Telegram)
+packages/      core, contracts, db, rules, runtime, solana, wallet, auth, accounts, manager,
+               sdk, service, env, config, telemetry, ui, field, testing, integration-tests
 ```
 
-Every package has a README saying what it owns and what it must never do.
+`pnpm check:boundaries` enforces who may import what. The signer is the only path to a signature, the
+daemon never touches the database, and Solana libraries live in one place.
 
 ## Running it
 
@@ -169,35 +93,34 @@ Needs Node 24, pnpm 11 and Docker.
 
 ```bash
 pnpm install
-pnpm bootstrap  # creates .env, starts Postgres, runs migrations
-pnpm dev        # web app on :3000, gateway on :4000
+pnpm bootstrap   # writes .env, starts Postgres, runs migrations
+pnpm dev         # the app and the gateway
 ```
-
-The interface is set in Söhne, and the font files are not in this repository: a licence covers serving
-a font for your own site, not handing the files to everybody who clones it. `pnpm fonts` fetches them
-for anybody who holds the licence. Without them everything builds and runs, and falls back to the
-system font stack.
 
 ```bash
-pnpm check:machine       # checks your machine is set up correctly
-pnpm check               # lint, format, architecture rules
+pnpm check            # lint, format, architecture rules
 pnpm typecheck
 pnpm test
-pnpm test:integration    # needs Docker
-pnpm gate                # everything CI runs
+pnpm test:integration # needs Docker
+pnpm gate             # everything CI runs
 ```
+
+The interface is set in Söhne and the font files are not in this repository: the licence covers
+serving a font for a site, not handing the files to everyone who clones it. `pnpm fonts` fetches them
+for anybody who holds the licence, and without them everything builds and falls back to the system
+font stack.
 
 ## Contributions
 
 Not being accepted. This is a single-founder project and the repository is public for review rather
-than for collaboration.
-
-Security issues are the exception and are always welcome, through [SECURITY.md](SECURITY.md) rather
-than the issue tracker.
+than for collaboration. Security reports are the exception and are always welcome, through
+[SECURITY.md](SECURITY.md) rather than the issue tracker.
 
 ## Licence
 
-The Functional Source License, Version 1.1, with an Apache 2.0 future license (FSL-1.1-Apache-2.0). Read, run,
-change and share the code for any purpose except a competing one. Each version becomes available under Apache 2.0 two
-years after it is published. Public is not the same as open source. The full text is in [LICENSE](LICENSE), and
-third party code keeps its own licenses in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+**Source-available. Not open source.** The Functional Source License, Version 1.1, with an Apache 2.0
+future license (FSL-1.1-Apache-2.0): read, run, change and build on it for any purpose except a
+competing one, and each version becomes Apache 2.0 two years after it is published.
+
+Full text in [LICENSE](LICENSE). Third party code keeps its own licenses in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
