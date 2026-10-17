@@ -3,7 +3,6 @@ import { Closing } from "./closing.tsx";
 import { Faq } from "./faq.tsx";
 import { Frame } from "./frame.tsx";
 import { Hero } from "./hero.tsx";
-import { Marquee } from "./marquee.tsx";
 import {
 	Customize,
 	Features,
@@ -24,7 +23,6 @@ export function Site({ authUrl }: { authUrl: string }) {
 	return (
 		<Frame authUrl={authUrl}>
 			<Hero authUrl={authUrl} />
-			<Marquee />
 			<Showcase />
 			<HowItWorks authUrl={authUrl} />
 			<Features authUrl={authUrl} />

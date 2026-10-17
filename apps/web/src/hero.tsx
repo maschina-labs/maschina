@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { SectionChip } from "./chip.tsx";
 import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 import { DOCS } from "./links.ts";
@@ -19,8 +18,7 @@ const Ribbon = lazy(() =>
  * they are hidden from assistive technology.
  */
 export function Hero({ authUrl }: { authUrl: string }) {
-	const messages = useMessages();
-	const m = messages.home.hero;
+	const m = useMessages().home.hero;
 	const [ready, setReady] = useState(false);
 
 	// The ribbon is three.js, so it waits for the page to finish loading and the browser to be idle: it never competes with
@@ -80,9 +78,6 @@ export function Hero({ authUrl }: { authUrl: string }) {
 					className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-black"
 				/>
 			</div>
-			<SectionChip tone="dark" size="large" className="relative z-20 mb-6">
-				{messages.chips.hero}
-			</SectionChip>
 			<h1
 				ref={heading}
 				className="relative z-20 -mb-[0.14em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] max-w-none pb-[0.14em] font-display font-normal max-sm:-mx-4 text-[clamp(1.6rem,8.4vw,2.5rem)] sm:text-[clamp(2.5rem,6.4vw,7.5rem)] text-transparent bg-clip-text bg-[radial-gradient(circle_18rem_at_var(--mx,50%)_var(--my,-100%),oklch(1_0_0/0.9),transparent),linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] [filter:drop-shadow(0_0_28px_oklch(0.95_0.01_260/0.28))] leading-[0.98] tracking-[-0.035em] [text-wrap:balance]"

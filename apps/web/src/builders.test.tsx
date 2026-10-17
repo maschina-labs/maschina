@@ -172,10 +172,9 @@ describe("the section for builders", () => {
 		expect(container.querySelector("[data-code]")).toHaveAttribute("data-live", "true");
 	});
 
-	it("opens with the same tiny chip, Code, directly above its headline", () => {
+	it("opens on its headline, with no chip above it", () => {
 		const { container } = render(<Builders />);
-		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
-		expect(chip).toHaveTextContent("Code");
-		expect(chip.nextElementSibling).toBe(screen.getByRole("heading", { level: 2 }));
+		expect(container.querySelector("[data-chip-tag]")).toBeNull();
+		expect(screen.getByRole("heading", { level: 2 }).previousElementSibling).toBeNull();
 	});
 });

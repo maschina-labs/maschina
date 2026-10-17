@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { SectionChip } from "./chip.tsx";
 import { Link } from "./i18n/link.tsx";
 import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
@@ -116,12 +115,6 @@ function Chapter({
 				data-seen={seen}
 				className="group/chapter grid w-full gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
 			>
-				{/* A hairline that fades out at both ends and draws itself out from the middle, so each chapter reads as its own scene. */}
-				<div
-					data-rule
-					aria-hidden="true"
-					className="absolute inset-x-(--gutter) top-0 h-px origin-center group-data-[seen=false]/chapter:scale-x-0 bg-gradient-to-r from-transparent via-white/[0.14] to-transparent transition-transform duration-1000 ease-out motion-reduce:transition-none"
-				/>
 				{/* Pearl light behind the visual, faint, drifting slowly, on the side the visual is on. */}
 				<div
 					data-glow
@@ -143,18 +136,10 @@ function Chapter({
 /** How it works: three steps, one under the other beside the words. */
 export function HowItWorks({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.how;
-	const chips = useMessages().chips;
 	return (
 		<Chapter
 			name={m.name}
-			head={
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					align="left"
-					chip={<SectionChip icon="start">{chips.start}</SectionChip>}
-				/>
-			}
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
 			buttons={
 				<Buttons
 					left
@@ -226,7 +211,6 @@ function Chat() {
 /** Inside the app: four tiles, each with a small picture of the part of the app it names. */
 export function Features({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.inside;
-	const chips = useMessages().chips;
 	const pictures = [
 		<Sparkline key="a" />,
 		<Rows key="b" count={4} />,
@@ -237,14 +221,7 @@ export function Features({ authUrl }: { authUrl: string }) {
 		<Chapter
 			name={m.name}
 			flip
-			head={
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					align="left"
-					chip={<SectionChip icon="watch">{chips.watch}</SectionChip>}
-				/>
-			}
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
 			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
 		>
 			<ul className="grid gap-3 sm:grid-cols-2">
@@ -268,18 +245,12 @@ export function Features({ authUrl }: { authUrl: string }) {
 /** Safety: the path every action takes, in four boxes, then what is kept true, and plainly that it is not audited. */
 export function Safety() {
 	const m = useMessages().home.safety;
-	const chips = useMessages().chips;
 	return (
 		<Chapter
 			name={m.name}
 			head={
 				<>
-					<SectionHead
-						title={m.title}
-						line={m.line}
-						align="left"
-						chip={<SectionChip icon="limits">{chips.limits}</SectionChip>}
-					/>
+					<SectionHead title={m.title} line={m.line} align="left" />
 					<p className="mt-6 max-w-[48ch] text-left text-[14px] text-neutral-500 leading-[1.6]">
 						{rich(m.audit, {
 							link: (
@@ -326,20 +297,12 @@ export function Safety() {
 /** Customize: the settings a machine has, as square sliders, and that rearranging your own screens is still to come. */
 export function Customize({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.customize;
-	const chips = useMessages().chips;
 	const positions = ["w-3/5", "w-1/4", "w-2/5", "w-3/4"];
 	return (
 		<Chapter
 			name={m.name}
 			flip
-			head={
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					align="left"
-					chip={<SectionChip icon="shape">{chips.shape}</SectionChip>}
-				/>
-			}
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
 			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
 		>
 			<div className={`${PANEL} space-y-6 sm:p-8`}>
@@ -372,19 +335,10 @@ export function Customize({ authUrl }: { authUrl: string }) {
 /** The live record: a sample of what it will show, said to be a sample and to be on its way. */
 export function LiveRecord() {
 	const m = useMessages().home.live;
-	const chips = useMessages().chips;
 	return (
 		<Chapter
 			name={m.name}
-			head={
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					tag={m.tag}
-					align="left"
-					chip={<SectionChip icon="proof">{chips.proof}</SectionChip>}
-				/>
-			}
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
 		>
 			<div className={PANEL}>
 				<ul className="divide-y divide-white/[0.06]">
@@ -437,20 +391,11 @@ function Near({ children }: { children: React.ReactNode }) {
 /** The network: a turning globe, and that machines running on other people's computers is not here yet. */
 export function Network() {
 	const m = useMessages().home.network;
-	const chips = useMessages().chips;
 	return (
 		<Chapter
 			name={m.name}
 			flip
-			head={
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					tag={m.tag}
-					align="left"
-					chip={<SectionChip icon="next">{chips.next}</SectionChip>}
-				/>
-			}
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
 		>
 			<div className="mx-auto aspect-square w-full max-w-[34rem]">
 				<Near>
@@ -466,17 +411,10 @@ export function Network() {
 /** The marketplace: three empty places where machines will be listed, and that it is not open yet. */
 export function Marketplace() {
 	const m = useMessages().home.marketplace;
-	const chips = useMessages().chips;
 	return (
 		<Section name={m.name}>
 			<div className="flex w-full flex-col items-start">
-				<SectionHead
-					title={m.title}
-					line={m.line}
-					tag={m.tag}
-					align="left"
-					chip={<SectionChip icon="next">{chips.next}</SectionChip>}
-				/>
+				<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />
 			</div>
 			<ul className="mt-14 grid w-full gap-3 sm:mt-16 md:grid-cols-3">
 				{m.cards.map((card, index) => (

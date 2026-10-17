@@ -292,7 +292,7 @@ describe("the chapters between the preview and the questions", () => {
 });
 
 describe("the light behind the chapters", () => {
-	it("gives each chapter a faint pearl glow on the side of its visual, and a hairline above it, with no color and no motion", () => {
+	it("gives each chapter a faint pearl glow on the side of its visual, with no color and no motion", () => {
 		for (const [element, flip] of [
 			[<HowItWorks key="a" authUrl={AUTH} />, false],
 			[<Features key="b" authUrl={AUTH} />, true],
@@ -308,7 +308,6 @@ describe("the light behind the chapters", () => {
 			expect(glow.className).toContain("motion-reduce:animate-none");
 			// Pearl only: the page's own hue, never a bright color.
 			expect(glow.className).toContain("oklch(0.93_0.02_300");
-			expect(container.querySelector("[data-rule]")).not.toBeNull();
 			unmount();
 		}
 	});
@@ -374,11 +373,9 @@ describe("how a chapter arrives and what is behind it", () => {
 		expect(disconnect).toHaveBeenCalled();
 	});
 
-	it("draws the hairline out from the middle when the chapter arrives", () => {
+	it("has no line between the chapters: the space is the divider", () => {
 		const { container } = render(<HowItWorks authUrl={AUTH} />);
-		const rule = container.querySelector("[data-rule]") as HTMLElement;
-		expect(rule.className).toContain("origin-center");
-		expect(rule.className).toContain("group-data-[seen=false]/chapter:scale-x-0");
+		expect(container.querySelector("[data-rule]")).toBeNull();
 	});
 
 	it("has no dot texture behind the visuals any more: it is under the cursor, on the cards, instead", () => {
@@ -458,27 +455,24 @@ describe("make it yours: the lines draw themselves", () => {
 	});
 });
 
-describe("the chapter chips", () => {
+describe("the chapters, with no chips", () => {
 	it.each([
-		["How It Works", <HowItWorks key="a" authUrl={AUTH} />, "Start"],
-		["Inside the App", <Features key="b" authUrl={AUTH} />, "Watch"],
-		["Safety", <Safety key="c" />, "Limits"],
-		["Customize", <Customize key="d" authUrl={AUTH} />, "Shape"],
-		["Live Record", <LiveRecord key="e" />, "Proof"],
-		["Network", <Network key="f" />, "Next"],
-		["Marketplace", <Marketplace key="g" />, "Next"],
+		["How It Works", <HowItWorks key="a" authUrl={AUTH} />],
+		["Inside the App", <Features key="b" authUrl={AUTH} />],
+		["Safety", <Safety key="c" />],
+		["Customize", <Customize key="d" authUrl={AUTH} />],
+		["Live Record", <LiveRecord key="e" />],
+		["Network", <Network key="f" />],
+		["Marketplace", <Marketplace key="g" />],
 	])(
-		"%s opens with a tiny chip above its headline that names its place in the story: %s",
-		(name, element, word) => {
+		"%s opens on its headline: the chapter chips were pulled, so nothing labels a section before it speaks",
+		(name, element) => {
 			render(element);
 			const section = screen.getByRole("region", { name });
-			const chip = section.querySelector("[data-chip-tag]") as HTMLElement;
-			expect(chip).toHaveTextContent(word);
+			expect(section.querySelector("[data-chip-tag]")).toBeNull();
+			// The headline is the first thing in the words column, with nothing above it.
 			const heading = within(section).getByRole("heading", { level: 2 });
-			expect(chip.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-			expect(chip.nextElementSibling).toBe(heading);
-			// Left-aligned with the headline, never centered.
-			expect(chip.parentElement?.className).not.toContain("items-center");
+			expect(heading.previousElementSibling).toBeNull();
 		},
 	);
 });

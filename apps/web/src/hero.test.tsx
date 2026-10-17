@@ -184,29 +184,23 @@ describe("the hero", () => {
 		}
 	});
 
-	it("opens with a dark, solid chip above the headline that says something true, with no icon in it", () => {
+	it("opens on its headline, with no chip above it", () => {
 		const { container } = render(<Hero authUrl={AUTH} />);
-		const chip = container.querySelector("[data-chip-tag]") as HTMLElement;
-		expect(chip).toHaveTextContent("Free to try on paper");
-		expect(chip.className).toContain("bg-neutral-900");
-		expect(chip.querySelector("svg")).toBeNull();
-		// Bigger than the chapter chips, which are 20 high with 11 pixel words.
-		expect(chip.className).toContain("h-7");
-		expect(chip.className).toContain("text-[13px]");
-		expect(chip.className).not.toContain("h-5");
-		const heading = screen.getByRole("heading", { level: 1 });
-		expect(chip.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-		// It sits above the glow and the ribbon, and is not part of the headline's own text.
-		expect(heading.textContent).not.toContain("Free to try");
-		expect(chip.className).toContain("z-20");
+		// Every chip is gone from the front page, the hero's badge with them (Ash, 2026-10-16).
+		expect(container.querySelector("[data-chip-tag]")).toBeNull();
+		expect(screen.queryByText("Free to try on paper")).toBeNull();
+		// The headline is the first thing anyone reads.
+		expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
+			"The operating system for",
+		);
 	});
 
-	it("has buttons that wrap closely around the chip, both the same height", () => {
+	it("has buttons that wrap closely around the arrow inside them, both the same height", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
 		const start = hero.getByRole("link", { name: "Start for free" });
 		const docs = hero.getByRole("link", { name: "Read the docs" });
-		// The chip keeps its size; the button shrinks around it to a thin pearl edge.
+		// The arrow keeps its size; the button shrinks around it to a thin pearl edge.
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
 		// The same thickness as the header's buttons: 40 on a phone and a tablet, 32 on a desktop.
 		expect(start.className).toContain("h-10");
