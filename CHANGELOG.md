@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.59](https://github.com/maschina-labs/maschina/compare/v0.0.58...v0.0.59) (2026-10-17)
+
+
+### Added
+
+* **live:** the record shows what the machines were refused ([#838](https://github.com/maschina-labs/maschina/issues/838)) ([cb91c43](https://github.com/maschina-labs/maschina/commit/cb91c4309577f4ebd7d08ca7a4ca127e3ea9fa1b))
+
 ## [0.0.58](https://github.com/maschina-labs/maschina/compare/v0.0.57...v0.0.58) (2026-10-17)
 
 
