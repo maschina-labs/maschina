@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.53](https://github.com/maschina-labs/maschina/compare/v0.0.52...v0.0.53) (2026-10-17)
+
+
+### Fixed
+
+* **db:** the record accepts a write only from a lease still held ([#821](https://github.com/maschina-labs/maschina/issues/821)) ([851590e](https://github.com/maschina-labs/maschina/commit/851590ec50a4f1296347bf7c58da8b80518c0d2f))
+
 ## [0.0.52](https://github.com/maschina-labs/maschina/compare/v0.0.51...v0.0.52) (2026-10-17)
 
 
