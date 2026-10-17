@@ -14,15 +14,15 @@
 		"check:bundle": "node ../../scripts/checks/bundle-deps.mjs"
 	},
 	"dependencies": {
-		"@better-auth/drizzle-adapter": "1.7.7",
-		"@better-auth/sso": "1.7.7",
+		"@better-auth/drizzle-adapter": "1.7.10",
+		"@better-auth/sso": "1.7.10",
 		"@hono/node-server": "catalog:",
 		"@hono/zod-openapi": "catalog:",
 		"@maschina/accounts": "workspace:*",
 		"@maschina/auth": "workspace:*",
 		"@maschina/db": "workspace:*",
 		"@sentry/node": "catalog:",
-		"better-auth": "1.7.7",
+		"better-auth": "1.7.10",
 		"drizzle-orm": "catalog:",
 		"hono": "catalog:",
 		"pino": "catalog:",
