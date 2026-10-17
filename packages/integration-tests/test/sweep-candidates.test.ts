@@ -7,7 +7,7 @@
 
 import { newId } from "@maschina/core";
 import {
-	appendEvent,
+	appendOwnerEvent,
 	createDatabase,
 	type DatabaseHandle,
 	saveDefinition,
@@ -35,13 +35,15 @@ const address = () =>
 const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
+/**
+ * Seeds a machine's history.
+ *
+ * Through the owner's path, because these tests set up a past rather than act as a node inside a
+ * run. The record only accepts a node's write while it holds the lease it names, and inventing one
+ * here would be inventing permission that was never granted.
+ */
 const append = async (machineId: string, type: string, payload: object) => {
-	const written = await appendEvent(handle.db, {
-		machineId,
-		leaseEpoch: 0n,
-		type,
-		payload,
-	} as never);
+	const written = await appendOwnerEvent(handle.db, { machineId, type, payload } as never);
 	if (!written.ok) throw written.error;
 };
 

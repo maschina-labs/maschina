@@ -26,7 +26,14 @@ export type EventToAppend = {
 	machineId: string;
 	type: string;
 	payload: unknown;
-	/** The epoch of the lease the writer holds. */
+	/**
+	 * The run whose lease permits this write.
+	 *
+	 * Required, because the lease is the permission. An event caused by somebody who holds no run,
+	 * an owner pausing a machine or a machine being created, goes through `appendOwnerEvent`.
+	 */
+	runId: string;
+	/** The epoch of the lease the writer holds, which has to be the one the run really has. */
 	leaseEpoch: bigint;
 };
 
@@ -49,22 +56,39 @@ export async function appendEvent(db: Executor, event: EventToAppend): Promise<A
 
 	const id = newId<"event">();
 	// The driver hands back whatever the column serialises to, so the time is converted here.
+	//
+	// The write is conditional on the lease still being held, checked against the runs table in this
+	// same statement so nothing can change between asking and writing. Three things have to be true
+	// at once: the run belongs to this machine, its epoch is exactly the one the writer claims, and
+	// the lease has not run out.
+	//
+	// It used to compare the highest epoch any event for the MACHINE had ever carried. An epoch
+	// belongs to a run, though, and every run counts from one of its own, so that compared two
+	// numbers that were never on the same scale: a fresh run was refused for being "older" than a
+	// finished one, a dead node outranked a live one, and an invented epoch was accepted because
+	// nothing tied the number to a lease that had been granted.
 	const rows = await db.execute<{ id: string; occurred_at: string | Date }>(sql`
 		insert into events (id, machine_id, type, payload, lease_epoch)
 		select ${id}::uuid, ${checked.value.machineId}::uuid, ${checked.value.type},
 			${JSON.stringify(checked.value.payload)}::jsonb, ${event.leaseEpoch.toString()}::bigint
-		where not exists (
-			select 1 from events
-			where machine_id = ${checked.value.machineId}::uuid
-				and lease_epoch > ${event.leaseEpoch.toString()}::bigint
+		where exists (
+			select 1 from runs
+			where id = ${event.runId}::uuid
+				and machine_id = ${checked.value.machineId}::uuid
+				and lease_epoch = ${event.leaseEpoch.toString()}::bigint
+				and lease_expires_at > now()
 		)
 		returning id, occurred_at`);
 
 	const written = rows[0];
 	if (!written) {
 		return err(
-			new MaschinaError("conflict", "a newer lease has written for this machine", {
-				details: { machineId: event.machineId, leaseEpoch: event.leaseEpoch.toString() },
+			new MaschinaError("conflict", "this run's lease is not held at that epoch", {
+				details: {
+					machineId: event.machineId,
+					runId: event.runId,
+					leaseEpoch: event.leaseEpoch.toString(),
+				},
 			}),
 		);
 	}
@@ -77,14 +101,12 @@ export type OwnerEventToAppend = { machineId: string; type: string; payload: unk
 /**
  * Writes an event an owner caused: pausing, resuming, stopping, funding, withdrawing.
  *
- * The lease fence exists to stop a node that was cut off from writing after its run was given away. An
- * owner is not a node and can never be stale, so their actions are not fenced. They used to be written
- * at epoch zero, which the fence read as the oldest possible writer and refused the moment any run had
- * written at a higher epoch. The result was that a machine could be paused or stopped right up until it
- * did something, and never again.
+ * The lease fence exists to stop a node that was cut off from writing after its run was given away.
+ * An owner is not a node and can never be stale, so their actions are not fenced at all: there is no
+ * run to check them against, because starting, pausing or funding a machine belongs to no run.
  *
- * The event still takes the newest epoch rather than zero. Writing at zero would lower the watermark and
- * let a node that really had been replaced write again afterwards.
+ * The event is written under the newest epoch the machine has seen, so the record still says which
+ * era of the machine's life it belongs to.
  */
 export async function appendOwnerEvent(
 	db: Executor,
@@ -117,4 +139,33 @@ export async function appendOwnerEvent(
 		);
 	}
 	return ok({ id: written.id, occurredAt: new Date(written.occurred_at) });
+}
+
+/**
+ * Writes down what the chain did with a trade that was already signed.
+ *
+ * **Never fenced, on purpose.** A lease is permission to *decide* something. This decides nothing: the
+ * transaction landed or it did not, money moved or it did not, and that is equally true whoever holds
+ * the run now. A node can be cut off halfway through a trade, and the trade carries on without it.
+ *
+ * Fencing this would mean refusing to record a trade that really happened because the lease had moved
+ * on, which is the same failure as releasing a budget for a trade that landed: the record would say a
+ * thing did not happen when it did. That is the worst thing the record can say, so it is the one thing
+ * the fence is not allowed to cause.
+ *
+ * Three voices write to the record, and each is checked differently: a node, which must hold the run it
+ * names; an owner, who holds nothing and can never be stale; and the chain, which is simply true.
+ */
+export async function appendChainOutcome(
+	db: Executor,
+	event: OwnerEventToAppend,
+): Promise<AppendResult> {
+	const written = await appendOwnerEvent(db, event);
+	if (written.ok || written.error.code !== "internal") return written;
+	// The same write, but it is not an owner acting, so it does not say so when it goes wrong.
+	return err(
+		new MaschinaError("internal", "what the chain did was not written down", {
+			details: { machineId: event.machineId, type: event.type },
+		}),
+	);
 }

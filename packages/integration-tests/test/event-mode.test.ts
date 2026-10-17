@@ -12,7 +12,12 @@
  */
 
 import { newId } from "@maschina/core";
-import { appendEvent, createDatabase, type DatabaseHandle, saveDefinition } from "@maschina/db";
+import {
+	appendOwnerEvent,
+	createDatabase,
+	type DatabaseHandle,
+	saveDefinition,
+} from "@maschina/db";
 import { createTestDatabase, type TestDatabase } from "@maschina/testing";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -63,8 +68,14 @@ const modeOf = async (eventId: string) => {
 	return row?.mode;
 };
 
+/**
+ * Writes an event the way an owner does: no run, no lease.
+ *
+ * The mode trigger runs on every insert whatever wrote it, which is the point of testing it here,
+ * and it keeps these tests about the mode rather than about who held which lease.
+ */
 const write = async (machineId: string, type: string, payload: Record<string, unknown>) =>
-	appendEvent(handle.db, { machineId, leaseEpoch: 0n, type, payload } as never);
+	appendOwnerEvent(handle.db, { machineId, type, payload } as never);
 
 const RUN = newId<"run">();
 

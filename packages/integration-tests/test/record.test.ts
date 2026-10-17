@@ -5,7 +5,13 @@
 
 import { randomUUID } from "node:crypto";
 import { newId } from "@maschina/core";
-import { appendEvent, createDatabase, saveDefinition } from "@maschina/db";
+import {
+	appendEvent,
+	appendOwnerEvent,
+	createDatabase,
+	queueRun,
+	saveDefinition,
+} from "@maschina/db";
 import { createTestDatabase, type TestDatabase } from "@maschina/testing";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -154,29 +160,70 @@ describe("appendEvent", () => {
 	const handle = () =>
 		createDatabase({ url: database.appUrl, applicationName: "record-writer-test" });
 
+	/**
+	 * A machine with a run somebody holds, because a lease is what permits a write and nothing else.
+	 * Gives back what a node holding that run would present when it writes.
+	 */
+	async function aHeldRun(db: ReturnType<typeof createDatabase>["db"], sql: postgres.Sql) {
+		const ownerId = newId<"owner">();
+		await sql`
+			insert into owners (id, wallet_address) values (${ownerId}::uuid, ${base58Address()})`;
+		const saved = await saveDefinition(db, {
+			kind: "recurring_buy",
+			settings: { amount: randomUUID() },
+			rules: {},
+		});
+		if (!saved.ok) throw saved.error;
+		const machineId = newId<"machine">();
+		await sql`
+			insert into machines (id, owner_id, wallet_address, provider_wallet_id, provider,
+				definition_id, name, paper)
+			values (${machineId}::uuid, ${ownerId}::uuid, ${base58Address()}, ${"wallet-1"},
+				${"turnkey"}, ${saved.value.id}, ${"Weekly SOL"}, false)`;
+		const queued = await queueRun(db, {
+			machineId,
+			occurrenceKey: randomUUID(),
+			dueAt: new Date(Date.now() - 60_000),
+		});
+		if (!queued.ok) throw queued.error;
+		// Leased directly rather than through `claimDueRun`, which takes whichever run in the whole
+		// database is due next and would happily hand back another test's. The helper's job is a
+		// machine with a run it holds, not an exercise of the claiming rule.
+		const [leased] = await sql<{ id: string; lease_epoch: string }[]>`
+			update runs set state = 'leased', leased_by = ${newId<"node">()}::uuid,
+				lease_expires_at = now() + interval '5 minutes', lease_epoch = lease_epoch + 1
+			where id = ${queued.value.id}::uuid
+			returning id, lease_epoch`;
+		if (!leased) throw new Error("the run could not be leased");
+		return {
+			machineId,
+			runId: leased.id,
+			leaseEpoch: BigInt(leased.lease_epoch),
+			started: {
+				machineId,
+				type: "run.started",
+				payload: { runId: leased.id, nodeId: newId<"node">() },
+				runId: leased.id,
+			},
+		};
+	}
+
 	it("writes a valid event and gives it a sortable v7 id", async () => {
 		const { db, close } = handle();
+		const sql = connect(database.appUrl);
 		try {
-			const machineId = newId<"machine">();
-			const written = await appendEvent(db, {
-				machineId,
-				type: "machine.started",
-				payload: {},
-				leaseEpoch: 1n,
-			});
+			const held = await aHeldRun(db, sql);
+			const written = await appendEvent(db, { ...held.started, leaseEpoch: held.leaseEpoch });
+
 			expect(written.ok).toBe(true);
 			if (!written.ok) return;
 			expect(written.value.id[14], "version 7").toBe("7");
 			expect(written.value.occurredAt.getTime()).toBeGreaterThan(Date.now() - 60_000);
-			const sql = connect(database.appUrl);
-			try {
-				const [row] = await sql<{ type: string; lease_epoch: string }[]>`
-					select type, lease_epoch from events where id = ${written.value.id}`;
-				expect(row).toEqual({ type: "machine.started", lease_epoch: "1" });
-			} finally {
-				await sql.end();
-			}
+			const [row] = await sql<{ type: string; lease_epoch: string }[]>`
+				select type, lease_epoch from events where id = ${written.value.id}`;
+			expect(row).toEqual({ type: "run.started", lease_epoch: String(held.leaseEpoch) });
 		} finally {
+			await sql.end();
 			await close();
 		}
 	});
@@ -189,6 +236,7 @@ describe("appendEvent", () => {
 				machineId,
 				type: "run.started",
 				payload: { runId: newId<"machine">() },
+				runId: newId<"run">(),
 				leaseEpoch: 1n,
 			});
 			expect(result.ok).toBe(false);
@@ -205,52 +253,90 @@ describe("appendEvent", () => {
 		}
 	});
 
-	it("refuses a write from a lease the machine has moved on from", async () => {
+	it("refuses a write under any epoch but the one the run is actually at", async () => {
+		// The rule is not "newer than last time", it is "you hold this run, at this epoch". The old
+		// rule compared the highest epoch any event for the machine had ever carried, which let a
+		// node name a bigger number and outrank everybody, and refused a fresh run for counting from
+		// one of its own.
 		const { db, close } = handle();
+		const sql = connect(database.appUrl);
 		try {
-			const machineId = newId<"machine">();
-			const event = { machineId, type: "machine.started", payload: {} };
-			expect((await appendEvent(db, { ...event, leaseEpoch: 5n })).ok).toBe(true);
+			const held = await aHeldRun(db, sql);
+			expect((await appendEvent(db, { ...held.started, leaseEpoch: held.leaseEpoch })).ok).toBe(
+				true,
+			);
 
-			const stale = await appendEvent(db, { ...event, leaseEpoch: 4n });
-			expect(stale.ok).toBe(false);
-			if (!stale.ok) expect(stale.error.code).toBe("conflict");
-
-			// The current lease and a newer one both still work.
-			expect((await appendEvent(db, { ...event, leaseEpoch: 5n })).ok).toBe(true);
-			expect((await appendEvent(db, { ...event, leaseEpoch: 6n })).ok).toBe(true);
-
-			const sql = connect(database.appUrl);
-			try {
-				const [row] = await sql<{ count: string }[]>`
-					select count(*) from events where machine_id = ${machineId}`;
-				expect(row?.count).toBe("3");
-			} finally {
-				await sql.end();
+			for (const wrong of [held.leaseEpoch - 1n, held.leaseEpoch + 1n, held.leaseEpoch + 500n]) {
+				const refused = await appendEvent(db, { ...held.started, leaseEpoch: wrong });
+				expect(refused.ok, `epoch ${wrong}`).toBe(false);
+				if (!refused.ok) expect(refused.error.code).toBe("conflict");
 			}
+
+			// Holding it still works, as many times as the node needs.
+			expect((await appendEvent(db, { ...held.started, leaseEpoch: held.leaseEpoch })).ok).toBe(
+				true,
+			);
+			const [row] = await sql<{ count: string }[]>`
+				select count(*) from events where machine_id = ${held.machineId}`;
+			expect(row?.count).toBe("2");
 		} finally {
+			await sql.end();
 			await close();
 		}
 	});
 
-	it("keeps one machine's leases from blocking another's", async () => {
+	it("refuses a write once the lease has run out, however recently it was held", async () => {
 		const { db, close } = handle();
+		const sql = connect(database.appUrl);
 		try {
-			const busy = newId<"machine">();
-			await appendEvent(db, {
-				machineId: busy,
-				type: "machine.started",
-				payload: {},
-				leaseEpoch: 9n,
-			});
-			const other = await appendEvent(db, {
-				machineId: newId<"machine">(),
-				type: "machine.started",
-				payload: {},
-				leaseEpoch: 1n,
-			});
-			expect(other.ok).toBe(true);
+			const held = await aHeldRun(db, sql);
+			await sql`
+				update runs set lease_expires_at = now() - interval '1 second'
+				where id = ${held.runId}::uuid`;
+
+			const late = await appendEvent(db, { ...held.started, leaseEpoch: held.leaseEpoch });
+
+			expect(late.ok).toBe(false);
 		} finally {
+			await sql.end();
+			await close();
+		}
+	});
+
+	it("lets an owner write with no lease at all, because an owner is not a node", async () => {
+		// Starting, pausing or funding a machine belongs to nobody's run, and an owner is never stale.
+		const { db, close } = handle();
+		const sql = connect(database.appUrl);
+		try {
+			const held = await aHeldRun(db, sql);
+			const written = await appendOwnerEvent(db, {
+				machineId: held.machineId,
+				type: "machine.started",
+				payload: {},
+			});
+
+			expect(written.ok).toBe(true);
+		} finally {
+			await sql.end();
+			await close();
+		}
+	});
+
+	it("keeps one machine's runs from blocking another's", async () => {
+		const { db, close } = handle();
+		const sql = connect(database.appUrl);
+		try {
+			const busy = await aHeldRun(db, sql);
+			const other = await aHeldRun(db, sql);
+
+			expect((await appendEvent(db, { ...busy.started, leaseEpoch: busy.leaseEpoch })).ok).toBe(
+				true,
+			);
+			expect((await appendEvent(db, { ...other.started, leaseEpoch: other.leaseEpoch })).ok).toBe(
+				true,
+			);
+		} finally {
+			await sql.end();
 			await close();
 		}
 	});

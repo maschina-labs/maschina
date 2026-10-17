@@ -217,6 +217,7 @@ export async function reportRun(
 			machineId: run.machine_id,
 			type: report.event.type,
 			payload: report.event.payload,
+			runId: report.runId,
 			leaseEpoch: report.leaseEpoch,
 		});
 		if (!appended.ok) throw appended.error;

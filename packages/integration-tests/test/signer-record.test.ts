@@ -8,7 +8,7 @@
 
 import { newId } from "@maschina/core";
 import {
-	appendEvent,
+	appendOwnerEvent,
 	budgetFor,
 	claimDueRun,
 	createDatabase,
@@ -78,7 +78,7 @@ async function aRunningMachine(options: { granted?: bigint; running?: boolean } 
 		...(options.running === false ? [] : [{ type: "machine.started", payload: {} }]),
 	];
 	for (const event of events) {
-		const written = await appendEvent(handle.db, { machineId, leaseEpoch: 0n, ...event });
+		const written = await appendOwnerEvent(handle.db, { machineId, ...event });
 		if (!written.ok) throw written.error;
 	}
 

@@ -15,7 +15,7 @@ import { sql } from "drizzle-orm";
 import type { Database } from "./client.ts";
 import { saveDefinition } from "./definitions.ts";
 import { createOwner } from "./owners.ts";
-import { appendEvent } from "./record.ts";
+import { appendOwnerEvent } from "./record.ts";
 
 export type MachineToWrite = {
 	/** The owner's own wallet: the only address this machine's funds can ever reach. */
@@ -120,10 +120,10 @@ async function writeInOneGo(
 			limits.push({ limit: "maxPerDay", to: machine.limits.maxPerDay.toString() });
 		}
 
-		const created = await appendEvent(tx, {
+		// An owner's action: a machine does not exist yet, so there is no run and no lease to hold.
+		const created = await appendOwnerEvent(tx, {
 			machineId,
 			type: "machine.created",
-			leaseEpoch: 0n,
 			payload: {
 				ownerId: owner.value.id,
 				definitionVersionId: definition.value.id,
@@ -136,10 +136,9 @@ async function writeInOneGo(
 		if (!created.ok) return created;
 
 		for (const limit of limits) {
-			const written = await appendEvent(tx, {
+			const written = await appendOwnerEvent(tx, {
 				machineId,
 				type: "machine.limits_changed",
-				leaseEpoch: 0n,
 				payload: { limit: limit.limit, from: null, to: limit.to },
 			});
 			if (!written.ok) return written;

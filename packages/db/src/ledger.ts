@@ -20,7 +20,7 @@ import { budgetMintOf, KNOWN_KINDS, type MachineBudget, machineBudget } from "@m
 import { sql } from "drizzle-orm";
 import type { Database, Executor } from "./client.ts";
 import { readMachineEvents } from "./read-events.ts";
-import { appendEvent } from "./record.ts";
+import { appendChainOutcome, appendEvent } from "./record.ts";
 
 export type TradeToReserve = {
 	machineId: string;
@@ -96,6 +96,7 @@ export async function reserveForTrade(
 		const written = await appendEvent(tx, {
 			machineId: trade.machineId,
 			type: "trade.intended",
+			runId: trade.runId,
 			leaseEpoch: trade.leaseEpoch,
 			payload: {
 				runId: trade.runId,
@@ -142,10 +143,11 @@ export async function settleTrade(
 	db: Executor,
 	trade: SettledTrade,
 ): Promise<Result<{ tradeId: string }, MaschinaError>> {
-	const written = await appendEvent(db, {
+	// What the chain did, not what a node decided, so it is not fenced: the money moved whoever
+	// holds the run now, and a record that refused to say so would be lying about where it went.
+	const written = await appendChainOutcome(db, {
 		machineId: trade.machineId,
 		type: "trade.completed",
-		leaseEpoch: trade.leaseEpoch,
 		payload: {
 			runId: trade.runId,
 			tradeId: trade.tradeId,
@@ -180,10 +182,10 @@ export async function releaseTrade(
 	db: Executor,
 	trade: ReleasedTrade,
 ): Promise<Result<{ tradeId: string }, MaschinaError>> {
-	const written = await appendEvent(db, {
+	// Also the chain's answer: a trade that failed, failed, whoever holds the run by now.
+	const written = await appendChainOutcome(db, {
 		machineId: trade.machineId,
 		type: "trade.failed",
-		leaseEpoch: trade.leaseEpoch,
 		payload: {
 			runId: trade.runId,
 			tradeId: trade.tradeId,
@@ -286,6 +288,7 @@ export async function recordSubmission(
 		const written = await appendEvent(tx, {
 			machineId: submission.machineId,
 			type: "trade.submitted",
+			runId: submission.runId,
 			leaseEpoch: submission.leaseEpoch,
 			payload: {
 				runId: submission.runId,
