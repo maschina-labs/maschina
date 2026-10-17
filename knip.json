@@ -12,7 +12,7 @@
 			"entry": ["src/worker.ts"]
 		},
 		"apps/live": {
-			"entry": ["src/worker.ts", "src/record.ts", "src/format.ts"]
+			"entry": ["src/worker.ts", "src/record.ts", "src/format.ts", "src/dev/sample-boot.ts"]
 		},
 		"apps/auth": {
 			"entry": ["src/worker.ts", "src/people-api.ts", "src/next.ts"]
