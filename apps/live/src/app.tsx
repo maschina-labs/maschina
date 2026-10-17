@@ -1,4 +1,4 @@
-import type { PaperTrade, PublicTrade } from "@maschina/contracts";
+import type { PaperTrade, PublicRefusal, PublicTrade } from "@maschina/contracts";
 import { useEffect, useState } from "react";
 import { amount, priceOf } from "./format.ts";
 import { type RecordState, readRecord } from "./record.ts";
@@ -105,12 +105,72 @@ function Section({
 	note: string;
 	children: React.ReactNode;
 }) {
+	// Labelled by its own heading, so each part of the record is a region a screen reader can jump
+	// between and a reader can link to, rather than three tables in one undifferentiated page.
+	const headingId = `section-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 	return (
-		<section className="mt-14 first:mt-0">
-			<h2 className="text-white text-xl">{title}</h2>
+		<section className="mt-14 first:mt-0" aria-labelledby={headingId}>
+			<h2 id={headingId} className="text-white text-xl">
+				{title}
+			</h2>
 			<p className="mt-1 mb-5 max-w-xl text-neutral-500 text-sm">{note}</p>
 			{children}
 		</section>
+	);
+}
+
+/**
+ * What each rule means, in words a reader has not read the code to understand. A closed set, the
+ * same one the published shape allows, so an unknown code cannot reach here.
+ */
+const RULES: Record<PublicRefusal["rule"], string> = {
+	budget: "over the budget it was given",
+	halted: "everything was halted",
+	provider_policy: "outside the wallet's own policy",
+	recipients: "paying somewhere it may not pay",
+	transaction_shape: "the transaction was not shaped as promised",
+	unknown_machine: "the machine was not recognised",
+	unknown_wallet: "the wallet was not recognised",
+};
+
+/** Which of the two independent gates said no. Both refuse on their own. */
+const GATES: Record<PublicRefusal["by"], string> = {
+	maschina: "Maschina's rules",
+	provider: "the wallet provider",
+};
+
+function Refusals({ refusals }: { refusals: readonly PublicRefusal[] }) {
+	return (
+		<div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+			<table className="w-full min-w-[34rem] border-collapse text-left text-sm">
+				<caption className="sr-only">Actions that were proposed and refused</caption>
+				<thead>
+					<tr className="border-white/20 border-b text-left text-[11px] text-neutral-500 uppercase tracking-widest">
+						<th className={HEAD}>Time</th>
+						<th className={HEAD}>Wanted</th>
+						<th className={`${HEAD} text-right`}>SOL</th>
+						<th className={`${HEAD} text-right`}>USDC</th>
+						<th className={HEAD}>Stopped by</th>
+						<th className={HEAD}>Why</th>
+					</tr>
+				</thead>
+				<tbody>
+					{refusals.map((refusal) => (
+						<tr
+							key={`${refusal.at}-${refusal.rule}-${refusal.usdc}`}
+							className="border-white/10 border-b last:border-0"
+						>
+							<td className={`${CELL} whitespace-nowrap text-neutral-400`}>{when(refusal.at)}</td>
+							<td className={`${CELL} text-white`}>{refusal.side === "buy" ? "Buy" : "Sell"}</td>
+							<td className={`${CELL} text-right`}>{amount(refusal.sol, 9)}</td>
+							<td className={`${CELL} text-right`}>{amount(refusal.usdc, 6)}</td>
+							<td className={`${CELL} whitespace-nowrap text-neutral-400`}>{GATES[refusal.by]}</td>
+							<td className={`${CELL} text-neutral-400`}>{RULES[refusal.rule]}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
 	);
 }
 
@@ -176,6 +236,17 @@ export function LiveApp({ gateway = "" }: { gateway?: string }) {
 								<Empty>No finished trades with real money yet.</Empty>
 							) : (
 								<Table trades={state.record.live} caption="Trades made with real money" />
+							)}
+						</Section>
+
+						<Section
+							title="Refused"
+							note="What a machine proposed and was not allowed to do. Two gates refuse independently: Maschina's own rules, and the wallet provider's policy. Nothing here reached the chain, so there is nothing to link to."
+						>
+							{state.record.refused.length === 0 ? (
+								<Empty>Nothing has been refused yet.</Empty>
+							) : (
+								<Refusals refusals={state.record.refused} />
 							)}
 						</Section>
 

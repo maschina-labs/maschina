@@ -152,6 +152,36 @@ describe("reading an owner's public record", () => {
 		expect(events.filter((event) => event.type === "trade.simulated")).toHaveLength(1);
 	});
 
+	it("returns a refusal with the intent it belongs to, so the record can say what was stopped", async () => {
+		const owner = await aMachineFor(address(), false);
+		const runId = newId<"run">();
+		const tradeId = newId<"trade">();
+		await sql`
+			insert into events (machine_id, type, payload, lease_epoch)
+			values
+				(${owner.machineId}, 'trade.intended', ${sql.json({
+					runId,
+					tradeId,
+					inputMint: USDC,
+					outputMint: SOL,
+					inputAmount: "1000000",
+					quotedOutputAmount: "7000000",
+					slippageBps: 50,
+					feeAllowance: "5000",
+				})}, 1),
+				(${owner.machineId}, 'trade.refused', ${sql.json({
+					runId,
+					tradeId,
+					by: "maschina",
+					rule: "budget",
+					reason: "only 0.40 USDC of the budget is left",
+				})}, 1)`;
+
+		const events = await readOwnerPublicEvents(handle.db, owner.ownerId, 50);
+
+		expect(events.map((event) => event.type)).toEqual(["trade.intended", "trade.refused"]);
+	});
+
 	it("shows one owner nothing of another owner's", async () => {
 		const mine = await aMachineFor(address(), false);
 		const theirs = await aMachineFor(address(), false);

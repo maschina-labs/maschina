@@ -23,7 +23,7 @@ const route = createRoute({
 export function publicRecordRoutes(desk: PublicRecordDesk | undefined) {
 	return new OpenAPIHono<ServiceEnv>().openapi(route, async (c) => {
 		// No owner chosen here: nothing to show, rather than an error a page has to explain.
-		const record = desk ? await desk.read() : { live: [], paper: [] };
+		const record = desk ? await desk.read() : { live: [], paper: [], refused: [] };
 		c.header("cache-control", "public, max-age=30");
 		// Parsed through the strict schema, so a field that should not be public fails here, not on a page.
 		return c.json(PublicRecord.parse(record), 200);

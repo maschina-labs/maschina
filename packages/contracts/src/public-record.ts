@@ -34,6 +34,39 @@ export const PaperTrade = z
 export type PaperTrade = z.infer<typeof PaperTrade>;
 
 /**
+ * One action a machine proposed and was not allowed to take.
+ *
+ * This is the part of the record that is worth more than the trades. Anybody can show you what their
+ * software did; this shows what it tried to do and was stopped from doing, which is the only
+ * evidence that the limits are real rather than described.
+ *
+ * `by` says which of the two independent gates refused it: Maschina's own rules, or the wallet
+ * provider's policy, which refuses on its own and does not take Maschina's word for anything.
+ * `rule` is a code from a closed set, never a sentence. The reason written in the record is free
+ * text and stays private, because free text is how an owner's strategy, balances and mistakes leak
+ * out one sentence at a time.
+ */
+export const PublicRefusal = z
+	.strictObject({
+		at,
+		side,
+		usdc: amount,
+		sol: amount,
+		by: z.enum(["maschina", "provider"]),
+		rule: z.enum([
+			"budget",
+			"halted",
+			"provider_policy",
+			"recipients",
+			"transaction_shape",
+			"unknown_machine",
+			"unknown_wallet",
+		]),
+	})
+	.meta({ id: "PublicRefusal" });
+export type PublicRefusal = z.infer<typeof PublicRefusal>;
+
+/**
  * Real money and paper, kept apart.
  *
  * Two lists rather than one list with a label, because D-096 says no total, chart or figure ever adds
@@ -41,6 +74,15 @@ export type PaperTrade = z.infer<typeof PaperTrade>;
  * make adding them together a deliberate act instead of an oversight.
  */
 export const PublicRecord = z
-	.strictObject({ live: z.array(PublicTrade), paper: z.array(PaperTrade) })
+	.strictObject({
+		live: z.array(PublicTrade),
+		paper: z.array(PaperTrade),
+		/**
+		 * What was proposed and refused, real money and paper alike. One list rather than two,
+		 * because a refusal costs nothing and moves nothing: there is no number here that could be
+		 * added to a live one, which is the thing D-096 exists to prevent.
+		 */
+		refused: z.array(PublicRefusal),
+	})
 	.meta({ id: "PublicRecord" });
 export type PublicRecord = z.infer<typeof PublicRecord>;

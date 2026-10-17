@@ -57,10 +57,13 @@ export async function readMachineEvents(
  * is how a public page becomes a way to make the database work hard, and the public page is the one
  * anybody can ask for as often as they like.
  *
- * It takes two passes on purpose. The first finds the most recent finished trades, so the limit is
- * applied to trades rather than to rows; the second fetches only the intents those trades need to say
- * which way they went. A single limited query would cut intents away from their completions and
- * silently drop trades from the record.
+ * It takes two passes on purpose. The first finds the most recent finished and refused trades, so
+ * the limit is applied to trades rather than to rows; the second fetches only the intents those
+ * trades need to say which way they went and for how much. A single limited query would cut intents
+ * away from their outcomes and silently drop trades from the record.
+ *
+ * Three kinds of outcome come back, so the first pass takes three times the limit: a completion, a
+ * simulation, and a refusal. The projection applies the real limit to each list separately.
  */
 export async function readOwnerPublicEvents(
 	db: Executor,
@@ -71,9 +74,9 @@ export async function readOwnerPublicEvents(
 		select e.id, e.machine_id, e.type, e.payload, e.occurred_at from events e
 		join machines m on m.id = e.machine_id
 		where m.owner_id = ${ownerId}::uuid
-			and e.type in ('trade.completed', 'trade.simulated')
+			and e.type in ('trade.completed', 'trade.simulated', 'trade.refused')
 		order by e.occurred_at desc, e.id desc
-		limit ${limit * 2}`);
+		limit ${limit * 3}`);
 
 	const tradeIds = finished
 		.map((row) => (row.payload as Record<string, unknown> | null)?.["tradeId"])
