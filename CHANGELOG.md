@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.52](https://github.com/maschina-labs/maschina/compare/v0.0.51...v0.0.52) (2026-10-17)
+
+
+### Added
+
+* **live:** the public record page, paper kept apart from real money ([#818](https://github.com/maschina-labs/maschina/issues/818)) ([496400e](https://github.com/maschina-labs/maschina/commit/496400ebee3de14ddd91f98e17b386d6402459b3))
+
 ## [0.0.51](https://github.com/maschina-labs/maschina/compare/v0.0.50...v0.0.51) (2026-10-17)
 
 
