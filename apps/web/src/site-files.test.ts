@@ -243,14 +243,18 @@ describe("the page's own head, for browsers, search engines and shared links", (
 			expect(existsSync(resolve(root, "public", `.${href}`)), href).toBe(true);
 	});
 
-	it("preloads the licensed fonts from the folder the fonts script fills, so a build that has them serves them", () => {
+	it("preloads the licensed fonts as plain file names, the only shape the Worker serves from the bucket", () => {
 		const hrefs = [...html.matchAll(/<link[^>]*href="([^"]+)"/g)].map((match) => match[1] ?? "");
 		const fonts = hrefs.filter((href) => href.startsWith("/fonts/"));
 		expect(fonts.length).toBeGreaterThan(0);
-		const script = readFileSync(resolve(root, "..", "..", "scripts", "fonts.mjs"), "utf8");
-		// The script writes into each app's own public/fonts, and the page asks for files from that folder.
-		expect(script).toContain("public/fonts/");
-		for (const href of fonts) expect(href, href).toMatch(/^\/fonts\/[\w-]+\.woff2$/);
+		// The files are not in the repository, so the page cannot be checked against the folder. It is
+		// checked against the Worker that serves them in production, which looks up a plain name and
+		// nothing else. `scripts/fonts.test.mjs` checks that `pnpm fonts` fetches these same files.
+		const worker = readFileSync(resolve(root, "src", "worker.ts"), "utf8");
+		const serves = /const FONT = \/\^(.*)\$\/;/.exec(worker)?.[1] ?? "";
+		expect(serves).toBeTruthy();
+		for (const href of fonts)
+			expect(new RegExp(`^${serves}$`).test(href.slice("/fonts/".length)), href).toBe(true);
 	});
 
 	it("describes the company for search engines as structured data, claiming only what is true", () => {

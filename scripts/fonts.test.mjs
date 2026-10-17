@@ -1,8 +1,17 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 import { fontsWanted, whatToFetch } from "./fonts.mjs";
 
 const roots = [];
@@ -98,5 +107,38 @@ describe("what to fetch, and where to put it", () => {
 		});
 
 		assert.deepEqual(whatToFetch(root)[0]?.fonts, ["Sohne-400.woff2", "Sohne-500.woff2"]);
+	});
+});
+
+describe("this repository, as it stands", () => {
+	const apps = fileURLToPath(new URL("../apps/", import.meta.url));
+
+	it("fetches fonts for every app that asks for one, and for no app that does not", () => {
+		const asking = readdirSync(apps, { withFileTypes: true })
+			.filter((entry) => entry.isDirectory())
+			.map((entry) => entry.name)
+			.filter((app) =>
+				["src/styles.css", "index.html"]
+					.map((file) => join(apps, app, file))
+					.some((path) => existsSync(path) && fontsWanted(readFileSync(path, "utf8")).length > 0),
+			);
+
+		assert.deepEqual(
+			whatToFetch(apps).map((one) => one.app),
+			asking.sort(),
+		);
+	});
+
+	it("fetches exactly the files each app's own Worker would serve from the bucket", () => {
+		for (const { app, fonts } of whatToFetch(apps)) {
+			const worker = join(apps, app, "src", "worker.ts");
+			// An app with no Worker in front of it serves no font in production, which is its own problem.
+			assert.ok(existsSync(worker), `${app} asks for fonts but has no Worker to serve them`);
+			const pattern = /const FONT = \/\^(.*)\$\/;/.exec(readFileSync(worker, "utf8"))?.[1];
+			assert.ok(pattern, `${app}'s Worker does not say which names it serves`);
+			for (const font of fonts) {
+				assert.match(font, new RegExp(`^${pattern}$`), `${app} asks for ${font}`);
+			}
+		}
 	});
 });
