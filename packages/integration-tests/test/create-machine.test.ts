@@ -9,6 +9,7 @@
 import {
 	budgetFor,
 	createDatabase,
+	createOwner,
 	type DatabaseHandle,
 	readMachineEvents,
 	writeMachine,
@@ -36,8 +37,16 @@ const address = () =>
 const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-const aMachine = (overrides: Partial<Parameters<typeof writeMachine>[1]> = {}) => ({
-	ownerWallet: address(),
+/** An owner row for a wallet, which exists before any machine is written. */
+async function anOwner(walletAddress = address()) {
+	const owner = await createOwner(handle.db, walletAddress);
+	if (!owner.ok) throw owner.error;
+	return owner.value.id;
+}
+
+/** A machine to write, with an owner that really exists unless the caller names one. */
+const aMachine = async (overrides: Partial<Parameters<typeof writeMachine>[1]> = {}) => ({
+	ownerId: overrides.ownerId ?? (await anOwner()),
 	name: "SOL dip buyer",
 	kind: "price_trigger",
 	paper: false,
@@ -55,7 +64,7 @@ const aMachine = (overrides: Partial<Parameters<typeof writeMachine>[1]> = {}) =
 
 describe("writeMachine", () => {
 	it("writes the owner, the definition, the machine and its limits together", async () => {
-		const request = aMachine();
+		const request = await aMachine();
 		const written = await writeMachine(handle.db, request);
 
 		expect(written.ok).toBe(true);
@@ -70,7 +79,7 @@ describe("writeMachine", () => {
 	});
 
 	it("records every limit the owner set, so the rules can read them back", async () => {
-		const written = await writeMachine(handle.db, aMachine());
+		const written = await writeMachine(handle.db, await aMachine());
 		if (!written.ok) throw written.error;
 
 		const limits = (await readMachineEvents(handle.db, written.value.machineId))
@@ -80,17 +89,17 @@ describe("writeMachine", () => {
 	});
 
 	it("gives a second machine for the same owner the same owner id", async () => {
-		const ownerWallet = address();
-		const first = await writeMachine(handle.db, aMachine({ ownerWallet }));
-		const second = await writeMachine(handle.db, aMachine({ ownerWallet }));
+		const ownerId = await anOwner();
+		const first = await writeMachine(handle.db, await aMachine({ ownerId }));
+		const second = await writeMachine(handle.db, await aMachine({ ownerId }));
 
 		expect(first.ok && second.ok && first.value.ownerId === second.value.ownerId).toBe(true);
 	});
 
 	it("refuses a wallet another machine already uses, and writes nothing", async () => {
 		const wallet = { address: address(), providerWalletId: "wallet-1", provider: "turnkey" };
-		const first = await writeMachine(handle.db, aMachine({ wallet }));
-		const second = await writeMachine(handle.db, aMachine({ wallet }));
+		const first = await writeMachine(handle.db, await aMachine({ wallet }));
+		const second = await writeMachine(handle.db, await aMachine({ wallet }));
 
 		expect(first.ok).toBe(true);
 		expect(second.ok).toBe(false);
@@ -102,14 +111,14 @@ describe("writeMachine", () => {
 	it("refuses a machine with no budget, because a machine that cannot spend is not ready", async () => {
 		const refused = await writeMachine(
 			handle.db,
-			aMachine({ limits: { budgetGranted: 0n, approvedMints: [SOL] } }),
+			await aMachine({ limits: { budgetGranted: 0n, approvedMints: [SOL] } }),
 		);
 		expect(refused.ok).toBe(false);
 	});
 
 	it("keeps the vault beside the wallet, in the table and in the record", async () => {
 		const vaultAddress = address();
-		const request = aMachine({
+		const request = await aMachine({
 			wallet: {
 				address: address(),
 				vaultAddress,
@@ -132,7 +141,7 @@ describe("writeMachine", () => {
 	});
 
 	it("writes a machine with no vault as having none", async () => {
-		const written = await writeMachine(handle.db, aMachine());
+		const written = await writeMachine(handle.db, await aMachine());
 		if (!written.ok) throw written.error;
 
 		const rows = await handle.sql<{ vault_address: string | null }[]>`
@@ -144,7 +153,7 @@ describe("writeMachine", () => {
 		const same = address();
 		const refused = await writeMachine(
 			handle.db,
-			aMachine({
+			await aMachine({
 				wallet: { address: same, vaultAddress: same, providerWalletId: "w", provider: "turnkey" },
 			}),
 		);
@@ -160,15 +169,21 @@ describe("writeMachine", () => {
 			providerWalletId: "wallet-1",
 			provider: "turnkey",
 		});
-		const first = await writeMachine(handle.db, aMachine({ wallet: wallet() }));
-		const second = await writeMachine(handle.db, aMachine({ wallet: wallet() }));
+		const first = await writeMachine(handle.db, await aMachine({ wallet: wallet() }));
+		const second = await writeMachine(handle.db, await aMachine({ wallet: wallet() }));
 
 		expect(first.ok).toBe(true);
 		expect(second.ok).toBe(false);
 	});
 
-	it("refuses an owner address that is not an address", async () => {
-		const refused = await writeMachine(handle.db, aMachine({ ownerWallet: "nope" }));
-		expect(refused.ok).toBe(false);
+	it("refuses an owner who does not exist, rather than making one on the way past", async () => {
+		// The owner row is written when somebody signs in. A machine for an owner who is not there is
+		// a bug upstream, and quietly creating one would hide it.
+		const refused = await writeMachine(
+			handle.db,
+			await aMachine({ ownerId: "0199a0a0-0000-7000-8000-00000000dead" }),
+		);
+
+		expect(!refused.ok && refused.error.code).toBe("not_found");
 	});
 });

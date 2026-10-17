@@ -16,6 +16,7 @@ import { signerUserIdFor, turnkeyApi, turnkeyProvider } from "@maschina/wallet";
 import { buildApp, SERVICE } from "./app.ts";
 import { everythingWithdrawer, sweeper, tradeSigner, withdrawer } from "./compose.ts";
 import { loadConfig } from "./config.ts";
+import { neverSignsPaper } from "./never-signs-paper.ts";
 
 const config = loadConfig();
 const logger = createLogger({
@@ -39,13 +40,17 @@ const signingKey = {
 	apiPrivateKey: config.TURNKEY_SIGNER_API_PRIVATE_KEY,
 };
 const signingKeyApi = turnkeyApi(signingKey);
-const provider = turnkeyProvider({
-	// The running signer holds no admin key. Anything administrative it is asked to do is refused by
-	// Turnkey, because the signing key has no such permission.
-	admin: signingKeyApi,
-	signer: signingKeyApi,
-	signerUserId: await signerUserIdFor(signingKey),
-});
+// Wrapped so a paper machine's wallet is refused here, by name, rather than becoming an unexplained
+// provider error in the middle of the money path. It holds no key, so there is nothing to ask for.
+const provider = neverSignsPaper(
+	turnkeyProvider({
+		// The running signer holds no admin key. Anything administrative it is asked to do is refused by
+		// Turnkey, because the signing key has no such permission.
+		admin: signingKeyApi,
+		signer: signingKeyApi,
+		signerUserId: await signerUserIdFor(signingKey),
+	}),
+);
 
 /** One client for everything here, so the readiness check asks the same node that trades use. */
 const rpc = solanaRpc(config.SOLANA_RPC_URL);

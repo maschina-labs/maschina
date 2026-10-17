@@ -13,6 +13,7 @@ const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const OWNER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
 const request = {
+	ownerId: "0199a0a0-0000-7000-8000-000000000001",
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",
@@ -51,6 +52,87 @@ function ports(overrides: Partial<CreateMachinePorts> = {}) {
 	};
 	return { ports: { ...base, ...overrides }, written };
 }
+
+describe("creating a machine on paper", () => {
+	/** A provider that fails loudly, because a paper machine must never reach one. */
+	const noProvider = () => ({
+		name: "turnkey",
+		createWallet: async () => {
+			throw new Error("a paper machine asked the provider for a wallet");
+		},
+		readPolicy: async () => {
+			throw new Error("a paper machine asked the provider for a policy");
+		},
+		sign: async () => {
+			throw new Error("a paper machine asked the provider to sign");
+		},
+		setRecipients: async () => {
+			throw new Error("a paper machine asked the provider to change recipients");
+		},
+	});
+
+	it("asks the wallet provider for nothing at all: no wallet, no vault, no policy", async () => {
+		const { ports: p, written } = ports({ provider: noProvider() as never });
+
+		const made = await createMachine(p, { ...request, paper: true });
+
+		expect(made.ok).toBe(true);
+		expect(written).toHaveLength(1);
+	});
+
+	it("carries the paper provider and a wallet id that says so, with no vault", async () => {
+		const { ports: p, written } = ports({ provider: noProvider() as never });
+
+		await createMachine(p, { ...request, paper: true });
+
+		const machine = written[0] as { paper: boolean; wallet: Record<string, unknown> };
+		expect(machine.paper).toBe(true);
+		expect(machine.wallet["provider"]).toBe("paper");
+		expect(machine.wallet["providerWalletId"]).toBe(`paper:${machine.wallet["address"]}`);
+		// Nothing to bank, because a paper machine never earns anything.
+		expect(machine.wallet["vaultAddress"]).toBeUndefined();
+	});
+
+	it("is made for somebody who has never linked a wallet, which is the point of it", async () => {
+		const { ports: p } = ports({ provider: noProvider() as never });
+		const { ownerWallet: _none, ...withoutAWallet } = request;
+
+		const made = await createMachine(p, { ...withoutAWallet, paper: true });
+
+		expect(made.ok).toBe(true);
+	});
+
+	it("gives each one its own address, because the column is unique", async () => {
+		const { ports: p, written } = ports({ provider: noProvider() as never });
+
+		await createMachine(p, { ...request, paper: true });
+		await createMachine(p, { ...request, paper: true });
+
+		const [first, second] = written as { wallet: { address: string } }[];
+		expect(first?.wallet.address).not.toBe(second?.wallet.address);
+	});
+
+	it("still refuses settings that could never trade, before anything is written", async () => {
+		const { ports: p, written } = ports({ provider: noProvider() as never });
+
+		const made = await createMachine(p, { ...request, paper: true, kind: "not-a-kind" });
+
+		expect(!made.ok && made.error.code).toBe("invalid_input");
+		expect(written).toEqual([]);
+	});
+});
+
+describe("creating a machine that holds real money", () => {
+	it("refuses one for an owner who has never linked a wallet: there is nowhere for funds to go", async () => {
+		const { ports: p, written } = ports();
+		const { ownerWallet: _none, ...withoutAWallet } = request;
+
+		const made = await createMachine(p, { ...withoutAWallet, paper: false });
+
+		expect(!made.ok && made.error.code).toBe("invalid_input");
+		expect(written).toEqual([]);
+	});
+});
 
 describe("creating a machine", () => {
 	it("makes a wallet, checks its policy, then writes the machine", async () => {

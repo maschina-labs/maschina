@@ -29,6 +29,11 @@ export type GatewayDeps = {
 	clock?: Clock | undefined;
 	/** Everything the machines API needs. Owners come from the session, never from a request. */
 	machines: MachinePorts;
+	/**
+	 * The wallets that may put real money in a machine. Everyone may make a paper machine; nobody may
+	 * make a live one unless their wallet is named here. Left out means nobody, which is the default.
+	 */
+	liveWallets?: string[] | undefined;
 	/** Signing in with a wallet, and the cookie a session travels in. */
 	auth: AuthPorts;
 	cookie: CookieSettings;
@@ -73,7 +78,7 @@ function v1(deps: GatewayDeps) {
 			"/",
 			systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock, halt: deps.halt }),
 		)
-		.route("/", machineRoutes(deps.machines))
+		.route("/", machineRoutes(deps.machines, deps.liveWallets ?? []))
 		.route("/", authRoutes(deps.auth, deps.cookie))
 		.route("/", peopleRoutes(deps.people))
 		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))

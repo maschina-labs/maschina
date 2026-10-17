@@ -13,10 +13,27 @@ import type { Executor } from "./client.ts";
 
 export type Owner = {
 	id: string;
-	walletAddress: string;
+	/** Empty for somebody who signed in with an email and has never linked a wallet of their own. */
+	walletAddress: string | null;
 	/** False when this wallet had already signed in before. */
 	created: boolean;
 };
+
+/**
+ * An owner that already exists, by id.
+ *
+ * Used where the caller has a session and so already knows who is asking: the row is made at sign in
+ * and this reads it. A missing one is a bug upstream rather than somebody new, so it is an error
+ * rather than a quiet insert.
+ */
+export async function ownerById(db: Executor, id: string): Promise<Result<Owner, MaschinaError>> {
+	const rows = await db.execute<{ id: string; wallet_address: string | null }>(
+		sql`select id, wallet_address from owners where id = ${id}::uuid`,
+	);
+	const row = rows[0];
+	if (!row) return err(new MaschinaError("not_found", "no such owner"));
+	return ok({ id: row.id, walletAddress: row.wallet_address, created: false });
+}
 
 const SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 

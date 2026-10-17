@@ -11,6 +11,7 @@ export * from "./jupiter.ts";
 export * from "./jupiter-price.ts";
 export * from "./market-scan.ts";
 export * from "./mint.ts";
+export * from "./paper-address.ts";
 export * from "./price.ts";
 export * from "./priority-fee.ts";
 export * from "./raydium.ts";
