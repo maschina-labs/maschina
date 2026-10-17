@@ -26,6 +26,48 @@ describe("gateway config", () => {
 		expect(loadConfig(complete).GATEWAY_SECRETS_KEY).toBeUndefined();
 	});
 
+	it("refuses to start when the signed-in domain is not the host serving the app", () => {
+		// A wallet checks the domain in the message against the page it is being asked from, and refuses
+		// to show the request at all when they differ. The app moved to app.maschina.dev (D-100) and the
+		// domain stayed at maschina.dev, so nobody could sign in and the wallet would not say why.
+		expect(() =>
+			loadConfig({
+				...complete,
+				GATEWAY_DOMAIN: "maschina.dev",
+				GATEWAY_APP_URL: "https://app.maschina.dev",
+			}),
+		).toThrow(/GATEWAY_DOMAIN/);
+	});
+
+	it("takes them when they agree, port and all, because a wallet compares the whole host", () => {
+		const matched = loadConfig({
+			...complete,
+			GATEWAY_DOMAIN: "app.maschina.dev",
+			GATEWAY_APP_URL: "https://app.maschina.dev",
+		});
+		expect(matched.GATEWAY_DOMAIN).toBe("app.maschina.dev");
+
+		// Development runs on a port, which is part of the host and part of what a wallet compares.
+		const local = loadConfig({
+			...complete,
+			GATEWAY_DOMAIN: "localhost:3002",
+			GATEWAY_APP_URL: "http://localhost:3002",
+		});
+		expect(local.GATEWAY_DOMAIN).toBe("localhost:3002");
+	});
+
+	it("refuses a domain that only looks right: a port dropped, or a parent of the real host", () => {
+		for (const domain of ["app.maschina.dev:443", "maschina.dev", "localhost"]) {
+			expect(() =>
+				loadConfig({
+					...complete,
+					GATEWAY_DOMAIN: domain,
+					GATEWAY_APP_URL: "https://app.maschina.dev",
+				}),
+			).toThrow(/GATEWAY_DOMAIN/);
+		}
+	});
+
 	it("takes the owner whose machines are shown publicly only as a real id, and shows none otherwise", () => {
 		const id = "01a0e674-dbbf-75e0-a420-970000000000";
 		expect(loadConfig({ ...complete, PUBLIC_RECORD_OWNER_ID: id }).PUBLIC_RECORD_OWNER_ID).toBe(id);

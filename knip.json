@@ -98,5 +98,5 @@
 			]
 		}
 	},
-	"ignoreBinaries": ["act", "gitleaks", "jq"]
+	"ignoreBinaries": ["act", "gitleaks", "jq", "wrangler"]
 }
