@@ -1,8 +1,9 @@
+import { MaschinaError } from "@maschina/core";
 import { type EnvSource, env, loadEnv, serviceEnv, statusHeartbeatEnv } from "@maschina/env";
 import { z } from "zod";
 
 export function loadConfig(source?: EnvSource) {
-	return loadEnv(
+	const config = loadEnv(
 		{
 			...serviceEnv,
 			...statusHeartbeatEnv("GATEWAY"),
@@ -89,4 +90,24 @@ export function loadConfig(source?: EnvSource) {
 		},
 		source,
 	);
+
+	// A wallet checks the domain written into the sign in message against the origin of the page
+	// asking for the signature, and where they differ it refuses to show the request at all: the
+	// person sees "the domain in the sign-in message does not match the requesting app's origin" and
+	// nothing else. So the two cannot be configured apart. The app moved to app.maschina.dev (D-100)
+	// while the domain stayed at maschina.dev, and sign in was broken until somebody tried it.
+	//
+	// Compared as whole hosts, port and all, because that is what a wallet compares. Refusing at
+	// startup rather than warning: a gateway that runs with these apart is a gateway nobody can sign
+	// into, which is worse than one that did not start.
+	const serving = new URL(config.GATEWAY_APP_URL).host;
+	if (config.GATEWAY_DOMAIN !== serving) {
+		throw new MaschinaError(
+			"invalid_input",
+			`Environment is not valid:\n  GATEWAY_DOMAIN: is "${config.GATEWAY_DOMAIN}" but GATEWAY_APP_URL is served from "${serving}". A wallet refuses to sign a message naming a different host, so these have to be the same.\nSee .env.example.`,
+			{ details: { variables: ["GATEWAY_DOMAIN", "GATEWAY_APP_URL"] } },
+		);
+	}
+
+	return config;
 }
