@@ -1,4 +1,5 @@
-import { useId, useState } from "react";
+import { Check } from "@phosphor-icons/react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CONTACT_TOPICS, type ContactMessage, sendMessage } from "./contact-send.ts";
 import { Frame } from "./frame.tsx";
 import { ArrowChip, PANEL } from "./glass.tsx";
@@ -32,6 +33,16 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 	const [fields, setFields] = useState({ name: "", email: "", message: "" });
 	const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 	const [problem, setProblem] = useState<string | null>(null);
+	// Opening one address closes the one that was open, so the page moves under you. Bring the new one to the top of the
+	// view, under the header, so you never have to scroll to find where you are. Not on the first view of the page.
+	const rows = useRef<Record<string, HTMLDivElement | null>>({});
+	const shown = useRef(topic);
+	useEffect(() => {
+		if (shown.current === topic) return;
+		shown.current = topic;
+		const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+		rows.current[topic]?.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+	}, [topic]);
 	const set = (name: keyof typeof fields) => (event: { target: { value: string } }) =>
 		setFields((now) => ({ ...now, [name]: event.target.value }));
 
@@ -78,17 +89,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 									aria-hidden="true"
 									className="grid size-12 place-items-center bg-[oklch(0.93_0.02_300)] text-black"
 								>
-									<svg
-										aria-hidden="true"
-										viewBox="0 0 20 20"
-										className="size-5"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth={1.8}
-										strokeLinecap="square"
-									>
-										<path d="M4 10.5 8.5 15 16 6" />
-									</svg>
+									<Check weight="bold" className="size-5" aria-hidden="true" />
 								</span>
 								<h2 className="mt-8 font-display font-medium text-[1.75rem] text-white leading-tight tracking-[-0.025em]">
 									{m.sentTitle}
@@ -111,9 +112,12 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 											return (
 												<div
 													key={value}
+													ref={(node) => {
+														rows.current[value] = node;
+													}}
 													data-inbox
 													data-open={open}
-													className="border-white/[0.1] border-b"
+													className="scroll-mt-24 border-white/[0.1] border-b"
 												>
 													<label className="group flex cursor-pointer items-center gap-5 py-6 sm:gap-8">
 														<input
@@ -221,7 +225,7 @@ export function ContactPage({ authUrl }: { authUrl: string }) {
 																<button
 																	type="submit"
 																	disabled={state === "sending"}
-																	className="inline-flex h-11 items-center gap-4 bg-[oklch(0.93_0.02_300)] pr-1.5 pl-6 text-[15px] text-black transition-colors hover:bg-[oklch(0.98_0.015_300)] disabled:opacity-60"
+																	className="inline-flex h-11 items-center gap-4 silver-button pr-1.5 pl-6 text-[15px] text-black disabled:opacity-60"
 																>
 																	<span>{state === "sending" ? m.sending : m.send}</span>
 																	<ArrowChip tone="black" direction="next" />

@@ -91,6 +91,117 @@ body {
 	}
 }
 
+/* A very slow drift for the light behind a chapter: it moves a little and back, like light through glass. */
+@theme {
+	--animate-drift: drift 18s ease-in-out infinite;
+	@keyframes drift {
+		0%,
+		100% {
+			translate: 0 -50%;
+		}
+		50% {
+			translate: 3rem calc(-50% + 2rem);
+		}
+	}
+}
+
+/*
+ * The silver button: the same cool silver as the headlines, a gradient through near-white and back, so a button is metal and
+ * not a flat pale color. At rest it is silver. On hover a brighter silver moves across it, following the pointer
+ * (silver-pointer.ts sets --shine-x), so it reads as light moving over metal rather than a color change.
+ *
+ * One finish, and it is silver. A pearl shimmer was tried on hover and pulled: on a page that is black, silver and
+ * pearl, colour on the one thing a person is about to click is the thing that looks cheap.
+ */
+:root {
+	--silver-fill: linear-gradient(
+		105deg,
+		oklch(0.86 0.01 260) 0%,
+		oklch(0.96 0.006 260) 30%,
+		oklch(0.995 0.002 260) 46%,
+		oklch(0.92 0.008 260) 64%,
+		oklch(0.84 0.01 260) 100%
+	);
+	--silver-shine: linear-gradient(
+		105deg,
+		oklch(0.9 0.008 260) 0%,
+		oklch(0.98 0.004 260) 32%,
+		oklch(1 0 0) 48%,
+		oklch(0.95 0.006 260) 66%,
+		oklch(0.88 0.01 260) 100%
+	);
+}
+.silver-button {
+	--shimmer: var(--silver-shine);
+	background-image: var(--silver-fill);
+	background-size: 200% 100%;
+	background-position: 0% 0;
+	transition: background-position 260ms ease-out;
+}
+.silver-button:hover {
+	background-image: var(--shimmer);
+	background-position: var(--shine-x, 100%) 0;
+}
+@media (prefers-reduced-motion: reduce) {
+	.silver-button {
+		transition: none;
+	}
+}
+@media (hover: none) {
+	.silver-button:hover {
+		background-image: var(--silver-fill);
+		background-position: 0% 0;
+	}
+	/* No hover on a phone, so the shine shows while the button is pressed. */
+	.silver-button:active {
+		background-image: var(--shimmer);
+		background-position: 60% 0;
+	}
+}
+
+/* Code that streams slowly down a column. The column holds its text twice, so moving half its height loops without a seam. */
+@theme {
+	--animate-stream: stream 90s linear infinite;
+	@keyframes stream {
+		from {
+			transform: translateY(-50%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+}
+
+/*
+ * A card that shows a fine field of dots under the pointer: a spotlight of dots that follows the mouse across it and is
+ * gone when the mouse leaves. The page sets --mx and --my on the card. Nothing on a screen with no hover, such as a phone.
+ */
+.card-dots {
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+}
+.card-dots::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 250ms ease-out;
+	background-image: radial-gradient(oklch(1 0 0 / 0.55) 1px, transparent 1px);
+	background-size: 14px 14px;
+	mask-image: radial-gradient(200px circle at var(--mx, 50%) var(--my, 50%), black, transparent);
+}
+.card-dots:hover::before {
+	opacity: 1;
+}
+@media (hover: none) {
+	.card-dots::before {
+		display: none;
+	}
+}
+
 /* A slow fade for things that arrive on their own, such as the ribbon once it has loaded. */
 @theme {
 	--animate-fade-in: fade-in 1.4s ease-out both;

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Hero } from "./hero.tsx";
 
@@ -84,9 +84,7 @@ describe("the hero", () => {
 	it("ends with one plain line of facts, with no link and no claim about results", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		const line = within(section).getByText(
-			"Source-available, built on Solana, free to try on paper.",
-		);
+		const line = within(section).getByText("Source-available, built on Solana.");
 		expect(line.tagName).toBe("P");
 		expect(section.lastElementChild).toBe(line);
 		expect(line.querySelector("a")).toBeNull();
@@ -169,7 +167,7 @@ describe("the hero", () => {
 
 	it("keeps that line at the foot of the screen, off the stack", () => {
 		render(<Hero authUrl={AUTH} />);
-		const line = screen.getByText("Source-available, built on Solana, free to try on paper.");
+		const line = screen.getByText("Source-available, built on Solana.");
 		expect(line.className).toContain("absolute");
 		expect(line.className).toContain("inset-x-0");
 		expect(line.className).toContain("bottom-[calc(2rem+100lvh-100svh)]");
@@ -186,18 +184,32 @@ describe("the hero", () => {
 		}
 	});
 
-	it("has buttons that wrap closely around the chip, both the same height", () => {
+	it("opens on its headline, with no chip above it", () => {
+		const { container } = render(<Hero authUrl={AUTH} />);
+		// Every chip is gone from the front page, the hero's badge with them (Ash, 2026-10-16).
+		expect(container.querySelector("[data-chip-tag]")).toBeNull();
+		expect(screen.queryByText("Free to try on paper")).toBeNull();
+		// The headline is the first thing anyone reads.
+		expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
+			"The operating system for",
+		);
+	});
+
+	it("has buttons that wrap closely around the arrow inside them, both the same height", () => {
 		render(<Hero authUrl={AUTH} />);
 		const hero = within(screen.getByRole("region", { name: "Maschina" }));
 		const start = hero.getByRole("link", { name: "Start for free" });
 		const docs = hero.getByRole("link", { name: "Read the docs" });
-		// The chip keeps its size; the button shrinks around it to a thin pearl edge.
+		// The arrow keeps its size; the button shrinks around it to a thin pearl edge.
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
-		expect(start.className).toContain("h-9");
+		// The same thickness as the header's buttons: 40 on a phone and a tablet, 32 on a desktop.
+		expect(start.className).toContain("h-10");
+		expect(start.className).toContain("xl:h-8");
 		expect(start.className).toContain("pr-1");
 		expect(start.className).not.toContain("pr-1.5");
 		expect(start.className).not.toMatch(/\bpy-/);
-		expect(docs.className).toContain("h-9");
+		expect(docs.className).toContain("h-10");
+		expect(docs.className).toContain("xl:h-8");
 		expect(docs.className).not.toMatch(/\bpy-/);
 	});
 
@@ -229,6 +241,26 @@ describe("the hero", () => {
 		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
 			"clamp(2.5rem,6.4vw,7.5rem)",
 		);
+	});
+
+	it("holds the ribbon back until the page has finished loading and the browser is idle, so three.js never competes with the first paint", async () => {
+		const idle = vi.fn((callback: () => void) => {
+			callback();
+			return 1;
+		});
+		vi.stubGlobal("requestIdleCallback", idle);
+		const state = vi.spyOn(document, "readyState", "get").mockReturnValue("loading");
+		render(<Hero authUrl={AUTH} />);
+		expect(screen.queryByTestId("ribbon")).toBeNull();
+		expect(idle).not.toHaveBeenCalled();
+		act(() => {
+			state.mockReturnValue("complete");
+			window.dispatchEvent(new Event("load"));
+		});
+		expect(await screen.findByTestId("ribbon")).toBeInTheDocument();
+		expect(idle).toHaveBeenCalledTimes(1);
+		state.mockRestore();
+		vi.unstubAllGlobals();
 	});
 
 	it("always draws the ribbon calmly, as before: nothing about it changes with the scroll", async () => {

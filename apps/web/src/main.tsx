@@ -6,6 +6,7 @@ import { App } from "./app.tsx";
 import { authUrlFrom } from "./auth-url.ts";
 import { loadLanguage } from "./i18n/languages.ts";
 import { parsePath } from "./i18n/locales.ts";
+import { followSilver } from "./silver-pointer.ts";
 
 // Where sign in and sign up lead: the app for now, the auth app once it exists, or the local one while developing (.env).
 const authUrl = authUrlFrom(import.meta.env.VITE_AUTH_URL);
@@ -15,6 +16,9 @@ startAnalytics({
 	key: import.meta.env.VITE_POSTHOG_KEY,
 	host: import.meta.env.VITE_POSTHOG_HOST ?? "https://us.i.posthog.com",
 });
+
+// The pearl shimmer on the silver buttons follows the pointer.
+followSilver();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root is missing from index.html");

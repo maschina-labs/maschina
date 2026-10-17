@@ -39,12 +39,14 @@ describe("the closing section", () => {
 		expect(heading.className).toContain("text-transparent");
 		expect(heading.className).toContain("linear-gradient(105deg");
 		const start = screen.getByRole("link", { name: "Start for free" });
-		expect(start.className).toContain("bg-[oklch(0.93_0.02_300)]");
-		expect(start.className).toContain("h-9");
+		expect(start.className).toContain("silver-button");
+		expect(start.className).toContain("h-10");
+		expect(start.className).toContain("xl:h-8");
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
 		const docs = screen.getByRole("link", { name: "Read the docs" });
 		expect(docs.className).toMatch(/\bbg-white\/\[0\.13\]/);
-		expect(docs.className).toContain("h-9");
+		expect(docs.className).toContain("h-10");
+		expect(docs.className).toContain("xl:h-8");
 	});
 
 	it("is centered on black and a full screen of calm: no particles, no canvas, no motion", () => {

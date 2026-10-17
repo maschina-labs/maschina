@@ -22,7 +22,7 @@ describe("the main buttons on a phone", () => {
 		render(element());
 		const pearl = screen
 			.getAllByRole("link")
-			.find((link) => link.className.includes("bg-[oklch(0.93_0.02_300)]")) as HTMLElement;
+			.find((link) => link.className.includes("silver-button")) as HTMLElement;
 		// The chip is only for a screen wide enough to have room for it.
 		expect(pearl.querySelector("[data-chip]")?.className).toContain("max-sm:hidden");
 		// The label is centered on a phone and left on a wider screen, where the chip sits beside it.
@@ -45,9 +45,7 @@ describe("the main buttons on a phone", () => {
 			const { unmount } = render(element);
 			const links = screen.getAllByRole("link");
 			const gray = links.find((link) => link.className.includes("bg-white/[0.13]")) as HTMLElement;
-			const pearl = links.find((link) =>
-				link.className.includes("bg-[oklch(0.93_0.02_300)]"),
-			) as HTMLElement;
+			const pearl = links.find((link) => link.className.includes("silver-button")) as HTMLElement;
 			expect(gray.className).toContain("justify-center");
 			expect(gray.className).toContain("max-sm:font-medium");
 			expect(gray.className).toContain("max-sm:text-white");
@@ -97,12 +95,13 @@ describe("the header on a phone", () => {
 		return screen.getByRole("banner");
 	};
 
-	it("is fatter than on a desktop, with its two buttons at the small size", () => {
+	it("is no taller than on a desktop, with the menu button at its ordinary size", () => {
 		const banner = header();
 		const bar = banner.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
-		expect(bar.className).toContain("py-5");
-		expect(bar.className).toContain("xl:py-4");
+		// The bar itself is the same height on a phone as on a desktop: 16 above and below, not 20.
+		expect(bar.className).toContain("py-4");
+		expect(bar.className).not.toContain("py-5");
 		const menu = screen.getByRole("button", { name: "Menu" });
 		expect(menu.className).toContain("size-10");
 		expect(menu.className).toContain("xl:hidden");
@@ -152,24 +151,20 @@ describe("the header on a phone", () => {
 		]);
 	});
 
-	it("has Log in as the pearl button on a phone, since it is the only call to action in the bar, right beside the menu button", () => {
+	it("has no Sign In in the phone header, only the menu button: Sign In is plain text on a desktop, and the menu has it", () => {
 		const banner = header();
 		const logIn = within(banner).getByRole("link", { name: "Sign In" });
 		const menu = screen.getByRole("button", { name: "Menu" });
-		// Pearl and black like the other main buttons, on a phone only: the desktop's plain text link is not touched.
-		expect(logIn.className).toContain("max-xl:bg-[oklch(0.93_0.02_300)]");
-		expect(logIn.className).toContain("max-xl:text-black");
-		expect(logIn.className).toContain("max-xl:hover:bg-[oklch(0.98_0.015_300)]");
-		expect(logIn.className).not.toMatch(/(^|\s)bg-white\/\[0\.13\]/);
-		expect(logIn.className).toContain("h-10");
-		expect(logIn.className).not.toMatch(/(^|\s)hidden(\s|$)/);
-		expect(logIn.className).not.toMatch(/rounded/);
-		// In the same row as the menu button, just before it (only the desktop's own Try button, hidden on a phone, may sit between).
+		expect(logIn.className).toContain("max-xl:hidden");
+		expect(logIn.className).toContain("xl:inline-block");
+		// No box, no chip and no silver on it any more: on a desktop it is just words.
+		expect(logIn.querySelector("[data-chip]")).toBeNull();
+		expect(logIn.className).not.toMatch(/silver-button|bg-/);
+		// Still in the row for a desktop, ahead of the menu button, which a desktop never shows.
 		expect(logIn.parentElement).toBe(menu.parentElement);
-		const row = [...(menu.parentElement?.children ?? [])];
-		expect(row.indexOf(logIn)).toBeLessThan(row.indexOf(menu));
-		const between = row.slice(row.indexOf(logIn) + 1, row.indexOf(menu));
-		expect(between.every((each) => each.className.includes("hidden"))).toBe(true);
+		// The menu button is alone on a phone, at its ordinary size.
+		expect(menu.className).toContain("size-10");
+		expect(menu.querySelector("svg")?.getAttribute("class")).toContain("size-6");
 	});
 });
 

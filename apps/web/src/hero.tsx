@@ -13,7 +13,7 @@ const Ribbon = lazy(() =>
 /**
  * The first screen: the silver and
  * pearl ribbon is behind the headline, with one line saying what it does, two buttons (start for free, the
- * docs) and one plain line of facts at the foot (source-available, built on Solana, free to try on paper: each true today). The floating pieces were tried and taken out (the last
+ * docs) and one plain line of facts at the foot (source-available, built on Solana: each true today; the chip above the headline says it is free to try on paper). The floating pieces were tried and taken out (the last
  * version with them is in the history). The ribbon fades in once it has loaded. Its layers are decoration, so
  * they are hidden from assistive technology.
  */
@@ -21,7 +21,23 @@ export function Hero({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.hero;
 	const [ready, setReady] = useState(false);
 
-	useEffect(() => setReady(true), []);
+	// The ribbon is three.js, so it waits for the page to finish loading and the browser to be idle: it never competes with
+	// the first paint or the fonts.
+	useEffect(() => {
+		let handle = 0;
+		const start = () => {
+			handle = window.requestIdleCallback
+				? window.requestIdleCallback(() => setReady(true), { timeout: 2500 })
+				: window.setTimeout(() => setReady(true), 200);
+		};
+		if (document.readyState === "complete") start();
+		else window.addEventListener("load", start, { once: true });
+		return () => {
+			window.removeEventListener("load", start);
+			if (window.cancelIdleCallback) window.cancelIdleCallback(handle);
+			else window.clearTimeout(handle);
+		};
+	}, []);
 	const heading = useRef<HTMLHeadingElement>(null);
 
 	// The light on the letters follows the mouse by setting two properties directly: moving the cursor never
@@ -76,13 +92,13 @@ export function Hero({ authUrl }: { authUrl: string }) {
 				<TryButton
 					href={`${authUrl}/sign-up`}
 					label={m.start}
-					className="flex h-9 px-5 sm:inline-flex sm:pr-1"
+					className="flex h-10 px-5 sm:inline-flex sm:pr-1 xl:h-8"
 					labelClassName="flex-1 text-center sm:text-left"
-					chipClassName="size-7"
+					chipClassName="size-7 xl:size-6"
 				/>
 				<Link
 					href={DOCS}
-					className="inline-flex items-center justify-center bg-white/[0.13] px-5 h-9 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
+					className="inline-flex items-center justify-center bg-white/[0.13] px-5 h-10 xl:h-8 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white"
 				>
 					{m.docs}
 				</Link>

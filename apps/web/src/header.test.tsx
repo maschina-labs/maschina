@@ -11,6 +11,9 @@ describe("the header", () => {
 		expect(home).toHaveAttribute("href", "/");
 		expect(home.querySelector("[data-mark]")).toHaveAttribute("src", "/brand/favicon.svg");
 		expect(home.querySelector("[data-word] img")).toHaveAttribute("src", "/brand/word.svg");
+		// Its size is declared (the file is 1054 by 175, shown 20 high), so nothing shifts as it loads.
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("height", "20");
+		expect(home.querySelector("[data-word] img")).toHaveAttribute("width", "120");
 	});
 
 	it("turns the mark a full turn forward each time the cursor arrives, and never back", () => {
@@ -230,8 +233,8 @@ describe("the header", () => {
 		const header = screen.getByRole("banner");
 		const bar = header.querySelector("[data-fade]")?.nextElementSibling
 			?.nextElementSibling as HTMLElement;
-		expect(bar.className).toContain("py-5");
-		expect(bar.className).toContain("xl:py-4");
+		expect(bar.className).toContain("py-4");
+		expect(bar.className).not.toContain("py-5");
 		expect(bar.className).toContain("px-(--gutter)");
 	});
 
@@ -495,7 +498,7 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
 	});
 
-	it("shows try Maschina as a button only on a wide screen, and log in as a button there and a small gray box on a phone", () => {
+	it("shows try Maschina as a button only on a wide screen, and Sign In as plain text there and nowhere on a phone, where the menu has it", () => {
 		render(<Header authUrl={AUTH} />);
 		const banner = within(screen.getByRole("banner"));
 		const tryIt = banner.getByRole("link", { name: "Try Maschina" });
@@ -531,7 +534,7 @@ describe("the header", () => {
 		expect(rail.className).toContain("z-40");
 	});
 
-	it("stays one attached bar: it fades from black to nothing as the page scrolls, and never splits", () => {
+	it("stays one attached bar: it turns from clear into frosted glass as the page scrolls, and never splits", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
 		const fade = () => header.querySelector("[data-fade]") as HTMLElement;
@@ -546,11 +549,14 @@ describe("the header", () => {
 
 		scrollTo(120);
 		expect(amount()).toBe("1");
-		// A hard black bar: solid black, exactly the height of the bar, with a straight bottom edge. Nothing under
-		// it fades and nothing is blurred; it only comes in as the page scrolls, from clear to black.
-		expect(fade().className).toContain("bg-black");
+		// Frosted glass, exactly the height of the bar: a dark tint you can see the page through, and a blur. It only comes in as the page scrolls, from clear to glass, and is never a gradient.
+		expect(fade().className).toMatch(/bg-black\/\d+/);
+		expect(fade().className).toContain("backdrop-blur");
+		expect(fade().className).toContain("backdrop-saturate");
+		// No line along the bottom: the glass just ends.
+		expect(fade().className).not.toMatch(/border/);
 		expect(fade().className).toContain("inset-0");
-		expect(fade().className).not.toMatch(/bg-gradient|mask-image|backdrop-blur|h-\[calc/);
+		expect(fade().className).not.toMatch(/bg-gradient|mask-image|h-\[calc/);
 		expect(fade().className).toContain("-z-10");
 		expect(fade().className).toContain("absolute");
 		expect(header.firstElementChild).toBe(fade());
@@ -565,7 +571,7 @@ describe("the header", () => {
 		expect(amount()).toBe("0");
 	});
 
-	it("comes in as black as you scroll: a little at first, all of it once the bar has gone by", () => {
+	it("comes in as glass as you scroll: a little at first, all of it once the bar has gone by", () => {
 		render(<Header authUrl={AUTH} />);
 		const fade = screen.getByRole("banner").querySelector("[data-fade]") as HTMLElement;
 		expect(fade.className).toContain("opacity-(--fade)");
@@ -736,5 +742,29 @@ describe("the header's motion", () => {
 			).not.toBeNull();
 		for (const name of ["AI Index", "Skill File"])
 			expect(inside.getByRole("link", { name }).querySelector("svg"), name).toBeNull();
+	});
+});
+
+describe("the panels under the bar are glass, so there is no seam where the blur starts", () => {
+	it("makes the dropdown and the bar behind it frosted glass on a desktop, blurring the same page as the rest of the screen, and solid only on a phone", () => {
+		const { container } = render(<Header authUrl={AUTH} />);
+		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
+		const section = container.querySelector('[data-panel="dropdown"] > section') as HTMLElement;
+		expect(section.className).toContain("xl:bg-black/");
+		expect(section.className).toContain("xl:backdrop-blur-xl");
+		expect(section.className).not.toMatch(/(^|\s)bg-black\/\d/);
+		const solid = container.querySelector("[data-solid]") as HTMLElement;
+		expect(solid.className).toContain("xl:bg-black/");
+		expect(solid.className).toContain("xl:backdrop-blur-xl");
+	});
+
+	it("gives the search panel the same glass, and takes the scroll glass away while any panel is open so the two never stack", () => {
+		const { container } = render(<Header authUrl={AUTH} />);
+		const fade = container.querySelector("[data-fade]") as HTMLElement;
+		expect(fade.className).not.toContain("xl:opacity-0!");
+		fireEvent.click(screen.getByRole("button", { name: "Search" }));
+		const search = container.querySelector('[data-panel="search"] > section') as HTMLElement;
+		expect(search.className).toContain("xl:backdrop-blur-xl");
+		expect(fade.className).toContain("xl:opacity-0!");
 	});
 });

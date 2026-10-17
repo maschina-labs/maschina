@@ -31,18 +31,25 @@ export function Showcase() {
 			</h2>
 			<figure className="mt-16 w-full">
 				<Backdrop className="max-sm:-mr-(--gutter) max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
-					<img
-						src="/showcase/dashboard.jpg"
-						srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
-						sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
-						alt={m.alt}
-						width={2838}
-						height={1800}
-						decoding="async"
-						loading="lazy"
-						fetchPriority="low"
-						className="relative block h-auto w-full max-sm:w-[320%] max-sm:max-w-none shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
-					/>
+					<picture>
+						<source
+							type="image/avif"
+							srcSet="/showcase/dashboard.avif 2838w, /showcase/dashboard-4x.avif 5676w"
+							sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
+						/>
+						<img
+							src="/showcase/dashboard.jpg"
+							srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
+							sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
+							alt={m.alt}
+							width={2838}
+							height={1800}
+							decoding="async"
+							loading="lazy"
+							fetchPriority="low"
+							className="relative block h-auto w-full max-sm:w-[320%] max-sm:max-w-none shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
+						/>
+					</picture>
 				</Backdrop>
 				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
 					{m.caption}

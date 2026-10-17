@@ -177,11 +177,24 @@ describe("the papers page", () => {
 		});
 		expect(link).toHaveAttribute("href", "/papers/maschina-papers.zip");
 		expect(link).toHaveAttribute("download");
-		expect(link.className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(link.className).toContain("silver-button");
 		const chip = link.lastElementChild as HTMLElement;
 		expect(chip).toHaveAttribute("data-chip");
 		expect(chip.className).toContain("bg-black");
 		expect(chip.querySelector("svg[data-icon=download]")).toHaveAttribute("aria-hidden", "true");
 		expect(link).not.toHaveTextContent("Coming soon");
+	});
+
+	it("gives no paper a description, the index included, so the list is even: a number and a name", () => {
+		const { container } = render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
+		for (const row of container.querySelectorAll("[data-group=papers] [data-item]")) {
+			expect(row.querySelectorAll("[data-name]")).toHaveLength(1);
+			// The only text in a row is its number, its name and whether it is ready.
+			const words = [...row.querySelectorAll("span")]
+				.map((node) => node.textContent?.trim() ?? "")
+				.filter(Boolean);
+			expect(words.length).toBeLessThanOrEqual(4);
+			expect(row.textContent).not.toMatch(/Where to start/);
+		}
 	});
 });

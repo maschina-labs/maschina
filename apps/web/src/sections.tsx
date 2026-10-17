@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "./i18n/link.tsx";
 import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
@@ -11,10 +11,21 @@ const Globe = lazy(() => import("./globe.tsx").then((module) => ({ default: modu
 
 /** The frame every section sits in: black, between the page margins, centered, with room above and below. */
 function Section({ name, children }: { name: string; children: React.ReactNode }) {
+	// One listener for the whole section: the card under the mouse learns where the mouse is inside it, for its dots. A finger
+	// has no hover, so it is ignored.
+	const follow = (event: React.PointerEvent<HTMLElement>) => {
+		if (event.pointerType === "touch") return;
+		const card = (event.target as HTMLElement).closest<HTMLElement>(".card-dots");
+		if (!card) return;
+		const box = card.getBoundingClientRect();
+		card.style.setProperty("--mx", `${event.clientX - box.left}px`);
+		card.style.setProperty("--my", `${event.clientY - box.top}px`);
+	};
 	return (
 		<section
 			aria-label={name}
-			className="relative flex flex-col items-center bg-black px-(--gutter) py-20 sm:py-32"
+			onPointerMove={follow}
+			className="relative flex flex-col items-center overflow-hidden bg-black px-(--gutter) py-20 sm:py-32"
 		>
 			{children}
 		</section>
@@ -22,24 +33,29 @@ function Section({ name, children }: { name: string; children: React.ReactNode }
 }
 
 const GHOST =
-	"inline-flex h-9 items-center justify-center bg-white/[0.13] px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white";
+	"inline-flex h-10 items-center justify-center bg-white/[0.13] xl:h-8 px-5 text-neutral-200 transition-colors hover:bg-white/[0.18] max-sm:font-medium max-sm:text-white";
 
 /** One or two buttons, in the hero's two kinds: the pearl one, then the gray one. */
 function Buttons({
 	primary,
 	secondary,
+	left = false,
 }: {
 	primary: { label: string; href: string };
 	secondary?: { label: string; href: string };
+	/** Start at the left edge, for a chapter, instead of in the middle. */
+	left?: boolean;
 }) {
 	return (
-		<div className="mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row sm:justify-center">
+		<div
+			className={`mt-10 flex w-full max-w-sm flex-col items-stretch gap-3 text-[15px] sm:w-auto sm:max-w-none sm:flex-row ${left ? "sm:justify-start" : "sm:justify-center"}`}
+		>
 			<TryButton
 				href={primary.href}
 				label={primary.label}
-				className="flex h-9 px-5 sm:inline-flex sm:pr-1"
+				className="flex h-10 px-5 sm:inline-flex sm:pr-1 xl:h-8"
 				labelClassName="flex-1 text-center sm:text-left"
-				chipClassName="size-7"
+				chipClassName="size-7 xl:size-6"
 			/>
 			{secondary ? (
 				<Link href={secondary.href} className={GHOST}>
@@ -51,32 +67,103 @@ function Buttons({
 }
 
 /** A square panel, the one shape every visual here is made of. */
-const PANEL = "bg-white/[0.04] p-5 sm:p-6";
+const PANEL = "card-dots bg-white/[0.04] p-5 sm:p-6";
 
-/** How it works: three steps, side by side from a tablet up and one under the other on a phone. */
+/**
+ * A chapter of the story: the words in one column and a visual in the other, from a large screen up, and the words and
+ * then the visual on a phone. The words are left-aligned, so every headline down the page starts at the same edge, and
+ * `flip` moves the visual to the other side for rhythm. It takes the buttons last, so they sit under the words.
+ */
+function Chapter({
+	name,
+	head,
+	buttons,
+	flip = false,
+	children,
+}: {
+	name: string;
+	head: React.ReactNode;
+	buttons?: React.ReactNode;
+	flip?: boolean;
+	children: React.ReactNode;
+}) {
+	const chapter = useRef<HTMLDivElement>(null);
+	// Shown at once where the browser cannot watch for scrolling, so nothing is ever hidden for good.
+	const [seen, setSeen] = useState(typeof IntersectionObserver === "undefined");
+	useEffect(() => {
+		const node = chapter.current;
+		if (seen || !node) return;
+		const watcher = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				setSeen(true);
+				// It arrives once. Scrolling back up never hides it again.
+				watcher.disconnect();
+			},
+			{ threshold: 0.15 },
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
+	}, [seen]);
+	const arrive =
+		"transition duration-700 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:translate-y-6 group-data-[seen=false]/chapter:opacity-0";
+	return (
+		<Section name={name}>
+			<div
+				ref={chapter}
+				data-chapter
+				data-seen={seen}
+				className="group/chapter grid w-full gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
+			>
+				{/* Pearl light behind the visual, faint, drifting slowly, on the side the visual is on. */}
+				<div
+					data-glow
+					aria-hidden="true"
+					className={`pointer-events-none absolute top-1/2 size-[28rem] animate-drift bg-[radial-gradient(closest-side,oklch(0.93_0.02_300/0.1),transparent)] motion-reduce:animate-none lg:size-[44rem] ${flip ? "left-[-14rem] lg:left-[-8rem]" : "right-[-14rem] lg:right-[-8rem]"}`}
+				/>
+				<div data-words className={`flex flex-col items-start ${arrive}`}>
+					{head}
+					{buttons}
+				</div>
+				<div data-visual className={`relative delay-150 ${arrive} ${flip ? "lg:order-first" : ""}`}>
+					{children}
+				</div>
+			</div>
+		</Section>
+	);
+}
+
+/** How it works: three steps, one under the other beside the words. */
 export function HowItWorks({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.how;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ol className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-3">
+		<Chapter
+			name={m.name}
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={
+				<Buttons
+					left
+					primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
+					secondary={{ label: m.secondary, href: DOCS }}
+				/>
+			}
+		>
+			<ol className="grid gap-3">
 				{m.steps.map((step, index) => (
-					<li key={step.title} data-step className={`${PANEL} min-h-48`}>
-						<span className="block text-[13px] text-neutral-500 tabular-nums">
+					<li key={step.title} data-step className={`${PANEL} flex gap-5 sm:gap-6`}>
+						<span className="text-[13px] text-neutral-500 tabular-nums">
 							{String(index + 1).padStart(2, "0")}
 						</span>
-						<h3 className="mt-6 font-display font-medium text-[1.375rem] text-white tracking-[-0.015em]">
-							{step.title}
-						</h3>
-						<p className="mt-3 text-[16px] text-neutral-400 leading-[1.55]">{step.body}</p>
+						<div>
+							<h3 className="font-display font-medium text-[1.375rem] text-white tracking-[-0.015em]">
+								{step.title}
+							</h3>
+							<p className="mt-2 text-[16px] text-neutral-400 leading-[1.55]">{step.body}</p>
+						</div>
 					</li>
 				))}
 			</ol>
-			<Buttons
-				primary={{ label: m.primary, href: `${authUrl}/sign-up` }}
-				secondary={{ label: m.secondary, href: DOCS }}
-			/>
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -131,9 +218,13 @@ export function Features({ authUrl }: { authUrl: string }) {
 		<Rows key="d" count={5} />,
 	];
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ul className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 sm:grid-cols-2">
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
+		>
+			<ul className="grid gap-3 sm:grid-cols-2">
 				{m.tiles.map((tile, index) => (
 					<li key={tile.title} data-tile className={`${PANEL} flex flex-col gap-6`}>
 						<div className="flex min-h-24 items-center">{pictures[index]}</div>
@@ -147,8 +238,7 @@ export function Features({ authUrl }: { authUrl: string }) {
 				))}
 			</ul>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-			<Buttons primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -156,21 +246,40 @@ export function Features({ authUrl }: { authUrl: string }) {
 export function Safety() {
 	const m = useMessages().home.safety;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<ol className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-4">
+		<Chapter
+			name={m.name}
+			head={
+				<>
+					<SectionHead title={m.title} line={m.line} align="left" />
+					<p className="mt-6 max-w-[48ch] text-left text-[14px] text-neutral-500 leading-[1.6]">
+						{rich(m.audit, {
+							link: (
+								<Link
+									href="/risk"
+									className="text-neutral-300 underline decoration-white/30 underline-offset-4 hover:decoration-white"
+								>
+									{m.auditLink}
+								</Link>
+							),
+						})}
+					</p>
+				</>
+			}
+			buttons={<Buttons left primary={{ label: m.primary, href: DOCS }} />}
+		>
+			<ol className="grid gap-3 sm:grid-cols-2">
 				{m.flow.map((step, index) => (
 					<li
 						key={step}
 						data-flow
-						className="relative flex min-h-24 items-center bg-white/[0.06] p-5 text-[17px] text-white"
+						className="card-dots relative flex min-h-24 items-center bg-white/[0.06] p-5 text-[17px] text-white"
 					>
 						<span className="mr-4 text-[13px] text-neutral-500 tabular-nums">{index + 1}</span>
 						{step}
 					</li>
 				))}
 			</ol>
-			<ul className="mt-3 grid w-full max-w-[64rem] gap-3 md:grid-cols-2">
+			<ul className="mt-3 grid gap-3">
 				{m.points.map((point) => (
 					<li
 						key={point}
@@ -181,20 +290,7 @@ export function Safety() {
 					</li>
 				))}
 			</ul>
-			<p className="mt-6 max-w-[48ch] text-center text-[14px] text-neutral-500 leading-[1.6]">
-				{rich(m.audit, {
-					link: (
-						<Link
-							href="/risk"
-							className="text-neutral-300 underline decoration-white/30 underline-offset-4 hover:decoration-white"
-						>
-							{m.auditLink}
-						</Link>
-					),
-				})}
-			</p>
-			<Buttons primary={{ label: m.primary, href: DOCS }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -203,25 +299,36 @@ export function Customize({ authUrl }: { authUrl: string }) {
 	const m = useMessages().home.customize;
 	const positions = ["w-3/5", "w-1/4", "w-2/5", "w-3/4"];
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} />
-			<div className={`${PANEL} mt-14 w-full max-w-[40rem] space-y-6 sm:mt-16 sm:p-8`}>
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} align="left" />}
+			buttons={<Buttons left primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />}
+		>
+			<div className={`${PANEL} space-y-6 sm:p-8`}>
 				{m.settings.map((setting, index) => (
 					<div key={setting} data-setting>
 						<div className="flex items-center justify-between text-[14px] text-neutral-300">
 							<span>{setting}</span>
 						</div>
-						<div className="mt-3 h-1.5 w-full bg-white/10" aria-hidden="true">
+						{/* The line draws from the left, and its fill follows; each row starts a beat after the one above. */}
+						<div
+							data-track
+							aria-hidden="true"
+							style={{ transitionDelay: `${index * 180}ms` }}
+							className="mt-3 h-1.5 w-full origin-left bg-white/10 transition-transform duration-700 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:scale-x-0"
+						>
 							<div
-								className={`h-full bg-[oklch(0.93_0.02_300)] ${positions[index % positions.length]}`}
+								data-fill
+								style={{ transitionDelay: `${index * 180 + 350}ms` }}
+								className={`h-full origin-left bg-[oklch(0.93_0.02_300)] transition-transform duration-1000 ease-out motion-reduce:transition-none group-data-[seen=false]/chapter:scale-x-0 ${positions[index % positions.length]}`}
 							/>
 						</div>
 					</div>
 				))}
 			</div>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-			<Buttons primary={{ label: m.primary, href: `${authUrl}/sign-up` }} />
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -229,9 +336,11 @@ export function Customize({ authUrl }: { authUrl: string }) {
 export function LiveRecord() {
 	const m = useMessages().home.live;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<div className={`${PANEL} mt-14 w-full max-w-[44rem] sm:mt-16`}>
+		<Chapter
+			name={m.name}
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
+		>
+			<div className={PANEL}>
 				<ul className="divide-y divide-white/[0.06]">
 					{m.rows.map((row) => (
 						<li
@@ -247,7 +356,35 @@ export function LiveRecord() {
 				</ul>
 			</div>
 			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-		</Section>
+		</Chapter>
+	);
+}
+
+/**
+ * Renders its children once it is near the screen, so what is heavy (the globe's map libraries) is not fetched while the
+ * page is opening. Where the browser cannot watch for scrolling it renders at once, so nothing is ever left out.
+ */
+function Near({ children }: { children: React.ReactNode }) {
+	const box = useRef<HTMLDivElement>(null);
+	const [near, setNear] = useState(typeof IntersectionObserver === "undefined");
+	useEffect(() => {
+		const node = box.current;
+		if (near || !node) return;
+		const watcher = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				setNear(true);
+				watcher.disconnect();
+			},
+			{ rootMargin: "800px 0px" },
+		);
+		watcher.observe(node);
+		return () => watcher.disconnect();
+	}, [near]);
+	return (
+		<div ref={box} data-near={near} className="size-full">
+			{near ? children : null}
+		</div>
 	);
 }
 
@@ -255,14 +392,19 @@ export function LiveRecord() {
 export function Network() {
 	const m = useMessages().home.network;
 	return (
-		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<div className="mt-10 aspect-square w-full max-w-[34rem] sm:mt-14">
-				<Suspense fallback={null}>
-					<Globe label={m.globe} />
-				</Suspense>
+		<Chapter
+			name={m.name}
+			flip
+			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
+		>
+			<div className="mx-auto aspect-square w-full max-w-[34rem]">
+				<Near>
+					<Suspense fallback={null}>
+						<Globe label={m.globe} />
+					</Suspense>
+				</Near>
 			</div>
-		</Section>
+		</Chapter>
 	);
 }
 
@@ -271,8 +413,10 @@ export function Marketplace() {
 	const m = useMessages().home.marketplace;
 	return (
 		<Section name={m.name}>
-			<SectionHead title={m.title} line={m.line} tag={m.tag} />
-			<ul className="mt-14 grid w-full max-w-[64rem] gap-3 sm:mt-16 md:grid-cols-3">
+			<div className="flex w-full flex-col items-start">
+				<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />
+			</div>
+			<ul className="mt-14 grid w-full gap-3 sm:mt-16 md:grid-cols-3">
 				{m.cards.map((card, index) => (
 					<li key={index} data-card className={`${PANEL} min-h-44 opacity-70`}>
 						<span className="block text-[14px] text-neutral-500">{card}</span>

@@ -1,3 +1,4 @@
+import { CaretDown, List, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { ExternalArrow } from "./external-arrow.tsx";
 import { Link } from "./i18n/link.tsx";
@@ -136,42 +137,23 @@ const BIG =
 	"font-display text-[clamp(1.25rem,1.9vw,1.875rem)] leading-[1.2] tracking-[-0.02em] text-[oklch(0.82_0.012_285)] transition-colors hover:text-[oklch(0.97_0.018_300)]";
 
 function Magnifier() {
-	return (
-		<svg
-			viewBox="0 0 20 20"
-			className="size-4"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth={1.5}
-			strokeLinecap="square"
-			aria-hidden="true"
-		>
-			<circle cx="8.5" cy="8.5" r="5.5" />
-			<path d="M13 13l4 4" />
-		</svg>
-	);
+	return <MagnifyingGlass weight="light" className="size-[18px]" aria-hidden="true" />;
 }
 
 function Caret({ open }: { open: boolean }) {
 	return (
-		<svg
-			viewBox="0 0 12 12"
-			className={`size-2.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth={1.5}
-			strokeLinecap="square"
+		<CaretDown
+			weight="regular"
+			className={`size-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
 			aria-hidden="true"
-		>
-			<path d="M2.5 4.5 6 8l3.5-3.5" />
-		</svg>
+		/>
 	);
 }
 
 /**
  * The top of the page: the mark and the word on the left with the pages beside them, the way in on the
- * right. It is one attached bar, sticky: it stays on screen as the page scrolls, and takes a solid black
- * background once it does, so nothing passes through the links. Every box is square, like the rest of
+ * right. It is one attached bar, sticky: it stays on screen as the page scrolls, and turns into frosted glass once
+ * it does: a dark tint and a blur over the page, so the links stay readable and the page still shows through. Every box is square, like the rest of
  * Maschina.
  *
  * Product, Developers and Company open a full-width dropdown under the bar when the cursor rests on them,
@@ -342,22 +324,22 @@ export function Header({
 					className="absolute inset-x-0 top-0"
 				>
 					{/*
-					 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to solid black, with
-					 * a hard bottom edge. While a dropdown, the search or the phone menu
+					 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to frosted glass, with
+					 * a thin pearl line along the bottom. While a dropdown, the search or the phone menu
 					 * is open it fills in solid, so the panel and the bar read as one piece.
 					 */}
 					<div
 						ref={fade}
 						data-fade
 						aria-hidden="true"
-						className="pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black opacity-(--fade)"
+						className={`pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black/50 opacity-(--fade) backdrop-blur-xl backdrop-saturate-150 ${anyPanel ? "xl:opacity-0!" : ""}`}
 					/>
 					<div
 						data-solid
 						aria-hidden="true"
-						className={`pointer-events-none absolute inset-0 -z-10 bg-black transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
+						className={`pointer-events-none absolute inset-0 -z-10 bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150 transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
 					/>
-					<div className="flex items-center justify-between px-(--gutter) py-5 xl:py-4">
+					<div className="flex items-center justify-between px-(--gutter) py-4">
 						<div className="flex items-center gap-10">
 							<Logo />
 							<div className="hidden items-center gap-5 xl:flex">
@@ -399,9 +381,10 @@ export function Header({
 							</div>
 						</div>
 						<div className="flex items-center gap-2 text-[14px] xl:gap-3">
+							{/* Plain text on a desktop. On a phone it is not in the bar at all: the menu has it, and the hero has the way in. */}
 							<Link
 								href={signIn}
-								className={`${LINK} inline-flex h-10 items-center px-3.5 max-xl:bg-[oklch(0.93_0.02_300)] max-xl:text-black max-xl:hover:bg-[oklch(0.98_0.015_300)] sm:px-5 xl:inline-block xl:h-auto xl:px-2 xl:py-2`}
+								className={`${LINK} max-xl:hidden xl:inline-block xl:px-2 xl:py-2`}
 							>
 								{m.header.login}
 							</Link>
@@ -424,23 +407,16 @@ export function Header({
 								}}
 								className="grid size-10 place-items-center bg-white/[0.13] text-neutral-200 transition-colors hover:bg-white/[0.18] xl:hidden"
 							>
-								{/* Phosphor's List and X, regular weight, drawn from the library's own paths. */}
-								<svg
-									viewBox="0 0 256 256"
+								<List
+									weight="regular"
+									aria-hidden="true"
 									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-0" : "opacity-100"}`}
-									fill="currentColor"
+								/>
+								<X
+									weight="regular"
 									aria-hidden="true"
-								>
-									<path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z" />
-								</svg>
-								<svg
-									viewBox="0 0 256 256"
 									className={`col-start-1 row-start-1 size-6 transition-opacity duration-200 motion-reduce:transition-none ${open ? "opacity-100" : "opacity-0"}`}
-									fill="currentColor"
-									aria-hidden="true"
-								>
-									<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" />
-								</svg>
+								/>
 							</button>
 						</div>
 					</div>
@@ -452,7 +428,10 @@ export function Header({
 							inert={dropdown.closing}
 							className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label={L(shownName)} className="min-h-0 overflow-hidden bg-black">
+							<section
+								aria-label={L(shownName)}
+								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
+							>
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 									<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 										<div className="flex flex-col gap-5">
@@ -509,7 +488,10 @@ export function Header({
 							inert={searchPanel.closing}
 							className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section aria-label={m.header.search} className="min-h-0 overflow-hidden bg-black">
+							<section
+								aria-label={m.header.search}
+								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
+							>
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 									<SearchInput
 										ref={box}
@@ -655,14 +637,7 @@ export function Header({
 												className="grid size-9 place-items-center bg-white/[0.07] text-white transition-colors hover:bg-white/[0.11]"
 											>
 												<span className="sr-only">{L(social.label)}</span>
-												<svg
-													viewBox="0 0 24 24"
-													className="size-4"
-													fill="currentColor"
-													aria-hidden="true"
-												>
-													<path d={social.icon} />
-												</svg>
+												<social.Icon weight="fill" className="size-5" aria-hidden="true" />
 											</Link>
 										))}
 									</div>

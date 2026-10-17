@@ -192,6 +192,16 @@ describe("the page's own head, for browsers, search engines and shared links", (
 		expect(meta("property", "og:description")).toBeTruthy();
 	});
 
+	it("starts fetching both fonts at once, before the stylesheet asks for them, so the words never flash in another face", () => {
+		for (const weight of ["400", "500"]) {
+			expect(html).toMatch(
+				new RegExp(
+					`<link rel="preload" href="/fonts/Sohne-${weight}\\.woff2" as="font" type="font/woff2" crossorigin`,
+				),
+			);
+		}
+	});
+
 	it("names the front page, in the tab and on shared links, by what Maschina is", () => {
 		const name = "Maschina: The Operating System for Autonomous Capital";
 		expect(/<title>([^<]*)<\/title>/.exec(html)?.[1]).toBe(name);
@@ -226,8 +236,25 @@ describe("the page's own head, for browsers, search engines and shared links", (
 			"/humans.txt",
 		])
 			expect(hrefs, wanted).toContain(wanted);
-		for (const href of hrefs.filter((link) => link.startsWith("/")))
+		// The licensed fonts are not in the repository: a font licence covers serving them, not handing the
+		// files to everyone who clones it. `pnpm fonts` copies them in. So the file has to be there for
+		// every other link, and for a font the test is that the page asks for what that script writes.
+		for (const href of hrefs.filter((link) => link.startsWith("/") && !link.startsWith("/fonts/")))
 			expect(existsSync(resolve(root, "public", `.${href}`)), href).toBe(true);
+	});
+
+	it("preloads the licensed fonts as plain file names, the only shape the Worker serves from the bucket", () => {
+		const hrefs = [...html.matchAll(/<link[^>]*href="([^"]+)"/g)].map((match) => match[1] ?? "");
+		const fonts = hrefs.filter((href) => href.startsWith("/fonts/"));
+		expect(fonts.length).toBeGreaterThan(0);
+		// The files are not in the repository, so the page cannot be checked against the folder. It is
+		// checked against the Worker that serves them in production, which looks up a plain name and
+		// nothing else. `scripts/fonts.test.mjs` checks that `pnpm fonts` fetches these same files.
+		const worker = readFileSync(resolve(root, "src", "worker.ts"), "utf8");
+		const serves = /const FONT = \/\^(.*)\$\/;/.exec(worker)?.[1] ?? "";
+		expect(serves).toBeTruthy();
+		for (const href of fonts)
+			expect(new RegExp(`^${serves}$`).test(href.slice("/fonts/".length)), href).toBe(true);
 	});
 
 	it("describes the company for search engines as structured data, claiming only what is true", () => {

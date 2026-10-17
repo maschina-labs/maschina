@@ -13,11 +13,20 @@ describe("the try button", () => {
 	it("is plain pearl with no outline, so it is exactly as big as its box, like the gray button beside it", () => {
 		render(<TryButton {...props} />);
 		const { className } = screen.getByRole("link");
-		expect(className).toContain("bg-[oklch(0.93_0.02_300)]");
+		expect(className).toContain("silver-button");
 		expect(className).not.toContain("linear-gradient");
-		expect(className).toContain("hover:bg-[oklch(0.98_0.015_300)]");
+		expect(className).not.toContain("bg-[oklch(0.93_0.02_300)]");
 		// No shadow, ring or border: any of them adds to the edge and makes the button look larger.
 		expect(className).not.toMatch(/shadow-|ring|border|outline/);
 		expect(className).not.toMatch(/rounded/);
+	});
+
+	it("has one finish and no way to ask for another", () => {
+		// Silver at rest, a brighter silver on hover. A pearl shimmer was tried and pulled: on a page
+		// that is black, silver and pearl, colour on the thing a person is about to click looks cheap.
+		render(<TryButton {...props} />);
+
+		expect(screen.getByRole("link").className).toContain("silver-button");
+		expect(screen.getByRole("link").className).not.toMatch(/finish-/);
 	});
 });
