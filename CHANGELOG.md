@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.51](https://github.com/maschina-labs/maschina/compare/v0.0.50...v0.0.51) (2026-10-17)
+
+
+### Added
+
+* **gateway:** the public record shows every machine, paper kept apart ([#815](https://github.com/maschina-labs/maschina/issues/815)) ([7d246ce](https://github.com/maschina-labs/maschina/commit/7d246cebbddc41e0278236771a4ba56d6d3352eb))
+
 ## [0.0.50](https://github.com/maschina-labs/maschina/compare/v0.0.49...v0.0.50) (2026-10-16)
 
 
