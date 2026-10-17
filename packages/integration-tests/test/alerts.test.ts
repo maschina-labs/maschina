@@ -6,6 +6,7 @@ import { newId } from "@maschina/core";
 import {
 	appendOwnerEvent,
 	createDatabase,
+	createOwner,
 	type DatabaseHandle,
 	markDelivered,
 	pendingAlerts,
@@ -36,7 +37,7 @@ const since = new Date(Date.now() - 60_000);
 
 async function aRangeMachine() {
 	const written = await writeMachine(handle.db, {
-		ownerWallet: address(),
+		ownerId: await ownerIdFor(address()),
 		name: "Range Finder",
 		kind: "range",
 		paper: false,
@@ -101,6 +102,13 @@ async function aRoundTrip(machineId: string) {
 		feeLamports: "5000",
 	});
 	return { bought, sold };
+}
+
+/** The owner row, made the way signing in makes it, before any machine is written. */
+async function ownerIdFor(walletAddress: string) {
+	const owner = await createOwner(handle.db, walletAddress);
+	if (!owner.ok) throw owner.error;
+	return owner.value.id;
 }
 
 describe("alerts", () => {

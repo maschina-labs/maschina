@@ -11,7 +11,7 @@ import { writeMachine } from "./create-machine.ts";
 const appended: { type: string; payload: Record<string, unknown> }[] = [];
 
 vi.mock("./owners.ts", () => ({
-	createOwner: async () => ok({ id: "0199a0a0-0000-7000-8000-000000000001" }),
+	ownerById: async () => ok({ id: "0199a0a0-0000-7000-8000-000000000001", walletAddress: null }),
 }));
 vi.mock("./definitions.ts", () => ({
 	saveDefinition: async () => ok({ id: "d".repeat(64) }),
@@ -28,7 +28,6 @@ vi.mock("./record.ts", () => ({
 }));
 
 const SOL = "So11111111111111111111111111111111111111112";
-const WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 const VAULT = "8GF3GqdXLFeojSUeYgNWVDFoua5jUx8fxjg3iTT3PWuk";
 
 const dialect = new PgDialect();
@@ -50,7 +49,7 @@ function recording() {
 
 const machine = (wallet: { address: string; vaultAddress?: string }) => ({
 	paper: false,
-	ownerWallet: WALLET,
+	ownerId: "0199a0a0-0000-7000-8000-000000000001",
 	name: "SOL range",
 	kind: "range",
 	settings: {},

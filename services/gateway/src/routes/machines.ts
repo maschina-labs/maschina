@@ -77,7 +77,7 @@ export type MachinePorts = {
 	}): Promise<FundingTransaction>;
 	/** What the machine holds on chain right now. The machine is known to be theirs by now. */
 	balances(ownerId: string, machineId: string): Promise<MachineBalances>;
-	create(request: CreateMachineRequest & { ownerWallet: string }): Promise<CreateMachineResponse>;
+	create(request: CreateMachineRequest): Promise<CreateMachineResponse>;
 	/** Everything the machine holds, back to its owner. The machine is known to be theirs by now. */
 	withdrawEverything(request: {
 		ownerId: string;
@@ -266,7 +266,9 @@ const create = createRoute({
 	request: {
 		body: {
 			content: {
-				"application/json": { schema: CreateMachineRequest.omit({ ownerWallet: true }) },
+				"application/json": {
+					schema: CreateMachineRequest.omit({ ownerId: true, ownerWallet: true }),
+				},
 			},
 		},
 	},
@@ -375,16 +377,29 @@ export function machineRoutes(ports: MachinePorts, liveWallets: string[] = []) {
 			const asked = c.req.valid("json");
 			// The owner's wallet comes from the session, never from the request: a machine's funds can
 			// only ever reach the person who created it.
-			const ownerWallet = walletOf(who);
+			// A paper machine never signs and never pays anyone, so it needs no wallet at all: somebody
+			// who signed in with an email and has never linked one can still try Maschina. Real money
+			// needs the owner's wallet, because that is the only address its funds can ever reach.
+			const ownerWallet = asked.paper ? who.walletAddress : walletOf(who);
 			// Paper is open to everyone. Real money is not, until the signer judges a transaction's own
 			// bytes and there has been an audit. Checked here, before anything is written or a wallet
 			// is made, so a refused machine leaves nothing behind.
-			if (!mayRunOnRealMoney({ paper: asked.paper, ownerWallet, allowed: liveWallets }))
+			if (
+				!mayRunOnRealMoney({
+					paper: asked.paper,
+					ownerWallet: ownerWallet ?? "",
+					allowed: liveWallets,
+				})
+			)
 				throw new MaschinaError(
 					"forbidden",
 					"Maschina is open on paper only. A paper machine trades against live prices with no money at risk; real money is not open yet.",
 				);
-			const made = await ports.create({ ...asked, ownerWallet });
+			const made = await ports.create({
+				...asked,
+				ownerId: who.ownerId,
+				...(ownerWallet ? { ownerWallet } : {}),
+			});
 			return c.json(CreateMachineResponse.parse(made), 201);
 		});
 }

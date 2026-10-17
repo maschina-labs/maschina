@@ -6,11 +6,10 @@ import { writeMachine } from "./create-machine.ts";
 // refuse before anything is written.
 
 const SOL = "So11111111111111111111111111111111111111112";
-const OWNER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
 const machine = {
 	paper: false,
-	ownerWallet: OWNER,
+	ownerId: "0199a0a0-0000-7000-8000-000000000001",
 	name: "SOL dip buyer",
 	kind: "price_trigger",
 	settings: {},

@@ -71,7 +71,8 @@ export function buildApp(deps: ProvisionerDeps) {
 			const asked = read(body);
 
 			const made = await deps.provisioner.create({
-				ownerWallet: asked.ownerWallet,
+				ownerId: asked.ownerId,
+				...(asked.ownerWallet ? { ownerWallet: asked.ownerWallet } : {}),
 				name: asked.name,
 				kind: asked.kind,
 				settings: asked.settings,

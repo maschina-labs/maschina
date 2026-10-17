@@ -6,6 +6,7 @@ const SOL = "So11111111111111111111111111111111111111112";
 const OWNER = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 
 const request = {
+	ownerId: "0199a0a0-0000-7000-8000-000000000001",
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",

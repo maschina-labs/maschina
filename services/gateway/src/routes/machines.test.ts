@@ -261,7 +261,7 @@ describe("the machines API", () => {
 	});
 
 	it("creates a machine for the wallet that signed in, never one named in the request", async () => {
-		const asked: { ownerWallet: string }[] = [];
+		const asked: { ownerWallet?: string | undefined; ownerId: string }[] = [];
 		const res = await app({
 			create: async (request) => {
 				asked.push(request);
@@ -304,6 +304,55 @@ describe("the machines API", () => {
 		});
 
 		expect(res.status).toBe(400);
+		expect(asked).toEqual([]);
+	});
+
+	it("lets somebody with no wallet at all make a paper machine, which is the point of paper", async () => {
+		// Signed in with an email and never linked a wallet: an iPhone, or anyone without an extension.
+		const asked: { ownerWallet?: string | undefined; ownerId: string }[] = [];
+		const res = await app({
+			create: async (request) => {
+				asked.push(request);
+				return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: { authorization: "Bearer person", "content-type": "application/json" },
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				paper: true,
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(201);
+		// It goes through with an owner and no wallet: there is nothing for a paper machine to pay.
+		expect(asked[0]?.ownerId).toBe(ownerId);
+		expect(asked[0]?.ownerWallet).toBeUndefined();
+	});
+
+	it("still asks somebody with no wallet to link one before a machine holds real money", async () => {
+		const asked: unknown[] = [];
+		const res = await app({
+			create: async (request) => {
+				asked.push(request);
+				return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: { authorization: "Bearer person", "content-type": "application/json" },
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				paper: false,
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(403);
 		expect(asked).toEqual([]);
 	});
 
@@ -379,7 +428,7 @@ describe("the machines API", () => {
 	});
 
 	it("creates a machine and says which wallet to fund", async () => {
-		const asked: { ownerWallet: string }[] = [];
+		const asked: { ownerWallet?: string | undefined; ownerId: string }[] = [];
 		const res = await app({
 			create: async (request) => {
 				asked.push(request);

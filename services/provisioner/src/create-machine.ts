@@ -22,6 +22,7 @@
 import { err, MaschinaError, ok, type Result } from "@maschina/core";
 import { checkMachineSettings, KNOWN_KINDS } from "@maschina/runtime";
 import {
+	newPaperAddress,
 	SWAP_PROGRAMS,
 	TOKEN_2022_PROGRAM,
 	TOKEN_PROGRAM,
@@ -36,7 +37,14 @@ import {
 } from "@maschina/wallet";
 
 export type MachineRequest = {
-	ownerWallet: string;
+	/** Who it belongs to. Always known: the owner row exists before anyone reaches this. */
+	ownerId: string;
+	/**
+	 * The owner's own wallet, the only address a machine's funds can ever reach. Required for a
+	 * machine that holds real money, because the provider's policy pins payouts to it. A paper
+	 * machine has no funds and no policy, so somebody who has never linked a wallet can still have one.
+	 */
+	ownerWallet?: string | undefined;
 	name: string;
 	kind: string;
 	/** Whether this machine only ever pretends to trade. Never inferred, always said. */
@@ -62,14 +70,20 @@ export type CreateMachinePorts = {
 	provider: WalletProvider;
 	/** Writes the whole machine, or none of it. */
 	write(machine: {
-		ownerWallet: string;
+		ownerId: string;
 		name: string;
 		kind: string;
 		settings: Record<string, unknown>;
 		rules: Record<string, unknown>;
 		/** Carried all the way through, never defaulted anywhere along the way. */
 		paper: boolean;
-		wallet: { address: string; vaultAddress: string; providerWalletId: string; provider: string };
+		wallet: {
+			address: string;
+			/** A paper machine has nowhere to bank, because it never earns anything. */
+			vaultAddress?: string | undefined;
+			providerWalletId: string;
+			provider: string;
+		};
 		limits: MachineRequest["limits"];
 	}): Promise<Result<WrittenMachine, MaschinaError>>;
 };
@@ -91,13 +105,16 @@ export type CreatedMachine = WrittenMachine & { providerWalletId: string };
  */
 export const MAX_LAMPORTS_PER_TRANSFER = 1_000_000_000_000n;
 
+/**
+ * What a paper machine's wallet says holds it: nobody. The database has the matching check, so a
+ * machine holding real money can never carry this however this code behaves.
+ */
+const PAPER_PROVIDER = "paper";
+
 export async function createMachine(
 	ports: CreateMachinePorts,
 	request: MachineRequest,
 ): Promise<Result<CreatedMachine, MaschinaError>> {
-	if (!isSolanaAddress(request.ownerWallet)) {
-		return err(new MaschinaError("invalid_input", "that is not a Solana address"));
-	}
 	// Before a wallet exists, because a wallet is where money goes. A machine that could never trade is
 	// refused while refusing costs nothing, not after it has been funded.
 	const works = checkMachineSettings(KNOWN_KINDS, {
@@ -107,8 +124,35 @@ export async function createMachine(
 	});
 	if (!works.ok) return err(new MaschinaError("invalid_input", works.problem));
 
+	// A machine on paper never signs, so it is given no wallet at the provider: no keys, no vault, no
+	// policies, nothing to pay for. Its address is generated and its key dropped on the spot, so it
+	// cannot sign because the key is gone rather than because something refuses. This is also what
+	// lets somebody who has never linked a wallet try Maschina at all.
+	if (request.paper) {
+		const address = await newPaperAddress();
+		const written = await ports.write({
+			ownerId: request.ownerId,
+			name: request.name,
+			kind: request.kind,
+			settings: request.settings,
+			rules: request.rules ?? {},
+			paper: true,
+			wallet: { address, providerWalletId: `paper:${address}`, provider: PAPER_PROVIDER },
+			limits: request.limits,
+		});
+		if (!written.ok) return written;
+		return ok({ ...written.value, providerWalletId: `paper:${address}` });
+	}
+
+	// Everything below holds real money. The owner's own wallet is what the provider's policy pins
+	// payouts to, so without one there is nowhere safe for the funds to go and no machine is made.
+	if (request.ownerWallet === undefined || !isSolanaAddress(request.ownerWallet)) {
+		return err(new MaschinaError("invalid_input", "that is not a Solana address"));
+	}
+	const ownerWallet = request.ownerWallet;
+
 	const wanted: WalletPolicy = {
-		owner: request.ownerWallet,
+		owner: ownerWallet,
 		// Nobody else, ever. A machine that pays others is given recipients deliberately, later.
 		recipients: [],
 		approvedPrograms: Object.keys(SWAP_PROGRAMS).sort(),
@@ -125,11 +169,11 @@ export async function createMachine(
 	};
 
 	const vault: WalletPolicy = {
-		owner: request.ownerWallet,
+		owner: ownerWallet,
 		recipients: [],
 		approvedPrograms: Object.keys(TRANSFER_PROGRAMS).sort(),
 		approvedMints: wanted.approvedMints,
-		tokenDestinations: await ownerAccountsFor(request.ownerWallet, wanted.approvedMints),
+		tokenDestinations: await ownerAccountsFor(ownerWallet, wanted.approvedMints),
 		// A vault never sells anything, so it has no reason to move SOL anywhere but home.
 		wrapsSol: false,
 		maxLamportsPerTransfer: MAX_LAMPORTS_PER_TRANSFER,
@@ -173,7 +217,7 @@ export async function createMachine(
 	}
 
 	const written = await ports.write({
-		ownerWallet: request.ownerWallet,
+		ownerId: request.ownerId,
 		name: request.name,
 		kind: request.kind,
 		settings: request.settings,

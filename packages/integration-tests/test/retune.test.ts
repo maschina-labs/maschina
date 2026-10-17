@@ -9,6 +9,7 @@ import { newId } from "@maschina/core";
 import {
 	actOnMachine,
 	createDatabase,
+	createOwner,
 	type DatabaseHandle,
 	machineForOwner,
 	readMachineEvents,
@@ -51,7 +52,7 @@ const following = { quoteMint: USDC, baseMint: SOL, bandBps: 100, amountPerBuy: 
 /** A range machine that has been funded, started, and then paused by its owner. */
 async function aPausedRange() {
 	const written = await writeMachine(handle.db, {
-		ownerWallet: address(),
+		ownerId: await ownerIdFor(address()),
 		name: "Range Finder",
 		kind: "range",
 		paper: false,
@@ -67,6 +68,13 @@ async function aPausedRange() {
 		if (!done.ok) throw done.error;
 	}
 	return written.value;
+}
+
+/** The owner row, made the way signing in makes it, before any machine is written. */
+async function ownerIdFor(walletAddress: string) {
+	const owner = await createOwner(handle.db, walletAddress);
+	if (!owner.ok) throw owner.error;
+	return owner.value.id;
 }
 
 describe("retuning a machine", () => {

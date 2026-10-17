@@ -9,6 +9,7 @@ import { newId } from "@maschina/core";
 import {
 	actOnMachine,
 	createDatabase,
+	createOwner,
 	type DatabaseHandle,
 	machineForOwner,
 	machinesOf,
@@ -36,9 +37,17 @@ const address = () =>
 const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
+/** The owner row, made the way signing in makes it, before any machine is written. */
+async function ownerIdFor(walletAddress: string) {
+	const owner = await createOwner(handle.db, walletAddress);
+	if (!owner.ok) throw owner.error;
+	return owner.value.id;
+}
+
 async function aMachineFor(ownerWallet: string, name = "SOL dip buyer") {
+	const ownerId = await ownerIdFor(ownerWallet);
 	const written = await writeMachine(handle.db, {
-		ownerWallet,
+		ownerId,
 		name,
 		kind: "price_trigger",
 		paper: false,
@@ -90,7 +99,7 @@ describe("what an owner sees", () => {
 
 	it("says which prices it is waiting on, worked out from its whole record", async () => {
 		const written = await writeMachine(handle.db, {
-			ownerWallet: address(),
+			ownerId: await ownerIdFor(address()),
 			name: "Range",
 			kind: "range",
 			paper: false,

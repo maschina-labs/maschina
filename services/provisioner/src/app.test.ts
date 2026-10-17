@@ -28,6 +28,7 @@ const create = (target: ReturnType<typeof app>, body: unknown) =>
 	});
 
 const request = {
+	ownerId: "0199a0a0-0000-7000-8000-000000000001",
 	ownerWallet: OWNER,
 	name: "SOL dip buyer",
 	kind: "price_trigger",

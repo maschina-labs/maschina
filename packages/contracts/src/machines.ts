@@ -14,8 +14,14 @@ const signedWhole = z.string().regex(/^-?\d+$/, "not a whole number");
 
 export const CreateMachineRequest = z
 	.strictObject({
-		/** The owner's own wallet. The machine's funds can never reach anywhere else. */
-		ownerWallet: address,
+		/** Who it belongs to. Taken from the session by the gateway, never from a caller. */
+		ownerId: z.uuid(),
+		/**
+		 * The owner's own wallet: the only address a machine's funds can ever reach, which the wallet
+		 * provider's policy pins payouts to. Required for a machine that holds real money. A paper
+		 * machine has no funds and no policy, so somebody who has never linked one can still make one.
+		 */
+		ownerWallet: address.optional(),
 		name: z.string().min(1).max(60),
 		kind: z.string().min(1).max(40),
 		/**

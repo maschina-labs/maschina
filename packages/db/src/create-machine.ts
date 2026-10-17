@@ -14,12 +14,16 @@ import { err, MaschinaError, newId, ok, type Result } from "@maschina/core";
 import { sql } from "drizzle-orm";
 import type { Database } from "./client.ts";
 import { saveDefinition } from "./definitions.ts";
-import { createOwner } from "./owners.ts";
+import { ownerById } from "./owners.ts";
 import { appendOwnerEvent } from "./record.ts";
 
 export type MachineToWrite = {
-	/** The owner's own wallet: the only address this machine's funds can ever reach. */
-	ownerWallet: string;
+	/**
+	 * Who it belongs to. An id rather than a wallet, because an owner can exist without one: somebody
+	 * who signed in with an email and has never linked a wallet still owns their paper machines. The
+	 * row is made when they sign in, so by the time a machine is written it is always there.
+	 */
+	ownerId: string;
 	name: string;
 	/** True when the machine only ever pretends to trade. Decided here and never changed after. */
 	/** Whether it only pretends to trade. Required: nothing here decides it by default. */
@@ -89,7 +93,9 @@ async function writeInOneGo(
 	machine: MachineToWrite,
 ): Promise<Result<WrittenMachine, MaschinaError>> {
 	return db.transaction(async (tx) => {
-		const owner = await createOwner(tx, machine.ownerWallet);
+		// The owner row is made at sign in, for a wallet and for a person alike, so this reads rather
+		// than creates. A machine whose owner is not there is a bug upstream, not something to paper over.
+		const owner = await ownerById(tx, machine.ownerId);
 		if (!owner.ok) return owner;
 
 		const definition = await saveDefinition(tx, {
