@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.54](https://github.com/maschina-labs/maschina/compare/v0.0.53...v0.0.54) (2026-10-17)
+
+
+### Added
+
+* **web:** front page theme, layout and speed pass ([#823](https://github.com/maschina-labs/maschina/issues/823)) ([5589243](https://github.com/maschina-labs/maschina/commit/558924334f57de9e5180583fbe09e8ce68fed599))
+
 ## [0.0.53](https://github.com/maschina-labs/maschina/compare/v0.0.52...v0.0.53) (2026-10-17)
 
 
