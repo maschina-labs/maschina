@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.55](https://github.com/maschina-labs/maschina/compare/v0.0.54...v0.0.55) (2026-10-17)
+
+
+### Fixed
+
+* **db:** the public record's query runs against a real database ([#826](https://github.com/maschina-labs/maschina/issues/826)) ([e7a1564](https://github.com/maschina-labs/maschina/commit/e7a15643a87a759f2140a96ac7eec41681efbf14))
+
 ## [0.0.54](https://github.com/maschina-labs/maschina/compare/v0.0.53...v0.0.54) (2026-10-17)
 
 
