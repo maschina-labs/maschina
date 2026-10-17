@@ -123,6 +123,7 @@ export function signerRecord(
 			const written = await appendEvent(db, {
 				machineId: request.machineId,
 				type: "trade.refused",
+				runId: request.runId,
 				leaseEpoch: lease.leaseEpoch,
 				payload: {
 					runId: request.runId,
@@ -145,6 +146,7 @@ export function signerRecord(
 			const written = await appendEvent(db, {
 				machineId: request.machineId,
 				type: "machine.paused",
+				runId: request.runId,
 				leaseEpoch: lease.leaseEpoch,
 				payload: { reason, detail: detail.slice(0, 500) },
 			});

@@ -8,10 +8,11 @@
 
 import { newId } from "@maschina/core";
 import {
-	appendEvent,
+	appendOwnerEvent,
 	budgetFor,
 	createDatabase,
 	type DatabaseHandle,
+	queueRun,
 	recordSubmission,
 	releaseTrade,
 	reserveForTrade,
@@ -43,7 +44,16 @@ const SOL = "So11111111111111111111111111111111111111112";
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const SIGNATURE = "5".repeat(88);
 
-/** A machine with a budget its owner granted. */
+/**
+ * The run each test machine holds.
+ *
+ * A machine only trades inside a run somebody holds, and the record insists on it: the lease is what
+ * permits a write. Keeping it here means every `aTrade` names the real run without each test having
+ * to carry it around.
+ */
+const heldRuns = new Map<string, { runId: string; leaseEpoch: bigint }>();
+
+/** A machine with a budget its owner granted, and a run it holds. */
 async function aMachineWith(granted: bigint) {
 	const sql = handle.sql;
 	const [owner] = await sql<{ id: string }[]>`
@@ -63,22 +73,38 @@ async function aMachineWith(granted: bigint) {
 		values (${machineId}::uuid, ${owner.id}::uuid, ${address()}, ${"wallet-1"}, ${"turnkey"},
 			${saved.value.id}, ${"Weekly SOL"}, false)`;
 
-	const granting = await appendEvent(handle.db, {
+	// Granting a budget is the owner's doing, so it holds no lease.
+	const granting = await appendOwnerEvent(handle.db, {
 		machineId,
 		type: "machine.limits_changed",
-		leaseEpoch: 1n,
 		payload: { limit: "budgetGranted", from: null, to: granted.toString() },
 	});
 	if (!granting.ok) throw new Error("could not grant a budget");
+
+	const queued = await queueRun(handle.db, {
+		machineId,
+		occurrenceKey: newId<"run">(),
+		dueAt: new Date(Date.now() - 60_000),
+	});
+	if (!queued.ok) throw queued.error;
+	// Leased directly: `claimDueRun` takes whichever run in the database is due next, which in a file
+	// of many machines is often somebody else's.
+	const [leased] = await sql<{ id: string; lease_epoch: string }[]>`
+		update runs set state = 'leased', leased_by = ${newId<"node">()}::uuid,
+			lease_expires_at = now() + interval '5 minutes', lease_epoch = lease_epoch + 1
+		where id = ${queued.value.id}::uuid
+		returning id, lease_epoch`;
+	if (!leased) throw new Error("the run could not be leased");
+	heldRuns.set(machineId, { runId: leased.id, leaseEpoch: BigInt(leased.lease_epoch) });
 
 	return machineId;
 }
 
 const aTrade = (machineId: string, inputAmount: bigint, feeAllowance = 0n) => ({
 	machineId,
-	runId: newId<"run">(),
+	// A machine nobody set up holds no run, which is itself a case worth being able to write.
+	...(heldRuns.get(machineId) ?? { runId: newId<"run">(), leaseEpoch: 1n }),
 	tradeId: newId<"trade">(),
-	leaseEpoch: 1n,
 	inputMint: SOL,
 	outputMint: USDC,
 	inputAmount,
@@ -127,14 +153,9 @@ describe("holding budget for a trade", () => {
 	});
 
 	it("refuses a trade from a lease that has been taken over", async () => {
+		// The lease is the permission. A node naming an epoch the run is not at holds nothing, whether
+		// its lease was taken over or it simply made the number up.
 		const machineId = await aMachineWith(1_000n);
-		const newer = await appendEvent(handle.db, {
-			machineId,
-			type: "machine.started",
-			leaseEpoch: 5n,
-			payload: {},
-		});
-		expect(newer.ok).toBe(true);
 
 		const stale = await reserveForTrade(handle.db, { ...aTrade(machineId, 10n), leaseEpoch: 2n });
 
@@ -430,13 +451,27 @@ describe("a sale", () => {
 			name, paper)
 			values (${machineId}::uuid, ${owner.id}::uuid, ${address()}, ${"wallet-1"}, ${"turnkey"},
 				${saved.value.id}, ${"SOL range"}, false)`;
-		const granting = await appendEvent(handle.db, {
+		const granting = await appendOwnerEvent(handle.db, {
 			machineId,
 			type: "machine.limits_changed",
-			leaseEpoch: 1n,
 			payload: { limit: "budgetGranted", from: null, to: granted.toString() },
 		});
 		if (!granting.ok) throw new Error("could not grant a budget");
+
+		const queued = await queueRun(handle.db, {
+			machineId,
+			occurrenceKey: newId<"run">(),
+			dueAt: new Date(Date.now() - 60_000),
+		});
+		if (!queued.ok) throw queued.error;
+		const [leased] = await sql<{ id: string; lease_epoch: string }[]>`
+			update runs set state = 'leased', leased_by = ${newId<"node">()}::uuid,
+				lease_expires_at = now() + interval '5 minutes', lease_epoch = lease_epoch + 1
+			where id = ${queued.value.id}::uuid
+			returning id, lease_epoch`;
+		if (!leased) throw new Error("the run could not be leased");
+		heldRuns.set(machineId, { runId: leased.id, leaseEpoch: BigInt(leased.lease_epoch) });
+
 		return machineId;
 	}
 

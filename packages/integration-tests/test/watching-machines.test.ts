@@ -7,7 +7,7 @@
 
 import { newId } from "@maschina/core";
 import {
-	appendEvent,
+	appendOwnerEvent,
 	createDatabase,
 	type DatabaseHandle,
 	machinesWatchingPrices,
@@ -85,7 +85,7 @@ async function aMachine(options: {
 		events.push({ type: "machine.paused", payload: { reason: "owner" } });
 	}
 	for (const event of events) {
-		const written = await appendEvent(handle.db, { machineId, leaseEpoch: 0n, ...event });
+		const written = await appendOwnerEvent(handle.db, { machineId, ...event });
 		if (!written.ok) throw written.error;
 	}
 	return machineId;

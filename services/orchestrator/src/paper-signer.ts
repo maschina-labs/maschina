@@ -18,6 +18,8 @@ export type PaperPorts = {
 		machineId: string;
 		type: "trade.intended" | "trade.simulated";
 		payload: Record<string, unknown>;
+		/** The run whose lease permits the write. The record checks it is still held. */
+		runId: string;
 		leaseEpoch: bigint;
 	}): Promise<Result<unknown, MaschinaError>>;
 };
@@ -26,9 +28,10 @@ export function paperSigner(ports: PaperPorts) {
 	/**
 	 * Written under the lease the node holds, not under nothing.
 	 *
-	 * The record fences on the lease epoch: a write under an older epoch than the machine's newest event
-	 * is a message from a node that has been replaced, and is refused. A simulated trade is written by
-	 * the node running the machine right now, so it carries that node's epoch like every other event.
+	 * The record fences on the run's lease: a write is accepted only while the run is still held at
+	 * exactly the epoch named. A node that was replaced holds nothing and is refused. A simulated
+	 * trade is written by the node running the machine right now, so it names that run like every
+	 * other event.
 	 */
 	return {
 		async simulate(request: SimulateRequest, leaseEpoch: bigint): Promise<SignResponse> {
@@ -37,6 +40,7 @@ export function paperSigner(ports: PaperPorts) {
 			const intended = await ports.record({
 				machineId: request.machineId,
 				type: "trade.intended",
+				runId: request.runId,
 				leaseEpoch,
 				payload: {
 					runId: request.runId,
@@ -55,6 +59,7 @@ export function paperSigner(ports: PaperPorts) {
 			const simulated = await ports.record({
 				machineId: request.machineId,
 				type: "trade.simulated",
+				runId: request.runId,
 				leaseEpoch,
 				payload: {
 					runId: request.runId,

@@ -100,15 +100,15 @@ describe("signerRecord writing under the lease", () => {
 	});
 
 	it("passes on the record refusing a write, rather than pretending it happened", async () => {
-		// No rows back means a newer lease has written for the machine.
+		// No rows back means the write was not permitted: a node no longer holding its run.
 		await expect(
 			record(fakeDatabase([lease], [])).recordRefusal(request, { rule: "budget", reason: "x" }),
-		).rejects.toThrow(/newer lease/);
+		).rejects.toThrow(/lease is not held|was not written/);
 		await expect(
 			record(fakeDatabase([lease], [])).pauseMachine(request, "other", "x"),
-		).rejects.toThrow(/newer lease/);
+		).rejects.toThrow(/lease is not held|was not written/);
 		await expect(record(fakeDatabase([lease], [])).giveBack(request, "x")).rejects.toThrow(
-			/newer lease/,
+			/lease is not held|was not written/,
 		);
 	});
 });
@@ -148,9 +148,9 @@ describe("signerRecord after a trade is signed", () => {
 		).resolves.toBeUndefined();
 		await expect(
 			record(fakeDatabase([lease], [])).settle(request, signature, cost),
-		).rejects.toThrow(/newer lease/);
+		).rejects.toThrow(/lease is not held|was not written/);
 		await expect(
 			record(fakeDatabase([lease], [])).release(request, "confirm", "expired", signature),
-		).rejects.toThrow(/newer lease/);
+		).rejects.toThrow(/lease is not held|was not written/);
 	});
 });

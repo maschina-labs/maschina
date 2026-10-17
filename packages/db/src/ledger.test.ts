@@ -163,6 +163,8 @@ describe("settling and releasing", () => {
 		expect(execute).toHaveBeenCalledTimes(1);
 	});
 
+	// Settling is unfenced now: it records what the chain did, which no lease can contradict. A write
+	// that still returns nothing is a fault, not somebody else holding the run.
 	it("passes a refused settlement back", async () => {
 		const { db } = fakeDatabase([]);
 
@@ -177,7 +179,7 @@ describe("settling and releasing", () => {
 			feeLamports: 0n,
 		});
 
-		expect(!result.ok && result.error.code).toBe("conflict");
+		expect(!result.ok && result.error.code).toBe("internal");
 	});
 
 	it("gives a reservation back for a trade that did not happen", async () => {
@@ -228,7 +230,7 @@ describe("settling and releasing", () => {
 			reason: "nothing happened",
 		});
 
-		expect(!result.ok && result.error.code).toBe("conflict");
+		expect(!result.ok && result.error.code).toBe("internal");
 	});
 });
 

@@ -17,6 +17,7 @@ const valid = {
 	machineId,
 	type: "run.started",
 	payload: { runId, nodeId },
+	runId,
 	leaseEpoch: 3n,
 };
 
@@ -50,13 +51,24 @@ describe("appendEvent", () => {
 		expect(execute).not.toHaveBeenCalled();
 	});
 
-	it("reports a write that a newer lease blocked as a conflict", async () => {
+	it("asks the runs table whether the lease is still held, in the same statement", async () => {
+		// The permission to write is the lease, so it is checked where the write happens. Reading it
+		// first and writing second leaves room for the lease to be taken away in between.
+		const { db, execute } = fakeDatabase();
+		await appendEvent(db, valid);
+
+		const asked = JSON.stringify(execute.mock.calls);
+		expect(asked).toContain("from runs");
+		expect(asked).toContain("lease_expires_at > now()");
+	});
+
+	it("reports a write the lease no longer permits as a conflict", async () => {
 		const { db } = fakeDatabase([]);
 		const result = await appendEvent(db, valid);
 		expect(result.ok).toBe(false);
 		if (!result.ok) {
 			expect(result.error.code).toBe("conflict");
-			expect(result.error.message).toMatch(/newer lease/);
+			expect(result.error.message).toMatch(/lease is not held/);
 		}
 	});
 });

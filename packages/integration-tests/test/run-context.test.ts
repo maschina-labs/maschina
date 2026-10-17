@@ -9,6 +9,7 @@
 import { newId } from "@maschina/core";
 import {
 	appendEvent,
+	appendOwnerEvent,
 	claimDueRun,
 	createDatabase,
 	type DatabaseHandle,
@@ -71,7 +72,7 @@ async function aClaimedRun(
 		...(options.running === false ? [] : [{ type: "machine.started", payload: {} }]),
 	];
 	for (const event of events) {
-		const written = await appendEvent(handle.db, { machineId, leaseEpoch: 0n, ...event });
+		const written = await appendOwnerEvent(handle.db, { machineId, ...event });
 		if (!written.ok) throw written.error;
 	}
 
@@ -146,8 +147,10 @@ describe("runContext", () => {
 				},
 			},
 		]) {
+			// Written under the run this node actually holds, which is what the record checks.
 			const written = await appendEvent(handle.db, {
 				machineId: claimed.machineId,
+				runId: claimed.run.id,
 				leaseEpoch: claimed.run.leaseEpoch,
 				...event,
 			} as never);

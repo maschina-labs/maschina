@@ -17,7 +17,11 @@ vi.mock("./definitions.ts", () => ({
 	saveDefinition: async () => ok({ id: "d".repeat(64) }),
 }));
 vi.mock("./record.ts", () => ({
-	appendEvent: async (_tx: unknown, event: { type: string; payload: Record<string, unknown> }) => {
+	// Creating a machine is the owner's action: there is no run yet, so there is no lease to hold.
+	appendOwnerEvent: async (
+		_tx: unknown,
+		event: { type: string; payload: Record<string, unknown> },
+	) => {
 		appended.push(event);
 		return ok(undefined);
 	},
