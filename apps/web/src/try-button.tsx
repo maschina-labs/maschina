@@ -3,8 +3,8 @@ import { Link } from "./i18n/link.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
 
 /**
- * The main call to action: the pearl button with a small square black chip inset beside the words, a chevron
- * pointing right in white. The chip is smaller than the button, so pearl shows all around it.
+ * The main call to action: the silver button with a small square black chip inset beside the words, a chevron
+ * pointing right in white. The chip is smaller than the button, so silver shows all around it.
  * It is part of the link, so the whole thing is one click, and the chevron is decoration (the name is just the
  * words, "Try Maschina" unless another label is given).
  */
@@ -14,21 +14,18 @@ export function TryButton({
 	labelClassName,
 	chipClassName,
 	label,
-	finish = "pearl",
 }: {
 	href: string;
 	className: string;
 	labelClassName: string;
 	chipClassName: string;
 	label?: string;
-	/** Which finish shows on hover: `pearl` (the default), `silver` (white metal) or `opal`. One per button, never mixed. */
-	finish?: "silver" | "pearl" | "opal";
 }) {
 	const m = useMessages();
 	return (
 		<Link
 			href={href}
-			className={`items-center gap-3 silver-button ${finish === "pearl" ? "" : `finish-${finish}`} text-black max-sm:font-medium ${className}`}
+			className={`items-center gap-3 silver-button text-black max-sm:font-medium ${className}`}
 		>
 			<span className={labelClassName}>{label ?? m.header.tryMaschina}</span>
 			<span

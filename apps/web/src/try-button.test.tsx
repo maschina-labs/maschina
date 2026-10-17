@@ -21,16 +21,12 @@ describe("the try button", () => {
 		expect(className).not.toMatch(/rounded/);
 	});
 
-	it("takes one finish, silver, pearl or opal, never two: pearl by default, and the others by a class of their own", () => {
-		const { rerender } = render(<TryButton {...props} />);
-		expect(screen.getByRole("link").className).not.toMatch(/finish-/);
-		rerender(<TryButton {...props} finish="silver" />);
-		expect(screen.getByRole("link").className).toContain("finish-silver");
-		expect(screen.getByRole("link").className).not.toContain("finish-opal");
-		rerender(<TryButton {...props} finish="opal" />);
-		expect(screen.getByRole("link").className).toContain("finish-opal");
-		expect(screen.getByRole("link").className).not.toContain("finish-silver");
-		rerender(<TryButton {...props} finish="pearl" />);
+	it("has one finish and no way to ask for another", () => {
+		// Silver at rest, a brighter silver on hover. A pearl shimmer was tried and pulled: on a page
+		// that is black, silver and pearl, colour on the thing a person is about to click looks cheap.
+		render(<TryButton {...props} />);
+
+		expect(screen.getByRole("link").className).toContain("silver-button");
 		expect(screen.getByRole("link").className).not.toMatch(/finish-/);
 	});
 });
