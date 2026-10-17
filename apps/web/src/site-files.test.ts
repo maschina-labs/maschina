@@ -236,8 +236,21 @@ describe("the page's own head, for browsers, search engines and shared links", (
 			"/humans.txt",
 		])
 			expect(hrefs, wanted).toContain(wanted);
-		for (const href of hrefs.filter((link) => link.startsWith("/")))
+		// The licensed fonts are not in the repository: a font licence covers serving them, not handing the
+		// files to everyone who clones it. `pnpm fonts` copies them in. So the file has to be there for
+		// every other link, and for a font the test is that the page asks for what that script writes.
+		for (const href of hrefs.filter((link) => link.startsWith("/") && !link.startsWith("/fonts/")))
 			expect(existsSync(resolve(root, "public", `.${href}`)), href).toBe(true);
+	});
+
+	it("preloads the licensed fonts from the folder the fonts script fills, so a build that has them serves them", () => {
+		const hrefs = [...html.matchAll(/<link[^>]*href="([^"]+)"/g)].map((match) => match[1] ?? "");
+		const fonts = hrefs.filter((href) => href.startsWith("/fonts/"));
+		expect(fonts.length).toBeGreaterThan(0);
+		const script = readFileSync(resolve(root, "..", "..", "scripts", "fonts.mjs"), "utf8");
+		// The script writes into each app's own public/fonts, and the page asks for files from that folder.
+		expect(script).toContain("public/fonts/");
+		for (const href of fonts) expect(href, href).toMatch(/^\/fonts\/[\w-]+\.woff2$/);
 	});
 
 	it("describes the company for search engines as structured data, claiming only what is true", () => {
