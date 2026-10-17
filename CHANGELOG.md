@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.58](https://github.com/maschina-labs/maschina/compare/v0.0.57...v0.0.58) (2026-10-17)
+
+
+### Fixed
+
+* **gateway:** config that is only wrong in production now fails loudly ([#835](https://github.com/maschina-labs/maschina/issues/835)) ([323232a](https://github.com/maschina-labs/maschina/commit/323232a323bace56b0ecc6b1e68f1f2b1dd9afb6))
+
 ## [0.0.57](https://github.com/maschina-labs/maschina/compare/v0.0.56...v0.0.57) (2026-10-17)
 
 
