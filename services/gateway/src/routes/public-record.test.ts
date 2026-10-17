@@ -27,7 +27,9 @@ function app(read?: () => Promise<PublicRecord>) {
 
 describe("the public record API", () => {
 	it("serves the trades to anyone, with no sign in, and lets the edge hold them for half a minute", async () => {
-		const res = await app(async () => ({ live: [trade], paper: [] })).request("/v1/public/record");
+		const res = await app(async () => ({ live: [trade], paper: [], refused: [] })).request(
+			"/v1/public/record",
+		);
 		expect(res.status).toBe(200);
 		expect(PublicRecord.parse(await res.json()).live).toEqual([trade]);
 		expect(res.headers.get("cache-control")).toBe("public, max-age=30");
@@ -35,7 +37,7 @@ describe("the public record API", () => {
 
 	it("keeps paper in its own list, with no signature on it", async () => {
 		const onPaper = { at: trade.at, side: "buy", usdc: "1000000", sol: "8000000" } as const;
-		const res = await app(async () => ({ live: [], paper: [onPaper] })).request(
+		const res = await app(async () => ({ live: [], paper: [onPaper], refused: [] })).request(
 			"/v1/public/record",
 		);
 
@@ -48,14 +50,18 @@ describe("the public record API", () => {
 		// Strict schemas both ways: paper has no signature field, so an attempt to add one fails the
 		// response rather than reaching a page that would happily link it to an explorer.
 		const faked = { ...trade } as unknown as PublicRecord["paper"][number];
-		const res = await app(async () => ({ live: [], paper: [faked] })).request("/v1/public/record");
+		const res = await app(async () => ({ live: [], paper: [faked], refused: [] })).request(
+			"/v1/public/record",
+		);
 
 		expect(res.status).toBe(500);
 	});
 
 	it("cannot leak a field: anything beyond the six public ones fails the response instead of being sent", async () => {
 		const leaky = { ...trade, machineId: "m-1", ownerId: "o-1" } as unknown as PublicTrade;
-		const res = await app(async () => ({ live: [leaky], paper: [] })).request("/v1/public/record");
+		const res = await app(async () => ({ live: [leaky], paper: [], refused: [] })).request(
+			"/v1/public/record",
+		);
 		expect(res.status).toBe(500);
 		expect(await res.text()).not.toContain("o-1");
 	});
@@ -63,6 +69,6 @@ describe("the public record API", () => {
 	it("is empty, plainly, where no owner is chosen to be shown", async () => {
 		const res = await app().request("/v1/public/record");
 		expect(res.status).toBe(200);
-		expect(PublicRecord.parse(await res.json())).toEqual({ live: [], paper: [] });
+		expect(PublicRecord.parse(await res.json())).toEqual({ live: [], paper: [], refused: [] });
 	});
 });

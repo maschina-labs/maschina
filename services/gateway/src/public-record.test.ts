@@ -25,6 +25,8 @@ const intended = (tradeId: string, at: string, inputMint: string, outputMint: st
 		quotedOutputAmount: "1",
 		slippageBps: 50,
 	});
+const refused = (tradeId: string, at: string, by: string, rule: string, reason = "over the cap") =>
+	event("trade.refused", at, { runId: "r", tradeId, by, rule, reason });
 const simulated = (tradeId: string, at: string, inputMint: string, outputMint: string) =>
 	event("trade.simulated", at, {
 		runId: "r",
@@ -169,5 +171,104 @@ describe("the public trades", () => {
 
 		expect(record.live).toHaveLength(2);
 		expect(record.paper).toHaveLength(2);
+	});
+
+	it("shows what was proposed and refused, with the amounts from the intent", () => {
+		const record = publicTrades(
+			[
+				intended("t1", "2026-10-01T10:00:00Z", USDC, SOL),
+				refused("t1", "2026-10-01T10:00:01Z", "maschina", "budget"),
+			],
+			50,
+		);
+
+		expect(record.refused).toEqual([
+			{
+				at: "2026-10-01T10:00:01.000Z",
+				side: "buy",
+				usdc: "1",
+				sol: "1",
+				by: "maschina",
+				rule: "budget",
+			},
+		]);
+		// A refusal is not a trade and never joins either list.
+		expect(record.live).toEqual([]);
+		expect(record.paper).toEqual([]);
+	});
+
+	it("never publishes the reason, which is free text", () => {
+		const record = publicTrades(
+			[
+				intended("t1", "2026-10-01T10:00:00Z", USDC, SOL),
+				refused("t1", "2026-10-01T10:00:01Z", "maschina", "budget", "only 4.20 USDC left"),
+			],
+			50,
+		);
+
+		expect(JSON.stringify(record)).not.toContain("4.20");
+		expect(Object.keys(record.refused[0] ?? {})).not.toContain("reason");
+	});
+
+	it("keeps a rule code it does not know out, rather than passing a string through", () => {
+		// The published set is closed. A new rule is published deliberately, by adding it, not by
+		// whatever string a service happened to write.
+		const record = publicTrades(
+			[
+				intended("t1", "2026-10-01T10:00:00Z", USDC, SOL),
+				refused("t1", "2026-10-01T10:00:01Z", "maschina", "a_rule_from_the_future"),
+			],
+			50,
+		);
+
+		expect(record.refused).toEqual([]);
+	});
+
+	it("keeps a refusal from neither gate out", () => {
+		const record = publicTrades(
+			[
+				intended("t1", "2026-10-01T10:00:00Z", USDC, SOL),
+				refused("t1", "2026-10-01T10:00:01Z", "somebody_else", "budget"),
+			],
+			50,
+		);
+
+		expect(record.refused).toEqual([]);
+	});
+
+	it("leaves out a refusal whose intent it never saw, because it cannot say which way it went", () => {
+		const record = publicTrades(
+			[refused("t9", "2026-10-01T10:00:01Z", "provider", "recipients")],
+			50,
+		);
+
+		expect(record.refused).toEqual([]);
+	});
+
+	it("says which gate refused it, the provider refusing on its own", () => {
+		const record = publicTrades(
+			[
+				intended("t1", "2026-10-01T10:00:00Z", SOL, USDC),
+				refused("t1", "2026-10-01T10:00:01Z", "provider", "provider_policy"),
+			],
+			50,
+		);
+
+		expect(record.refused[0]).toMatchObject({
+			side: "sell",
+			by: "provider",
+			rule: "provider_policy",
+		});
+	});
+
+	it("limits refusals on their own, like the other two lists", () => {
+		const events: StoredEvent[] = [];
+		for (let i = 0; i < 5; i += 1) {
+			events.push(intended(`t${i}`, `2026-10-01T1${i}:00:00Z`, USDC, SOL));
+			events.push(refused(`t${i}`, `2026-10-01T1${i}:00:01Z`, "maschina", "budget"));
+		}
+		const record = publicTrades(events, 2);
+
+		expect(record.refused).toHaveLength(2);
 	});
 });

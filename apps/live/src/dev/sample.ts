@@ -39,6 +39,26 @@ const paper = [
 ];
 
 /**
+ * Proposals a machine was stopped from making, the thing this page exists to show. Both gates are
+ * represented, because a reader should see that two different things refuse, and the amounts are
+ * deliberately bigger than the real trades: a refusal is usually a machine asking for more than it
+ * was given.
+ */
+const refused = [
+	{ ...trade("2026-10-16T20:02:00.000Z", "buy", 121.4, 500), by: "maschina", rule: "budget" },
+	{
+		...trade("2026-10-15T11:40:00.000Z", "sell", 120.9, 80),
+		by: "provider",
+		rule: "provider_policy",
+	},
+	{
+		...trade("2026-10-12T02:05:00.000Z", "buy", 119.5, 42),
+		by: "maschina",
+		rule: "transaction_shape",
+	},
+] as const;
+
+/**
  * Answers the one route this page reads, and passes everything else through untouched.
  *
  * Silent on purpose: the console belongs to whoever is looking at the page, and the sample data
@@ -49,7 +69,7 @@ export function serveSampleRecord() {
 	globalThis.fetch = async (input, init) => {
 		const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
 		if (url.includes("/v1/public/record")) {
-			return new Response(JSON.stringify({ live, paper }), {
+			return new Response(JSON.stringify({ live, paper, refused }), {
 				status: 200,
 				headers: { "content-type": "application/json" },
 			});

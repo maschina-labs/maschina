@@ -1,4 +1,9 @@
-import type { PaperTrade, PublicRecord, PublicTrade } from "@maschina/contracts";
+import {
+	type PaperTrade,
+	type PublicRecord,
+	PublicRefusal,
+	type PublicTrade,
+} from "@maschina/contracts";
 import type { StoredEvent } from "@maschina/db";
 
 const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -31,9 +36,11 @@ const text = (value: unknown): string | undefined =>
  * happen.
  */
 export function publicTrades(events: StoredEvent[], limit: number): PublicRecord {
-	const directions = new Map<string, "buy" | "sell">();
+	/** What each trade was going to do, from its intent, so a later event can be read in context. */
+	const intents = new Map<string, { side: "buy" | "sell"; usdc: string; sol: string }>();
 	const live: PublicTrade[] = [];
 	const paper: PaperTrade[] = [];
+	const refused: PublicRefusal[] = [];
 
 	for (const event of events) {
 		const payload = event.payload as Record<string, unknown>;
@@ -43,7 +50,34 @@ export function publicTrades(events: StoredEvent[], limit: number): PublicRecord
 
 		if (event.type === "trade.intended") {
 			const side = sideOf(payload);
-			if (side) directions.set(tradeId, side);
+			const input = text(payload["inputAmount"]);
+			const output = text(payload["quotedOutputAmount"]);
+			if (side && input !== undefined && output !== undefined) {
+				intents.set(tradeId, {
+					side,
+					usdc: side === "buy" ? input : output,
+					sol: side === "buy" ? output : input,
+				});
+			}
+			continue;
+		}
+
+		// What a machine was stopped from doing. Built from the intent for the amounts and from the
+		// refusal for which gate said no and under which rule, parsed through the published shape so
+		// an unknown rule or an unknown gate is dropped rather than passed along as a string. The
+		// reason is free text and never leaves the record.
+		if (event.type === "trade.refused") {
+			const intent = intents.get(tradeId);
+			if (!intent) continue;
+			const candidate = PublicRefusal.safeParse({
+				at,
+				side: intent.side,
+				usdc: intent.usdc,
+				sol: intent.sol,
+				by: payload["by"],
+				rule: payload["rule"],
+			});
+			if (candidate.success) refused.push(candidate.data);
 			continue;
 		}
 
@@ -63,7 +97,7 @@ export function publicTrades(events: StoredEvent[], limit: number): PublicRecord
 		}
 
 		if (event.type !== "trade.completed") continue;
-		const side = directions.get(tradeId);
+		const side = intents.get(tradeId)?.side;
 		const signature = text(payload["signature"]);
 		const input = text(payload["inputAmount"]);
 		const output = text(payload["outputAmount"]);
@@ -77,5 +111,9 @@ export function publicTrades(events: StoredEvent[], limit: number): PublicRecord
 		});
 	}
 
-	return { live: live.reverse().slice(0, limit), paper: paper.reverse().slice(0, limit) };
+	return {
+		live: live.reverse().slice(0, limit),
+		paper: paper.reverse().slice(0, limit),
+		refused: refused.reverse().slice(0, limit),
+	};
 }
