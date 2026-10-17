@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.57](https://github.com/maschina-labs/maschina/compare/v0.0.56...v0.0.57) (2026-10-17)
+
+
+### Fixed
+
+* **live:** the record reads the API, not the page's own origin ([#832](https://github.com/maschina-labs/maschina/issues/832)) ([ef8eb4b](https://github.com/maschina-labs/maschina/commit/ef8eb4b53d7dce3589fcc30bcccb0cd7ece42df6))
+
 ## [0.0.56](https://github.com/maschina-labs/maschina/compare/v0.0.55...v0.0.56) (2026-10-17)
 
 
