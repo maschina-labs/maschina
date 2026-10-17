@@ -80,6 +80,10 @@ export async function readOwnerPublicEvents(
 		.filter((id): id is string => typeof id === "string");
 
 	// Only the intents belonging to those trades, so this stays bounded by the limit above.
+	//
+	// Written as `in (...)` with one placeholder per id, not `= any(${tradeIds}::text[])`: the sql tag
+	// expands an array into a list of placeholders, so that cast asks Postgres to turn a record into
+	// an array and it refuses. It failed for every owner who had finished a trade (MISTAKES M48).
 	const intents =
 		tradeIds.length === 0
 			? []
@@ -88,7 +92,10 @@ export async function readOwnerPublicEvents(
 					join machines m on m.id = e.machine_id
 					where m.owner_id = ${ownerId}::uuid
 						and e.type = 'trade.intended'
-						and e.payload->>'tradeId' = any(${tradeIds}::text[])`);
+						and e.payload->>'tradeId' in (${sql.join(
+							tradeIds.map((id) => sql`${id}`),
+							sql`, `,
+						)})`);
 
 	// Oldest first, the order the projection reads in: an intent has to arrive before its completion.
 	return [...intents, ...finished]
