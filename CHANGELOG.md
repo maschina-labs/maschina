@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.56](https://github.com/maschina-labs/maschina/compare/v0.0.55...v0.0.56) (2026-10-17)
+
+
+### Added
+
+* **gateway:** paper is open to everyone and needs no wallet ([#829](https://github.com/maschina-labs/maschina/issues/829)) ([91af58b](https://github.com/maschina-labs/maschina/commit/91af58b89148696083db77990da51afb719be486))
+
 ## [0.0.55](https://github.com/maschina-labs/maschina/compare/v0.0.54...v0.0.55) (2026-10-17)
 
 
