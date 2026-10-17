@@ -55,6 +55,16 @@ export function loadConfig(source?: EnvSource) {
 			 */
 			PUBLIC_RECORD_OWNER_ID: env.optional(z.uuid()),
 			/**
+			 * The wallets that may put real money into a machine, separated by commas.
+			 *
+			 * Paper is open to everyone and needs nothing here: a paper machine runs the same code against
+			 * live prices and never asks for a signature. Real money is shut until the signer judges a
+			 * transaction's own bytes rather than the node's claim about them, and until there has been an
+			 * independent audit. Unset means nobody, including Ash: the gate is shut by default, because a
+			 * gate that opens when a variable goes missing is not a gate.
+			 */
+			LIVE_MACHINE_WALLETS: env.optional(z.string()),
+			/**
 			 * The Resend key (sending only) that the contact page's mail goes out on. Unset, the contact route
 			 * answers that it is not available, and nothing pretends to send.
 			 */

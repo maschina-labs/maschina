@@ -5,6 +5,7 @@ import { buildApp, SERVICE } from "./app.ts";
 import { loadConfig } from "./config.ts";
 import { contactDesk } from "./contact.ts";
 import { machinePorts } from "./deps.ts";
+import { whoMayRunOnRealMoney } from "./live-machines.ts";
 import { newsDesk } from "./news.ts";
 
 const config = loadConfig();
@@ -31,6 +32,7 @@ startServer({
 		logger,
 		reporter,
 		machines: gateway.ports,
+		liveWallets: whoMayRunOnRealMoney(config.LIVE_MACHINE_WALLETS),
 		auth: gateway.auth,
 		people: gateway.people,
 		cookie: gateway.cookie,

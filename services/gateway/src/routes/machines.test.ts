@@ -42,7 +42,7 @@ const detail = {
 	levels: [],
 };
 
-function app(ports: Partial<MachinePorts> = {}) {
+function app(ports: Partial<MachinePorts> = {}, liveWallets: string[] = [OWNER]) {
 	const base: MachinePorts = {
 		ownerOf: async (headers) =>
 			headers.get("authorization") === "Bearer signed-in"
@@ -80,6 +80,7 @@ function app(ports: Partial<MachinePorts> = {}) {
 		corsOrigins: ["http://localhost:3000"],
 		logger,
 		machines: { ...base, ...ports },
+		liveWallets,
 		// Signing in has its own tests; these reach the machines API with the session already decided.
 		auth: {
 			challenge: async () => ({ message: "", nonce: "", expiresAt: "" }),
@@ -304,6 +305,77 @@ describe("the machines API", () => {
 
 		expect(res.status).toBe(400);
 		expect(asked).toEqual([]);
+	});
+
+	it("lets anybody make a paper machine, even when no wallet may use real money", async () => {
+		const asked: { paper: boolean }[] = [];
+		const res = await app(
+			{
+				create: async (request) => {
+					asked.push(request);
+					return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+				},
+			},
+			[],
+		).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				paper: true,
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(201);
+		expect(asked[0]?.paper).toBe(true);
+	});
+
+	it("refuses real money to a wallet that is not allowed it, and writes nothing", async () => {
+		const asked: unknown[] = [];
+		const res = await app(
+			{
+				create: async (request) => {
+					asked.push(request);
+					return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+				},
+			},
+			["3TxB1vNvGR1pcsQfeQqR9HnLrxN3oH6ykpzEmKN4yqcn"],
+		).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				paper: false,
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(403);
+		// Nothing was created, so no wallet was made and nothing was written down.
+		expect(asked).toEqual([]);
+		// It says what is open rather than only what is shut.
+		expect(JSON.stringify(await res.json())).toContain("paper");
+	});
+
+	it("refuses real money to everyone when no wallet is allowed it, which is the default", async () => {
+		const res = await app({}, []).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({
+				name: "SOL dip buyer",
+				kind: "price_trigger",
+				paper: false,
+				settings: { level: "142000000" },
+				limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+			}),
+		});
+
+		expect(res.status).toBe(403);
 	});
 
 	it("creates a machine and says which wallet to fund", async () => {

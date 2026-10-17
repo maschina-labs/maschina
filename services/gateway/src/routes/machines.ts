@@ -28,6 +28,7 @@ import {
 } from "@maschina/contracts";
 import { MaschinaError } from "@maschina/core";
 import type { ServiceEnv } from "@maschina/service";
+import { mayRunOnRealMoney } from "../live-machines.ts";
 
 /** Who is asking. The session decides; nothing else may. */
 /** A person who signed in without a wallet has none yet, and cannot do what moves money until they link one. */
@@ -278,7 +279,7 @@ const create = createRoute({
 	},
 });
 
-export function machineRoutes(ports: MachinePorts) {
+export function machineRoutes(ports: MachinePorts, liveWallets: string[] = []) {
 	const app = new OpenAPIHono<ServiceEnv>();
 
 	/** Every route here needs an owner. Nothing below runs without one. */
@@ -374,7 +375,16 @@ export function machineRoutes(ports: MachinePorts) {
 			const asked = c.req.valid("json");
 			// The owner's wallet comes from the session, never from the request: a machine's funds can
 			// only ever reach the person who created it.
-			const made = await ports.create({ ...asked, ownerWallet: walletOf(who) });
+			const ownerWallet = walletOf(who);
+			// Paper is open to everyone. Real money is not, until the signer judges a transaction's own
+			// bytes and there has been an audit. Checked here, before anything is written or a wallet
+			// is made, so a refused machine leaves nothing behind.
+			if (!mayRunOnRealMoney({ paper: asked.paper, ownerWallet, allowed: liveWallets }))
+				throw new MaschinaError(
+					"forbidden",
+					"Maschina is open on paper only. A paper machine trades against live prices with no money at risk; real money is not open yet.",
+				);
+			const made = await ports.create({ ...asked, ownerWallet });
 			return c.json(CreateMachineResponse.parse(made), 201);
 		});
 }
