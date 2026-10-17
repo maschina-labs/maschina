@@ -67,7 +67,8 @@ jobs:
           # it runs. Without this they go to the server by hand and quietly fall behind.
           # shellcheck disable=SC2086
           scp $ssh_opts docker/compose.prod.yml docker/compose.migrate.yml \
-            scripts/server/update.sh scripts/server/backup.sh "ubuntu@$HOST:/opt/maschina/"
+            scripts/server/update.sh scripts/server/backup.sh \
+            scripts/server/prune.sh scripts/server/stale-images.sh "ubuntu@$HOST:/opt/maschina/"
           # shellcheck disable=SC2086
           ssh $ssh_opts "ubuntu@$HOST" "chmod +x /opt/maschina/*.sh && /opt/maschina/update.sh $VERSION"
           rm -f /tmp/deploy.key
