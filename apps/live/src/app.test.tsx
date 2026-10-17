@@ -56,7 +56,7 @@ describe("the live record", () => {
 	it("shows a real trade with a link to the transaction on Solana", async () => {
 		show({ live: [live], paper: [] });
 
-		const proof = await screen.findByRole("link", { name: "Proof" });
+		const proof = await screen.findByRole("link", { name: "Solscan" });
 		expect(proof).toHaveAttribute("href", `https://solscan.io/tx/${live.signature}`);
 		expect(proof).toHaveAttribute("rel", expect.stringContaining("noopener"));
 	});
@@ -76,7 +76,7 @@ describe("the live record", () => {
 
 		const paper = await screen.findByRole("table", { name: /on paper/i });
 		expect(within(paper).queryByRole("link")).toBeNull();
-		expect(within(paper).queryByText("Proof")).toBeNull();
+		expect(within(paper).queryByText("Solscan")).toBeNull();
 		expect(within(paper).getByText("24.36")).toBeInTheDocument();
 	});
 

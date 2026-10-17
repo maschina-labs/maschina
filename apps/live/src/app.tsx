@@ -34,7 +34,7 @@ function Head({ proof }: { proof: boolean }) {
 				<th className={`${HEAD} text-right`}>SOL</th>
 				<th className={`${HEAD} text-right`}>USDC</th>
 				<th className={`${HEAD} text-right`}>Price</th>
-				{proof ? <th className="py-2 text-right font-normal">Chain</th> : null}
+				{proof ? <th className="py-2 text-right font-normal">Transaction</th> : null}
 			</tr>
 		</thead>
 	);
@@ -83,7 +83,7 @@ function Table({
 											rel="noopener noreferrer"
 											className="text-neutral-400 underline-offset-4 hover:text-white hover:underline"
 										>
-											Proof
+											Solscan
 										</a>
 									) : null}
 								</td>
@@ -153,6 +153,10 @@ export function LiveApp({ gateway = "" }: { gateway?: string }) {
 					Every trade these machines finish. Nothing here can be edited after the fact, no machine
 					is left out, and the ones that lost money are on it too.
 				</p>
+				<p className="mb-4 max-w-xl text-neutral-500 text-sm">
+					These are my own machines. Anyone running a machine on Maschina decides for themselves
+					whether its record is public.
+				</p>
 
 				{state.status === "loading" && <p className="text-neutral-500">Reading the record.</p>}
 
@@ -166,7 +170,7 @@ export function LiveApp({ gateway = "" }: { gateway?: string }) {
 					<>
 						<Section
 							title="Real money"
-							note="Traded with the founder's own funds. Every line links to the transaction on Solana, so none of it has to be taken on trust."
+							note="Machines trading real money on Solana. Every line links to its transaction on chain, so none of it has to be taken on trust."
 						>
 							{state.record.live.length === 0 ? (
 								<Empty>No finished trades with real money yet.</Empty>
