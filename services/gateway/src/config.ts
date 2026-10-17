@@ -45,11 +45,15 @@ export function loadConfig(source?: EnvSource) {
 			 */
 			JUPITER_API_KEY: env.optional(z.string().min(8)),
 			/**
-			 * The one machine whose finished trades anyone may read, at /v1/public/record. Unset, the public
-			 * record is empty and no machine is shown. It is a choice made here, never a request parameter, so
-			 * nobody can ask for someone else's machine.
+			 * The owner whose machines the public record shows, at /v1/public/record.
+			 *
+			 * An owner rather than a machine, because D-108 says every machine the house owns is shown,
+			 * live or paper, running or stopped, and nobody including Ash can hide one. A record that
+			 * leaves out the machines that failed proves nothing. Unset, the record is empty and nothing
+			 * is shown. It is a choice made here, never a request parameter, so nobody can ask for
+			 * somebody else's machines.
 			 */
-			PUBLIC_RECORD_MACHINE_ID: env.optional(z.uuid()),
+			PUBLIC_RECORD_OWNER_ID: env.optional(z.uuid()),
 			/**
 			 * The Resend key (sending only) that the contact page's mail goes out on. Unset, the contact route
 			 * answers that it is not available, and nothing pretends to send.
