@@ -1,0 +1,76 @@
+name: Apps
+
+# Deploys the Cloudflare apps that Cloudflare does not build itself.
+#
+# The dashboard, app.maschina.dev, and the company site, maschina.dev, are connected to Cloudflare's
+# own repository builds and deploy on their own. The rest are not, and before this workflow existed
+# nothing deployed them: live.maschina.dev sat on an old build for hours with its fix merged and
+# green, and it was only noticed because somebody opened the page (MISTAKES M50).
+#
+# Which apps belong here is checked by scripts/checks/app-deploys.test.mjs, so a new app with a
+# Worker and no way to deploy it fails the build rather than being discovered later.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Set here and never left to the environment. `apps/*/vite.config.ts` reads its env from the
+      # repository root, where .env is a developer's own file pointing at localhost, so a build that
+      # inherits one ships a page that calls localhost and shows nothing.
+      VITE_GATEWAY_URL: https://api.maschina.dev
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      # The build is read before it is deployed. The gateway address is the one thing a build can get
+      # wrong in a way nothing notices: a page that calls localhost is up, answers 200 and shows
+      # nothing. Cheaper to refuse here than to find out from the page.
+      - name: The build calls the API, not a machine that is not there
+        run: |
+          for app in live; do
+            bundle=$(find "apps/$app/dist/assets" -name 'index-*.js' | head -1)
+            if [ -z "$bundle" ]; then
+              echo "apps/$app has no built bundle to check" >&2
+              exit 1
+            fi
+            if ! grep -q 'https://api\.maschina\.dev' "$bundle"; then
+              echo "apps/$app was built without the API's address" >&2
+              exit 1
+            fi
+            if grep -qE 'localhost|127\.0\.0\.1' "$bundle"; then
+              echo "apps/$app was built against localhost, which is nowhere once it is deployed" >&2
+              exit 1
+            fi
+          done
+
+      # One step per app, each named by its own configuration file, because that is what the check
+      # reads to know an app is covered.
+      - name: Deploy the public record
+        run: pnpm exec wrangler deploy --config apps/live/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
