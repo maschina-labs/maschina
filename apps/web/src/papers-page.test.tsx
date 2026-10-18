@@ -70,11 +70,15 @@ describe("the papers page", () => {
 	it("says Coming soon on each place that has nothing in it yet, and links none of them, so there is no dead link", () => {
 		const { container } = render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
 		const items = [...container.querySelectorAll("[data-item]")];
-		for (const item of items) {
+		// A place with an address is a link; a place without one says so and is not. Both are on the
+		// page at once now that the two videos exist and the papers do not.
+		for (const item of items.filter((each) => each.tagName !== "A")) {
 			expect(item).toHaveTextContent("Coming soon");
 			expect(item.querySelector("a")).toBeNull();
 		}
-		expect(within(screen.getByRole("main")).queryAllByRole("link")).toHaveLength(0);
+		// Exactly the places that have an address, and no others.
+		const ready = PAPERS.groups.flatMap((group) => group.items).filter((item) => item.href);
+		expect(within(screen.getByRole("main")).queryAllByRole("link")).toHaveLength(ready.length);
 	});
 
 	it("turns a place into a link, with an arrow, the moment it has an address", () => {
@@ -113,8 +117,11 @@ describe("the papers page", () => {
 
 	it("marks a place that is not ready with a quiet tag, and one that is with a pearl chip and an arrow", () => {
 		const { container } = render(<PapersPage authUrl={AUTH} doc={PAPERS} />);
-		for (const item of container.querySelectorAll("[data-item]"))
+		for (const item of container.querySelectorAll("[data-item]")) {
+			// A ready place is itself the link, so it carries the chip rather than the quiet tag.
+			if (item.tagName === "A") continue;
 			expect(item.querySelector("[data-soon]")).not.toBeNull();
+		}
 		const doc = {
 			...PAPERS,
 			groups: [
@@ -165,8 +172,9 @@ describe("the papers page", () => {
 		expect(button).toHaveTextContent("Coming soon");
 		expect(button.tagName).not.toBe("A");
 		expect(button).toHaveAttribute("aria-disabled", "true");
-		// No pack, no link: the page still has no dead link.
-		expect(within(screen.getByRole("main")).queryAllByRole("link")).toHaveLength(0);
+		// No pack, so the button is not one of the page's links: only the places with an address are.
+		const ready = PAPERS.groups.flatMap((group) => group.items).filter((item) => item.href);
+		expect(within(screen.getByRole("main")).queryAllByRole("link")).toHaveLength(ready.length);
 	});
 
 	it("turns the download into a link, with a black chip and a white download icon, the moment there is a pack", () => {
