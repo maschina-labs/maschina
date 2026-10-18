@@ -5,6 +5,7 @@ export * from "./cluster.ts";
 export * from "./compare-routers.ts";
 export * from "./compute-budget.ts";
 export * from "./confirm.ts";
+export * from "./derive-effects.ts";
 export * from "./dexscreener-price.ts";
 export * from "./funding.ts";
 export * from "./jupiter.ts";
