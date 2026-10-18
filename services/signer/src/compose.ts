@@ -72,11 +72,15 @@ export function layered(
  * What a proposal would really do to the machine's wallet (F-01, D-120).
  *
  * The transaction is simulated as the exact bytes that would be signed, and the wallet is read before
- * and after. Only the two mints the proposal names are watched for new accounts, which is the point:
- * a transaction that creates an account for some third token is a transaction whose effect on that
- * token goes unmeasured, and `judgeSwap` refuses anything it cannot account for.
+ * and after. Watched: the wallet itself, every token account it already holds, and the accounts the
+ * two mints in the proposal could land in, which do not exist yet on a first buy.
+ *
+ * So a third token arriving in a brand new account is the one effect this does not see. It is not a
+ * way to take anything, because paying for it is not invisible: the input is measured exactly, SOL is
+ * measured as one amount, and any other token the wallet already holds is watched and would show as
+ * having left. What goes unmeasured is the rent for that account, which the SOL allowance bounds.
  */
-export function measurerFor(rpc: SolanaRpc): MeasureTrade {
+function measurerFor(rpc: SolanaRpc): MeasureTrade {
 	const ports = { balances: rpcBalanceReader(rpc), simulate: rpcSimulator(rpc) };
 	return (request) =>
 		simulateEffects(ports, {

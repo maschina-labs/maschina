@@ -400,3 +400,67 @@ describe("judging the transaction rather than the claim", () => {
 		expect(asked).toBe(0);
 	});
 });
+
+describe("spending SOL, which never moves as a token", () => {
+	/** The claim and the measurement agree. The spend arrives as lamports, the way it really does. */
+	const sellingSol = (lamports: bigint): MeasureTrade => {
+		return async () => ({
+			ok: true,
+			value: { lamports: -lamports - 5_000n, tokens: [{ mint: USDC, delta: 60_000_000n }] },
+		});
+	};
+
+	const selling = (lamports: bigint) =>
+		proposal({
+			trade: {
+				inputMint: SOL,
+				outputMint: USDC,
+				inputAmount: lamports.toString(),
+				quotedOutputAmount: "60000000",
+				minimumOutputAmount: "59000000",
+				slippageBps: 50,
+				router: "jupiter",
+			},
+		});
+
+	it("holds a SOL spend to the per-trade cap, though no token moved", async () => {
+		// The router wraps and unwraps, so a sold SOL is never a token balance. Reading only tokens
+		// measures the spend as nothing, and nothing passes every cap there is.
+		const setup = rulesOver(
+			facts({ limits: { maxPerTrade: 500_000_000n, approvedMints: [SOL, USDC] } }),
+			{
+				measure: sellingSol(600_000_000n),
+			},
+		);
+
+		const answer = await setup.signer.sign(selling(600_000_000n));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("per_trade_cap");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("holds a SOL spend to the budget, though no token moved", async () => {
+		const setup = rulesOver(
+			facts({
+				availableBudget: 100_000_000n,
+				limits: { maxPerTrade: 900_000_000n, approvedMints: [SOL, USDC] },
+			}),
+			{ measure: sellingSol(600_000_000n) },
+		);
+
+		const answer = await setup.signer.sign(selling(600_000_000n));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("budget");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("signs a SOL spend that is within every limit", async () => {
+		const setup = rulesOver(facts(), { measure: sellingSol(100_000_000n) });
+
+		const answer = await setup.signer.sign(selling(100_000_000n));
+
+		expect(answer.status).toBe("signed");
+	});
+});
