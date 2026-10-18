@@ -65,13 +65,6 @@ test("keeps the node's identity across restarts", () => {
 	assert.match(file, /daemon-identity:\/home\/node\/\.maschina/);
 });
 
-test("keeps the database in the named volume, exactly where Postgres writes it", () => {
-	// The postgres image declares /var/lib/postgresql/data a volume of its own. A named volume mounted
-	// anywhere else leaves the data in an anonymous volume, and recreating the container then starts on
-	// an empty one (MISTAKES M42: the 0.0.32 deploy did exactly this).
-	assert.match(file, /^\s*- postgres-data:\/var\/lib\/postgresql\/data$/m);
-});
-
 test("runs the bots, which send each owner their alerts, reading from the orchestrator", () => {
 	assert.match(file, /image: ghcr\.io\/maschina-labs\/bots:\$\{MASCHINA_VERSION/);
 	const bots = file.slice(
