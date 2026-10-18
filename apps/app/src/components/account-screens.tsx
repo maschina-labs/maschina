@@ -196,7 +196,7 @@ export function FeedbackScreen() {
 	const mail = `mailto:support@maschina.dev?subject=${encodeURIComponent(`${kind}: ${text.slice(0, 60)}`)}&body=${encodeURIComponent(`${text}\n\nPage: ${window.location.href}`)}`;
 	return (
 		<>
-			<Panel size="big" name="Tell us">
+			<Panel size="big" name="Your message">
 				<div className="grid grid-cols-2 gap-1">
 					{(["Bug", "Idea"] as const).map((each) => (
 						<button
@@ -229,6 +229,8 @@ export function FeedbackScreen() {
 				</div>
 				<Note>
 					It opens your mail app with this filled in, so nothing is sent until you press send there.
+					If nothing opens, which is what happens on webmail with no mail app set up, the address is
+					support@maschina.dev and the message above can be pasted into it.
 				</Note>
 			</Panel>
 		</>
