@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.60](https://github.com/maschina-labs/maschina/compare/v0.0.59...v0.0.60) (2026-10-18)
+
+
+### Added
+
+* **solana:** measure what a transaction does before signing it ([#841](https://github.com/maschina-labs/maschina/issues/841)) ([d268a75](https://github.com/maschina-labs/maschina/commit/d268a75f0f7ae3a1cfe3934f71574e98509aa690))
+
 ## [0.0.59](https://github.com/maschina-labs/maschina/compare/v0.0.58...v0.0.59) (2026-10-17)
 
 
