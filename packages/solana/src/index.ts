@@ -18,6 +18,7 @@ export * from "./priority-fee.ts";
 export * from "./raydium.ts";
 export * from "./router.ts";
 export * from "./rpc.ts";
+export * from "./simulate-effects.ts";
 export * from "./swap-instructions.ts";
 export * from "./swap-transaction.ts";
 export * from "./sweep.ts";
