@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.63](https://github.com/maschina-labs/maschina/compare/v0.0.62...v0.0.63) (2026-10-18)
+
+
+### Fixed
+
+* **app:** show a detail screen the browser gave no frames for ([#850](https://github.com/maschina-labs/maschina/issues/850)) ([cc64cfa](https://github.com/maschina-labs/maschina/commit/cc64cfab17e92d4ff24b222ff6fcbe89cfc4f34d))
+
 ## [0.0.62](https://github.com/maschina-labs/maschina/compare/v0.0.61...v0.0.62) (2026-10-18)
 
 
