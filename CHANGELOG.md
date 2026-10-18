@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.61](https://github.com/maschina-labs/maschina/compare/v0.0.60...v0.0.61) (2026-10-18)
+
+
+### Added
+
+* **signer:** judge a trade by what the transaction does ([#845](https://github.com/maschina-labs/maschina/issues/845)) ([86d1d29](https://github.com/maschina-labs/maschina/commit/86d1d296184097129e33a8760594655cb109e927))
+
 ## [0.0.60](https://github.com/maschina-labs/maschina/compare/v0.0.59...v0.0.60) (2026-10-18)
 
 
