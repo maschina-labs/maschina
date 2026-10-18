@@ -18,7 +18,7 @@
 import type { SignRequest, SignResponse } from "@maschina/contracts";
 import { baseUnitsOf, type MaschinaError, type Result } from "@maschina/core";
 import { checkTrade, type PauseReason, type TradeRule } from "@maschina/rules";
-import { judgeSwap, type WalletEffects } from "@maschina/solana";
+import { gainOf, judgeSwap, type WalletEffects } from "@maschina/solana";
 import type { TradeSigner } from "./sign-route.ts";
 
 /**
@@ -38,7 +38,7 @@ export type MeasureTrade = (request: SignRequest) => Promise<Result<WalletEffect
  * did not match its own description. All of them are codes rather than sentences, because the code
  * is what the public record publishes and the sentence is what stays private (D-119).
  */
-export type RefusalRule = TradeRule | "unknown_machine" | "simulation_failed" | "derived_mismatch";
+type RefusalRule = TradeRule | "unknown_machine" | "simulation_failed" | "derived_mismatch";
 
 /** What one token account costs to open, and gives back when it closes. */
 const TOKEN_ACCOUNT_RENT_LAMPORTS = 2_039_280n;
@@ -147,9 +147,10 @@ export function withRules(
 				return refuseWith(record, request, { rule: honest.rule, reason: honest.problem });
 			}
 
-			const spent = measured.value.tokens.find(
-				(token) => token.mint === request.trade.inputMint && token.delta < 0n,
-			);
+			// The same arithmetic `judgeSwap` was just held to, deliberately: a sold SOL moves as
+			// native lamports rather than as a token, so reading the token alone measures the spend
+			// as nothing, and nothing is inside every cap there is.
+			const spent = -gainOf(measured.value, request.trade.inputMint);
 
 			const decision = checkTrade({
 				state: facts.state,
@@ -169,7 +170,7 @@ export function withRules(
 					inputMint: request.trade.inputMint,
 					outputMint: request.trade.outputMint,
 					// Measured, never claimed. This line is the whole of F-01.
-					inputAmount: baseUnitsOf(spent ? -spent.delta : 0n),
+					inputAmount: baseUnitsOf(spent > 0n ? spent : 0n),
 				},
 				run: { dueAt: facts.dueAt },
 				now: now(),
