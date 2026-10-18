@@ -17,7 +17,15 @@
 
 import type { SignRequest, SignResponse } from "@maschina/contracts";
 import { baseUnitsOf, type MaschinaError, type Result } from "@maschina/core";
-import { checkTrade, type PauseReason, type TradeRule } from "@maschina/rules";
+import {
+	checkQuote,
+	checkTrade,
+	DEFAULT_MAX_PRICE_IMPACT_BPS,
+	DEFAULT_MAX_SLIPPAGE_BPS,
+	type PauseReason,
+	type QuoteRule,
+	type TradeRule,
+} from "@maschina/rules";
 import { gainOf, judgeSwap, type WalletEffects } from "@maschina/solana";
 import type { TradeSigner } from "./sign-route.ts";
 
@@ -38,7 +46,12 @@ export type MeasureTrade = (request: SignRequest) => Promise<Result<WalletEffect
  * did not match its own description. All of them are codes rather than sentences, because the code
  * is what the public record publishes and the sentence is what stays private (D-119).
  */
-type RefusalRule = TradeRule | "unknown_machine" | "simulation_failed" | "derived_mismatch";
+type RefusalRule =
+	| TradeRule
+	| QuoteRule
+	| "unknown_machine"
+	| "simulation_failed"
+	| "derived_mismatch";
 
 /** What one token account costs to open, and gives back when it closes. */
 const TOKEN_ACCOUNT_RENT_LAMPORTS = 2_039_280n;
@@ -66,6 +79,10 @@ export type MachineFacts = {
 		maxPerTrade?: bigint | undefined;
 		maxPerDay?: bigint | undefined;
 		approvedMints: readonly string[];
+		/** The widest slippage a quote may accept. Absent means the rules' own ceiling, never none. */
+		maxSlippageBps?: number | undefined;
+		/** The largest price impact a trade may have. Absent means the rules' own ceiling. */
+		maxPriceImpactBps?: number | undefined;
 	};
 	availableBudget: bigint;
 	spentToday: bigint;
@@ -119,6 +136,23 @@ export function withRules(
 					rule: "unknown_machine",
 					reason: "the record has no such machine and run",
 				});
+			}
+
+			// Whether the price it accepted is one the owner allowed. Before the simulation, because
+			// a quote the owner forbade is not worth asking a node about, and because `judgeSwap`
+			// below holds the bytes to `minimumOutputAmount`: that floor has to be checked by
+			// somebody other than the party who supplied it, or it is not a floor.
+			const quote = checkQuote({
+				quotedOutputAmount: baseUnitsOf(BigInt(request.trade.quotedOutputAmount)),
+				minimumOutputAmount: baseUnitsOf(BigInt(request.trade.minimumOutputAmount)),
+				slippageBps: request.trade.slippageBps,
+				priceImpactBps: request.trade.priceImpactBps,
+				maxSlippageBps: facts.limits.maxSlippageBps ?? DEFAULT_MAX_SLIPPAGE_BPS,
+				maxPriceImpactBps: facts.limits.maxPriceImpactBps ?? DEFAULT_MAX_PRICE_IMPACT_BPS,
+			});
+			if (!quote.allowed) {
+				if (quote.pause) await record.pauseMachine(request, quote.pause, quote.reason);
+				return refuseWith(record, request, { rule: quote.rule, reason: quote.reason });
 			}
 
 			// What the bytes would really do. Asked after the machine is known, so nothing is

@@ -164,7 +164,15 @@ const MACHINE_PAYLOADS = {
 		to: z.string().regex(/^[0-9a-f]{64}$/, "not a definition version"),
 	}),
 	"machine.limits_changed": object({
-		limit: z.enum(["maxPerTrade", "maxPerDay", "budgetGranted", "approvedMints", "recipients"]),
+		limit: z.enum([
+			"maxPerTrade",
+			"maxPerDay",
+			"budgetGranted",
+			"approvedMints",
+			"recipients",
+			"maxSlippageBps",
+			"maxPriceImpactBps",
+		]),
 		/** The old and new values as text, so every limit is recorded the same way. */
 		from: z.string().max(500).nullable(),
 		to: z.string().max(500),

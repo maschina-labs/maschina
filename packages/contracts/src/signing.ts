@@ -44,6 +44,8 @@ export const ProposedTrade = z
 		/** The least it may produce. This is the number the rules judge. */
 		minimumOutputAmount: whole,
 		slippageBps: z.int().min(0).max(10_000),
+		/** How far this trade moves the price against itself, as the router measured it. */
+		priceImpactBps: z.int().min(0).max(1_000_000),
 		router: z.string().min(1).max(40),
 	})
 	.meta({ id: "ProposedTrade" });

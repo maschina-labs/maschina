@@ -76,6 +76,7 @@ export function solanaMarket(parts: {
 		outputAmount: quote.outputAmount,
 		minimumOutputAmount: quote.minimumOutputAmount,
 		slippageBps: quote.slippageBps,
+		priceImpactBps: quote.priceImpactBps,
 	});
 
 	return {

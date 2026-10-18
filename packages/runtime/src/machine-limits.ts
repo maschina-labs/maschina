@@ -24,6 +24,10 @@ export type MachineLimits = {
 	approvedMints: string[];
 	/** Addresses a machine may send to, for kinds that send rather than trade. Empty means none. */
 	recipients: string[];
+	/** The widest slippage a quote may accept. Absent falls back to the rules' own ceiling. */
+	maxSlippageBps?: number;
+	/** The largest price impact a trade may have. Absent falls back to the rules' own ceiling. */
+	maxPriceImpactBps?: number;
 };
 
 /** A list of addresses as the record stores it: comma separated, in one text field. */
@@ -34,6 +38,12 @@ export function parseList(value: string): string[] {
 		if (trimmed) seen.add(trimmed);
 	}
 	return [...seen];
+}
+
+/** Basis points as the record stores them, or nothing when the text is not a sane whole number. */
+function parseBps(value: string): number | undefined {
+	if (!/^\d{1,7}$/.test(value)) return undefined;
+	return Number(value);
 }
 
 /** An amount as the record stores it, or nothing when the text is not a whole number. */
@@ -68,6 +78,18 @@ export function machineLimits(events: Iterable<RecordedEvent>): MachineLimits {
 			case "recipients":
 				limits.recipients = parseList(to);
 				break;
+			case "maxSlippageBps": {
+				const bps = parseBps(to);
+				if (bps === undefined) delete limits.maxSlippageBps;
+				else limits.maxSlippageBps = bps;
+				break;
+			}
+			case "maxPriceImpactBps": {
+				const bps = parseBps(to);
+				if (bps === undefined) delete limits.maxPriceImpactBps;
+				else limits.maxPriceImpactBps = bps;
+				break;
+			}
 			// The budget is a number of its own, worked out by `machineBudget`, not a limit read here.
 			case "budgetGranted":
 				break;

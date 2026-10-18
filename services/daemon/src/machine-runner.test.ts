@@ -44,6 +44,7 @@ const swap = {
 		outputAmount: 35_000_000n,
 		minimumOutputAmount: 34_800_000n,
 		slippageBps: 50,
+		priceImpactBps: 3,
 	},
 };
 

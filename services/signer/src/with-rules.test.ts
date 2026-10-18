@@ -33,6 +33,7 @@ const proposal = (over: Partial<SignRequest> = {}): SignRequest => ({
 		quotedOutputAmount: "10587977",
 		minimumOutputAmount: "10535038",
 		slippageBps: 50,
+		priceImpactBps: 3,
 		router: "jupiter",
 	},
 	...over,
@@ -294,8 +295,9 @@ describe("a sale", () => {
 			outputMint: USDC,
 			inputAmount: "80000000",
 			quotedOutputAmount: "9800000",
-			minimumOutputAmount: "9750000",
+			minimumOutputAmount: "9751000",
 			slippageBps: 50,
+			priceImpactBps: 3,
 			router: "jupiter",
 		},
 	});
@@ -417,8 +419,9 @@ describe("spending SOL, which never moves as a token", () => {
 				outputMint: USDC,
 				inputAmount: lamports.toString(),
 				quotedOutputAmount: "60000000",
-				minimumOutputAmount: "59000000",
+				minimumOutputAmount: "59700000",
 				slippageBps: 50,
+				priceImpactBps: 3,
 				router: "jupiter",
 			},
 		});
@@ -462,5 +465,119 @@ describe("spending SOL, which never moves as a token", () => {
 		const answer = await setup.signer.sign(selling(100_000_000n));
 
 		expect(answer.status).toBe("signed");
+	});
+});
+
+describe("judging the price before judging the trade", () => {
+	/** The same proposal with a different slippage, and a floor that matches it honestly. */
+	const at = (slippageBps: number) =>
+		proposal({
+			trade: {
+				inputMint: SOL,
+				outputMint: USDC,
+				inputAmount: "100000000",
+				quotedOutputAmount: "10000000",
+				minimumOutputAmount: ((10_000_000n * BigInt(10_000 - slippageBps)) / 10_000n).toString(),
+				slippageBps,
+				priceImpactBps: 3,
+				router: "jupiter",
+			},
+		});
+
+	it("refuses slippage past the ceiling and pauses, though the floor is honest", async () => {
+		const setup = rulesOver(facts());
+
+		const answer = await setup.signer.sign(at(400));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("slippage_cap");
+		expect(setup.pauses).toHaveLength(1);
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("uses the owner's own cap when the record has one, over the built-in ceiling", async () => {
+		// 100 bps would pass the default ceiling of 300. The owner said 50.
+		const setup = rulesOver(
+			facts({
+				limits: { maxPerTrade: 500_000_000n, approvedMints: [SOL, USDC], maxSlippageBps: 50 },
+			}),
+		);
+
+		const answer = await setup.signer.sign(at(100));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("slippage_cap");
+	});
+
+	it("lets the owner allow more than the built-in ceiling", async () => {
+		const setup = rulesOver(
+			facts({
+				limits: { maxPerTrade: 500_000_000n, approvedMints: [SOL, USDC], maxSlippageBps: 500 },
+			}),
+		);
+
+		expect((await setup.signer.sign(at(400))).status).toBe("signed");
+	});
+
+	it("never asks a node about a quote the owner already forbade", async () => {
+		// The cheap check comes first. Simulating a trade that cannot be allowed is a round trip
+		// spent to learn nothing.
+		let asked = 0;
+		const setup = rulesOver(facts(), {
+			measure: async () => {
+				asked += 1;
+				return { ok: true, value: { lamports: 0n, tokens: [] } };
+			},
+		});
+
+		await setup.signer.sign(at(400));
+
+		expect(asked).toBe(0);
+	});
+
+	it("refuses a floor of nothing, which would make the measured check meaningless", async () => {
+		// Without this, a node sets the floor to zero and `judgeSwap` accepts whatever comes back.
+		const setup = rulesOver(facts());
+
+		const answer = await setup.signer.sign(
+			proposal({
+				trade: {
+					inputMint: SOL,
+					outputMint: USDC,
+					inputAmount: "100000000",
+					quotedOutputAmount: "10000000",
+					minimumOutputAmount: "0",
+					slippageBps: 50,
+					priceImpactBps: 3,
+					router: "jupiter",
+				},
+			}),
+		);
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("minimum_output");
+	});
+
+	it("refuses a trade that moves the price too far, without pausing", async () => {
+		const setup = rulesOver(facts());
+
+		const answer = await setup.signer.sign(
+			proposal({
+				trade: {
+					inputMint: SOL,
+					outputMint: USDC,
+					inputAmount: "100000000",
+					quotedOutputAmount: "10000000",
+					minimumOutputAmount: "9950000",
+					slippageBps: 50,
+					priceImpactBps: 2_000,
+					router: "jupiter",
+				},
+			}),
+		);
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("price_impact");
+		expect(setup.pauses).toEqual([]);
 	});
 });
