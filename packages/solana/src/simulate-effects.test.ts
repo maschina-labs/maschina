@@ -67,7 +67,7 @@ describe("measuring a transaction against the chain", () => {
 		const watched: string[][] = [];
 		await simulateEffects(
 			ports({
-				simulate: async (_transaction, addresses) => {
+				simulate: async (_transaction, _wallet, addresses) => {
 					watched.push([...addresses]);
 					return { ok: true, lamports: 0n, accounts: [] };
 				},
@@ -86,7 +86,7 @@ describe("measuring a transaction against the chain", () => {
 		const watched: string[][] = [];
 		await simulateEffects(
 			ports({
-				simulate: async (_transaction, addresses) => {
+				simulate: async (_transaction, _wallet, addresses) => {
 					watched.push([...addresses]);
 					return { ok: true, lamports: 0n, accounts: [] };
 				},

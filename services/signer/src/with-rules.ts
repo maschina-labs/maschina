@@ -16,9 +16,45 @@
  */
 
 import type { SignRequest, SignResponse } from "@maschina/contracts";
-import { baseUnitsOf } from "@maschina/core";
+import { baseUnitsOf, type MaschinaError, type Result } from "@maschina/core";
 import { checkTrade, type PauseReason, type TradeRule } from "@maschina/rules";
+import { gainOf, judgeSwap, type WalletEffects } from "@maschina/solana";
 import type { TradeSigner } from "./sign-route.ts";
+
+/**
+ * What the transaction would really do to the machine's wallet (F-01, D-120).
+ *
+ * Required rather than optional on purpose. A signer assembled without one would quietly go back to
+ * judging the caller's description of its own trade, which is the hole this closes, and a hole that
+ * reopens when somebody forgets a parameter is not closed.
+ */
+export type MeasureTrade = (request: SignRequest) => Promise<Result<WalletEffects, MaschinaError>>;
+
+/**
+ * Every code the rule layer can refuse under.
+ *
+ * Wider than `TradeRule` because two of these are not judgements about a trade at all. One says the
+ * machine or run does not exist; two say the transaction could not be measured, or was measured and
+ * did not match its own description. All of them are codes rather than sentences, because the code
+ * is what the public record publishes and the sentence is what stays private (D-119).
+ */
+type RefusalRule = TradeRule | "unknown_machine" | "simulation_failed" | "derived_mismatch";
+
+/** What one token account costs to open, and gives back when it closes. */
+const TOKEN_ACCOUNT_RENT_LAMPORTS = 2_039_280n;
+
+/**
+ * The most SOL a swap may consume beyond the trade itself.
+ *
+ * A swap pays a transaction fee, a priority fee, and rent for at most two token accounts: the wrapped
+ * SOL account it opens and closes, and the account the bought token lands in. Beyond that, SOL
+ * leaving the wallet is not part of a swap.
+ *
+ * It has to be tight rather than generous, because a SOL sale is held to the claim plus this number:
+ * every lamport of slack here is a lamport that could leave a wallet unexplained on every trade.
+ */
+export const lamportsBeyondTheTrade = (feeAllowance: bigint): bigint =>
+	feeAllowance + 2n * TOKEN_ACCOUNT_RENT_LAMPORTS;
 
 /** Everything the rules need about a machine, read fresh from the record. */
 export type MachineFacts = {
@@ -43,7 +79,7 @@ export type RecordKeeper = {
 	/** Writes the refusal to the record. */
 	recordRefusal(
 		request: SignRequest,
-		refusal: { rule: TradeRule | "unknown_machine"; reason: string },
+		refusal: { rule: RefusalRule; reason: string },
 	): Promise<void>;
 	/** Stops the machine until a person looks at it. */
 	pauseMachine(request: SignRequest, reason: PauseReason, detail: string): Promise<void>;
@@ -53,6 +89,8 @@ export type RuleOptions = {
 	now?: () => Date;
 	/** How late a run may still act. */
 	graceMs?: number;
+	/** The most SOL fees and rent may account for. See `lamportsBeyondTheTrade`. */
+	lamportsAllowed?: bigint;
 };
 
 /**
@@ -64,9 +102,11 @@ export type RuleOptions = {
 export function withRules(
 	inner: TradeSigner,
 	record: RecordKeeper,
+	measure: MeasureTrade,
 	options: RuleOptions = {},
 ): TradeSigner {
 	const now = options.now ?? (() => new Date());
+	const lamportsAllowed = options.lamportsAllowed ?? lamportsBeyondTheTrade(0n);
 
 	return {
 		async sign(request: SignRequest): Promise<SignResponse> {
@@ -80,6 +120,37 @@ export function withRules(
 					reason: "the record has no such machine and run",
 				});
 			}
+
+			// What the bytes would really do. Asked after the machine is known, so nothing is
+			// simulated on behalf of something that does not exist, and before the rules, because
+			// the rules are about to judge these numbers rather than the caller's description.
+			const measured = await measure(request);
+			if (!measured.ok) {
+				// An outage is not the machine's fault, so it is refused and left able to try again.
+				return refuseWith(record, request, {
+					rule: "simulation_failed",
+					reason: measured.error.message,
+				});
+			}
+
+			const honest = judgeSwap(measured.value, {
+				inputMint: request.trade.inputMint,
+				outputMint: request.trade.outputMint,
+				inputAmount: baseUnitsOf(BigInt(request.trade.inputAmount)),
+				minimumOutputAmount: baseUnitsOf(BigInt(request.trade.minimumOutputAmount)),
+				lamportsAllowed: baseUnitsOf(lamportsAllowed),
+			});
+			if (!honest.ok) {
+				// A node lying about its own trade has stopped being trustworthy. That is not an
+				// owner's limit saying no, so the machine stops rather than trying again.
+				await record.pauseMachine(request, "other", honest.problem);
+				return refuseWith(record, request, { rule: honest.rule, reason: honest.problem });
+			}
+
+			// The same arithmetic `judgeSwap` was just held to, deliberately: a sold SOL moves as
+			// native lamports rather than as a token, so reading the token alone measures the spend
+			// as nothing, and nothing is inside every cap there is.
+			const spent = -gainOf(measured.value, request.trade.inputMint);
 
 			const decision = checkTrade({
 				state: facts.state,
@@ -98,7 +169,8 @@ export function withRules(
 				trade: {
 					inputMint: request.trade.inputMint,
 					outputMint: request.trade.outputMint,
-					inputAmount: baseUnitsOf(BigInt(request.trade.inputAmount)),
+					// Measured, never claimed. This line is the whole of F-01.
+					inputAmount: baseUnitsOf(spent > 0n ? spent : 0n),
 				},
 				run: { dueAt: facts.dueAt },
 				now: now(),
@@ -119,7 +191,7 @@ export function withRules(
 async function refuseWith(
 	record: RecordKeeper,
 	request: SignRequest,
-	refusal: { rule: TradeRule | "unknown_machine"; reason: string },
+	refusal: { rule: RefusalRule; reason: string },
 ): Promise<SignResponse> {
 	await record.recordRefusal(request, refusal);
 	return {

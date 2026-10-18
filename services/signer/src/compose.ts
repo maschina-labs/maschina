@@ -27,9 +27,11 @@ import {
 	rpcBlockhashReader,
 	rpcConfirmationReader,
 	rpcSender,
+	rpcSimulator,
 	rpcTransactionReader,
 	type SolanaRpc,
 	signatureOf,
+	simulateEffects,
 	TOKEN_2022_PROGRAM,
 	TOKEN_PROGRAM,
 	tradeCostOf,
@@ -41,7 +43,13 @@ import type { ChainAnswer } from "./submit-once.ts";
 import { type SweepPorts, sweepProfit } from "./sweep.ts";
 import { type HaltPorts, whileHalted } from "./while-halted.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
-import { type RecordKeeper, withRules } from "./with-rules.ts";
+import {
+	lamportsBeyondTheTrade,
+	type MeasureTrade,
+	type RecordKeeper,
+	type RuleOptions,
+	withRules,
+} from "./with-rules.ts";
 import { type WithdrawPorts, withdrawFunds } from "./withdraw.ts";
 import { type WithdrawEverythingPorts, withdrawEverything } from "./withdraw-everything.ts";
 
@@ -54,8 +62,32 @@ import { type WithdrawEverythingPorts, withdrawEverything } from "./withdraw-eve
 export function layered(
 	inner: TradeSigner,
 	record: RecordKeeper & BudgetLedger & HaltPorts,
+	measure: MeasureTrade,
+	options: RuleOptions = {},
 ): TradeSigner {
-	return whileHalted(withRules(withBudget(inner, record), record), record);
+	return whileHalted(withRules(withBudget(inner, record), record, measure, options), record);
+}
+
+/**
+ * What a proposal would really do to the machine's wallet (F-01, D-120).
+ *
+ * The transaction is simulated as the exact bytes that would be signed, and the wallet is read before
+ * and after. Watched: the wallet itself, every token account it already holds, and the accounts the
+ * two mints in the proposal could land in, which do not exist yet on a first buy.
+ *
+ * So a third token arriving in a brand new account is the one effect this does not see. It is not a
+ * way to take anything, because paying for it is not invisible: the input is measured exactly, SOL is
+ * measured as one amount, and any other token the wallet already holds is watched and would show as
+ * having left. What goes unmeasured is the rent for that account, which the SOL allowance bounds.
+ */
+function measurerFor(rpc: SolanaRpc): MeasureTrade {
+	const ports = { balances: rpcBalanceReader(rpc), simulate: rpcSimulator(rpc) };
+	return (request) =>
+		simulateEffects(ports, {
+			transaction: new Uint8Array(Buffer.from(request.transaction, "base64")),
+			wallet: parseAddress(request.wallet),
+			mints: [request.trade.inputMint, request.trade.outputMint],
+		});
 }
 
 /** The chain's answer about a signature, in the terms sending once uses. */
@@ -148,7 +180,9 @@ export function tradeSigner(parts: {
 		outcomes: record,
 	});
 
-	return layered(inner, record);
+	return layered(inner, record, measurerFor(rpc), {
+		lamportsAllowed: lamportsBeyondTheTrade(parts.feeAllowance),
+	});
 }
 
 /** Everything the record gives a withdrawal. The database's version is in `@maschina/db`. */

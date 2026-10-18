@@ -2,7 +2,12 @@ import type { SignRequest, SignResponse } from "@maschina/contracts";
 import { MaschinaError, newId } from "@maschina/core";
 import { describe, expect, it } from "vitest";
 import type { TradeSigner } from "./sign-route.ts";
-import { type MachineFacts, type RecordKeeper, withRules } from "./with-rules.ts";
+import {
+	type MachineFacts,
+	type MeasureTrade,
+	type RecordKeeper,
+	withRules,
+} from "./with-rules.ts";
 
 const WALLET = "3KnH6rpESZRFFU7b4vTqUpcyGeTBzXww21vmRFqpbEQF";
 const SOL = "So11111111111111111111111111111111111111112";
@@ -40,6 +45,23 @@ const facts = (over: Partial<MachineFacts> = {}): MachineFacts => ({
 	spentToday: 0n,
 	dueAt: NOW,
 	...over,
+});
+
+/**
+ * A measurement that agrees with the claim.
+ *
+ * Every case written before F-01 assumed the transaction did what it said, so this keeps them
+ * saying what they always said. The cases where it disagrees say so explicitly.
+ */
+const agreeing: MeasureTrade = async (request) => ({
+	ok: true,
+	value: {
+		lamports: -5_000n,
+		tokens: [
+			{ mint: request.trade.inputMint, delta: -BigInt(request.trade.inputAmount) },
+			{ mint: request.trade.outputMint, delta: BigInt(request.trade.quotedOutputAmount) },
+		],
+	},
 });
 
 /** A record that answers with the facts given, and remembers what was written to it. */
@@ -83,11 +105,17 @@ function countingSigner() {
 
 const rulesOver = (
 	machineFacts: MachineFacts | undefined,
-	options: { failWrites?: boolean } = {},
+	options: { failWrites?: boolean; measure?: MeasureTrade } = {},
 ) => {
 	const inner = countingSigner();
 	const fake = fakeRecord(machineFacts, options);
-	return { ...fake, inner, signer: withRules(inner.signer, fake.record, { now: () => NOW }) };
+	return {
+		...fake,
+		inner,
+		signer: withRules(inner.signer, fake.record, options.measure ?? agreeing, {
+			now: () => NOW,
+		}),
+	};
 };
 
 describe("a trade that breaks nothing", () => {
@@ -227,8 +255,14 @@ describe("limits the owner never set", () => {
 		const inner = countingSigner();
 		const fake = fakeRecord(facts({ dueAt: new Date(NOW.getTime() - 10 * 60_000) }));
 
-		const strict = withRules(inner.signer, fake.record, { now: () => NOW, graceMs: 60_000 });
-		const lenient = withRules(inner.signer, fake.record, { now: () => NOW, graceMs: 30 * 60_000 });
+		const strict = withRules(inner.signer, fake.record, agreeing, {
+			now: () => NOW,
+			graceMs: 60_000,
+		});
+		const lenient = withRules(inner.signer, fake.record, agreeing, {
+			now: () => NOW,
+			graceMs: 30 * 60_000,
+		});
 
 		expect(await strict.sign(proposal())).toMatchObject({ rule: "run_due" });
 		expect((await lenient.sign(proposal())).status).toBe("signed");
@@ -238,7 +272,7 @@ describe("limits the owner never set", () => {
 		const inner = countingSigner();
 		const fake = fakeRecord(facts({ dueAt: new Date() }));
 
-		const signer = withRules(inner.signer, fake.record);
+		const signer = withRules(inner.signer, fake.record, agreeing);
 
 		expect((await signer.sign(proposal())).status).toBe("signed");
 	});
@@ -276,5 +310,157 @@ describe("a sale", () => {
 		const { signer, inner } = rulesOver(tightFacts({ budgetMint: undefined }));
 		expect(await signer.sign(sale)).toMatchObject({ status: "refused" });
 		expect(inner.signed).toBe(0);
+	});
+});
+
+describe("judging the transaction rather than the claim", () => {
+	/** A measurement that says the transaction does something other than what it claims. */
+	const measuring =
+		(tokens: { mint: string; delta: bigint }[], lamports = -5_000n): MeasureTrade =>
+		async () => ({ ok: true, value: { lamports, tokens } });
+
+	it("judges the budget against what the transaction really spends", async () => {
+		// The claim is 0.1 SOL. The transaction spends 50, far past the per-trade cap. Before F-01
+		// the rules read the claim and this was signed.
+		const setup = rulesOver(facts(), {
+			measure: measuring([
+				{ mint: SOL, delta: -50_000_000_000n },
+				{ mint: USDC, delta: 10_587_977n },
+			]),
+		});
+
+		const answer = await setup.signer.sign(proposal());
+
+		expect(answer.status).toBe("refused");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("refuses and pauses when the deed contradicts the claim", async () => {
+		// A node lying about its own trade is a node that has stopped being trustworthy. That is not
+		// an owner's limit saying no, so the machine stops rather than trying again.
+		const setup = rulesOver(facts(), {
+			measure: measuring([
+				{ mint: SOL, delta: -200_000_000n },
+				{ mint: USDC, delta: 10_587_977n },
+			]),
+		});
+
+		const answer = await setup.signer.sign(proposal());
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("derived_mismatch");
+		expect(setup.pauses).toHaveLength(1);
+	});
+
+	it("refuses when a token the trade never mentioned leaves the wallet", async () => {
+		const setup = rulesOver(facts(), {
+			measure: measuring([
+				{ mint: SOL, delta: -100_000_000n },
+				{ mint: USDC, delta: 10_587_977n },
+				{ mint: JUP, delta: -4_000_000n },
+			]),
+		});
+
+		const answer = await setup.signer.sign(proposal());
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("derived_mismatch");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("refuses without pausing when the chain cannot be asked", async () => {
+		// An outage is not the machine's fault, so it is refused and left able to try again.
+		const setup = rulesOver(facts(), {
+			measure: async () => ({
+				ok: false,
+				error: new MaschinaError("unavailable", "the node could not be reached"),
+			}),
+		});
+
+		const answer = await setup.signer.sign(proposal());
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("simulation_failed");
+		expect(setup.pauses).toEqual([]);
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("never reaches the measurement for a machine the record does not know", async () => {
+		// Nothing is simulated on behalf of something that does not exist.
+		let asked = 0;
+		const setup = rulesOver(undefined, {
+			measure: async () => {
+				asked += 1;
+				return { ok: true, value: { lamports: 0n, tokens: [] } };
+			},
+		});
+
+		await setup.signer.sign(proposal());
+
+		expect(asked).toBe(0);
+	});
+});
+
+describe("spending SOL, which never moves as a token", () => {
+	/** The claim and the measurement agree. The spend arrives as lamports, the way it really does. */
+	const sellingSol = (lamports: bigint): MeasureTrade => {
+		return async () => ({
+			ok: true,
+			value: { lamports: -lamports - 5_000n, tokens: [{ mint: USDC, delta: 60_000_000n }] },
+		});
+	};
+
+	const selling = (lamports: bigint) =>
+		proposal({
+			trade: {
+				inputMint: SOL,
+				outputMint: USDC,
+				inputAmount: lamports.toString(),
+				quotedOutputAmount: "60000000",
+				minimumOutputAmount: "59000000",
+				slippageBps: 50,
+				router: "jupiter",
+			},
+		});
+
+	it("holds a SOL spend to the per-trade cap, though no token moved", async () => {
+		// The router wraps and unwraps, so a sold SOL is never a token balance. Reading only tokens
+		// measures the spend as nothing, and nothing passes every cap there is.
+		const setup = rulesOver(
+			facts({ limits: { maxPerTrade: 500_000_000n, approvedMints: [SOL, USDC] } }),
+			{
+				measure: sellingSol(600_000_000n),
+			},
+		);
+
+		const answer = await setup.signer.sign(selling(600_000_000n));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("per_trade_cap");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("holds a SOL spend to the budget, though no token moved", async () => {
+		const setup = rulesOver(
+			facts({
+				availableBudget: 100_000_000n,
+				limits: { maxPerTrade: 900_000_000n, approvedMints: [SOL, USDC] },
+			}),
+			{ measure: sellingSol(600_000_000n) },
+		);
+
+		const answer = await setup.signer.sign(selling(600_000_000n));
+
+		expect(answer.status).toBe("refused");
+		expect(setup.refusals[0]?.rule).toBe("budget");
+		expect(setup.inner.signed).toBe(0);
+	});
+
+	it("signs a SOL spend that is within every limit", async () => {
+		const setup = rulesOver(facts(), { measure: sellingSol(100_000_000n) });
+
+		const answer = await setup.signer.sign(selling(100_000_000n));
+
+		expect(answer.status).toBe("signed");
 	});
 });

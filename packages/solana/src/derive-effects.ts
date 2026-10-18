@@ -91,8 +91,11 @@ export function effectsFrom(before: WalletBalances, after: WalletBalances): Wall
  * nothing and a SOL buy receive nothing. The wallet does not experience them separately, so neither
  * does this. The settled path already counts SOL this way in `balanceChangesOf`, and the two agreeing
  * is what lets a simulated trade and a landed one be compared at all.
+ *
+ * Exported because the rules spend the same number they were judged on. Two places working out what
+ * a trade spent is two places to get SOL wrong, which is exactly how M54 happened.
  */
-function gainOf(effects: WalletEffects, mint: string): bigint {
+export function gainOf(effects: WalletEffects, mint: string): bigint {
 	const token = effects.tokens.find((each) => each.mint === mint)?.delta ?? 0n;
 	return mint === WRAPPED_SOL ? token + effects.lamports : token;
 }
