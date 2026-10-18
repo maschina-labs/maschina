@@ -1,5 +1,5 @@
 import type { SignRequest } from "@maschina/contracts";
-import { newId } from "@maschina/core";
+import { newId, ok } from "@maschina/core";
 import type { Confirmation } from "@maschina/solana";
 import { describe, expect, it } from "vitest";
 import { answerFrom, layered } from "./compose.ts";
@@ -16,32 +16,40 @@ describe("how the signer is put together", () => {
 				return { status: "signed", proposalId: request.proposalId, signature: "5".repeat(88) };
 			},
 		};
-		const signer = layered(inner, {
-			haltInForce: async () => {
-				order.push("halt checked");
-				return undefined;
+		const signer = layered(
+			inner,
+			{
+				haltInForce: async () => {
+					order.push("halt checked");
+					return undefined;
+				},
+				factsFor: async () => {
+					order.push("rules");
+					return undefined;
+				},
+				recordRefusal: async () => {
+					order.push("refusal recorded");
+				},
+				pauseMachine: async () => {},
+				hold: async () => {
+					order.push("hold");
+					return { reserved: 1n };
+				},
+				giveBack: async () => {},
+				submissionFor: async () => undefined,
 			},
-			factsFor: async () => {
-				order.push("rules");
-				return undefined;
+			async () => {
+				order.push("measured");
+				return ok({ lamports: 0n, tokens: [] });
 			},
-			recordRefusal: async () => {
-				order.push("refusal recorded");
-			},
-			pauseMachine: async () => {},
-			hold: async () => {
-				order.push("hold");
-				return { reserved: 1n };
-			},
-			giveBack: async () => {},
-			submissionFor: async () => undefined,
-		});
+		);
 
 		const answer = await signer.sign(request);
 
 		// An unknown machine is refused by the rules before any money is held or anything signed.
 		expect(answer.status).toBe("refused");
 		// The halt is asked before anything judges the trade, because it is not about the trade.
+		// Nothing is simulated on behalf of a machine the record does not have.
 		expect(order).toEqual(["halt checked", "rules", "refusal recorded"]);
 	});
 });

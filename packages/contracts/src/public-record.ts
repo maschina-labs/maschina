@@ -55,9 +55,11 @@ export const PublicRefusal = z
 		by: z.enum(["maschina", "provider"]),
 		rule: z.enum([
 			"budget",
+			"derived_mismatch",
 			"halted",
 			"provider_policy",
 			"recipients",
+			"simulation_failed",
 			"transaction_shape",
 			"unknown_machine",
 			"unknown_wallet",
