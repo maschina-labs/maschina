@@ -66,7 +66,7 @@ const translation: Translation = {
 		"近日公開",
 		"サイトマップ",
 		"近日公開",
-		"© {year} Maschina Labs. 無断転載を禁じます。",
+		"© {year} Maschina, Corp. 無断転載を禁じます。",
 		"確認中",
 		"すべてのシステムが正常に稼働中",
 		"マシンは一時停止中",

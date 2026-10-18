@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Pronto",
 		"Mapa del sitio",
 		"Pronto",
-		"© {year} Maschina Labs. Todos los derechos reservados.",
+		"© {year} Maschina, Corp. Todos los derechos reservados.",
 		"Comprobando",
 		"Todos los sistemas funcionan con normalidad",
 		"Máquinas en pausa",

@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Yakında",
 		"Site haritası",
 		"Yakında",
-		"© {year} Maschina Labs. Tüm hakları saklıdır.",
+		"© {year} Maschina, Corp. Tüm hakları saklıdır.",
 		"Kontrol ediliyor",
 		"Tüm sistemler normal çalışıyor",
 		"Makineler duraklatıldı",

@@ -73,7 +73,7 @@ export const en = {
 	footer: {
 		sitemap: "Sitemap",
 		soon: "Soon",
-		rights: "© {year} Maschina Labs. All rights reserved.",
+		rights: "© {year} Maschina, Corp. All rights reserved.",
 		status: {
 			checking: "Checking",
 			up: "All systems normal",

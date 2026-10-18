@@ -42,7 +42,7 @@ const pretend: Messages = {
 		...en.footer,
 		sitemap: "Mapa del sitio",
 		soon: "Pronto",
-		rights: "© {year} Maschina Labs. Todos los derechos reservados.",
+		rights: "© {year} Maschina, Corp. Todos los derechos reservados.",
 	},
 	preferences: {
 		...en.preferences,

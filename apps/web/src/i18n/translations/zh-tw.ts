@@ -66,7 +66,7 @@ const translation: Translation = {
 		"即將推出",
 		"網站地圖",
 		"即將推出",
-		"© {year} Maschina Labs。保留所有權利。",
+		"© {year} Maschina, Corp. 保留所有權利。",
 		"檢查中",
 		"所有系統運作正常",
 		"機器已暫停",
