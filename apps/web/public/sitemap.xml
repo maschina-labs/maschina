@@ -4969,6 +4969,627 @@
 		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/about"/>
 	</url>
 	<url>
+		<loc>https://maschina.dev/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/es/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/fr/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/de/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/it/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/pt/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/nl/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/pl/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/tr/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ru/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/uk/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ar/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/he/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/hi/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/bn/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/zh/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ja/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ko/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/id/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/vi/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/th/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/fil/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/zh-tw/docs</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/docs"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/docs"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/docs"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/docs"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/docs"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/docs"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/docs"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/docs"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/docs"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/docs"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/docs"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/docs"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/docs"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/docs"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/docs"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/docs"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/docs"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/docs"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/docs"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/docs"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/docs"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs"/>
+	</url>
+	<url>
 		<loc>https://maschina.dev/roadmap</loc>
 		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/roadmap"/>
 		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/roadmap"/>

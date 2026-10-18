@@ -84,12 +84,12 @@ describe("the pages", () => {
 			expect(href).toMatch(/^\/[A-Za-z]+(-[a-z]+)*(\.[a-z]+)?$/);
 	});
 
-	it("sends every developer link to the docs app on its own address, and has no page of its own for any of them", () => {
+	it("keeps the quickstart on this site and sends the reference pages to the docs app", () => {
 		const hrefs = Object.fromEntries(
 			(MENUS["Developers"]?.main ?? []).map((item) => [item.label, item.href]),
 		);
 		expect(hrefs).toEqual({
-			Docs: "https://docs.maschina.dev",
+			Docs: "/docs",
 			API: "https://docs.maschina.dev/api",
 			SDK: "https://docs.maschina.dev/sdk",
 			"Machine Spec": "https://docs.maschina.dev/machine-spec",
@@ -97,10 +97,13 @@ describe("the pages", () => {
 		});
 		const footer = SITEMAP.find((column) => column.title === "Developers")?.items ?? [];
 		const byLabel = Object.fromEntries(footer.map((item) => [item.label, item.href]));
-		expect(byLabel["Quickstart"]).toBe("https://docs.maschina.dev/quickstart");
+		// The quickstart IS the docs page, so the footer lists it once rather than twice under two
+		// names. The one page a newcomer needs is here, written, not on a subdomain that is blank.
+		expect(byLabel["Docs"]).toBe("/docs");
+		expect(byLabel["Quickstart"]).toBeUndefined();
 		expect(byLabel["Examples"]).toBe("https://docs.maschina.dev/examples");
+		// /docs is a page here now, and is checked above. The rest are still the docs app's.
 		for (const path of [
-			"/docs",
 			"/developers",
 			"/api",
 			"/sdk",

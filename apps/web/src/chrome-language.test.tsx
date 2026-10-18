@@ -208,9 +208,9 @@ describe("the front page in another language", () => {
 		expect(
 			screen.getByRole("heading", { level: 2, name: "¿Listo para crear tu primera máquina?" }),
 		).toBeInTheDocument();
-		// The docs are another site, so the language is not put in front of them.
+		// The docs are a page of this site now, so they are read in the reader's language like any other.
 		for (const link of screen.getAllByRole("link", { name: "Leer la documentación" }))
-			expect(link).toHaveAttribute("href", "https://docs.maschina.dev");
+			expect(link).toHaveAttribute("href", "/es/docs");
 	});
 });
 

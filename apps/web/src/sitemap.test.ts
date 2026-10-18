@@ -78,12 +78,10 @@ describe("the sitemap", () => {
 		expect(external.sort()).toEqual([
 			"API",
 			"Changelog",
-			"Docs",
 			"Examples",
 			"GitHub",
 			"Live Record",
 			"Machine Spec",
-			"Quickstart",
 			"SDK",
 			"Status",
 			"Templates",
@@ -122,16 +120,17 @@ describe("the sitemap", () => {
 			find(column).find((item) => item.label === label)?.href;
 		expect(hrefOf("Product", "How It Works")).toBe("/how-it-works");
 		expect(hrefOf("Product", "Machines")).toBe("/machines");
-		expect(hrefOf("Developers", "Quickstart")).toBe("https://docs.maschina.dev/quickstart");
+		expect(hrefOf("Developers", "Docs")).toBe("/docs");
+		expect(hrefOf("Developers", "Quickstart")).toBeUndefined();
 		expect(hrefOf("Developers", "Examples")).toBe("https://docs.maschina.dev/examples");
 		expect(hrefOf("Company", "Support")).toBe("/support");
 		expect(hrefOf("Company", "Brand Assets")).toBe("/brand");
 	});
 
-	it("reads Overview, how it works and machines first in Product, and Docs then Quickstart in Developers", () => {
+	it("reads Overview, how it works and machines first in Product, and Docs first in Developers", () => {
 		const labels = (column: string) =>
 			SITEMAP.find((c) => c.title === column)?.items.map((i) => i.label);
 		expect(labels("Product")?.slice(0, 3)).toEqual(["Overview", "How It Works", "Machines"]);
-		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "Quickstart"]);
+		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "API"]);
 	});
 });

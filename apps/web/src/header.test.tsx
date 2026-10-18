@@ -115,7 +115,8 @@ describe("the header", () => {
 			"href",
 			"https://github.com/maschina-labs",
 		);
-		for (const name of ["AI Index", "Skill File"]) {
+		// Docs is a page of this site now, so it is not marked as leaving it.
+		for (const name of ["Docs", "AI Index", "Skill File"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
 		}
 		// The status page is run by someone else, on its own address.
@@ -424,7 +425,7 @@ describe("the header", () => {
 		});
 		fireEvent.change(box, { target: { value: "developers" } });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev");
+		expect(navigate).toHaveBeenLastCalledWith("/docs");
 
 		fireEvent.keyDown(box, { key: "ArrowDown" });
 		fireEvent.keyDown(box, { key: "Enter" });
@@ -433,7 +434,7 @@ describe("the header", () => {
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev");
+		expect(navigate).toHaveBeenLastCalledWith("/docs");
 	});
 
 	it("does nothing on Enter when nothing has been typed", () => {
@@ -735,7 +736,7 @@ describe("the header's motion", () => {
 		render(<Header authUrl={AUTH} />);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const inside = within(screen.getByRole("region", { name: "Developers" }));
-		for (const name of ["Docs", "API", "SDK", "Machine Spec", "Templates", "GitHub"])
+		for (const name of ["API", "SDK", "Machine Spec", "Templates", "GitHub"])
 			expect(
 				inside.getByRole("link", { name }).querySelector("svg[data-arrow=external]"),
 				name,

@@ -9,7 +9,7 @@ describe("the page index", () => {
 		const docs = PAGES_INDEX.find((hit) => hit.label === "Docs");
 		expect(docs).toEqual({
 			label: "Docs",
-			href: "https://docs.maschina.dev",
+			href: "/docs",
 			section: "Developers",
 		});
 	});
