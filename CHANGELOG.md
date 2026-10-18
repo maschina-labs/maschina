@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.64](https://github.com/maschina-labs/maschina/compare/v0.0.63...v0.0.64) (2026-10-18)
+
+
+### Added
+
+* **gateway:** cap how many machines one owner may have ([#860](https://github.com/maschina-labs/maschina/issues/860)) ([5b4f2bb](https://github.com/maschina-labs/maschina/commit/5b4f2bb607aa6063f0e699f16e9de808c400b90b))
+* **rules:** decide whether a machine may be retired ([#862](https://github.com/maschina-labs/maschina/issues/862)) ([8ce0c5d](https://github.com/maschina-labs/maschina/commit/8ce0c5de3ba8b1ca711c8ed6eeee27d73b244384))
+* **web:** a quickstart people can actually read ([#866](https://github.com/maschina-labs/maschina/issues/866)) ([7f63643](https://github.com/maschina-labs/maschina/commit/7f63643be29f6bb7b69f328c5e3cc740591e3330))
+* **web:** the demo and pitch videos are on the papers page ([#868](https://github.com/maschina-labs/maschina/issues/868)) ([e9d768a](https://github.com/maschina-labs/maschina/commit/e9d768a7cd5e231f73ffbda1e27e932e563461ef))
+
+
+### Fixed
+
+* **app:** show the address when the mail app never opens ([#864](https://github.com/maschina-labs/maschina/issues/864)) ([4799fa3](https://github.com/maschina-labs/maschina/commit/4799fa390f176653846ac20a94ca4948c27d227d))
+
 ## [0.0.63](https://github.com/maschina-labs/maschina/compare/v0.0.62...v0.0.63) (2026-10-18)
 
 
