@@ -39,6 +39,7 @@ describe("the pages of the site, by language", () => {
 		]);
 		expect(Object.keys(english.articles).sort()).toEqual([
 			"/about",
+			"/docs",
 			"/how-it-works",
 			"/machines",
 			"/product",

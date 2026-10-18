@@ -14,7 +14,7 @@ import {
 } from "./sections.tsx";
 
 const AUTH = "https://auth.maschina.dev";
-const DOCS = "https://docs.maschina.dev";
+const DOCS = "/docs";
 
 beforeEach(() => {
 	// The globe asks for its map: stand one in, so no test reaches the network.

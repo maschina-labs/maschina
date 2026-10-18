@@ -41,7 +41,7 @@ describe("the section for builders", () => {
 		expect(code).toHaveAttribute("href", github);
 		expect(code.className).toContain("silver-button");
 		const docs = within(section()).getByRole("link", { name: "Read the docs" });
-		expect(docs).toHaveAttribute("href", "https://docs.maschina.dev");
+		expect(docs).toHaveAttribute("href", "/docs");
 		expect(docs.className).toContain("bg-white/[0.13]");
 		expect(within(section()).getAllByRole("link")).toHaveLength(2);
 	});

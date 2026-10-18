@@ -56,7 +56,7 @@ describe("the hero", () => {
 		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("aria-hidden", "true");
 		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("data-arrow", "chevron");
 		const docs = hero.getByRole("link", { name: "Read the docs" });
-		expect(docs).toHaveAttribute("href", "https://docs.maschina.dev");
+		expect(docs).toHaveAttribute("href", "/docs");
 		// The docs are a box of their own, a quiet gray one, with no arrow: only the main button has a chip.
 		expect(docs.className).toMatch(/\bbg-white\/\[0\.13\]/);
 		expect(docs.className).not.toMatch(/rounded/);

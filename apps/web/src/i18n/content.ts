@@ -1,6 +1,7 @@
 import type { ArticleDoc } from "../article.tsx";
 import { ABOUT } from "../company/about.ts";
 import { BRAND, type BrandDoc } from "../company/brand.ts";
+import { DOCS } from "../company/docs.ts";
 import { PAPERS, type PapersDoc } from "../company/papers.ts";
 import { HOW_IT_WORKS, MACHINES, PRODUCT, SECURITY } from "../company/product.ts";
 import { ROADMAP } from "../company/roadmap.ts";
@@ -39,6 +40,7 @@ const english: Content = {
 		"/how-it-works": HOW_IT_WORKS,
 		"/machines": MACHINES,
 		"/security": SECURITY,
+		"/docs": DOCS,
 	},
 	support: SUPPORT,
 	papers: PAPERS,

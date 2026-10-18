@@ -21,6 +21,7 @@ const LEGAL = {
 	"/how-it-works": 1,
 	"/machines": 1,
 	"/security": 1,
+	"/docs": 1,
 };
 
 beforeEach(() => {
