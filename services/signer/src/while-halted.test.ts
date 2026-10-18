@@ -19,6 +19,7 @@ const proposal = {
 		quotedOutputAmount: "41000000",
 		minimumOutputAmount: "40000000",
 		slippageBps: 50,
+		priceImpactBps: 3,
 		router: "jupiter",
 	},
 } satisfies SignRequest;

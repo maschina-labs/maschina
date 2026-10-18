@@ -29,6 +29,8 @@ export type QuotedTrade = {
 	outputAmount: bigint;
 	minimumOutputAmount: bigint;
 	slippageBps: number;
+	/** How far the router says this trade moves the price. The signer holds it to the owner's cap. */
+	priceImpactBps: number;
 };
 
 /** A swap built and checked, ready to propose. */
@@ -182,6 +184,7 @@ const tradeOf = (quote: QuotedTrade): SignRequest["trade"] => ({
 	quotedOutputAmount: quote.outputAmount.toString(),
 	minimumOutputAmount: quote.minimumOutputAmount.toString(),
 	slippageBps: quote.slippageBps,
+	priceImpactBps: quote.priceImpactBps,
 	router: quote.router,
 });
 

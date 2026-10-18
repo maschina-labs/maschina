@@ -34,6 +34,8 @@ export type SignerFacts = {
 		maxPerTrade?: bigint | undefined;
 		maxPerDay?: bigint | undefined;
 		approvedMints: readonly string[];
+		maxSlippageBps?: number | undefined;
+		maxPriceImpactBps?: number | undefined;
 	};
 	availableBudget: bigint;
 	spentToday: bigint;
@@ -102,6 +104,8 @@ export function signerRecord(
 					maxPerTrade: limits.maxPerTrade,
 					maxPerDay: limits.maxPerDay,
 					approvedMints: limits.approvedMints,
+					maxSlippageBps: limits.maxSlippageBps,
+					maxPriceImpactBps: limits.maxPriceImpactBps,
 				},
 				availableBudget: budget.available,
 				spentToday: settledSince(events, startOfDayUtc(now()), { budgetMint }),
