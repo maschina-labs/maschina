@@ -293,7 +293,7 @@ const create = createRoute({
  */
 export type MachineCaps = { paper: number; live: number };
 
-export const DEFAULT_MACHINE_CAPS: MachineCaps = { paper: 10, live: 3 };
+const DEFAULT_MACHINE_CAPS: MachineCaps = { paper: 10, live: 3 };
 
 export function machineRoutes(
 	ports: MachinePorts,
