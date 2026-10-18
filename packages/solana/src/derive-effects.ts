@@ -20,6 +20,7 @@
 
 import type { BaseUnits } from "@maschina/core";
 import type { WalletBalances } from "./balances.ts";
+import { WRAPPED_SOL } from "./trade-cost.ts";
 
 /** One token whose balance moved, and by how much. Negative left the wallet. */
 export type TokenDelta = { mint: string; delta: bigint };
@@ -82,11 +83,26 @@ export function effectsFrom(before: WalletBalances, after: WalletBalances): Wall
 }
 
 /**
+ * How much of one token the wallet really gained, counting SOL as one thing.
+ *
+ * The router is asked to wrap and unwrap, so a trade in SOL never settles as the wrapped token: it
+ * wraps native lamports on the way in, or unwraps into the balance on the way out, inside the same
+ * transaction. Counting the token and the balance separately would therefore see a SOL sale spend
+ * nothing and a SOL buy receive nothing. The wallet does not experience them separately, so neither
+ * does this. The settled path already counts SOL this way in `balanceChangesOf`, and the two agreeing
+ * is what lets a simulated trade and a landed one be compared at all.
+ */
+function gainOf(effects: WalletEffects, mint: string): bigint {
+	const token = effects.tokens.find((each) => each.mint === mint)?.delta ?? 0n;
+	return mint === WRAPPED_SOL ? token + effects.lamports : token;
+}
+
+/**
  * Whether what happened is the swap that was promised.
  *
  * Five things have to hold, and none of them is a judgement call:
  *
- *   - exactly the claimed amount of the claimed token left
+ *   - the claimed amount of the claimed token left
  *   - at least the minimum of the claimed token arrived
  *   - no other token left the wallet
  *   - SOL fell by no more than fees and rent could explain
@@ -96,6 +112,12 @@ export function effectsFrom(before: WalletBalances, after: WalletBalances): Wall
  * uncertainty in what goes out, only in what comes back. The output is a floor rather than an
  * equality for the opposite reason. So this needs no tolerance anywhere, which matters, because a
  * tolerance is a number somebody picks and then nobody revisits.
+ *
+ * Spending SOL is the one exception, and it is a window rather than a tolerance. The fee comes out of
+ * the same balance the trade does and cannot be told apart from it here, so a SOL sale is held to at
+ * least the claimed amount and at most the claimed amount plus the fees and rent already allowed.
+ * Receiving SOL needs no such room: the fee makes the measured gain smaller than the real one, so an
+ * unsoftened floor can refuse a trade that was fine by a hair, and can never accept one that was not.
  */
 export function judgeSwap(effects: WalletEffects, claim: SwapClaim): SwapVerdict {
 	const refuse = (problem: string): SwapVerdict => ({
@@ -104,47 +126,47 @@ export function judgeSwap(effects: WalletEffects, claim: SwapClaim): SwapVerdict
 		problem,
 	});
 
-	const spent = BigInt(claim.inputAmount);
+	const claimed = BigInt(claim.inputAmount);
 	const minimum = BigInt(claim.minimumOutputAmount);
 	const allowed = BigInt(claim.lamportsAllowed);
+	const inSol = claim.inputMint === WRAPPED_SOL;
+	const outSol = claim.outputMint === WRAPPED_SOL;
 
-	if (effects.tokens.length === 0) {
-		return refuse("the transaction moved no tokens at all, so it is not the trade it claims to be");
+	if (effects.tokens.length === 0 && effects.lamports === 0n) {
+		return refuse("the transaction moved nothing at all, so it is not the trade it claims to be");
 	}
 
-	const input = effects.tokens.find((token) => token.mint === claim.inputMint);
-	if (!input || input.delta >= 0n) {
+	const spent = -gainOf(effects, claim.inputMint);
+	if (spent <= 0n) {
 		return refuse(
 			`nothing was spent of ${claim.inputMint}, which is the token it said it would spend`,
 		);
 	}
-	if (-input.delta !== spent) {
-		return refuse(
-			`it spent ${-input.delta} of ${claim.inputMint} while claiming to spend ${spent}`,
-		);
+	// Spending SOL carries its own fee, so the floor is the claim and the ceiling is the allowance.
+	if (spent < claimed || spent > (inSol ? claimed + allowed : claimed)) {
+		return refuse(`it spent ${spent} of ${claim.inputMint} while claiming to spend ${claimed}`);
 	}
 
-	// Buying SOL means the output arrives as lamports once the wrapped account is closed, so a swap
-	// into SOL is allowed to show its gain either as the wrapped token or as native lamports.
-	const output = effects.tokens.find((token) => token.mint === claim.outputMint);
-	const received = output && output.delta > 0n ? output.delta : 0n;
+	const received = gainOf(effects, claim.outputMint);
 	if (received < minimum) {
 		return refuse(
 			`it received ${received} of ${claim.outputMint} while the rules required at least ${minimum}`,
 		);
 	}
 
-	const others = effects.tokens.filter(
-		(token) => token.delta < 0n && token.mint !== claim.inputMint,
+	const leaked = effects.tokens.find(
+		(token) =>
+			token.delta < 0n && token.mint !== claim.inputMint && token.mint !== claim.outputMint,
 	);
-	const leaked = others[0];
 	if (leaked) {
 		return refuse(
 			`${-leaked.delta} of ${leaked.mint} left the wallet, and a swap moves only the token it names`,
 		);
 	}
 
-	if (effects.lamports < 0n && -effects.lamports > allowed) {
+	// Only when neither leg is SOL. When one of them is, the balance is already part of that leg and
+	// checking it again here would count the trade itself as a drain.
+	if (!inSol && !outSol && effects.lamports < 0n && -effects.lamports > allowed) {
 		return refuse(
 			`${-effects.lamports} lamports left the wallet, more than the ${allowed} that fees and rent allow`,
 		);
