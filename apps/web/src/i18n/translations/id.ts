@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Segera",
 		"Peta situs",
 		"Segera",
-		"© {year} Maschina Labs. Hak cipta dilindungi.",
+		"© {year} Maschina, Corp. Hak cipta dilindungi.",
 		"Memeriksa",
 		"Semua sistem beroperasi normal",
 		"Mesin dijeda",

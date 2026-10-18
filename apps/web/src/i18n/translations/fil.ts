@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Malapit na",
 		"Sitemap",
 		"Malapit na",
-		"© {year} Maschina Labs. Lahat ng karapatan ay nakalaan.",
+		"© {year} Maschina, Corp. Lahat ng karapatan ay nakalaan.",
 		"Sinusuri",
 		"Normal ang takbo ng lahat ng sistema",
 		"Naka-pause ang mga makina",

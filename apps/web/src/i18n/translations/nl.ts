@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Binnenkort",
 		"Sitemap",
 		"Binnenkort",
-		"© {year} Maschina Labs. Alle rechten voorbehouden.",
+		"© {year} Maschina, Corp. Alle rechten voorbehouden.",
 		"Controleren",
 		"Alle systemen werken normaal",
 		"Machines gepauzeerd",

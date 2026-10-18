@@ -410,7 +410,7 @@ describe("the footer", () => {
 		vi.setSystemTime(new Date("2031-03-04T12:00:00Z"));
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
-		const line = screen.getByText("© 2031 Maschina Labs. All rights reserved.");
+		const line = screen.getByText("© 2031 Maschina, Corp. All rights reserved.");
 		expect(line.className).toContain("text-center");
 		// It comes before the wordmark, so it sits above it.
 		const logo = screen.getByRole("img", { name: "Maschina" }).parentElement as HTMLElement;

@@ -66,7 +66,7 @@ const translation: Translation = {
 		"곧 공개",
 		"사이트맵",
 		"곧 공개",
-		"© {year} Maschina Labs. 모든 권리 보유.",
+		"© {year} Maschina, Corp. 모든 권리 보유.",
 		"확인 중",
 		"모든 시스템 정상 작동 중",
 		"머신 일시 중지됨",

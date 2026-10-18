@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Bald",
 		"Seitenübersicht",
 		"Bald",
-		"© {year} Maschina Labs. Alle Rechte vorbehalten.",
+		"© {year} Maschina, Corp. Alle Rechte vorbehalten.",
 		"Wird geprüft",
 		"Alle Systeme laufen normal",
 		"Maschinen pausiert",

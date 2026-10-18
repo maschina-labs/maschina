@@ -66,7 +66,7 @@ const translation: Translation = {
 		"Sắp có",
 		"Sơ đồ trang",
 		"Sắp có",
-		"© {year} Maschina Labs. Bảo lưu mọi quyền.",
+		"© {year} Maschina, Corp. Bảo lưu mọi quyền.",
 		"Đang kiểm tra",
 		"Mọi hệ thống hoạt động bình thường",
 		"Các máy đã tạm dừng",

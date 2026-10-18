@@ -3,6 +3,7 @@ import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { takeOrigin, tileTransform } from "../lib/launch.ts";
+import { nextPhase, type RevealEvent, type RevealPhase } from "../lib/reveal.ts";
 import {
 	FeedbackScreen,
 	GetAWalletScreen,
@@ -105,15 +106,21 @@ export function Detail({ back }: { back: string }) {
 	 * fill the screen, and only once it has landed does the content fade in on it. Closing fades it all.
 	 * Only the plain card ever moves, which is light work for the browser, so it stays smooth; the
 	 * content, with its blur and its text, never stretches.
+	 *
+	 * The steps only ever go forwards, which `nextPhase` is what enforces. They are driven by two
+	 * different clocks, and a tab nobody is looking at runs one of them and not the other.
 	 */
-	const [phase, setPhase] = useState<"tile" | "growing" | "open" | "fading">("tile");
+	const [phase, setPhase] = useState<RevealPhase>("tile");
+	const step = (event: RevealEvent) => setPhase((at) => nextPhase(at, event));
 
 	useEffect(() => {
 		let inner = 0;
 		const outer = requestAnimationFrame(() => {
-			inner = requestAnimationFrame(() => setPhase("growing"));
+			inner = requestAnimationFrame(() => step("frame"));
 		});
-		const landed = setTimeout(() => setPhase("open"), GROW_MS);
+		// Started at mount rather than when the growing begins, so the screen appears on time even
+		// where the frames are late, and appears at all where they never come.
+		const landed = setTimeout(() => step("landed"), GROW_MS);
 		return () => {
 			cancelAnimationFrame(outer);
 			cancelAnimationFrame(inner);
@@ -147,7 +154,7 @@ export function Detail({ back }: { back: string }) {
 	);
 	const close = () => {
 		if (phase === "fading") return;
-		setPhase("fading");
+		step("close");
 		timers.current.push(setTimeout(leave, CLOSE_MS));
 	};
 
