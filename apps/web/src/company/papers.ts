@@ -61,10 +61,12 @@ export const PAPERS: PapersDoc = {
 				{
 					name: "Demo video",
 					body: "A walk through the app: making a machine, setting its limits and watching what it decides.",
+					href: "https://youtu.be/pGaCqBAPs30",
 				},
 				{
 					name: "Pitch video",
 					body: "What Maschina is, the problem it solves, and where it is going.",
+					href: "https://youtu.be/KGy2ugtQOaY",
 				},
 			],
 		},
