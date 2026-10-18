@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.62](https://github.com/maschina-labs/maschina/compare/v0.0.61...v0.0.62) (2026-10-18)
+
+
+### Added
+
+* **signer:** hold a quote to the owner's slippage and price impact ([#849](https://github.com/maschina-labs/maschina/issues/849)) ([2ae34d1](https://github.com/maschina-labs/maschina/commit/2ae34d18ec65cb261a9c02c14ec25de60604c4aa))
+
 ## [0.0.61](https://github.com/maschina-labs/maschina/compare/v0.0.60...v0.0.61) (2026-10-18)
 
 
