@@ -575,3 +575,83 @@ describe("taking everything out", () => {
 		expect(res.status).toBe(400);
 	});
 });
+
+describe("how many machines one owner may have", () => {
+	const paperBody = {
+		name: "SOL dip buyer",
+		kind: "price_trigger",
+		paper: true,
+		settings: { level: "142000000" },
+		limits: { budgetGranted: "20000000", approvedMints: [SOL] },
+	};
+
+	/** An owner who already has this many. The cap counts what the record says they have. */
+	const owning = (count: number) => Array.from({ length: count }, () => summary);
+
+	it("refuses one past the cap, and creates nothing", async () => {
+		// Nothing limited this before. One enthusiastic person, or one script, could schedule a
+		// thousand machines on a single box.
+		const asked: unknown[] = [];
+		const res = await app({
+			list: async () => owning(10),
+			create: async (request) => {
+				asked.push(request);
+				return { machineId, ownerId, walletAddress: WALLET, definitionId: "d".repeat(64) };
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify(paperBody),
+		});
+
+		expect(res.status).toBe(403);
+		expect(asked).toEqual([]);
+	});
+
+	it("allows one that reaches the cap exactly", async () => {
+		const res = await app({ list: async () => owning(9) }).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify(paperBody),
+		});
+
+		expect(res.status).toBe(201);
+	});
+
+	it("says how many are allowed, so the answer is actionable", async () => {
+		const res = await app({ list: async () => owning(10) }).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify(paperBody),
+		});
+
+		expect(((await res.json()) as { error: { message: string } }).error.message).toMatch(/10/);
+	});
+
+	it("holds real money to its own smaller cap", async () => {
+		// Paper is cheap and real money is not, so they are not the same number.
+		const res = await app({ list: async () => owning(3) }).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify({ ...paperBody, paper: false }),
+		});
+
+		expect(res.status).toBe(403);
+	});
+
+	it("counts the owner's own machines, never everybody's", async () => {
+		const asked: string[] = [];
+		await app({
+			list: async (who) => {
+				asked.push(who);
+				return owning(1);
+			},
+		}).request("/v1/machines", {
+			method: "POST",
+			headers: signedIn,
+			body: JSON.stringify(paperBody),
+		});
+
+		expect(asked).toEqual([ownerId]);
+	});
+});

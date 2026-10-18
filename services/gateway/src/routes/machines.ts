@@ -281,7 +281,25 @@ const create = createRoute({
 	},
 });
 
-export function machineRoutes(ports: MachinePorts, liveWallets: string[] = []) {
+/**
+ * How many machines one owner may have, by kind.
+ *
+ * Nothing limited this before, and every machine is scheduled by the orchestrator and run by the
+ * daemon on one box, so one enthusiastic person or one script was enough to swamp it. The numbers
+ * differ because the costs do: a paper machine signs nothing and holds no wallet at the provider,
+ * while a real one holds a wallet, policies and money, and is held to the beta caps besides.
+ *
+ * A ceiling, not a target. Raised through configuration rather than a deploy.
+ */
+export type MachineCaps = { paper: number; live: number };
+
+const DEFAULT_MACHINE_CAPS: MachineCaps = { paper: 10, live: 3 };
+
+export function machineRoutes(
+	ports: MachinePorts,
+	liveWallets: string[] = [],
+	caps: MachineCaps = DEFAULT_MACHINE_CAPS,
+) {
 	const app = new OpenAPIHono<ServiceEnv>();
 
 	/** Every route here needs an owner. Nothing below runs without one. */
@@ -395,6 +413,17 @@ export function machineRoutes(ports: MachinePorts, liveWallets: string[] = []) {
 					"forbidden",
 					"Maschina is open on paper only. A paper machine trades against live prices with no money at risk; real money is not open yet.",
 				);
+			// Counted from the record, not from anything the caller says, and counted before a wallet
+			// is made, so a refused machine costs nothing and leaves nothing behind.
+			const cap = asked.paper ? caps.paper : caps.live;
+			const already = (await ports.list(who.ownerId)).length;
+			if (already >= cap) {
+				throw new MaschinaError(
+					"forbidden",
+					`${cap} machines is the most one account may have while Maschina is in beta. Stop one you are no longer using, or write to support@maschina.dev.`,
+				);
+			}
+
 			const made = await ports.create({
 				...asked,
 				ownerId: who.ownerId,

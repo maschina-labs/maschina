@@ -13,7 +13,7 @@ import type { ContactDesk } from "./contact.ts";
 import type { NewsDesk } from "./news.ts";
 import { type AuthPorts, authRoutes, type CookieSettings } from "./routes/auth.ts";
 import { contactRoutes } from "./routes/contact.ts";
-import { type MachinePorts, machineRoutes } from "./routes/machines.ts";
+import { type MachineCaps, type MachinePorts, machineRoutes } from "./routes/machines.ts";
 import { type ManagerPorts, managerRoutes, noManager } from "./routes/manager.ts";
 import { newsRoutes } from "./routes/news.ts";
 import { type PeopleDesk, peopleRoutes } from "./routes/people.ts";
@@ -34,6 +34,8 @@ export type GatewayDeps = {
 	 * make a live one unless their wallet is named here. Left out means nobody, which is the default.
 	 */
 	liveWallets?: string[] | undefined;
+	/** How many machines one owner may have. See `DEFAULT_MACHINE_CAPS`. */
+	machineCaps?: MachineCaps | undefined;
 	/** Signing in with a wallet, and the cookie a session travels in. */
 	auth: AuthPorts;
 	cookie: CookieSettings;
@@ -78,7 +80,7 @@ function v1(deps: GatewayDeps) {
 			"/",
 			systemRoutes({ version: deps.version, clock: deps.clock ?? systemClock, halt: deps.halt }),
 		)
-		.route("/", machineRoutes(deps.machines, deps.liveWallets ?? []))
+		.route("/", machineRoutes(deps.machines, deps.liveWallets ?? [], deps.machineCaps))
 		.route("/", authRoutes(deps.auth, deps.cookie))
 		.route("/", peopleRoutes(deps.people))
 		.route("/", managerRoutes(deps.manager ?? noManager(deps.auth.ownerOf)))
