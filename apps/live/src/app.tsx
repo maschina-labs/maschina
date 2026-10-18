@@ -125,9 +125,11 @@ function Section({
  */
 const RULES: Record<PublicRefusal["rule"], string> = {
 	budget: "over the budget it was given",
+	derived_mismatch: "the transaction did not do what it said it would",
 	halted: "everything was halted",
 	provider_policy: "outside the wallet's own policy",
 	recipients: "paying somewhere it may not pay",
+	simulation_failed: "the chain could not be asked what it would do",
 	transaction_shape: "the transaction was not shaped as promised",
 	unknown_machine: "the machine was not recognised",
 	unknown_wallet: "the wallet was not recognised",

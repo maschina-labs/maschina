@@ -27,9 +27,11 @@ import {
 	rpcBlockhashReader,
 	rpcConfirmationReader,
 	rpcSender,
+	rpcSimulator,
 	rpcTransactionReader,
 	type SolanaRpc,
 	signatureOf,
+	simulateEffects,
 	TOKEN_2022_PROGRAM,
 	TOKEN_PROGRAM,
 	tradeCostOf,
@@ -41,7 +43,13 @@ import type { ChainAnswer } from "./submit-once.ts";
 import { type SweepPorts, sweepProfit } from "./sweep.ts";
 import { type HaltPorts, whileHalted } from "./while-halted.ts";
 import { type BudgetLedger, withBudget } from "./with-budget.ts";
-import { type RecordKeeper, withRules } from "./with-rules.ts";
+import {
+	lamportsBeyondTheTrade,
+	type MeasureTrade,
+	type RecordKeeper,
+	type RuleOptions,
+	withRules,
+} from "./with-rules.ts";
 import { type WithdrawPorts, withdrawFunds } from "./withdraw.ts";
 import { type WithdrawEverythingPorts, withdrawEverything } from "./withdraw-everything.ts";
 
@@ -54,8 +62,28 @@ import { type WithdrawEverythingPorts, withdrawEverything } from "./withdraw-eve
 export function layered(
 	inner: TradeSigner,
 	record: RecordKeeper & BudgetLedger & HaltPorts,
+	measure: MeasureTrade,
+	options: RuleOptions = {},
 ): TradeSigner {
-	return whileHalted(withRules(withBudget(inner, record), record), record);
+	return whileHalted(withRules(withBudget(inner, record), record, measure, options), record);
+}
+
+/**
+ * What a proposal would really do to the machine's wallet (F-01, D-120).
+ *
+ * The transaction is simulated as the exact bytes that would be signed, and the wallet is read before
+ * and after. Only the two mints the proposal names are watched for new accounts, which is the point:
+ * a transaction that creates an account for some third token is a transaction whose effect on that
+ * token goes unmeasured, and `judgeSwap` refuses anything it cannot account for.
+ */
+export function measurerFor(rpc: SolanaRpc): MeasureTrade {
+	const ports = { balances: rpcBalanceReader(rpc), simulate: rpcSimulator(rpc) };
+	return (request) =>
+		simulateEffects(ports, {
+			transaction: new Uint8Array(Buffer.from(request.transaction, "base64")),
+			wallet: parseAddress(request.wallet),
+			mints: [request.trade.inputMint, request.trade.outputMint],
+		});
 }
 
 /** The chain's answer about a signature, in the terms sending once uses. */
@@ -148,7 +176,9 @@ export function tradeSigner(parts: {
 		outcomes: record,
 	});
 
-	return layered(inner, record);
+	return layered(inner, record, measurerFor(rpc), {
+		lamportsAllowed: lamportsBeyondTheTrade(parts.feeAllowance),
+	});
 }
 
 /** Everything the record gives a withdrawal. The database's version is in `@maschina/db`. */
