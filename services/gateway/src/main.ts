@@ -33,6 +33,10 @@ startServer({
 		reporter,
 		machines: gateway.ports,
 		liveWallets: whoMayRunOnRealMoney(config.LIVE_MACHINE_WALLETS),
+		machineCaps: {
+			paper: config.GATEWAY_MAX_PAPER_MACHINES,
+			live: config.GATEWAY_MAX_LIVE_MACHINES,
+		},
 		auth: gateway.auth,
 		people: gateway.people,
 		cookie: gateway.cookie,

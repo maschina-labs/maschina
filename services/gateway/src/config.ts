@@ -66,6 +66,14 @@ export function loadConfig(source?: EnvSource) {
 			 */
 			LIVE_MACHINE_WALLETS: env.optional(z.string()),
 			/**
+			 * How many machines one owner may have. Every machine is scheduled and run on one box, so
+			 * without a ceiling one account can swamp it. Paper is the larger number because a paper
+			 * machine signs nothing and holds no wallet at the provider; real money is held to the
+			 * beta caps as well. Raised here rather than in a deploy.
+			 */
+			GATEWAY_MAX_PAPER_MACHINES: z.coerce.number().int().positive().default(10),
+			GATEWAY_MAX_LIVE_MACHINES: z.coerce.number().int().positive().default(3),
+			/**
 			 * The Resend key (sending only) that the contact page's mail goes out on. Unset, the contact route
 			 * answers that it is not available, and nothing pretends to send.
 			 */
