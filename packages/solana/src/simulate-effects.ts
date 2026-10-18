@@ -43,6 +43,8 @@ export type Simulated =
  */
 export type SimulateTransaction = (
 	transaction: Uint8Array,
+	/** Whose lamports to report, since the wallet's own account is one of the addresses below. */
+	wallet: string,
 	addresses: readonly string[],
 ) => Promise<Simulated>;
 
@@ -121,7 +123,7 @@ export async function simulateEffects(
 
 	let simulated: Simulated;
 	try {
-		simulated = await ports.simulate(request.transaction, watching);
+		simulated = await ports.simulate(request.transaction, request.wallet, watching);
 	} catch (cause) {
 		return err(
 			new MaschinaError(
