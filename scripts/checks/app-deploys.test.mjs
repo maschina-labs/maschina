@@ -33,7 +33,7 @@ const BUILT_BY_CLOUDFLARE = ["app", "web"];
  * workflow when there is something on them worth serving, and this list is what makes that a
  * decision somebody takes rather than something nobody noticed.
  */
-const NOT_BUILT_YET = ["auth", "docs"];
+const NOT_BUILT_YET = ["auth"];
 
 /** Every app with a Worker configuration, which is every app Cloudflare serves. */
 const servedApps = readdirSync(apps, { withFileTypes: true })
@@ -50,6 +50,10 @@ const servedApps = readdirSync(apps, { withFileTypes: true })
 	.sort();
 
 describe("every app Cloudflare serves gets deployed by something", () => {
+	it("serves documentation as part of web rather than a separate Worker", () => {
+		assert.ok(!servedApps.includes("docs"));
+		assert.ok(servedApps.includes("web"));
+	});
 	it("finds the apps that have a Worker at all", () => {
 		// If this ever reads empty the rest of the file proves nothing, so it is asserted rather than
 		// assumed.

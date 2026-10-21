@@ -21,7 +21,7 @@ people's computers that get paid for it.
 | **The live record** | [live.maschina.dev](https://live.maschina.dev) · what the machines actually did, no sign-in |
 | **The app** | [app.maschina.dev](https://app.maschina.dev) |
 | **The API** | [api.maschina.dev](https://api.maschina.dev) · `/v1/status`, and `/openapi.json` describes every route |
-| **Docs** | [docs.maschina.dev](https://docs.maschina.dev) |
+| **Docs** | [maschina.dev/docs](https://maschina.dev/docs) |
 | **Status** | [status.maschina.dev](https://status.maschina.dev) |
 | **What changed** | [CHANGELOG.md](CHANGELOG.md) |
 | **Reporting something** | [SECURITY.md](SECURITY.md) |

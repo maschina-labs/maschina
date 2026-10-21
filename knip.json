@@ -8,9 +8,6 @@
 		"apps/web": {
 			"entry": ["src/worker.ts", "scripts/*.ts"]
 		},
-		"apps/docs": {
-			"entry": ["src/worker.ts"]
-		},
 		"apps/live": {
 			"entry": ["src/worker.ts", "src/record.ts", "src/format.ts", "src/dev/sample-boot.ts"]
 		},
