@@ -50,7 +50,7 @@ catalog:
   drizzle-kit: 0.31.10
   drizzle-orm: 0.45.2
   fast-check: 4.10.1
-  hono: 4.13.8
+  hono: 4.13.11
   husky: 9.1.7
   jsdom: 30.0.1
   knip: 6.35.1
