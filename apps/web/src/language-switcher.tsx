@@ -20,9 +20,11 @@ const POPOVER_EXIT_MS = 180;
 export function LanguageSwitcher({
 	available = AVAILABLE,
 	navigate = (href: string) => window.location.assign(href),
+	placement = "above",
 }: {
 	available?: readonly LocaleCode[];
 	navigate?: (href: string) => void;
+	placement?: "above" | "below";
 }) {
 	const locale = useLocale();
 	const m = useMessages();
@@ -79,7 +81,7 @@ export function LanguageSwitcher({
 			</button>
 			{popover.mounted ? (
 				<div
-					className={`absolute right-0 bottom-full z-10 mb-2 w-56 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
+					className={`absolute right-0 ${placement === "above" ? "bottom-full mb-2" : "top-full mt-2"} z-10 w-56 bg-[oklch(0.2_0.008_285)] transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none ${popover.visible ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"}`}
 				>
 					<div
 						role="listbox"

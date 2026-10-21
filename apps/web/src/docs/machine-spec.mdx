@@ -1,0 +1,37 @@
+# Machine Spec
+
+A machine is an owned instance of software with a definition, settings, limits and a record. A kind supplies decision logic. The machine instance supplies the context in which that logic is allowed to run.
+
+## Identity and configuration
+
+Creation requires a name, kind, settings, an explicit paper-mode choice and limits. The gateway takes the owner from the authenticated session. Paper mode is fixed when the machine is created; it is not a toggle that turns a paper record into a live record.
+
+The creation contract accepts a budget and an approved-mint list, plus optional per-trade and daily caps. The approved list must contain between 1 and 20 addresses. An empty list is not permission to trade anything.
+
+Settings are specific to the selected kind. [Templates](/docs/templates) describes the built-in kinds; the [API schema](https://api.maschina.dev/openapi.json) describes the request contract.
+
+## Lifecycle
+
+The owner-facing states are `draft`, `ready`, `running`, `paused` and `stopped`. The machine detail response lists the actions available now. The possible action names are `fund`, `start`, `pause`, `resume` and `stop`; that list does not mean every action is valid in every state.
+
+Read the machine's current state and available actions before requesting a transition. A paused machine can receive a replacement recipe through the recipe route. A machine does not start merely because it was created.
+
+## Decision and execution
+
+The orchestrator schedules work. A daemon evaluates machine logic and proposes an action. The signer is the component that can request a signature after execution checks.
+
+Built-in kinds receive a view of balances, positions, available budget and the run's time. A price-watching kind can also receive the identifier of the level that woke it. The runtime decision is an action, a wait or a stop, with the associated reason.
+
+Decision logic does not acquire permission by returning an action. Execution remains subject to policy, budget, simulation and effect checks. These components are protections, not an independent audit or a guarantee against loss.
+
+## Budget and result
+
+The budget separates `granted`, `reserved`, `settled` and `available` amounts. A reserved amount represents work in flight; it is not the same as a completed trade.
+
+Results separately report realised outcome, open position, cost basis, network fees and trade counts. An open position is not realised profit. Network fees in lamports cannot be added to a token-denominated result without an explicit conversion.
+
+## Paper and live records
+
+Paper execution reads live prices but signs nothing and transfers no funds. A paper result must remain labeled as simulated. It does not prove signing, settlement or profitability.
+
+Live trade entries can link to transaction signatures. The application record describes what the system reports; checking the chain and independently assessing enforcement are different tasks. See the [public-read example](/docs/examples#read-the-public-record).

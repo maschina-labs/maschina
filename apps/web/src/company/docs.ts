@@ -26,7 +26,7 @@ export const DOCS: ArticleDoc = {
 		{
 			heading: "What you need",
 			body: [
-				"A Solana wallet. Phantom is the usual one, and it takes a few minutes to set up. Nothing is sent to it and nothing is asked of it beyond a signature that proves the account is yours.",
+				"A compatible Solana wallet of your choice. Signing in asks for a message signature to prove that you control the wallet. It does not transfer funds or approve spending.",
 				"No money. A machine on paper is given a budget as a number, not as funds.",
 			],
 		},

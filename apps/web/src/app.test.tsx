@@ -43,7 +43,7 @@ describe("which page an address shows", () => {
 	it("shows a blank page for every address in the table", () => {
 		for (const [path, title] of Object.entries(ROUTES)) {
 			// The legal pages are written out in full; the rest are blank.
-			if (path in LEGAL) continue;
+			if (path in LEGAL || path.startsWith("/docs")) continue;
 			const view = render(<App authUrl={AUTH} path={path} />);
 			expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
 			expect(screen.getByRole("main").querySelectorAll("section")).toHaveLength(0);

@@ -1,0 +1,40 @@
+# SDK
+
+`@maschina/sdk` defines a TypeScript interface for describing a machine kind. It is a private workspace package in the repository, not a published npm package or an HTTP client.
+
+## Work from source
+
+Clone the [Maschina repository](https://github.com/maschina-labs/maschina) and use the pinned Node and pnpm versions in its root configuration. The SDK source is in `packages/sdk/src/machine.ts`, and its exports are in `packages/sdk/src/index.ts`.
+
+The package can be imported by workspace packages that declare it as a dependency. There is no standalone `npm install @maschina/sdk` workflow documented here because the package is not published.
+
+## Define a machine kind
+
+`defineMachineKind` accepts an object with four fields:
+
+- `id`: a stable lowercase identifier using letters, numbers and dashes. It must start with a letter, end with a letter or number, and contain 3 to 64 characters.
+- `label`: a nonempty name for the kind.
+- `settings`: a Zod schema describing the settings.
+- `decide`: a function receiving settings, state and a supplied `Date`.
+
+The function validates the identifier and label, then returns a shallow-frozen copy. It does not register or deploy a kind, parse settings on every call, freeze nested data or enforce a budget by itself.
+
+## Return a proposal
+
+The exported `Proposal<Action>` type is one of:
+
+```ts
+type Proposal<Action> =
+  | { kind: "act"; action: Action; reason: string }
+  | { kind: "skip"; reason: string };
+```
+
+`decide` may return a proposal directly or a promise. Use the supplied time and state rather than letting a decision depend on an undisclosed clock or external side effect. Include a reason that explains the decision.
+
+## Authority and integration
+
+A proposal is not a signed transaction. This SDK interface exposes no signing, ledger-writing or limit-changing method.
+
+The built-in runtime has its own execution interface, including `act`, `wait` and `stop` decisions. The SDK's `act` and `skip` proposal interface is not a drop-in replacement for that runtime interface. Declaring a custom kind does not make it selectable in the hosted application.
+
+Read the [Machine Spec](/docs/machine-spec) for system boundaries and the [decision example](/docs/examples#decision-function) for a small source-level example.

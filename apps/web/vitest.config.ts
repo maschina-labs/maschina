@@ -1,4 +1,5 @@
 import { vitestConfig } from "@maschina/config/vitest";
+import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import { mergeConfig } from "vitest/config";
 
@@ -9,5 +10,5 @@ export default mergeConfig(
 		// The entry only mounts the page, which is tested directly.
 		coverageExclude: ["src/main.tsx"],
 	}),
-	{ plugins: [react()] },
+	{ plugins: [mdx(), react()] },
 );

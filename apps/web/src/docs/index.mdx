@@ -1,0 +1,27 @@
+# Documentation
+
+Maschina gives software a wallet, a job and owner-defined limits. Start with a paper machine, understand how decisions become actions, or explore the interfaces in the source.
+
+## Get started
+
+[Quickstart](/docs/quickstart): create a paper machine and read its decisions without funding a wallet.
+
+[Machine Spec](/docs/machine-spec): learn what a machine contains, how its lifecycle works and where its authority ends.
+
+Paper mode uses live prices but signs no transactions and moves no funds. It is useful for learning the product; it does not prove that a live execution will succeed or that a strategy will make money.
+
+## Build with Maschina
+
+[API](/docs/api): gateway addresses, public reads, authenticated machine routes and the OpenAPI schema.
+
+[SDK](/docs/sdk): the TypeScript interface for declaring a machine kind. The package currently lives in the repository and is not published to a package registry.
+
+[Templates](/docs/templates): understand the four built-in kinds and their settings before choosing one.
+
+[Examples](/docs/examples): read the public record and explore a decision function without requesting a signature.
+
+## Understand the boundaries
+
+A machine proposes an action. Separate components check limits and request signatures. A decision function does not own the signing key and cannot grant itself a larger budget.
+
+Maschina is early and has not had an independent security audit. Read the [security overview](/security) and [risk disclosure](/risk) before using it. For a broken flow or unclear instruction, use [Support](/support).

@@ -1,0 +1,67 @@
+# Run your first machine.
+
+A machine is software with its own wallet, a job, and limits it cannot change. This gets one running on paper, against live prices, with nothing at risk.
+
+Paper is open to anyone. Real money is not open yet, and the app says so when it is asked. A machine on paper reads the same live prices, makes the same decisions and is held to the same limits as one that trades for real. The only difference is that nothing is signed and nothing is spent.
+
+> Nothing here spends money. A machine on paper signs nothing at all.
+
+## What you need
+
+A compatible Solana wallet of your choice. Signing in asks for a message signature to prove that you control the wallet. It does not transfer funds or approve spending.
+
+No money. A machine on paper is given a budget as a number, not as funds.
+
+## 1. Sign in
+
+Open the [application](https://app.maschina.dev) and sign in. If you choose wallet sign-in, the wallet shows a message to sign. Signing it proves that you control the wallet: it moves nothing, approves no spending and costs no network fee.
+
+Use a sign-in method offered by the application. Wallet sign-in does not require transferring funds.
+
+## 2. Make a machine
+
+Choose New machine. Paper is on by default, and leaving it on is the whole point of this page.
+
+Pick what the machine does. Four kinds exist today:
+
+- Fixed range: buys below a price you set and sells above it.
+- Following range: the same, with the band moving as the market does.
+- Price trigger: acts on a configured price crossing, subject to its limits.
+- Recurring buy: buys a set amount on a schedule.
+
+Then set its limits. These are the numbers the machine cannot argue with: how much it may spend in one trade, how much in a day, and which tokens it may touch at all. An empty list of tokens approves none of them, not all of them.
+
+## 3. Start it, and watch
+
+A new machine does nothing until it is started. Once it is, it checks prices on its schedule and decides whether to act.
+
+Decisions show in the app as they happen, the refused ones included. A refusal is not a failure: it is the limits working, and it is written down with the rule that stopped it.
+
+## What the limits actually do
+
+The part worth understanding, because it is the difference between this and a script with an API key.
+
+- The limits live in a record the machine cannot edit, not in its own settings.
+- Every action is checked against them before anything is signed, by a separate component that does nothing else.
+- The check is made on what a transaction really does, worked out by simulating it, not on what the machine says it will do.
+- An action that fails the check does not happen, and the refusal is written down.
+
+On paper none of that is theatre. The same checks run, and the same refusals are recorded. What changes with real money is only that a signature follows a check that passed.
+
+## Where the record is
+
+Every finished trade of every machine on the public record is at live.maschina.dev, real money and paper in separate tables that are never added together, each real trade linking to its transaction on chain.
+
+A machine's record is private unless its owner chooses otherwise. The ones on that page are the founder's own.
+
+The record is what the application reports. It is not, by itself, proof that the controls behind it hold. Maschina is early and has not had an independent security audit.
+
+## What is not here yet
+
+Said plainly, so nothing on this page is a surprise later.
+
+- Real money is not open. Paper machines only, for now.
+- The SDK exists in the source checkout but is not published. See [SDK](/docs/sdk) and [API](/docs/api) for the available interfaces.
+- Nothing has been independently audited.
+
+Something broken or unclear goes to support@maschina.dev, and the Feedback screen in the app fills that in for you.

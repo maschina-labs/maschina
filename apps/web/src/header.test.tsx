@@ -404,7 +404,7 @@ describe("the header", () => {
 		fireEvent.change(box, { target: { value: "spec" } });
 		expect(panel.getByRole("link", { name: /Machine Spec/ })).toHaveAttribute(
 			"href",
-			"https://docs.maschina.dev/machine-spec",
+			"/docs/machine-spec",
 		);
 		expect(panel.queryByRole("link", { name: /Docs/ })).toBeNull();
 
@@ -429,7 +429,7 @@ describe("the header", () => {
 
 		fireEvent.keyDown(box, { key: "ArrowDown" });
 		fireEvent.keyDown(box, { key: "Enter" });
-		expect(navigate).toHaveBeenLastCalledWith("https://docs.maschina.dev/api");
+		expect(navigate).toHaveBeenLastCalledWith("/docs/api");
 
 		fireEvent.keyDown(box, { key: "ArrowUp" });
 		fireEvent.keyDown(box, { key: "ArrowUp" });
@@ -736,12 +736,12 @@ describe("the header's motion", () => {
 		render(<Header authUrl={AUTH} />);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const inside = within(screen.getByRole("region", { name: "Developers" }));
-		for (const name of ["API", "SDK", "Machine Spec", "Templates", "GitHub"])
+		for (const name of ["GitHub"])
 			expect(
 				inside.getByRole("link", { name }).querySelector("svg[data-arrow=external]"),
 				name,
 			).not.toBeNull();
-		for (const name of ["AI Index", "Skill File"])
+		for (const name of ["API", "SDK", "Machine Spec", "Templates", "AI Index", "Skill File"])
 			expect(inside.getByRole("link", { name }).querySelector("svg"), name).toBeNull();
 	});
 });

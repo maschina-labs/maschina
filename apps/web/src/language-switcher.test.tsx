@@ -21,6 +21,12 @@ const option = (name: string) =>
 		.find((node) => node.querySelector("[data-name]")?.textContent === name) as HTMLElement;
 
 describe("the language switcher", () => {
+	it("can open below a header instead of above the viewport", () => {
+		render(<LanguageSwitcher placement="below" />);
+		open();
+		expect(screen.getByRole("listbox").parentElement).toHaveClass("top-full");
+		expect(screen.getByRole("listbox").parentElement).not.toHaveClass("bottom-full");
+	});
 	it("lists every language on the list, English first, each under its own name", () => {
 		render(<LanguageSwitcher />);
 		open();
