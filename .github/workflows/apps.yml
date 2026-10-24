@@ -69,7 +69,18 @@ jobs:
 
       # One step per app, each named by its own configuration file, because that is what the check
       # reads to know an app is covered.
-      - name: Deploy the public record
+      - name: Wait for the public record destination
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error https://maschina.dev/live-route.json -o /tmp/live-route.json && node -e 'const route = JSON.parse(require("fs").readFileSync("/tmp/live-route.json", "utf8")); if (route.canonical !== "https://maschina.dev/live" || route.version !== 1) process.exit(1)'; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The website destination is not deployed; keeping the old record Worker."
+          exit 1
+
+      - name: Deploy the public record redirect
         run: pnpm exec wrangler deploy --config apps/live/wrangler.jsonc
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

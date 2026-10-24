@@ -7,13 +7,14 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 
 describe("how the live record is served", () => {
-	it("is a Worker of its own at live.maschina.dev", () => {
+	it("keeps the old hostname attached to the redirect Worker", () => {
 		const config = read("wrangler.jsonc");
 		expect(config).toMatch(/"name": "maschina-live"/);
 		expect(config).toContain(
 			'"routes": [{ "pattern": "live.maschina.dev", "custom_domain": true }]',
 		);
-		expect(config).toContain('"run_worker_first": ["/fonts/*"]');
+		expect(config).not.toContain('"assets"');
+		expect(config).not.toContain('"r2_buckets"');
 	});
 
 	it("is open to search, because the record is meant to be found", () => {

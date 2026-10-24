@@ -53,10 +53,10 @@ describe("robots.txt", () => {
 });
 
 describe("the live record's address", () => {
-	it("is its own app: the old address here is redirected to it, in any language", () => {
+	it("is a page on the website with no redirect back to the former hostname", () => {
 		const redirects = readFileSync(resolve(root, "public/_redirects"), "utf8");
-		expect(redirects).toMatch(/^\/live https:\/\/live\.maschina\.dev 301$/m);
-		expect(redirects).toMatch(/^\/:language\/live https:\/\/live\.maschina\.dev 301$/m);
+		expect(redirects).not.toContain("live.maschina.dev");
+		expect(CONTENT_PATHS).toContain("/live");
 	});
 });
 

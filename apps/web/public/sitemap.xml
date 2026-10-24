@@ -14904,4 +14904,625 @@
 		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/docs/examples"/>
 		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/docs/examples"/>
 	</url>
+	<url>
+		<loc>https://maschina.dev/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/es/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/fr/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/de/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/it/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/pt/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/nl/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/pl/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/tr/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ru/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/uk/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ar/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/he/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/hi/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/bn/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/zh/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/zh-tw/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ja/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/ko/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/id/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/vi/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/th/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
+	<url>
+		<loc>https://maschina.dev/fil/live</loc>
+		<xhtml:link rel="alternate" hreflang="en" href="https://maschina.dev/live"/>
+		<xhtml:link rel="alternate" hreflang="es" href="https://maschina.dev/es/live"/>
+		<xhtml:link rel="alternate" hreflang="fr" href="https://maschina.dev/fr/live"/>
+		<xhtml:link rel="alternate" hreflang="de" href="https://maschina.dev/de/live"/>
+		<xhtml:link rel="alternate" hreflang="it" href="https://maschina.dev/it/live"/>
+		<xhtml:link rel="alternate" hreflang="pt" href="https://maschina.dev/pt/live"/>
+		<xhtml:link rel="alternate" hreflang="nl" href="https://maschina.dev/nl/live"/>
+		<xhtml:link rel="alternate" hreflang="pl" href="https://maschina.dev/pl/live"/>
+		<xhtml:link rel="alternate" hreflang="tr" href="https://maschina.dev/tr/live"/>
+		<xhtml:link rel="alternate" hreflang="ru" href="https://maschina.dev/ru/live"/>
+		<xhtml:link rel="alternate" hreflang="uk" href="https://maschina.dev/uk/live"/>
+		<xhtml:link rel="alternate" hreflang="ar" href="https://maschina.dev/ar/live"/>
+		<xhtml:link rel="alternate" hreflang="he" href="https://maschina.dev/he/live"/>
+		<xhtml:link rel="alternate" hreflang="hi" href="https://maschina.dev/hi/live"/>
+		<xhtml:link rel="alternate" hreflang="bn" href="https://maschina.dev/bn/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-CN" href="https://maschina.dev/zh/live"/>
+		<xhtml:link rel="alternate" hreflang="zh-TW" href="https://maschina.dev/zh-tw/live"/>
+		<xhtml:link rel="alternate" hreflang="ja" href="https://maschina.dev/ja/live"/>
+		<xhtml:link rel="alternate" hreflang="ko" href="https://maschina.dev/ko/live"/>
+		<xhtml:link rel="alternate" hreflang="id" href="https://maschina.dev/id/live"/>
+		<xhtml:link rel="alternate" hreflang="vi" href="https://maschina.dev/vi/live"/>
+		<xhtml:link rel="alternate" hreflang="th" href="https://maschina.dev/th/live"/>
+		<xhtml:link rel="alternate" hreflang="fil" href="https://maschina.dev/fil/live"/>
+		<xhtml:link rel="alternate" hreflang="x-default" href="https://maschina.dev/live"/>
+	</url>
 </urlset>

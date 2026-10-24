@@ -110,6 +110,26 @@ describe("what to fetch, and where to put it", () => {
 	});
 });
 
+describe("an app whose Worker serves no fonts", () => {
+	it("is skipped, since a redirect has no page to ask for a font", () => {
+		const root = apps({
+			web: {
+				"src/styles.css": face("Sohne-400.woff2"),
+				"wrangler.jsonc": '{ "r2_buckets": [{ "binding": "FONTS" }] }',
+			},
+			old: {
+				"src/styles.css": face("Sohne-400.woff2"),
+				"wrangler.jsonc": '{ "main": "./src/worker.ts" }',
+			},
+		});
+
+		assert.deepEqual(
+			whatToFetch(root).map((one) => one.app),
+			["web"],
+		);
+	});
+});
+
 describe("this repository, as it stands", () => {
 	const apps = fileURLToPath(new URL("../apps/", import.meta.url));
 
@@ -117,6 +137,7 @@ describe("this repository, as it stands", () => {
 		const asking = readdirSync(apps, { withFileTypes: true })
 			.filter((entry) => entry.isDirectory())
 			.map((entry) => entry.name)
+			.filter((app) => readFileSync(join(apps, app, "wrangler.jsonc"), "utf8").includes('"FONTS"'))
 			.filter((app) =>
 				["src/styles.css", "index.html"]
 					.map((file) => join(apps, app, file))

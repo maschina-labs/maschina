@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ArticlePage } from "./article.tsx";
 import { BlankPage } from "./blank-page.tsx";
 import { BrandPage } from "./brand-page.tsx";
@@ -29,9 +29,31 @@ import { useMeta } from "./use-meta.ts";
 
 export { CONTENT_PATHS };
 
+const LiveApp = lazy(() =>
+	import("./live/app.tsx").then((module) => ({ default: module.LiveApp })),
+);
+
 /** The page for an address, with the language already taken off it. */
 function Page({ authUrl, clean, locale }: { authUrl: string; clean: string; locale: LocaleCode }) {
 	const m = useMessages();
+	if (clean === "/live")
+		return (
+			<Suspense
+				fallback={
+					<main aria-label="Live Record" className="min-h-svh bg-black p-6 text-neutral-400">
+						Reading the record.
+					</main>
+				}
+			>
+				<LiveApp
+					gateway={
+						import.meta.env.DEV
+							? ""
+							: (import.meta.env.VITE_GATEWAY_URL ?? "https://api.maschina.dev")
+					}
+				/>
+			</Suspense>
+		);
 	const content = contentFor(locale);
 	const doc = content.documents[clean];
 	if (doc) return <LegalPage authUrl={authUrl} doc={doc} englishPath={clean} />;

@@ -15,6 +15,7 @@ export const CONTENT_PATHS = [
 		"/support",
 		"/brand",
 		"/papers",
+		"/live",
 		...DOC_PAGES.map((page) => page.path),
 	]),
 ];

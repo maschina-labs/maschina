@@ -75,7 +75,7 @@ describe("the sitemap", () => {
 
 	it("knows which links leave the site: those with a full address", () => {
 		const external = all.filter((item) => item.external).map((item) => item.label);
-		expect(external.sort()).toEqual(["Changelog", "GitHub", "Live Record", "Status", "X"]);
+		expect(external.sort()).toEqual(["Changelog", "GitHub", "Status", "X"]);
 		for (const item of all) expect(item.external).toBe(item.href ? leavesSite(item.href) : false);
 	});
 
