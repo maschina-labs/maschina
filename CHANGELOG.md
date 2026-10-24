@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.70](https://github.com/maschina-labs/maschina/compare/v0.0.69...v0.0.70) (2026-10-24)
+
+
+### Added
+
+* **web:** rebuild the front page with the new sections and header ([#891](https://github.com/maschina-labs/maschina/issues/891)) ([3e28818](https://github.com/maschina-labs/maschina/commit/3e28818b1939b656fc552a67e14a48730da661d2))
+
 ## [0.0.69](https://github.com/maschina-labs/maschina/compare/v0.0.68...v0.0.69) (2026-10-24)
 
 
