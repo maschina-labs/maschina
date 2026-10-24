@@ -6,16 +6,16 @@
 			"entry": ["scripts/**/*.mjs"]
 		},
 		"apps/web": {
-			"entry": ["src/worker.ts", "scripts/*.ts"]
+			"entry": ["scripts/*.ts"]
 		},
 		"apps/live": {
-			"entry": ["src/worker.ts", "src/record.ts", "src/format.ts", "src/dev/sample-boot.ts"]
+			"entry": ["src/record.ts", "src/format.ts", "src/dev/sample-boot.ts"]
 		},
 		"apps/auth": {
-			"entry": ["src/worker.ts", "src/people-api.ts", "src/next.ts"]
+			"entry": ["src/people-api.ts", "src/next.ts"]
 		},
 		"apps/app": {
-			"entry": ["src/worker.ts", "src/dev/seed-boot.ts"]
+			"entry": ["src/dev/seed-boot.ts"]
 		},
 		"packages/integration-tests": {
 			"entry": ["test/**/*.test.ts"]
@@ -95,5 +95,5 @@
 			]
 		}
 	},
-	"ignoreBinaries": ["act", "gitleaks", "jq", "wrangler"]
+	"ignoreBinaries": ["act", "gitleaks", "jq"]
 }
