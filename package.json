@@ -73,6 +73,7 @@
 		"turbo": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
+		"wrangler": "catalog:",
 		"yaml": "catalog:"
 	}
 }

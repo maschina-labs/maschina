@@ -50,6 +50,18 @@ const servedApps = readdirSync(apps, { withFileTypes: true })
 	.sort();
 
 describe("every app Cloudflare serves gets deployed by something", () => {
+	it("can run wrangler: a step that calls it needs it installed, or the deploy fails on the first line", () => {
+		// This workflow failed on every push from the day it was added, with 'Command "wrangler" not found',
+		// because nothing in the repository depended on it.
+		const root = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+		if (/pnpm exec wrangler/.test(workflow)) {
+			assert.ok(
+				root.devDependencies?.wrangler,
+				"the workflow runs wrangler but the root does not depend on it",
+			);
+		}
+	});
+
 	it("waits for the website's /live destination before replacing the old record Worker", () => {
 		const destination = workflow.indexOf("https://maschina.dev/live-route.json");
 		const redirect = workflow.indexOf("wrangler deploy --config apps/live/wrangler.jsonc");

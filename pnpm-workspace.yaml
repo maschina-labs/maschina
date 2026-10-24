@@ -21,6 +21,8 @@ allowBuilds:
   bigint-buffer: false
   bufferutil: false
   utf-8-validate: false
+  # Only needed to run a Worker on this machine. A deploy uploads the code and never runs it.
+  workerd: false
 
 # One version of each shared dependency, declared once.
 catalog:
@@ -71,6 +73,7 @@ catalog:
   uuidv7: 1.2.1
   vite: 8.3.3
   vitest: 5.0.3
+  wrangler: 4.152.0
   yaml: 2.9.1
   zod: 4.6.6
 
