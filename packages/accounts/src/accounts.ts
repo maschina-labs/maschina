@@ -107,7 +107,10 @@ export function createAccounts(options: AccountsOptions): Accounts {
 				? { crossSubDomainCookies: { enabled: true, domain: options.cookieDomain } }
 				: {}),
 		},
-		plugins: [sso()],
+		// A provider that claims an email domain decides who may sign in as anyone at that domain, so a person cannot
+		// register one: with a limit of none, registration is refused for everybody. A company's provider is added by
+		// Maschina until it is turned on for an organization's admins, with its domain proved.
+		plugins: [sso({ providersLimit: 0 })],
 	});
 
 	return {
