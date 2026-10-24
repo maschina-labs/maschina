@@ -8,6 +8,7 @@ made it. The first machines trade: ranges that buy dips and sell rises, price tr
 once and left to run. Paper machines are free and trade against real prices without moving money.
 
 - App: https://app.maschina.dev
-- Docs: https://docs.maschina.dev
+- Docs: https://maschina.dev/docs
+- The live record, real money and paper kept apart: https://maschina.dev/live
 - Source: https://github.com/maschina-labs/maschina
 - The papers, from the primer to the risk disclosures, all listed at https://maschina.dev/papers and indexed in https://maschina.dev/papers/index.pdf

@@ -26,9 +26,9 @@ More: https://maschina.dev/about
 
 This is a statement of direction, not a commitment. Plans change, and there are no dates.
 
-Now: the front pages of the site and the documents that go with them; risk limits at the signer (a position's share of the book, and drawdown); paper machines that run on live prices with no real money; sign in on its own address, with more ways to sign in than a wallet; the public record of what a machine decided, including what it refused.
+Now: the front pages of the site and the documents that go with them; risk limits at the signer (a position's share of the book, and drawdown); paper machines that run on live prices with no real money; the public record of what a machine decided, including what it refused.
 
-Next: a stop switch for every machine, and loss caps across all of an owner's machines; reconciliation of a machine's record against what is on chain; a tested way to withdraw everything; alerts to the owner when a machine does something that matters; a developer interface for proposing a trade to a machine's rules; documentation on its own address.
+Next: a stop switch for every machine, and loss caps across all of an owner's machines; reconciliation of a machine's record against what is on chain; a tested way to withdraw everything; alerts to the owner when a machine does something that matters; a developer interface for proposing a trade to a machine's rules; sign in on its own address, with more ways to sign in than a wallet.
 
 Later: machine rules held on chain, after an independent audit; a way to publish a proven machine, and for others to copy it; machines that run on other people's computers, with those people paid for it; a phone app.
 

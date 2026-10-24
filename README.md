@@ -73,7 +73,8 @@ guarantee it is built on.
 ## Layout
 
 ```text
-apps/          web (the company site), app (the dashboard), auth, docs, live (the public record)
+apps/          web (the company site, with the docs and the live record), app (the dashboard), auth,
+               live (a redirect from the old record address)
 services/      gateway (the public API), orchestrator (schedules and hands out work),
                signer (the only service that can request a signature), provisioner (makes a
                machine's wallet and policy), daemon (runs machines on a node), bots (Telegram)
