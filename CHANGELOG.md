@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.69](https://github.com/maschina-labs/maschina/compare/v0.0.68...v0.0.69) (2026-10-24)
+
+
+### Fixed
+
+* **auth:** refuse a sign in message asked for by another page ([#889](https://github.com/maschina-labs/maschina/issues/889)) ([beea53f](https://github.com/maschina-labs/maschina/commit/beea53ff509222baa4eabeec6a436210a34c271d))
+
 ## [0.0.68](https://github.com/maschina-labs/maschina/compare/v0.0.67...v0.0.68) (2026-10-24)
 
 
