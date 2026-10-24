@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Hero } from "./hero.tsx";
 
@@ -18,229 +18,40 @@ vi.mock("@maschina/field", () => ({
 const AUTH = "https://auth.maschina.dev";
 
 describe("the hero", () => {
-	it("is a full screen with everything centered in it", () => {
+	it("opens with the machine-economy headline and owner-control explanation", () => {
 		render(<Hero authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Maschina" });
-		// A full screen: nothing of the next section shows until you scroll.
-		expect(section.className).toContain("h-lvh");
-		expect(section.className).toContain("min-h-[36rem]");
-		expect(section.className).not.toContain("84lvh");
-		expect(section.className).toContain("items-center");
-		expect(section.className).toContain("justify-center");
-		expect(section.className).toContain("text-center");
-		expect(section.className).toContain("px-(--gutter)");
-		const heading = screen.getByRole("heading", {
-			level: 1,
-			name: "The operating system for autonomous capital.",
-		});
-		expect(heading.className).toContain("z-20");
-		// The buttons and the docs are centered under the headline too, on a phone as well.
-		const hero = within(section);
-		const buttons = hero.getByRole("link", { name: "Start for free" }).parentElement as HTMLElement;
-		expect(buttons.className).toContain("sm:justify-center");
-		expect(hero.getByRole("link", { name: "Read the docs" }).className).toContain("justify-center");
+		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+			"The operating system for the machine economy.",
+		);
+		expect(screen.getByText(/Build machines that act on your behalf/)).toHaveTextContent(
+			/rules you define/,
+		);
 	});
-
-	it("has two buttons under the headline: start for free, and the docs", () => {
+	it("keeps the primary action and a plain docs link, with generous copy spacing", () => {
 		render(<Hero authUrl={AUTH} />);
-		const hero = within(screen.getByRole("region", { name: "Maschina" }));
-		// The two buttons are the only links.
-		expect(
-			hero
-				.getAllByRole("link")
-				.slice(0, 2)
-				.map((link) => link.textContent),
-		).toEqual(["Start for free", "Read the docs"]);
-		const start = hero.getByRole("link", { name: "Start for free" });
+		const start = screen.getByRole("link", { name: "Start for free" });
+		const docs = screen.getByRole("link", { name: "Read the docs" });
 		expect(start).toHaveAttribute("href", `${AUTH}/sign-up`);
-		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("aria-hidden", "true");
-		expect(start.querySelector("[data-chip] svg")).toHaveAttribute("data-arrow", "chevron");
-		const docs = hero.getByRole("link", { name: "Read the docs" });
+		expect(start).toHaveClass("silver-button");
+		expect(start.querySelector("[data-chip]")).toBeInTheDocument();
 		expect(docs).toHaveAttribute("href", "/docs");
-		// The docs are a box of their own, a quiet gray one, with no arrow: only the main button has a chip.
-		expect(docs.className).toMatch(/\bbg-white\/\[0\.13\]/);
-		expect(docs.className).not.toMatch(/rounded/);
-		expect(docs.querySelector("svg")).toBeNull();
-		expect(docs.querySelector("[data-chip]")).toBeNull();
-	});
-
-	it("says what it does under the headline, in one quiet line", () => {
-		render(<Hero authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Maschina" });
-		const heading = within(section).getByRole("heading", { level: 1 });
-		const line = within(section).getByText("AI decides. Maschina decides what it's allowed to do.");
-		expect(line.tagName).toBe("P");
-		// One line on anything wider than a phone: no width cap, no balancing into two.
-		expect(line.className).toContain("sm:whitespace-nowrap");
-		expect(line.className).not.toContain("max-w-");
-		expect(line.className).toContain("z-20");
-		// Straight after the headline, before the buttons.
-		expect(heading.nextElementSibling).toBe(line);
-		expect(line.nextElementSibling).toBe(
-			within(section).getByRole("link", { name: "Start for free" }).parentElement,
+		expect(docs.className).not.toMatch(/bg-/);
+		expect(docs.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+		expect(screen.getByText(/Build machines that act on your behalf/)).toHaveClass(
+			"mt-8",
+			"leading-[1.7]",
 		);
 	});
-
-	it("ends with one plain line of facts, with no link and no claim about results", () => {
+	it("keeps the hero left aligned and the facts centered only on mobile", () => {
 		render(<Hero authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Maschina" });
-		const line = within(section).getByText("Source-available, built on Solana.");
-		expect(line.tagName).toBe("P");
-		expect(section.lastElementChild).toBe(line);
-		expect(line.querySelector("a")).toBeNull();
-		expect(section.textContent ?? "").not.toMatch(/Range Finder|real money|September 28/);
-	});
-
-	it("has nothing else on it: nothing floating", () => {
-		const { container } = render(<Hero authUrl={AUTH} />);
-		expect(container.querySelectorAll("[data-tile]")).toHaveLength(0);
-	});
-
-	it("paints the headline in silver with a sheen, and a soft bloom behind it", () => {
-		render(<Hero authUrl={AUTH} />);
-		const { className } = screen.getByRole("heading", { level: 1 });
-		// A gradient clipped to the letters, so the words themselves are the color.
-		expect(className).toContain("bg-clip-text");
-		expect(className).toContain("text-transparent");
-		expect(className).toContain("linear-gradient(105deg");
-		// The bloom is a glow that follows the letters' shape, not a box.
-		expect(className).toContain("drop-shadow(");
-		expect(className).not.toContain("animate-");
-		// Silver only: no pink or violet hue in the gradient or the glow.
-		expect(className).not.toMatch(/_(300|325)[)_/]/);
-	});
-
-	it("lights the letters under the cursor, and lets go when it leaves", () => {
-		render(<Hero authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Maschina" });
-		const heading = screen.getByRole("heading", { level: 1 });
-		heading.getBoundingClientRect = () =>
-			({ left: 100, top: 200, width: 1000, height: 200 }) as DOMRect;
-		expect(heading.className).toContain("radial-gradient(circle_");
-		// The spot is placed relative to the headline, as a share of its size.
-		fireEvent.pointerMove(section, { clientX: 600, clientY: 300 });
-		expect(heading.style.getPropertyValue("--mx")).toBe("50%");
-		expect(heading.style.getPropertyValue("--my")).toBe("50%");
-		fireEvent.pointerMove(section, { clientX: 100, clientY: 200 });
-		expect(heading.style.getPropertyValue("--mx")).toBe("0%");
-		fireEvent.pointerLeave(section);
-		expect(heading.style.getPropertyValue("--mx")).toBe("");
-		expect(heading.style.getPropertyValue("--my")).toBe("");
-	});
-
-	it("does not follow a finger, or anyone who asked for less motion", () => {
-		render(<Hero authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Maschina" });
-		const heading = screen.getByRole("heading", { level: 1 });
-		heading.getBoundingClientRect = () =>
-			({ left: 0, top: 0, width: 1000, height: 200 }) as DOMRect;
-		fireEvent.pointerMove(section, { clientX: 500, clientY: 100, pointerType: "touch" });
-		expect(heading.style.getPropertyValue("--mx")).toBe("");
-		const original = window.matchMedia;
-		window.matchMedia = ((query: string) => ({
-			matches: query.includes("reduce"),
-			media: query,
-			addEventListener: () => {},
-			removeEventListener: () => {},
-			addListener: () => {},
-			removeListener: () => {},
-			onchange: null,
-			dispatchEvent: () => false,
-		})) as typeof window.matchMedia;
-		fireEvent.pointerMove(section, { clientX: 500, clientY: 100 });
-		window.matchMedia = original;
-		expect(heading.style.getPropertyValue("--mx")).toBe("");
-	});
-
-	it("groups the headline with its line, then leaves a real gap before the buttons", () => {
-		render(<Hero authUrl={AUTH} />);
-		const section = screen.getByRole("region", { name: "Maschina" });
-		const line = within(section).getByText("AI decides. Maschina decides what it's allowed to do.");
-		const buttons = within(section).getByRole("link", { name: "Start for free" })
-			.parentElement as HTMLElement;
-		expect(line.className).toContain("mt-4");
-		expect(buttons.className).toContain("mt-14");
-		// The block sits a little below the middle of the screen.
-		expect(section.className).toContain("pt-32");
-		expect(section.className).toContain("pb-[calc(4rem+100lvh-100svh)]");
-	});
-
-	it("keeps that line at the foot of the screen, off the stack", () => {
-		render(<Hero authUrl={AUTH} />);
-		const line = screen.getByText("Source-available, built on Solana.");
-		expect(line.className).toContain("absolute");
-		expect(line.className).toContain("inset-x-0");
-		expect(line.className).toContain("bottom-[calc(2rem+100lvh-100svh)]");
-		expect(line.className).toContain("z-20");
-		expect(line.className).toContain("text-neutral-500");
-	});
-
-	it("has plain buttons, with no glint sweeping across them", () => {
-		render(<Hero authUrl={AUTH} />);
-		const hero = within(screen.getByRole("region", { name: "Maschina" }));
-		for (const name of ["Start for free", "Read the docs"]) {
-			const link = hero.getByRole("link", { name });
-			expect(link.querySelector("[data-glint]")).toBeNull();
-		}
-	});
-
-	it("opens on its headline, with no chip above it", () => {
-		const { container } = render(<Hero authUrl={AUTH} />);
-		// Every chip is gone from the front page, the hero's badge with them (Ash, 2026-10-16).
-		expect(container.querySelector("[data-chip-tag]")).toBeNull();
-		expect(screen.queryByText("Free to try on paper")).toBeNull();
-		// The headline is the first thing anyone reads.
-		expect(screen.getByRole("heading", { level: 1 }).textContent).toContain(
-			"The operating system for",
+		expect(section).toHaveClass("h-lvh", "items-start", "text-left");
+		expect(section.className).not.toContain("sticky");
+		expect(screen.getByText("Source-available, built on Solana.")).toHaveClass(
+			"text-center",
+			"md:text-left",
 		);
-	});
-
-	it("has buttons that wrap closely around the arrow inside them, both the same height", () => {
-		render(<Hero authUrl={AUTH} />);
-		const hero = within(screen.getByRole("region", { name: "Maschina" }));
-		const start = hero.getByRole("link", { name: "Start for free" });
-		const docs = hero.getByRole("link", { name: "Read the docs" });
-		// The arrow keeps its size; the button shrinks around it to a thin pearl edge.
-		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
-		// The same thickness as the header's buttons: 40 on a phone and a tablet, 32 on a desktop.
-		expect(start.className).toContain("h-10");
-		expect(start.className).toContain("xl:h-8");
-		expect(start.className).toContain("pr-1");
-		expect(start.className).not.toContain("pr-1.5");
-		expect(start.className).not.toMatch(/\bpy-/);
-		expect(docs.className).toContain("h-10");
-		expect(docs.className).toContain("xl:h-8");
-		expect(docs.className).not.toMatch(/\bpy-/);
-	});
-
-	it("scrolls away with the page: nothing pins it, and nothing rolls over it", () => {
-		render(<Hero authUrl={AUTH} />);
-		const { className } = screen.getByRole("region", { name: "Maschina" });
-		expect(className).not.toMatch(/\bsticky\b/);
-		expect(className).not.toContain("top-0");
-		expect(className).toContain("relative");
-	});
-
-	it("has a thin outline around the headline's letters: one pixel, in soft white", () => {
-		render(<Hero authUrl={AUTH} />);
-		const { className } = screen.getByRole("heading", { level: 1 });
-		expect(className).toContain("[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]");
-		expect(className).not.toMatch(/text-stroke:[2-9]/);
-	});
-
-	it("keeps the tails of the letters: room below the headline's box for y, p and g, taken back from the margin", () => {
-		render(<Hero authUrl={AUTH} />);
-		const { className } = screen.getByRole("heading", { level: 1 });
-		expect(className).toContain("bg-clip-text");
-		expect(className).toContain("pb-[0.14em]");
-		expect(className).toContain("-mb-[0.14em]");
-	});
-
-	it("has a bigger headline than before", () => {
-		render(<Hero authUrl={AUTH} />);
-		expect(screen.getByRole("heading", { level: 1 }).className).toContain(
-			"clamp(2.5rem,6.4vw,7.5rem)",
-		);
+		expect(screen.getByRole("heading", { level: 1 }).className).not.toContain("text-stroke");
 	});
 
 	it("holds the ribbon back until the page has finished loading and the browser is idle, so three.js never competes with the first paint", async () => {

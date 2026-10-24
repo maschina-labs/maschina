@@ -35,13 +35,7 @@ describe("the showcase", () => {
 		expect(
 			heading.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING,
 		).toBeTruthy();
-		for (const part of [
-			"text-center",
-			"bg-clip-text",
-			"[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]",
-			"pb-[0.14em]",
-			"-mb-[0.14em]",
-		])
+		for (const part of ["text-center", "bg-clip-text", "pb-[0.14em]", "-mb-[0.14em]"])
 			expect(heading.className).toContain(part);
 	});
 

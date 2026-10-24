@@ -1,4 +1,5 @@
 import { Frame } from "./frame.tsx";
+import { PageStrip } from "./page-strip.tsx";
 import { useTitle } from "./use-title.ts";
 
 /**
@@ -10,7 +11,8 @@ export function BlankPage({ authUrl, title }: { authUrl: string; title: string }
 	useTitle(title);
 
 	return (
-		<Frame authUrl={authUrl} className="min-h-lvh">
+		<Frame authUrl={authUrl} className="min-h-lvh border-b border-[oklch(0.94_0.012_245/0.12)]">
+			<PageStrip />
 			<h1 className="sr-only">{title}</h1>
 		</Frame>
 	);

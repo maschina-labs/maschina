@@ -44,7 +44,7 @@ describe("the closing section", () => {
 		expect(start.className).toContain("xl:h-8");
 		expect(start.querySelector("[data-chip]")?.className).toContain("size-7");
 		const docs = screen.getByRole("link", { name: "Read the docs" });
-		expect(docs.className).toMatch(/\bbg-white\/\[0\.13\]/);
+		expect(docs.className).not.toMatch(/bg-/);
 		expect(docs.className).toContain("h-10");
 		expect(docs.className).toContain("xl:h-8");
 	});
@@ -67,7 +67,7 @@ describe("the closing section", () => {
 	it("has a soft glow along its bottom edge, rising from the seam with the footer: no beams, no cones", () => {
 		const { container } = render(<Closing authUrl={AUTH} />);
 		const section = screen.getByRole("region", { name: "Get Started" });
-		const glow = container.querySelector("[data-glow]") as HTMLElement;
+		const glow = container.querySelector("[class*=radial-gradient]") as HTMLElement;
 		expect(container.querySelector("[data-stage-lights]")).toBeNull();
 		expect(glow).toHaveAttribute("aria-hidden", "true");
 		expect(glow.className).toContain("pointer-events-none");

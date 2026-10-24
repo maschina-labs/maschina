@@ -103,7 +103,7 @@ describe("the header", () => {
 
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Developers" }));
 		const panel = screen.getByRole("region", { name: "Developers" });
-		expect((panel.parentElement as HTMLElement).className).toContain("inset-x-0");
+		expect(panel.closest("header")).toBe(screen.getByRole("banner"));
 		const inside = within(panel);
 		for (const name of ["Docs", "API", "SDK", "Machine Spec", "Templates"]) {
 			expect(inside.getByRole("link", { name })).toBeInTheDocument();
@@ -229,8 +229,7 @@ describe("the header", () => {
 	it("keeps the content of the bar where it was: same height and padding, with the blur behind it", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		const bar = header.querySelector("[data-fade]")?.nextElementSibling
-			?.nextElementSibling as HTMLElement;
+		const bar = header.querySelector("[data-fade]")?.nextElementSibling as HTMLElement;
 		expect(bar.className).toContain("py-4");
 		expect(bar.className).not.toContain("py-5");
 		expect(bar.className).toContain("px-(--gutter)");
@@ -239,10 +238,10 @@ describe("the header", () => {
 	it("takes a solid background while a dropdown is open, so the two read as one piece", () => {
 		render(<Header authUrl={AUTH} />);
 		const header = screen.getByRole("banner");
-		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-0");
+		expect(header.querySelector("[data-fade]")).not.toHaveClass("opacity-100");
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
-		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-100");
-		expect(header.querySelector("[data-solid]")?.className).toContain("bg-black");
+		expect(header.querySelector("[data-fade]")?.className).toContain("opacity-100");
+		expect(header.querySelector("[data-fade]")).toHaveClass("bg-black/50");
 	});
 
 	it("opens the same kind of dropdown on a phone: full width, joined to the header", () => {
@@ -256,7 +255,7 @@ describe("the header", () => {
 		const panel = screen.getByRole("navigation", { name: "Pages, menu" });
 		const wrapper = panel.parentElement?.parentElement;
 		expect(wrapper?.className).toContain("inset-x-0");
-		expect(screen.getByRole("banner").querySelector("[data-solid]")?.className).toContain(
+		expect(screen.getByRole("banner").querySelector("[data-fade]")?.className).toContain(
 			"opacity-100",
 		);
 		const open = within(panel);
@@ -383,7 +382,7 @@ describe("the header", () => {
 		expect(screen.queryByRole("region", { name: "Search" })).toBeNull();
 		fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Search" }));
 		const panel = screen.getByRole("region", { name: "Search" });
-		expect((panel.parentElement as HTMLElement).className).toContain("inset-x-0");
+		expect(panel.closest("header")).toBe(screen.getByRole("banner"));
 		const box = within(panel).getByRole("searchbox", { name: "Search Maschina" });
 		expect(box).toHaveFocus();
 	});
@@ -516,17 +515,19 @@ describe("the header", () => {
 		expect(menu.className).toContain("xl:hidden");
 	});
 
-	it("stays at the top of the screen as the page scrolls, as a sticky rail rather than a fixed bar, so it moves down with the page when it is pulled", () => {
+	it("keeps the rail fixed on narrow screens and sticky on desktop", () => {
 		render(<Header authUrl={AUTH} />);
 		const bar = screen.getByRole("banner");
 		// A fixed bar stays glued to the screen while the page is pulled down to refresh, and the loader appears behind it.
-		// A sticky rail of no height travels with the page, so the bar goes down with the page and the loader sits above it.
+		// Desktop retains the sticky rail. Narrow screens use a fixed rail to avoid zero-height sticky rendering issues.
 		expect(bar.className).not.toContain("fixed");
 		expect(bar.className).toContain("absolute");
 		expect(bar.className).toContain("inset-x-0");
 		const rail = bar.parentElement as HTMLElement;
 		expect(rail).toHaveAttribute("data-rail");
 		expect(rail.className).toContain("sticky");
+		expect(rail.className).toContain("max-md:fixed");
+		expect(rail.className).toContain("max-md:inset-x-0");
 		expect(rail.className).toContain("top-0");
 		expect(rail.className).toContain("h-0");
 		expect(rail.className).toContain("z-40");
@@ -561,7 +562,7 @@ describe("the header", () => {
 		expect(fade()).toHaveAttribute("aria-hidden", "true");
 		expect(fade().className).toContain("pointer-events-none");
 		// Still no solid fill while nothing is open.
-		expect(header.querySelector("[data-solid]")?.className).toContain("opacity-0");
+		expect(header.querySelector("[data-fade]")).not.toHaveClass("opacity-100");
 		expect(header.querySelector("[data-group]")).toBeNull();
 		expect(header.querySelector("[data-word] img")).not.toBeNull();
 
@@ -593,7 +594,7 @@ describe("the header", () => {
 		Object.defineProperty(window, "scrollY", { value: 120, configurable: true });
 		fireEvent.scroll(window);
 		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
-		expect(screen.getByRole("banner").querySelector("[data-solid]")?.className).toContain(
+		expect(screen.getByRole("banner").querySelector("[data-fade]")?.className).toContain(
 			"opacity-100",
 		);
 	});
@@ -743,26 +744,19 @@ describe("the header's motion", () => {
 	});
 });
 
-describe("the panels under the bar are glass, so there is no seam where the blur starts", () => {
-	it("makes the dropdown and the bar behind it frosted glass on a desktop, blurring the same page as the rest of the screen, and solid only on a phone", () => {
-		const { container } = render(<Header authUrl={AUTH} />);
-		fireEvent.mouseEnter(screen.getByRole("button", { name: "Product" }));
-		const section = container.querySelector('[data-panel="dropdown"] > section') as HTMLElement;
-		expect(section.className).toContain("xl:bg-black/");
-		expect(section.className).toContain("xl:backdrop-blur-xl");
-		expect(section.className).not.toMatch(/(^|\s)bg-black\/\d/);
-		const solid = container.querySelector("[data-solid]") as HTMLElement;
-		expect(solid.className).toContain("xl:bg-black/");
-		expect(solid.className).toContain("xl:backdrop-blur-xl");
-	});
-
-	it("gives the search panel the same glass, and takes the scroll glass away while any panel is open so the two never stack", () => {
+describe("the panels share the bar's glass surface", () => {
+	it.each(["Product", "Search"])("extends one glass surface behind %s", async (name) => {
 		const { container } = render(<Header authUrl={AUTH} />);
 		const fade = container.querySelector("[data-fade]") as HTMLElement;
-		expect(fade.className).not.toContain("xl:opacity-0!");
-		fireEvent.click(screen.getByRole("button", { name: "Search" }));
-		const search = container.querySelector('[data-panel="search"] > section') as HTMLElement;
-		expect(search.className).toContain("xl:backdrop-blur-xl");
-		expect(fade.className).toContain("xl:opacity-0!");
+		expect(fade).not.toHaveClass("opacity-100");
+		fireEvent.click(screen.getByRole("button", { name }));
+		expect(fade).toHaveClass("opacity-100", "backdrop-blur-xl");
+		const panel = container.querySelector(
+			name === "Search" ? '[data-panel="search"] > section' : '[data-panel="dropdown"] > section',
+		);
+		expect(panel?.closest("header")).toBe(screen.getByRole("banner"));
+		expect(panel?.className).not.toContain("backdrop-blur");
+		fireEvent.keyDown(document, { key: "Escape" });
+		await vi.waitFor(() => expect(fade).not.toHaveClass("opacity-100"));
 	});
 });

@@ -3,6 +3,7 @@ import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { fill } from "./i18n/messages.ts";
 import { useMessages } from "./i18n/use-messages.ts";
 import { flat, type Part, Text } from "./legal.tsx";
+import { PAGE_SHEET, PageStrip } from "./page-strip.tsx";
 import { useTitle } from "./use-title.ts";
 
 /** One block of a section: a paragraph (plain, or with links in it), a pulled quote, or a bulleted list. */
@@ -40,8 +41,8 @@ export function ArticlePage({
 	const m = useMessages().article;
 	useTitle(tab ?? doc.title);
 	return (
-		<Frame authUrl={authUrl}>
-			<article className="w-full">
+		<Frame authUrl={authUrl} framed={false}>
+			<article className="page-frame w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
 					<div data-head-text className="relative mx-auto w-full text-center max-w-[48rem]">
@@ -58,7 +59,8 @@ export function ArticlePage({
 						</p>
 					</div>
 				</div>
-				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
+				<div data-sheet className={`${SHEET} ${PAGE_SHEET} pb-24 sm:pb-32`}>
+					<PageStrip />
 					<div data-body className="mx-auto w-full max-w-[48rem]">
 						{doc.sections.map((section, sectionIndex) => (
 							<section

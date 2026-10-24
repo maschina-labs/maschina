@@ -26,6 +26,13 @@ describe("every text page opens with a centered head", () => {
 		["the contact page", () => <ContactPage authUrl={AUTH} />],
 	];
 
+	it.each(pages)("%s starts its framing below the hero", (_name, page) => {
+		const { container } = render(page());
+		expect(container.querySelector("main")).not.toHaveClass("document-frame");
+		expect(container.querySelector("[data-sheet]")).toHaveClass("document-frame");
+		expect(container.querySelector("[data-page-strip], [data-legal-strip]")).toBeInTheDocument();
+	});
+
 	it.each(pages)(
 		"%s centers everything in its head, and leaves the sheet that rolls over it alone",
 		(_name, page) => {

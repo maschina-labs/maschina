@@ -11,16 +11,18 @@ export function Frame({
 	authUrl,
 	children,
 	className = "",
+	framed = true,
 }: {
 	authUrl: string;
 	children: React.ReactNode;
 	/** Added to the main part: a blank page gives it a full screen of height. */
 	className?: string;
+	framed?: boolean;
 }) {
 	return (
 		<PullToRefresh className="relative flex min-h-lvh flex-col bg-black">
 			<Header authUrl={authUrl} />
-			<main className={className}>{children}</main>
+			<main className={`${framed ? "document-frame" : ""} ${className}`}>{children}</main>
 			<Footer />
 			<PreferencesToast />
 		</PullToRefresh>

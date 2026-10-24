@@ -32,6 +32,17 @@ const SMALL: LegalDoc = {
 };
 
 describe("a legal page", () => {
+	it.each([TERMS, PRIVACY, RISK, ACCEPTABLE_USE, LICENSE, DISCLOSURE])(
+		"frames $title with the shared legal shell",
+		(doc) => {
+			render(<LegalPage authUrl={AUTH} doc={doc} />);
+			expect(screen.getByRole("main")).not.toHaveClass("document-frame");
+			expect(document.querySelector("[data-sheet]")).toHaveClass("document-frame");
+			expect(document.querySelector("[data-legal-strip]")).toBeInTheDocument();
+			expect(screen.getByRole("article")).toHaveClass("legal-frame");
+		},
+	);
+
 	it("opens with a big plain title, the date under it, and the first words as a lead", () => {
 		render(<LegalPage authUrl={AUTH} doc={SMALL} />);
 		const main = screen.getByRole("main");

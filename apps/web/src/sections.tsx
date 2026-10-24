@@ -1,8 +1,15 @@
+import {
+	type PaperTrade,
+	PublicRecord,
+	type PublicRefusal,
+	type PublicTrade,
+} from "@maschina/contracts";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Backdrop } from "./backdrop.tsx";
 import { Link } from "./i18n/link.tsx";
 import { rich } from "./i18n/rich.tsx";
 import { useMessages } from "./i18n/use-messages.ts";
-import { DOCS } from "./links.ts";
+import { DOCS, LIVE } from "./links.ts";
 import { SectionHead } from "./section-head.tsx";
 import { TryButton } from "./try-button.tsx";
 
@@ -115,12 +122,6 @@ function Chapter({
 				data-seen={seen}
 				className="group/chapter grid w-full gap-12 lg:grid-cols-2 lg:items-center lg:gap-20"
 			>
-				{/* Pearl light behind the visual, faint, drifting slowly, on the side the visual is on. */}
-				<div
-					data-glow
-					aria-hidden="true"
-					className={`pointer-events-none absolute top-1/2 size-[28rem] animate-drift bg-[radial-gradient(closest-side,oklch(0.93_0.02_300/0.1),transparent)] motion-reduce:animate-none lg:size-[44rem] ${flip ? "left-[-14rem] lg:left-[-8rem]" : "right-[-14rem] lg:right-[-8rem]"}`}
-				/>
 				<div data-words className={`flex flex-col items-start ${arrive}`}>
 					{head}
 					{buttons}
@@ -332,31 +333,197 @@ export function Customize({ authUrl }: { authUrl: string }) {
 	);
 }
 
-/** The live record: a sample of what it will show, said to be a sample and to be on its way. */
+/** The live record: real trades, paper runs and refusals, kept distinct and linked to their evidence. */
 export function LiveRecord() {
 	const m = useMessages().home.live;
+	const [record, setRecord] = useState<ReturnType<typeof PublicRecord.parse> | null>(null);
+	const [failed, setFailed] = useState(false);
+	const [view, setView] = useState<"live" | "refused" | "paper">("live");
+
+	useEffect(() => {
+		let current = true;
+		const read = async () => {
+			try {
+				const response = await fetch("https://api.maschina.dev/v1/public/record", {
+					headers: { accept: "application/json" },
+				});
+				if (!response.ok) throw new Error("Record unavailable");
+				const parsed = PublicRecord.safeParse(await response.json());
+				if (!parsed.success) throw new Error("Invalid record");
+				if (current) {
+					setRecord(parsed.data);
+					setFailed(false);
+				}
+			} catch {
+				if (current) setFailed(true);
+			}
+		};
+		void read();
+		const interval = window.setInterval(read, 30_000);
+		return () => {
+			current = false;
+			window.clearInterval(interval);
+		};
+	}, []);
+
+	const counts = record
+		? { live: record.live.length, refused: record.refused.length, paper: record.paper.length }
+		: { live: 0, refused: 0, paper: 0 };
+	const entries = record?.[view] ?? [];
+	const tabs = [
+		{ id: "live", label: m.tabs.live, count: counts.live },
+		{ id: "refused", label: m.tabs.refused, count: counts.refused },
+		{ id: "paper", label: m.tabs.paper, count: counts.paper },
+	] as const;
+
 	return (
-		<Chapter
-			name={m.name}
-			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
-		>
-			<div className={PANEL}>
-				<ul className="divide-y divide-white/[0.06]">
-					{m.rows.map((row) => (
-						<li
-							key={`${row.time}${row.action}`}
-							data-row
-							className="flex flex-wrap items-baseline gap-x-5 gap-y-1 py-3 text-[15px]"
-						>
-							<span className="text-neutral-500 tabular-nums">{row.time}</span>
-							<span className="text-white">{row.action}</span>
-							<span className="text-neutral-400 sm:ml-auto">{row.outcome}</span>
-						</li>
-					))}
-				</ul>
+		<Section name={m.name}>
+			<div className="mx-auto w-full max-w-[92rem]">
+				<div className="mb-8 flex flex-col gap-6 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
+							{m.name}
+						</p>
+						<h2 className="mt-4 font-display font-normal text-[clamp(2.25rem,4.8vw,4.25rem)] text-white leading-[1.04] tracking-[-0.035em]">
+							{m.title}
+						</h2>
+					</div>
+					<Link
+						href={LIVE}
+						className="inline-flex h-10 items-center border border-white/[0.18] px-4 text-[14px] text-neutral-200 transition-colors hover:border-white/40 hover:text-white"
+					>
+						{m.open}
+					</Link>
+				</div>
+				<div className="border border-white/[0.16] bg-black">
+					<div className="flex flex-col border-b border-white/[0.14] sm:flex-row sm:items-center sm:justify-between">
+						<fieldset aria-label={m.name} className="flex overflow-x-auto">
+							{tabs.map((tab) => (
+								<button
+									key={tab.id}
+									id={`record-tab-${tab.id}`}
+									type="button"
+									aria-pressed={view === tab.id}
+									onClick={() => setView(tab.id)}
+									className={`flex shrink-0 items-center gap-3 border-b px-5 py-4 text-[13px] transition-colors ${view === tab.id ? "border-white text-white" : "border-transparent text-neutral-500 hover:text-neutral-200"}`}
+								>
+									{tab.label}
+									<span className="font-mono text-[11px] text-neutral-500">
+										{record ? String(tab.count).padStart(2, "0") : "-"}
+									</span>
+								</button>
+							))}
+						</fieldset>
+						<span className="px-5 pb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-600 sm:pb-0">
+							{m.source}
+						</span>
+					</div>
+					<div id="record-panel" className="overflow-x-auto">
+						{!record && !failed ? (
+							<p className="px-5 py-8 text-sm text-neutral-500">{m.loading}</p>
+						) : null}
+						{failed && !record ? (
+							<p role="status" className="px-5 py-8 text-sm text-neutral-500">
+								{m.unavailable}{" "}
+								<a
+									href={LIVE}
+									className="text-neutral-300 underline underline-offset-4 hover:text-white"
+								>
+									{m.open}
+								</a>
+							</p>
+						) : null}
+						{record && entries.length === 0 ? (
+							<p className="px-5 py-8 text-sm text-neutral-500">{m.empty[view]}</p>
+						) : null}
+						{record && entries.length > 0 ? (
+							<RecordTable view={view} entries={entries} labels={m.columns} />
+						) : null}
+					</div>
+					<p className="border-t border-white/[0.12] px-5 py-3 text-[11px] text-neutral-600">
+						{m.note}
+					</p>
+				</div>
 			</div>
-			<p className="mt-5 text-[13px] text-neutral-500">{m.sample}</p>
-		</Chapter>
+		</Section>
+	);
+}
+
+type RecordEntry = PublicTrade | PaperTrade | PublicRefusal;
+
+function RecordTable({
+	view,
+	entries,
+	labels,
+}: {
+	view: "live" | "refused" | "paper";
+	entries: readonly RecordEntry[];
+	labels: {
+		time: string;
+		side: string;
+		sol: string;
+		usdc: string;
+		proof: string;
+		gate: string;
+		execution: string;
+	};
+}) {
+	const formatAmount = (raw: string, decimals: number) => {
+		const value = BigInt(raw);
+		const unit = 10n ** BigInt(decimals);
+		const fraction = (value % unit).toString().padStart(decimals, "0").replace(/0+$/, "");
+		return fraction ? `${value / unit}.${fraction}` : `${value / unit}`;
+	};
+	return (
+		<table className="w-full min-w-[44rem] border-collapse text-left text-[13px] tabular-nums">
+			<thead>
+				<tr className="border-b border-white/[0.14] font-mono text-[10px] uppercase tracking-[0.12em] text-neutral-600">
+					<th className="px-5 py-3 font-normal">{labels.time}</th>
+					<th className="px-4 py-3 font-normal">{labels.side}</th>
+					<th className="px-4 py-3 text-right font-normal">{labels.sol}</th>
+					<th className="px-4 py-3 text-right font-normal">{labels.usdc}</th>
+					<th className="px-5 py-3 text-right font-normal">
+						{view === "refused" ? labels.gate : view === "paper" ? labels.execution : labels.proof}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{entries.slice(0, 5).map((entry, index) => (
+					<tr key={`${entry.at}-${index}`} className="border-b border-white/[0.08] last:border-0">
+						<td className="whitespace-nowrap px-5 py-4 text-neutral-500">
+							{new Date(entry.at).toLocaleString([], {
+								month: "short",
+								day: "numeric",
+								hour: "2-digit",
+								minute: "2-digit",
+							})}
+						</td>
+						<td className="px-4 py-4 text-neutral-200">{entry.side === "buy" ? "Buy" : "Sell"}</td>
+						<td className="px-4 py-4 text-right text-neutral-300">{formatAmount(entry.sol, 9)}</td>
+						<td className="px-4 py-4 text-right text-neutral-300">{formatAmount(entry.usdc, 6)}</td>
+						<td className="px-5 py-4 text-right">
+							{"signature" in entry ? (
+								<a
+									href={`https://solscan.io/tx/${entry.signature}`}
+									target="_blank"
+									rel="noreferrer"
+									className="text-neutral-400 underline underline-offset-4 hover:text-white"
+								>
+									{labels.proof}
+								</a>
+							) : "rule" in entry ? (
+								<span className="text-neutral-400">
+									{entry.by === "provider" ? "Provider" : "Maschina"} ·{" "}
+									{entry.rule.replaceAll("_", " ")}
+								</span>
+							) : (
+								<span className="text-neutral-600">{labels.execution}</span>
+							)}
+						</td>
+					</tr>
+				))}
+			</tbody>
+		</table>
 	);
 }
 
@@ -388,46 +555,108 @@ function Near({ children }: { children: React.ReactNode }) {
 	);
 }
 
-/** The network: a turning globe, and that machines running on other people's computers is not here yet. */
+/** The network: keep the globe as the visual, and be plain that independent nodes are not live yet. */
 export function Network() {
 	const m = useMessages().home.network;
 	return (
-		<Chapter
-			name={m.name}
-			flip
-			head={<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />}
-		>
-			<div className="mx-auto aspect-square w-full max-w-[34rem]">
-				<Near>
-					<Suspense fallback={null}>
-						<Globe label={m.globe} />
-					</Suspense>
-				</Near>
+		<Section name={m.name}>
+			<div className="mx-auto w-full max-w-[92rem]">
+				<article className="grid overflow-hidden border border-white/[0.14] bg-black lg:min-h-[clamp(34rem,58lvh,42rem)] lg:grid-cols-[1.1fr_0.9fr]">
+					<div className="relative order-first flex aspect-square items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_center,oklch(0.28_0.035_255/0.32),transparent_68%)] p-4 sm:p-8 lg:aspect-auto lg:min-h-[34rem]">
+						<div className="size-full max-w-[38rem]">
+							<Near>
+								<Suspense fallback={null}>
+									<Globe label={m.globe} />
+								</Suspense>
+							</Near>
+						</div>
+					</div>
+					<div className="flex flex-col justify-center border-t border-white/[0.12] p-6 sm:p-8 lg:border-t-0 lg:border-l lg:p-10">
+						<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
+							{m.name}
+						</p>
+						<h2 className="mt-5 max-w-[15ch] font-display font-normal text-[clamp(2rem,4.8vw,4.25rem)] text-white leading-[1.04] tracking-[-0.035em] [text-wrap:balance]">
+							{m.title}
+						</h2>
+						<p className="mt-5 max-w-[38ch] text-[15px] text-neutral-400 leading-[1.6] sm:text-base">
+							{m.line}
+						</p>
+						<p className="mt-8 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+							{m.tag}
+						</p>
+					</div>
+				</article>
 			</div>
-		</Chapter>
+		</Section>
 	);
 }
 
-/** The marketplace: three empty places where machines will be listed, and that it is not open yet. */
+/** Example listings span trading and the services machines can provide to one another. */
 export function Marketplace() {
 	const m = useMessages().home.marketplace;
 	return (
 		<Section name={m.name}>
-			<div className="flex w-full flex-col items-start">
-				<SectionHead title={m.title} line={m.line} tag={m.tag} align="left" />
+			<div className="mx-auto w-full max-w-[92rem]">
+				<div className="mb-10 flex flex-col gap-8 sm:mb-12 sm:flex-row sm:items-end sm:justify-between">
+					<div className="max-w-3xl">
+						<p className="font-mono text-[10px] uppercase tracking-[0.16em] text-neutral-500">
+							{m.name}
+						</p>
+						<h2 className="mt-5 max-w-[17ch] font-display font-normal text-[clamp(2.25rem,4.8vw,4.25rem)] text-white leading-[1.04] tracking-[-0.035em] [text-wrap:balance]">
+							{m.title}
+						</h2>
+						<p className="mt-5 max-w-[58ch] text-[15px] text-neutral-400 leading-[1.6] sm:text-base">
+							{m.line}
+						</p>
+					</div>
+					<p className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+						{m.tag}
+					</p>
+				</div>
+				<ul aria-label={m.examplesLabel} className="grid gap-5">
+					{m.examples.map((example) => (
+						<li key={example.name}>
+							<article className="grid border border-white/[0.14] bg-black sm:min-h-[22rem] sm:grid-cols-[0.82fr_1.18fr]">
+								<Backdrop className="flex min-h-60 items-end p-0! sm:min-h-0">
+									<div className="relative w-full p-6 sm:p-8 lg:p-10">
+										<p className="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-800">
+											{m.exampleLabel}
+										</p>
+										<p className="mt-6 max-w-[8ch] font-display font-normal text-[clamp(3.5rem,8vw,7rem)] text-neutral-950 leading-[0.86] tracking-[-0.065em] [text-wrap:balance]">
+											{example.visual}
+										</p>
+									</div>
+								</Backdrop>
+								<div className="flex flex-col justify-center border-t border-white/[0.12] p-6 sm:border-t-0 sm:border-l sm:p-8 lg:p-10">
+									<p className="font-mono text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+										{example.category}
+									</p>
+									<h3 className="mt-3 font-display font-normal text-[clamp(1.5rem,2.6vw,2.25rem)] text-white leading-[1.1] tracking-[-0.025em]">
+										{example.name}
+									</h3>
+									<p className="mt-3 max-w-[48ch] text-[14px] text-neutral-400 leading-[1.6]">
+										{example.description}
+									</p>
+									<dl className="mt-7 grid gap-x-6 gap-y-4 border-t border-white/[0.12] pt-5 sm:grid-cols-2">
+										<div>
+											<dt className="text-[11px] text-neutral-500">{m.outputLabel}</dt>
+											<dd className="mt-2 text-[14px] text-neutral-200 leading-[1.4]">
+												{example.output}
+											</dd>
+										</div>
+										<div>
+											<dt className="text-[11px] text-neutral-500">{m.recordLabel}</dt>
+											<dd className="mt-2 text-[14px] text-neutral-200 leading-[1.4]">
+												{example.record}
+											</dd>
+										</div>
+									</dl>
+								</div>
+							</article>
+						</li>
+					))}
+				</ul>
 			</div>
-			<ul className="mt-14 grid w-full gap-3 sm:mt-16 md:grid-cols-3">
-				{m.cards.map((card, index) => (
-					<li key={index} data-card className={`${PANEL} min-h-44 opacity-70`}>
-						<span className="block text-[14px] text-neutral-500">{card}</span>
-						<div className="mt-8 space-y-2.5" aria-hidden="true">
-							<div className="h-2 w-4/5 bg-white/15" />
-							<div className="h-2 w-3/5 bg-white/10" />
-							<div className="h-2 w-2/5 bg-white/10" />
-						</div>
-					</li>
-				))}
-			</ul>
 		</Section>
 	);
 }

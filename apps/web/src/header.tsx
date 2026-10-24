@@ -178,6 +178,7 @@ export function Header({
 	const box = useRef<HTMLInputElement>(null);
 	const bar = useRef<HTMLElement>(null);
 	const fade = useRef<HTMLDivElement>(null);
+	const divider = useRef<HTMLSpanElement>(null);
 	const closing = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
 	// How much of the fade and the blur is on: none at the top of the page, building as the page scrolls, and
@@ -190,6 +191,7 @@ export function Header({
 			const height = bar.current?.offsetHeight || BAR_HEIGHT;
 			const amount = Math.min(1, Math.max(0, scrolled(target) / height));
 			fade.current?.style.setProperty("--fade", String(amount));
+			if (divider.current) divider.current.style.opacity = String(amount);
 		};
 		update();
 		target.addEventListener("scroll", update, { passive: true });
@@ -315,7 +317,7 @@ export function Header({
 				/>
 			) : null}
 			{/* A sticky rail of no height: it stays at the top as the page scrolls, and goes down with the page when it is pulled to refresh. */}
-			<div data-rail className="sticky top-0 z-40 h-0">
+			<div data-rail className="sticky top-0 z-40 h-0 max-md:fixed max-md:inset-x-0">
 				{/* biome-ignore lint/a11y/noStaticElementInteractions: hover only keeps the dropdown open for a mouse; keyboards and touch use the buttons and Escape, which are tested */}
 				<header
 					ref={bar}
@@ -323,23 +325,14 @@ export function Header({
 					onMouseLeave={hideSoon}
 					className="absolute inset-x-0 top-0"
 				>
-					{/*
-					 * Behind the bar, two layers. As the page scrolls the bar comes in from clear to frosted glass, with
-					 * a thin pearl line along the bottom. While a dropdown, the search or the phone menu
-					 * is open it fills in solid, so the panel and the bar read as one piece.
-					 */}
+					{/* One glass surface spans the bar and whichever panel is open. */}
 					<div
 						ref={fade}
 						data-fade
 						aria-hidden="true"
-						className={`pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black/50 opacity-(--fade) backdrop-blur-xl backdrop-saturate-150 ${anyPanel ? "xl:opacity-0!" : ""}`}
+						className={`pointer-events-none absolute inset-0 -z-10 [--fade:0] bg-black/50 opacity-(--fade) backdrop-blur-xl backdrop-saturate-150 ${anyPanel ? "opacity-100" : ""}`}
 					/>
-					<div
-						data-solid
-						aria-hidden="true"
-						className={`pointer-events-none absolute inset-0 -z-10 bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150 transition-opacity duration-200 motion-reduce:transition-none ${anyPanel ? "opacity-100" : "opacity-0"}`}
-					/>
-					<div className="flex items-center justify-between px-(--gutter) py-4">
+					<div className="relative flex items-center justify-between px-(--gutter) py-4">
 						<div className="flex items-center gap-10">
 							<Logo />
 							<div className="hidden items-center gap-5 xl:flex">
@@ -426,12 +419,9 @@ export function Header({
 							data-state={dropdown.visible ? "open" : "closed"}
 							aria-hidden={dropdown.closing ? true : undefined}
 							inert={dropdown.closing}
-							className={`absolute inset-x-0 top-full hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+							className={`hidden transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none xl:grid ${dropdown.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section
-								aria-label={L(shownName)}
-								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
-							>
+							<section aria-label={L(shownName)} className="min-h-0 overflow-hidden">
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-6 pb-10">
 									<div className="grid grid-cols-[minmax(0,22rem)_minmax(0,1fr)] gap-x-20">
 										<div className="flex flex-col gap-5">
@@ -486,12 +476,9 @@ export function Header({
 							data-state={searchPanel.visible ? "open" : "closed"}
 							aria-hidden={searchPanel.closing ? true : undefined}
 							inert={searchPanel.closing}
-							className={`absolute inset-x-0 top-full grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+							className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${searchPanel.visible ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
 						>
-							<section
-								aria-label={m.header.search}
-								className="min-h-0 overflow-hidden bg-black xl:bg-black/60 xl:backdrop-blur-xl xl:backdrop-saturate-150"
-							>
+							<section aria-label={m.header.search} className="min-h-0 overflow-hidden">
 								<div className="max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-10">
 									<SearchInput
 										ref={box}
@@ -510,6 +497,11 @@ export function Header({
 							</section>
 						</div>
 					) : null}
+					<span
+						ref={divider}
+						aria-hidden="true"
+						className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/[0.1] opacity-0"
+					/>
 					{mobileMenu.mounted ? (
 						<div
 							data-panel="menu"

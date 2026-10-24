@@ -73,7 +73,7 @@ export const en = {
 	footer: {
 		sitemap: "Sitemap",
 		soon: "Soon",
-		rights: "© {year} Maschina, Corp. All rights reserved.",
+		rights: "© {year} Maschina, Corp.",
 		status: {
 			checking: "Checking",
 			up: "All systems normal",
@@ -91,11 +91,190 @@ export const en = {
 		accept: "Accept",
 	},
 	home: {
+		capabilities: {
+			name: "What you can build",
+			title: "Different jobs. One system.",
+			line: "A machine is software with a job, a wallet, and defined authority. Trading is the first working use case; data, research, and compute are part of the wider direction.",
+			link: "Explore machine kinds",
+			groups: [
+				{
+					status: "Built today",
+					title: "Put a strategy to work.",
+					body: "Run a defined trading strategy with settings you choose and activity you can inspect.",
+					items: ["Fixed range", "Following range", "Price trigger", "Recurring buy"],
+				},
+				{
+					status: "Planned capabilities",
+					title: "Build beyond trading.",
+					body: "The wider platform is intended for machines that produce useful work and provide services to other machines.",
+					items: ["Data services", "Public-source research", "Bounded compute jobs"],
+				},
+			],
+		},
+		ecosystem: {
+			networkBody:
+				"The planned network will connect machines with computers that can run their jobs. Owners define the work; operators provide the execution environment.",
+			globeNote:
+				"The globe illustrates the network's intended reach. It does not show live operators or locations.",
+			networkLink: "Explore the network",
+			marketBody:
+				"The planned marketplace will bring machine creators and owners together around useful jobs, declared capabilities, and inspectable work records.",
+			examplesNote:
+				"Illustrative machine types. The marketplace is not open. Data, research, and compute services shown here are planned capabilities.",
+			marketLink: "Explore the marketplace",
+		},
+		workbench: {
+			pause: "Pause code motion",
+			resume: "Resume code motion",
+			name: "For builders",
+			title: "Look inside the machine.",
+			line: "Inspect the interfaces behind decisions, machine kinds, and owner-defined limits. These excerpts come directly from the source.",
+			choose: "Explore the source",
+			docs: "Read the SDK guide",
+			source: "Explore the repository",
+			availability:
+				"The SDK is a private workspace package. Work from the repository; it is not published to npm.",
+			license: "Source-available. Review the repository license before using the code.",
+			samples: [
+				{
+					title: "Decisions",
+					body: "A decision proposes an action or explains why it skipped. Returning a proposal does not sign a transaction.",
+				},
+				{
+					title: "Machine kinds",
+					body: "A kind defines its settings and decision function. Defining one does not deploy it or add it to the hosted app.",
+				},
+				{
+					title: "Limits",
+					body: "The runtime represents the owner's spending caps, approved tokens, recipients, and execution limits explicitly.",
+				},
+			],
+		},
+		workflow: {
+			name: "How it works",
+			title: "Give a machine a job.",
+			line: "Start with a defined task, choose how it operates, and follow the work it does.",
+			docs: "Read the quickstart",
+			steps: [
+				{
+					title: "Choose what it does.",
+					body: "Pick a machine kind, such as a range strategy, a price trigger, or a recurring buy. Each follows a defined set of instructions.",
+				},
+				{
+					title: "Set how it operates.",
+					body: "Choose the market and settings for that job, then define its budget. The machine uses a separate wallet from your personal one.",
+				},
+				{
+					title: "Run it and follow the record.",
+					body: "Try paper mode against live prices before committing funds, or fund the machine for real trades. Review its activity and stop it when you choose.",
+				},
+			],
+		},
+		evidence: {
+			name: "Verify the record",
+			title: "See what actually happened.",
+			line: "Inspect completed real-money trades and follow each transaction on Solana. The public record also keeps paper activity and refused actions separate.",
+			context:
+				"These are founder-funded trades from an early product. An execution record does not establish profitability or replace an independent security audit.",
+			latest: "Latest real-money trades",
+			open: "Explore the public record",
+			loading: "Loading the public record…",
+			unavailable: "The public record is temporarily unavailable.",
+			retry: "Try again",
+			empty: "No completed real-money trades are available yet.",
+			buy: "Bought SOL",
+			sell: "Sold SOL",
+			transaction: "Verify transaction",
+			note: "Actual recorded amounts, not simulated results or a returns forecast.",
+		},
+		sectionLinks: {
+			next: "Up next",
+			product: "Explore the product",
+			controls: "Understand the controls",
+			evidence: "Inspect the evidence",
+			help: "Before you begin",
+			productLine: "See what is available",
+			howLine: "Understand the workflow",
+			docsLine: "Read the guides",
+			securityLine: "Review the safeguards",
+			riskLine: "Understand the risks",
+			recordLine: "Inspect recorded activity",
+			codeLine: "Read the source",
+			statusLine: "Check service health",
+			pricingLine: "Understand the costs",
+			supportLine: "Find an answer",
+			contactLine: "Get in touch",
+		},
+		controls: {
+			name: "Your controls",
+			title: "You define the boundaries.",
+			line: "Keep authority with the owner: define the job, control its budget, and decide when it runs. Explore these controls through a range-machine example.",
+			previous: "Previous control",
+			next: "Next control",
+			cards: "Explore machine controls",
+			rangeTitle: "Choose the range.",
+			rangeBody:
+				"Set the price band for a range machine. Adjust its width to explore a tighter or wider range.",
+			rangeLabel: "Range width",
+			rangeVisual: "Price band around your chosen center",
+			amountTitle: "Set the trade amount.",
+			amountBody:
+				"Define how much USDC the machine uses for a buy. Its available budget is checked before a trade is signed.",
+			amountLabel: "Amount per buy",
+			stopTitle: "Decide when it stops.",
+			stopBody:
+				"Stop the machine to prevent new trades. Stopping does not reverse a trade that has already been submitted.",
+			pause: "Pause example",
+			resume: "Resume example",
+			paused: "Paused",
+			running: "Running",
+			sample: "Interactive examples. These controls do not configure a real machine or move funds.",
+		},
+		proof: {
+			name: "Built on evidence",
+			since: "28 Sep 2026",
+			trading: "First founder-funded trade on Solana",
+			chain: "On chain",
+			record: "Check real trades in the public record",
+			languages: "Interface languages",
+			source: "Source-available",
+			inspect: "Inspect the code and its license",
+		},
+		paper: {
+			name: "Paper mode",
+			title: "Try it before you fund it.",
+			titleBottom: "Practice without funding.",
+			priceLabel: "SOL / USDT market price",
+			bandLabel: "Your paper price band",
+			line: "Run a paper machine against live market prices and follow its decisions without committing funds. Paper activity stays separate from real trades.",
+			start: "Try paper mode",
+			caption:
+				"Adjust the band around live SOL prices to explore a range setting. This interactive illustration does not run a machine or execute trades.",
+			band: {
+				width: "Band width",
+				center: "Move the band",
+				inside: "Price is inside your band.",
+				outside: "Price is outside your band.",
+				lower: "Lower bound",
+				upper: "Upper bound",
+				reset: "Center on price",
+			},
+			loading: "Loading SOL market prices…",
+			unavailable: "Market prices are unavailable. Please try again later.",
+			connected: "Live market feed connected. Paper trades do not move funds.",
+			disconnected: "Historical prices shown. Live market feed is disconnected.",
+		},
+		destinations: {
+			name: "Explore Maschina",
+			machines: "Give a machine a job",
+			network: "Explore the network",
+			marketplace: "Discover the marketplace",
+		},
 		hero: {
 			name: "Maschina",
-			headlineTop: "The operating system for",
-			headlineBottom: "autonomous capital.",
-			line: "AI decides. Maschina decides what it's allowed to do.",
+			headlineTop: "The operating system",
+			headlineBottom: "for the machine economy.",
+			line: "Build machines that act on your behalf, with a wallet, a job, and rules you define. Follow what they do and stay in control as they work.",
 			start: "Start for free",
 			docs: "Read the docs",
 			facts: "Source-available, built on Solana.",
@@ -106,10 +285,38 @@ export const en = {
 			alt: "The home screen of the Maschina app, shown full screen: a candlestick chart of SOL with a trade marked on it, a curve of realized profit, and tiles for the machine that is running, its latest decision, the vault balance and a new machine.",
 			caption: "The Maschina app, shown with sample data.",
 		},
+		loop: {
+			name: "The machine loop",
+			eyebrow: "FROM MACHINE TO MARKET",
+			title: "Build a machine. Connect it to the network.",
+			line: "Start with a machine you configure and control. The network is the next layer: a place for machines to find one another and exchange value.",
+			previous: "Previous step",
+			next: "Next step",
+			steps: [
+				{
+					number: "01",
+					name: "BUILD",
+					title: "Give it a job.",
+					line: "Choose what the machine does, then set its strategy, budget, and limits.",
+				},
+				{
+					number: "02",
+					name: "OPERATE",
+					title: "Keep the rules yours.",
+					line: "Its own wallet gives the machine room to act. Your budgets and permissions bound what it can do.",
+				},
+				{
+					number: "03",
+					name: "CONNECT",
+					title: "A market made for machines.",
+					line: "The network is designed to let machines discover one another and exchange value as the market takes shape.",
+				},
+			],
+		},
 		how: {
 			name: "How It Works",
-			title: "Give a machine a wallet and a job.",
-			line: "Pick a kind of machine, set its limits, and let it work. Every trade is checked before it moves.",
+			title: "The machine proposes. Your rules decide.",
+			line: "Each proposed action is checked against the wallet permissions and limits you set. Approved actions reach the signer and settle on Solana. Rejected actions stop before signing.",
 			steps: [
 				{
 					title: "Pick a kind",
@@ -179,15 +386,26 @@ export const en = {
 		live: {
 			name: "Live Record",
 			title: "Every decision, on the record.",
-			line: "A machine's decisions, including the ones it refused, will go on a record anyone can read. It is being built.",
-			tag: "Coming soon",
-			rows: [
-				{ time: "12:04", action: "Buy SOL", outcome: "Allowed" },
-				{ time: "12:19", action: "Buy SOL", outcome: "Refused: over the daily limit" },
-				{ time: "12:31", action: "Sell SOL", outcome: "Allowed" },
-				{ time: "12:48", action: "Buy a token", outcome: "Refused: token not allowed" },
-			],
-			sample: "Sample data. The live record is not open yet.",
+			open: "Open the live record",
+			source: "Live · public gateway",
+			loading: "Reading the live record…",
+			unavailable: "The live record is unavailable here right now.",
+			empty: {
+				live: "No finished live trades yet.",
+				refused: "No refused actions in this record.",
+				paper: "No paper trades in this record yet.",
+			},
+			note: "Live, refused and paper entries are shown separately. Paper activity is never counted as live trading.",
+			tabs: { live: "Live", refused: "Refused", paper: "Paper" },
+			columns: {
+				time: "Time",
+				side: "Side",
+				sol: "SOL",
+				usdc: "USDC",
+				proof: "Transaction",
+				gate: "Stopped by · rule",
+				execution: "Execution",
+			},
 		},
 		network: {
 			name: "Network",
@@ -198,10 +416,47 @@ export const en = {
 		},
 		marketplace: {
 			name: "Marketplace",
-			title: "Publish what works. Copy what does.",
-			line: "A place to publish a proven machine, and for others to copy it.",
+			title: "Find machines by their record.",
+			line: "Review a machine's task, limits, and work record before you choose to copy it or hire it for a job.",
 			tag: "Coming soon",
-			cards: ["A machine", "A machine", "A machine"],
+			examplesLabel: "Example machine types",
+			exampleLabel: "Example machine",
+			outputLabel: "Produces",
+			recordLabel: "Work record",
+			examples: [
+				{
+					category: "Trading",
+					name: "Range strategy",
+					visual: "Range",
+					description: "Acts on market prices within rules set by its owner.",
+					output: "Trading decisions",
+					record: "Decisions and refusals",
+				},
+				{
+					category: "Data",
+					name: "Market data service",
+					visual: "Data",
+					description: "Packages price and liquidity observations for other machines to use.",
+					output: "Structured market data",
+					record: "Requests and deliveries",
+				},
+				{
+					category: "Research",
+					name: "Public-source researcher",
+					visual: "Research",
+					description: "Collects public information and returns it in a structured format.",
+					output: "Research results",
+					record: "Sources and job results",
+				},
+				{
+					category: "Compute",
+					name: "Compute worker",
+					visual: "Compute",
+					description: "Runs a bounded job for another machine and returns the result.",
+					output: "Completed work",
+					record: "Requests and results",
+				},
+			],
 		},
 		builders: {
 			name: "For Builders",
@@ -217,31 +472,32 @@ export const en = {
 				{
 					question: "What is Maschina?",
 					answer:
-						"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
+						"Maschina lets you create machines with a wallet and a defined job. Today, you can build trading machines on Solana, set their budgets, and follow their activity.",
 				},
 				{
 					question: "What can a machine do with my money?",
 					answer:
-						"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
+						"A machine uses a separate wallet funded with the amount you allocate. Its trading budget is checked before signing, and wallet policies restrict transfers. Maschina does not need the private keys to your personal wallet.",
 				},
 				{
 					question: "What if it makes a bad trade?",
 					answer:
-						"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",
+						"A trade can meet your rules and still lose money. Budget checks constrain spending; they do not guarantee a good price or a profit. You can stop a machine to prevent further trades.",
 				},
 				{
 					question: "Do I need money to try it?",
 					answer:
-						"No. Make a machine on paper and watch it trade against live prices without risking anything.",
+						"No. Paper mode lets you test a machine against live market prices without funding a wallet or submitting real trades. Paper results are kept separate from real-money activity.",
 				},
 				{
 					question: "Is it live with real money?",
 					answer:
-						"Yes. Range Finder has traded real money on Solana since September 28, and every trade is on chain.",
+						"Yes. Range Finder began trading founder-funded capital on Solana on September 28, 2026. Its real trades can be checked on chain. This is an early operating record, not evidence of profitability.",
 				},
 				{
 					question: "Can I read the code?",
-					answer: "Yes. It is source-available: you can read it, but it is not open source.",
+					answer:
+						"Yes. The source is available to inspect, including the runtime and signing checks. The repository license explains how you can use it.",
 				},
 			],
 		},

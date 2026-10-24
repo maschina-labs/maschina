@@ -54,7 +54,7 @@ describe("which page an address shows", () => {
 	it("shows the front page at the root", () => {
 		render(<App authUrl={AUTH} path="/" />);
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-			"The operating system for autonomous capital.",
+			"The operating system for the machine economy.",
 		);
 	});
 

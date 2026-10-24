@@ -14,6 +14,7 @@ import { HEAD, HeadArt, SHEET } from "./head-art.tsx";
 import { Link } from "./i18n/link.tsx";
 import { label } from "./i18n/messages.ts";
 import { useMessages } from "./i18n/use-messages.ts";
+import { PAGE_SHEET, PageStrip } from "./page-strip.tsx";
 import { titleFor } from "./routes.ts";
 import { useTitle } from "./use-title.ts";
 
@@ -76,8 +77,8 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 	);
 
 	return (
-		<Frame authUrl={authUrl}>
-			<article className="w-full">
+		<Frame authUrl={authUrl} framed={false}>
+			<article className="page-frame w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
 					<div data-head-text className="relative mx-auto w-full text-center max-w-[64rem]">
@@ -89,7 +90,8 @@ export function SupportPage({ authUrl, doc }: { authUrl: string; doc: SupportDoc
 						</p>
 					</div>
 				</div>
-				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
+				<div data-sheet className={`${SHEET} ${PAGE_SHEET} pb-24 sm:pb-32`}>
+					<PageStrip />
 					<div data-content className="mx-auto w-full max-w-[64rem]">
 						<search className={`flex items-center gap-4 px-5 ${PANEL}`}>
 							<MagnifyingGlass
