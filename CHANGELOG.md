@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.65](https://github.com/maschina-labs/maschina/compare/v0.0.64...v0.0.65) (2026-10-24)
+
+
+### Fixed
+
+* **deps:** patch the packages the audit flags ([#877](https://github.com/maschina-labs/maschina/issues/877)) ([b75a734](https://github.com/maschina-labs/maschina/commit/b75a734682804cedfb6f968f8870d6d0df97ad0a))
+
 ## [0.0.64](https://github.com/maschina-labs/maschina/compare/v0.0.63...v0.0.64) (2026-10-18)
 
 
