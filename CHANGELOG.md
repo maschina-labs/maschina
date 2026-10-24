@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.67](https://github.com/maschina-labs/maschina/compare/v0.0.66...v0.0.67) (2026-10-24)
+
+
+### Added
+
+* **web:** the docs live on the site as seven pages ([#883](https://github.com/maschina-labs/maschina/issues/883)) ([384a2b8](https://github.com/maschina-labs/maschina/commit/384a2b8f3bc898de7c12e795f11ac5fd1cc5b260))
+
 ## [0.0.66](https://github.com/maschina-labs/maschina/compare/v0.0.65...v0.0.66) (2026-10-24)
 
 
