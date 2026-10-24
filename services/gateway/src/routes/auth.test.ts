@@ -43,13 +43,19 @@ const wallet = testWallet;
 function fakeAuth() {
 	let signedIn: Owner | undefined;
 	const ended: string[] = [];
+	const challenged: string[] = [];
+	const verifiedWith: string[] = [];
 	const ports: AuthPorts = {
-		challenge: async (walletAddress) => ({
-			message: `localhost wants you to sign in with your Solana account:\n${walletAddress}`,
-			nonce: "abc123",
-			expiresAt: "2026-09-25T12:05:00.000Z",
-		}),
-		verify: async (request): Promise<StartedSession> => {
+		challenge: async (walletAddress, binding) => {
+			challenged.push(binding);
+			return {
+				message: `localhost wants you to sign in with your Solana account:\n${walletAddress}`,
+				nonce: "abc123",
+				expiresAt: "2026-09-25T12:05:00.000Z",
+			};
+		},
+		verify: async (request, binding): Promise<StartedSession> => {
+			verifiedWith.push(binding);
 			const owner = { ownerId: newId<"owner">(), walletAddress: request.walletAddress };
 			signedIn = owner;
 			return { token: "a-very-long-session-token", expiresAt: clock.now(), owner };
@@ -62,7 +68,7 @@ function fakeAuth() {
 		},
 		linkWallet: async (_request, owner) => owner,
 	};
-	return { ports, ended };
+	return { ports, ended, challenged, verifiedWith };
 }
 
 let auth: ReturnType<typeof fakeAuth>;
@@ -80,6 +86,9 @@ const app = (secure = false, domain?: string) =>
 beforeEach(() => {
 	auth = fakeAuth();
 });
+
+/** What a browser sends back once it has asked for a sentence: the secret the gateway gave it. */
+const ASKED = { cookie: "maschina_siws=a-browser-secret" };
 
 const post = (path: string, body?: unknown, headers: Record<string, string> = {}) =>
 	app().request(path, {
@@ -99,6 +108,33 @@ describe("asking for something to sign", () => {
 		expect(body.nonce).toBe("abc123");
 	});
 
+	it("gives the browser a secret in a cookie only it holds, and the verifier its own copy", async () => {
+		const { address } = await wallet();
+		const res = await post("/v1/auth/challenge", { walletAddress: address });
+		const cookie = res.headers.get("set-cookie") ?? "";
+
+		expect(cookie).toMatch(/maschina_siws=[A-Za-z0-9_-]{40,}/);
+		expect(cookie).toContain("HttpOnly");
+		expect(cookie).toContain("SameSite=Lax");
+		expect(cookie).toContain("Path=/v1/auth");
+		// Host only: no other address under the domain is ever sent it.
+		expect(cookie).not.toContain("Domain=");
+		const secret = /maschina_siws=([^;]+)/.exec(cookie)?.[1];
+		expect(auth.challenged).toEqual([secret]);
+	});
+
+	it("gives each ask a secret of its own", async () => {
+		const { address } = await wallet();
+		const one = (await post("/v1/auth/challenge", { walletAddress: address })).headers.get(
+			"set-cookie",
+		);
+		const two = (await post("/v1/auth/challenge", { walletAddress: address })).headers.get(
+			"set-cookie",
+		);
+
+		expect(one).not.toBe(two);
+	});
+
 	it("refuses anything that is not an address", async () => {
 		expect((await post("/v1/auth/challenge", { walletAddress: "nope" })).status).toBe(400);
 	});
@@ -108,11 +144,11 @@ describe("returning it signed", () => {
 	const signIn = async () => {
 		const { address, sign } = await wallet();
 		const message = `localhost wants you to sign in with your Solana account:\n${address}`;
-		return post("/v1/auth/verify", {
-			walletAddress: address,
-			message,
-			signature: await sign(message),
-		});
+		return post(
+			"/v1/auth/verify",
+			{ walletAddress: address, message, signature: await sign(message) },
+			ASKED,
+		);
 	};
 
 	it("puts the session in a cookie script cannot read", async () => {
@@ -124,6 +160,27 @@ describe("returning it signed", () => {
 		expect(cookie).toContain("HttpOnly");
 		expect(cookie).toContain("SameSite=Lax");
 		expect(cookie).toContain("Path=/");
+	});
+
+	it("refuses to finish a sign in from a browser that never asked, and starts nothing", async () => {
+		const { address, sign } = await wallet();
+		const message = `localhost wants you to sign in with your Solana account:\n${address}`;
+		const res = await post("/v1/auth/verify", {
+			walletAddress: address,
+			message,
+			signature: await sign(message),
+		});
+
+		expect(res.status).toBe(401);
+		expect(res.headers.get("set-cookie") ?? "").not.toContain("maschina_session=");
+		expect(auth.verifiedWith).toEqual([]);
+	});
+
+	it("hands the verifier the secret this browser holds, and spends it", async () => {
+		const res = await signIn();
+
+		expect(auth.verifiedWith).toEqual(["a-browser-secret"]);
+		expect(res.headers.get("set-cookie") ?? "").toContain("maschina_siws=;");
 	});
 
 	it("leaves the token out of the body, where script could reach it", async () => {
@@ -139,7 +196,7 @@ describe("returning it signed", () => {
 		const message = `localhost wants you to sign in with your Solana account:\n${address}`;
 		const res = await app(true, ".maschina.dev").request("/v1/auth/verify", {
 			method: "POST",
-			headers: { "content-type": "application/json" },
+			headers: { "content-type": "application/json", ...ASKED },
 			body: JSON.stringify({ walletAddress: address, message, signature: await sign(message) }),
 		});
 		const cookie = res.headers.get("set-cookie") ?? "";
@@ -173,11 +230,11 @@ describe("who am I", () => {
 	it("answers the owner once signed in", async () => {
 		const { address, sign } = await wallet();
 		const message = `localhost wants you to sign in with your Solana account:\n${address}`;
-		await post("/v1/auth/verify", {
-			walletAddress: address,
-			message,
-			signature: await sign(message),
-		});
+		await post(
+			"/v1/auth/verify",
+			{ walletAddress: address, message, signature: await sign(message) },
+			ASKED,
+		);
 
 		const res = await app().request("/v1/auth/me", {
 			headers: { cookie: "maschina_session=a-very-long-session-token" },

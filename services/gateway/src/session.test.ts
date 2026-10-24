@@ -10,7 +10,7 @@ import { ManualClock, newId } from "@maschina/core";
 import type { Database } from "@maschina/db";
 import { testWallet } from "@maschina/solana/testing";
 import { describe, expect, it, vi } from "vitest";
-import { firstOwner, walletSessions } from "./session.ts";
+import { firstOwner, requestIdOf, walletSessions } from "./session.ts";
 
 const SETTINGS = {
 	domain: "maschina.dev",
@@ -20,6 +20,9 @@ const SETTINGS = {
 };
 
 const clock = () => new ManualClock("2026-09-25T12:00:00.000Z");
+
+/** The secret the asking browser holds, which every message here names by its hash. */
+const BINDING = "a-secret-only-this-browser-holds";
 
 /** Answers each query in the order the code asks them. */
 function fakeDatabase(...answers: unknown[][]) {
@@ -36,21 +39,27 @@ describe("asking a wallet to sign", () => {
 		const db = fakeDatabase();
 		const sessions = walletSessions(db, clock(), SETTINGS);
 
-		const challenge = await sessions.challenge("So11111111111111111111111111111111111111112");
+		const challenge = await sessions.challenge(
+			"So11111111111111111111111111111111111111112",
+			BINDING,
+		);
 
 		expect(challenge.message).toContain("maschina.dev wants you to sign in");
 		expect(challenge.message).toContain(`Nonce: ${challenge.nonce}`);
 		expect(challenge.message).toContain("does not approve any transaction");
+		expect(challenge.message).toContain(`Request ID: ${requestIdOf(BINDING)}`);
+		expect(challenge.message).not.toContain(BINDING);
 		expect(challenge.expiresAt).toBe("2026-09-25T12:05:00.000Z");
 	});
 });
 
 describe("taking it back signed", () => {
-	const signed = async (overrides: { domain?: string; nonce?: string } = {}) => {
+	const signed = async (overrides: { domain?: string; nonce?: string; binding?: string } = {}) => {
 		const wallet = await testWallet();
 		const message = signInMessage({
 			domain: overrides.domain ?? SETTINGS.domain,
 			uri: SETTINGS.uri,
+			requestId: requestIdOf(overrides.binding ?? BINDING),
 			address: wallet.address,
 			nonce: overrides.nonce ?? "abc123",
 			issuedAt: new Date("2026-09-25T12:00:00.000Z"),
@@ -67,7 +76,7 @@ describe("taking it back signed", () => {
 		const db = fakeDatabase([{ nonce: "abc123" }], ownerRow(wallet.address), []);
 		const sessions = walletSessions(db, clock(), SETTINGS);
 
-		const started = await sessions.verify(request);
+		const started = await sessions.verify(request, BINDING);
 
 		expect(started.owner.walletAddress).toBe(wallet.address);
 		expect(started.token).toHaveLength(43);
@@ -78,14 +87,23 @@ describe("taking it back signed", () => {
 		const { request } = await signed();
 		const sessions = walletSessions(fakeDatabase([]), clock(), SETTINGS);
 
-		await expect(sessions.verify(request)).rejects.toThrow("no longer valid");
+		await expect(sessions.verify(request, BINDING)).rejects.toThrow("no longer valid");
 	});
 
 	it("refuses a message written for another site", async () => {
 		const { request } = await signed({ domain: "evil.example" });
 		const sessions = walletSessions(fakeDatabase([{ nonce: "abc123" }]), clock(), SETTINGS);
 
-		await expect(sessions.verify(request)).rejects.toThrow("another site");
+		await expect(sessions.verify(request, BINDING)).rejects.toThrow("another site");
+	});
+
+	it("refuses a sentence another browser asked for, and spends nothing", async () => {
+		const { request } = await signed({ binding: "a-secret-some-other-browser-holds" });
+		const db = fakeDatabase([{ nonce: "abc123" }]);
+		const sessions = walletSessions(db, clock(), SETTINGS);
+
+		await expect(sessions.verify(request, BINDING)).rejects.toThrow("different browser");
+		expect(db.execute).not.toHaveBeenCalled();
 	});
 
 	it("refuses when the message names a different wallet than the request", async () => {
@@ -93,9 +111,9 @@ describe("taking it back signed", () => {
 		const other = await testWallet();
 		const sessions = walletSessions(fakeDatabase([{ nonce: "abc123" }]), clock(), SETTINGS);
 
-		await expect(sessions.verify({ ...request, walletAddress: other.address })).rejects.toThrow(
-			"different wallet",
-		);
+		await expect(
+			sessions.verify({ ...request, walletAddress: other.address }, BINDING),
+		).rejects.toThrow("different wallet");
 	});
 
 	it("refuses something that is not a sign in message", async () => {
@@ -104,11 +122,14 @@ describe("taking it back signed", () => {
 		const sessions = walletSessions(fakeDatabase(), clock(), SETTINGS);
 
 		await expect(
-			sessions.verify({
-				walletAddress: wallet.address,
-				message,
-				signature: await wallet.sign(message),
-			}),
+			sessions.verify(
+				{
+					walletAddress: wallet.address,
+					message,
+					signature: await wallet.sign(message),
+				},
+				BINDING,
+			),
 		).rejects.toThrow("not a sign in message");
 	});
 
@@ -119,7 +140,7 @@ describe("taking it back signed", () => {
 		const sessions = walletSessions(db, clock(), SETTINGS);
 
 		await expect(
-			sessions.verify({ ...request, signature: await other.sign(request.message) }),
+			sessions.verify({ ...request, signature: await other.sign(request.message) }, BINDING),
 		).rejects.toThrow();
 		// Nothing was spent, so the nonce is still there for the wallet that really owns it.
 		expect(db.execute).not.toHaveBeenCalled();
@@ -176,6 +197,7 @@ describe("linking a wallet to an owner who signed in another way", () => {
 		const message = signInMessage({
 			domain,
 			uri: SETTINGS.uri,
+			requestId: requestIdOf(BINDING),
 			address: wallet.address,
 			nonce: "link123",
 			issuedAt: new Date("2026-09-25T12:00:00.000Z"),
@@ -191,7 +213,7 @@ describe("linking a wallet to an owner who signed in another way", () => {
 			[{ wallet_address: null }],
 			[{ id: person.ownerId }],
 		);
-		const linked = await walletSessions(db, clock(), SETTINGS).linkWallet(request, person);
+		const linked = await walletSessions(db, clock(), SETTINGS).linkWallet(request, person, BINDING);
 		expect(linked).toMatchObject({
 			ownerId: person.ownerId,
 			walletAddress: request.walletAddress,
@@ -203,7 +225,7 @@ describe("linking a wallet to an owner who signed in another way", () => {
 		const request = await signedFor("evil.example");
 		const db = fakeDatabase();
 		await expect(
-			walletSessions(db, clock(), SETTINGS).linkWallet(request, person),
+			walletSessions(db, clock(), SETTINGS).linkWallet(request, person, BINDING),
 		).rejects.toThrow();
 		expect(db.execute).not.toHaveBeenCalled();
 	});
@@ -211,16 +233,16 @@ describe("linking a wallet to an owner who signed in another way", () => {
 	it("refuses a message that is not a sign in message", async () => {
 		const request = { ...(await signedFor()), message: "hello" };
 		await expect(
-			walletSessions(fakeDatabase(), clock(), SETTINGS).linkWallet(request, person),
+			walletSessions(fakeDatabase(), clock(), SETTINGS).linkWallet(request, person, BINDING),
 		).rejects.toThrow("not a sign in message");
 	});
 
 	it("refuses a wallet that belongs to somebody else", async () => {
 		const request = await signedFor();
 		const db = fakeDatabase([{ nonce: "link123" }], [{ wallet_address: null }], []);
-		await expect(walletSessions(db, clock(), SETTINGS).linkWallet(request, person)).rejects.toThrow(
-			"already belongs",
-		);
+		await expect(
+			walletSessions(db, clock(), SETTINGS).linkWallet(request, person, BINDING),
+		).rejects.toThrow("already belongs");
 	});
 });
 

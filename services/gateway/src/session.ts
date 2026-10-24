@@ -10,6 +10,7 @@
  * nobody was given, or one that has expired or been ended, is simply nobody.
  */
 
+import { createHash } from "node:crypto";
 import { signInMessage, verifySignIn } from "@maschina/auth";
 import type { SignInChallenge, SignInRequest } from "@maschina/contracts";
 import { type Clock, MaschinaError } from "@maschina/core";
@@ -36,12 +37,21 @@ export type SessionSettings = {
 	sessionValidForMs: number;
 };
 
+/**
+ * What a sign in message says about the browser that asked for it: a hash of a secret only that browser holds, in a
+ * cookie it cannot read from script. The message is signed, so the signature is good for that browser alone.
+ */
+export function requestIdOf(binding: string): string {
+	return createHash("sha256").update(binding).digest("hex").slice(0, 32);
+}
+
 export type Sessions = {
-	challenge(walletAddress: string): Promise<SignInChallenge>;
-	verify(request: SignInRequest): Promise<StartedSession>;
+	/** `binding` is the secret the asking browser holds, which the message will name by its hash. */
+	challenge(walletAddress: string, binding: string): Promise<SignInChallenge>;
+	verify(request: SignInRequest, binding: string): Promise<StartedSession>;
 	ownerOf(headers: Headers): Promise<Owner | undefined>;
 	signOut(token: string): Promise<void>;
-	linkWallet(request: SignInRequest, owner: Owner): Promise<Owner>;
+	linkWallet(request: SignInRequest, owner: Owner, binding: string): Promise<Owner>;
 };
 
 /** Whoever is asked first who knows the request: a wallet's session, then a person's. */
@@ -63,7 +73,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 	 * one cannot pass, the signature is checked before anything is spent, and spending the nonce is what makes it
 	 * unrepeatable.
 	 */
-	async function proveWallet(request: SignInRequest, now: Date): Promise<void> {
+	async function proveWallet(request: SignInRequest, now: Date, binding: string): Promise<void> {
 		const nonce = request.message.match(/^Nonce: (.+)$/m)?.[1];
 		if (!nonce) throw new MaschinaError("unauthenticated", "that is not a sign in message");
 
@@ -72,6 +82,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 			signature: request.signature,
 			domain: settings.domain,
 			uri: settings.uri,
+			requestId: requestIdOf(binding),
 			nonce,
 			now,
 		});
@@ -85,7 +96,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 	}
 
 	return {
-		async challenge(walletAddress) {
+		async challenge(walletAddress, binding) {
 			const now = clock.now();
 			const { nonce, expiresAt } = await issueNonce(db, walletAddress, {
 				now,
@@ -95,6 +106,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 				message: signInMessage({
 					domain: settings.domain,
 					uri: settings.uri,
+					requestId: requestIdOf(binding),
 					address: walletAddress,
 					nonce,
 					issuedAt: now,
@@ -105,9 +117,9 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 			};
 		},
 
-		async verify(request) {
+		async verify(request, binding) {
 			const now = clock.now();
-			await proveWallet(request, now);
+			await proveWallet(request, now, binding);
 
 			const owner = await createOwner(db, request.walletAddress);
 			if (!owner.ok) throw owner.error;
@@ -124,9 +136,9 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 			};
 		},
 
-		async linkWallet(request, owner) {
+		async linkWallet(request, owner, binding) {
 			// The same proof as signing in: a sentence this server wrote, signed by that wallet, once.
-			await proveWallet(request, clock.now());
+			await proveWallet(request, clock.now(), binding);
 			const linked = await linkWallet(db, owner.ownerId, request.walletAddress);
 			if (!linked.ok) throw linked.error;
 			return { ...owner, walletAddress: linked.value.walletAddress };

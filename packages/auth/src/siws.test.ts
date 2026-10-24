@@ -10,10 +10,13 @@ const EXPIRES = new Date("2026-09-25T12:05:00.000Z");
 
 const wallet = testWallet;
 
+const REQUEST_ID = "5d41402abc4b2a76b9719d911017c592";
+
 const asked = (address: string) =>
 	signInMessage({
 		domain: DOMAIN,
 		uri: `https://${DOMAIN}`,
+		requestId: REQUEST_ID,
 		address,
 		nonce: NONCE,
 		issuedAt: ISSUED,
@@ -42,7 +45,15 @@ describe("the message a wallet is asked to sign", () => {
 
 describe("verifying a signed message", () => {
 	const check = (message: string, signature: string, now: Date, domain = DOMAIN) =>
-		verifySignIn({ message, signature, domain, uri: `https://${DOMAIN}`, now, nonce: NONCE });
+		verifySignIn({
+			message,
+			signature,
+			domain,
+			uri: `https://${DOMAIN}`,
+			requestId: REQUEST_ID,
+			now,
+			nonce: NONCE,
+		});
 
 	it("accepts a message this wallet really signed", async () => {
 		const { address, sign } = await wallet();
@@ -80,6 +91,7 @@ describe("verifying a signed message", () => {
 			signature,
 			domain: DOMAIN,
 			uri: `https://${DOMAIN}`,
+			requestId: REQUEST_ID,
 			now: at("2026-09-25T12:01:00.000Z"),
 			nonce: "0000000000000000",
 		});
@@ -92,6 +104,7 @@ describe("verifying a signed message", () => {
 		const message = signInMessage({
 			domain: "evil.example",
 			uri: "https://evil.example",
+			requestId: REQUEST_ID,
 			address,
 			nonce: NONCE,
 			issuedAt: ISSUED,
@@ -109,6 +122,7 @@ describe("verifying a signed message", () => {
 		const message = signInMessage({
 			domain: DOMAIN,
 			uri: "https://evil.example",
+			requestId: REQUEST_ID,
 			address,
 			nonce: NONCE,
 			issuedAt: ISSUED,
@@ -133,6 +147,35 @@ describe("verifying a signed message", () => {
 		expect(result.ok).toBe(false);
 	});
 
+	it("refuses a message that was asked for by a different browser", async () => {
+		const { address, sign } = await wallet();
+		const message = signInMessage({
+			domain: DOMAIN,
+			uri: `https://${DOMAIN}`,
+			requestId: "0".repeat(32),
+			address,
+			nonce: NONCE,
+			issuedAt: ISSUED,
+			expiresAt: EXPIRES,
+		});
+
+		const result = await check(message, await sign(message), at("2026-09-25T12:01:00.000Z"));
+
+		expect(result.ok).toBe(false);
+	});
+
+	it("refuses a message that names no browser at all", async () => {
+		const { address, sign } = await wallet();
+		const message = asked(address)
+			.split("\n")
+			.filter((line) => !line.startsWith("Request ID:"))
+			.join("\n");
+
+		const result = await check(message, await sign(message), at("2026-09-25T12:01:00.000Z"));
+
+		expect(result.ok).toBe(false);
+	});
+
 	it("refuses a message whose nonce is not the one that was handed out", async () => {
 		const { address, sign } = await wallet();
 		const message = asked(address);
@@ -142,6 +185,7 @@ describe("verifying a signed message", () => {
 			signature: await sign(message),
 			domain: DOMAIN,
 			uri: `https://${DOMAIN}`,
+			requestId: REQUEST_ID,
 			now: at("2026-09-25T12:01:00.000Z"),
 			nonce: "a different nonce entirely",
 		});
