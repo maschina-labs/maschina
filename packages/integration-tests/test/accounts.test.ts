@@ -168,3 +168,35 @@ describe("signing out", () => {
 		).toBeUndefined();
 	});
 });
+
+describe("a company's single sign-on", () => {
+	it("cannot be registered by an ordinary person who is signed in", async () => {
+		// An identity provider that claims an email domain decides who may sign in as anyone at that domain, so only
+		// Maschina may add one. A person who merely has an account must not be able to claim somebody else's domain.
+		await signUp("sso@example.com");
+		await accounts.handler(new Request(lastLink(), { headers: { origin: BASE } }));
+		const signedIn = await post("/sign-in/email", { email: "sso@example.com", password: PASSWORD });
+		expect(signedIn.status).toBe(200);
+
+		const registered = await post(
+			"/sso/register",
+			{
+				providerId: "not-the-real-company",
+				issuer: "https://idp.attacker.example",
+				domain: "victim.example",
+				oidcConfig: {
+					clientId: "client",
+					clientSecret: "secret",
+					skipDiscovery: true,
+					authorizationEndpoint: "https://idp.attacker.example/authorize",
+					tokenEndpoint: "https://idp.attacker.example/token",
+					jwksEndpoint: "https://idp.attacker.example/jwks",
+				},
+			},
+			{ cookie: cookieOf(signedIn) },
+		);
+		expect(registered.status).toBe(403);
+		const rows = await handle.sql`select 1 from auth_sso_providers`;
+		expect(rows).toHaveLength(0);
+	});
+});
