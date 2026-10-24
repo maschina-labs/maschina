@@ -5,12 +5,13 @@
  * which account is answering, that nothing is being approved, and when the offer stops being valid. A
  * person reads it in their wallet before they approve it, so it is written to be read.
  *
- * Four things have to be true before a signature means somebody is signed in:
+ * Five things have to be true before a signature means somebody is signed in:
  *
  *   1. the message names this domain, so a signature collected elsewhere cannot be replayed here
- *   2. the nonce is the one this server handed out, so an old message cannot be presented again
- *   3. the moment is inside the window the message itself states
- *   4. the signature is that account's, over exactly these bytes
+ *   2. the message names this app as the page that asked, so another page under the same domain cannot collect it
+ *   3. the nonce is the one this server handed out, so an old message cannot be presented again
+ *   4. the moment is inside the window the message itself states
+ *   5. the signature is that account's, over exactly these bytes
  *
  * The nonce being single use is enforced by whoever handed it out, since that needs somewhere to
  * remember it. Everything else is decided here, from the message alone.
@@ -56,12 +57,20 @@ export function signInMessage(request: SignInRequest): string {
 
 const FIELDS = {
 	domain: /^(\S+) wants you to sign in with your Solana account:$/,
+	uri: /^URI: (.+)$/,
 	nonce: /^Nonce: (.+)$/,
 	issuedAt: /^Issued At: (.+)$/,
 	expiresAt: /^Expiration Time: (.+)$/,
 } as const;
 
-type Parsed = { domain: string; address: string; nonce: string; issuedAt: Date; expiresAt: Date };
+type Parsed = {
+	domain: string;
+	address: string;
+	uri: string | undefined;
+	nonce: string;
+	issuedAt: Date;
+	expiresAt: Date;
+};
 
 function parse(message: string): Parsed | undefined {
 	const lines = message.split("\n");
@@ -77,6 +86,7 @@ function parse(message: string): Parsed | undefined {
 		return undefined;
 	};
 
+	const uri = find(FIELDS.uri);
 	const nonce = find(FIELDS.nonce);
 	const issued = find(FIELDS.issuedAt);
 	const expires = find(FIELDS.expiresAt);
@@ -86,7 +96,7 @@ function parse(message: string): Parsed | undefined {
 	const expiresAt = new Date(expires);
 	if (Number.isNaN(issuedAt.getTime()) || Number.isNaN(expiresAt.getTime())) return undefined;
 
-	return { domain, address, nonce, issuedAt, expiresAt };
+	return { domain, address, uri, nonce, issuedAt, expiresAt };
 }
 
 export type VerifyRequest = {
@@ -95,10 +105,22 @@ export type VerifyRequest = {
 	signature: string;
 	/** The domain this server answers for. */
 	domain: string;
+	/** The app that asks people to sign in, which the message must name as the page that asked. */
+	uri: string;
 	/** The nonce this server handed out for this attempt. */
 	nonce: string;
 	now: Date;
 };
+
+/** Whether the message's address of origin is the app's, compared as an origin so a trailing slash does not matter. */
+function sameOrigin(found: string | undefined, expected: string): boolean {
+	if (!found) return false;
+	try {
+		return new URL(found).origin === new URL(expected).origin;
+	} catch {
+		return false;
+	}
+}
 
 const refuse = (why: string, details?: Record<string, unknown>) =>
 	err(
@@ -116,6 +138,10 @@ export async function verifySignIn(
 	if (parsed.domain !== request.domain) {
 		// A signature collected by somebody else's site says nothing about this one.
 		return refuse("that message was addressed to another site", { domain: parsed.domain });
+	}
+	if (!sameOrigin(parsed.uri, request.uri)) {
+		// The domain can be right while the page that asked is not: a sibling address under it is not this app.
+		return refuse("that message was asked for by another page", { uri: parsed.uri ?? null });
 	}
 	if (parsed.nonce !== request.nonce) {
 		return refuse("that message answers a different sign in attempt");

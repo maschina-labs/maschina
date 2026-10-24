@@ -42,7 +42,7 @@ describe("the message a wallet is asked to sign", () => {
 
 describe("verifying a signed message", () => {
 	const check = (message: string, signature: string, now: Date, domain = DOMAIN) =>
-		verifySignIn({ message, signature, domain, now, nonce: NONCE });
+		verifySignIn({ message, signature, domain, uri: `https://${DOMAIN}`, now, nonce: NONCE });
 
 	it("accepts a message this wallet really signed", async () => {
 		const { address, sign } = await wallet();
@@ -79,6 +79,7 @@ describe("verifying a signed message", () => {
 			message: tampered,
 			signature,
 			domain: DOMAIN,
+			uri: `https://${DOMAIN}`,
 			now: at("2026-09-25T12:01:00.000Z"),
 			nonce: "0000000000000000",
 		});
@@ -103,6 +104,35 @@ describe("verifying a signed message", () => {
 		if (!result.ok) expect(result.error.details).toMatchObject({ domain: "evil.example" });
 	});
 
+	it("refuses a message that names this domain but was asked for by another page", async () => {
+		const { address, sign } = await wallet();
+		const message = signInMessage({
+			domain: DOMAIN,
+			uri: "https://evil.example",
+			address,
+			nonce: NONCE,
+			issuedAt: ISSUED,
+			expiresAt: EXPIRES,
+		});
+
+		const result = await check(message, await sign(message), at("2026-09-25T12:01:00.000Z"));
+
+		expect(result.ok).toBe(false);
+		if (!result.ok) expect(result.error.details).toMatchObject({ uri: "https://evil.example" });
+	});
+
+	it("refuses a message with no address of origin at all", async () => {
+		const { address, sign } = await wallet();
+		const message = asked(address)
+			.split("\n")
+			.filter((line) => !line.startsWith("URI:"))
+			.join("\n");
+
+		const result = await check(message, await sign(message), at("2026-09-25T12:01:00.000Z"));
+
+		expect(result.ok).toBe(false);
+	});
+
 	it("refuses a message whose nonce is not the one that was handed out", async () => {
 		const { address, sign } = await wallet();
 		const message = asked(address);
@@ -111,6 +141,7 @@ describe("verifying a signed message", () => {
 			message,
 			signature: await sign(message),
 			domain: DOMAIN,
+			uri: `https://${DOMAIN}`,
 			now: at("2026-09-25T12:01:00.000Z"),
 			nonce: "a different nonce entirely",
 		});

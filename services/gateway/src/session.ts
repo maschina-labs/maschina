@@ -71,6 +71,7 @@ export function walletSessions(db: Database, clock: Clock, settings: SessionSett
 			message: request.message,
 			signature: request.signature,
 			domain: settings.domain,
+			uri: settings.uri,
 			nonce,
 			now,
 		});
