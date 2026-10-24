@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.66](https://github.com/maschina-labs/maschina/compare/v0.0.65...v0.0.66) (2026-10-24)
+
+
+### Fixed
+
+* **accounts:** only Maschina may add a company sign in provider ([#878](https://github.com/maschina-labs/maschina/issues/878)) ([1e784d5](https://github.com/maschina-labs/maschina/commit/1e784d50601ebf77304bbd12408f9ae4d03c8b55))
+
 ## [0.0.65](https://github.com/maschina-labs/maschina/compare/v0.0.64...v0.0.65) (2026-10-24)
 
 
