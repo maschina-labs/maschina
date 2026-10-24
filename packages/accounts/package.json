@@ -13,11 +13,11 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@better-auth/drizzle-adapter": "1.7.7",
-		"@better-auth/sso": "1.7.7",
+		"@better-auth/drizzle-adapter": "1.7.12",
+		"@better-auth/sso": "1.7.12",
 		"@maschina/core": "workspace:*",
 		"@maschina/db": "workspace:*",
-		"better-auth": "1.7.7",
+		"better-auth": "1.7.12",
 		"drizzle-orm": "catalog:"
 	},
 	"devDependencies": {
