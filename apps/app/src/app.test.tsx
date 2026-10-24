@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 // No WebGL in a test browser, so the background's canvas is stood in for.
@@ -38,6 +38,18 @@ describe("the web app", () => {
 		const { container } = renderAt("/");
 		await screen.findByRole("main", {}).catch(() => undefined);
 		expect(container.firstChild).toBeTruthy();
+	});
+
+	it("opens straight onto the app: no opening logo, and nothing held back waiting for one", async () => {
+		sessionStorage.clear();
+		const { container } = renderAt("/");
+		const stage = () => container.querySelector('[class*="container-type"]') as HTMLElement | null;
+		await waitFor(() => expect(stage()).not.toBeNull());
+
+		expect(
+			container.querySelector('[aria-hidden="true"] img[alt=""][src="/brand/word.svg"]'),
+		).toBeNull();
+		expect(stage()?.style.opacity).not.toBe("0");
 	});
 
 	it("shows a not-found page for unknown routes", async () => {

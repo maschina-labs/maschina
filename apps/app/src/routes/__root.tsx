@@ -6,7 +6,6 @@ import { Deck, sectionIndex } from "../components/deck.tsx";
 import { Detail } from "../components/detail.tsx";
 import { Edges, SideRail, useOpenEdge } from "../components/edges.tsx";
 import { RainGlass } from "../components/rain-glass.tsx";
-import { Splash, useSplash } from "../components/splash.tsx";
 import { Broken, HaltBanner, OfflineBanner, PaperBanner } from "../components/system.tsx";
 import { TabTitle } from "../components/tab-title.tsx";
 import { Toaster } from "../components/toaster.tsx";
@@ -49,7 +48,6 @@ function Field() {
 			: edge === "right" || edge === "account" || edge === "sections"
 				? "right"
 				: undefined;
-	const splash = useSplash();
 	// The page's whole palette follows the mode, from one attribute: see the light mode block in styles.css.
 	useEffect(() => {
 		document.documentElement.dataset["mode"] = mode;
@@ -114,10 +112,8 @@ function Field() {
 				style={{
 					left: pushedFrom === "left" ? "var(--side)" : 0,
 					right: pushedFrom === "right" ? "var(--side)" : 0,
-					// The app waits for the logo to fade out completely, then fades in over a second.
-					opacity: splash === "done" ? 1 : 0,
 					transition:
-						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1), opacity 1000ms ease-in-out",
+						"left 420ms cubic-bezier(0.32,0.72,0,1), right 420ms cubic-bezier(0.32,0.72,0,1)",
 				}}
 			>
 				<div className="relative h-full">
@@ -130,17 +126,10 @@ function Field() {
 			<Edges />
 			<Toaster />
 			<WalletPicker />
-			{/* The banners wait behind the logo too, so it opens on nothing but the name. */}
-			<div
-				className="transition-opacity duration-1000 ease-in-out"
-				style={{ opacity: splash === "done" ? 1 : 0 }}
-			>
-				<OfflineBanner />
-				<HaltBanner />
-				<PaperBanner />
-			</div>
+			<OfflineBanner />
+			<HaltBanner />
+			<PaperBanner />
 			<TabTitle />
-			<Splash phase={splash} />
 			<Grain />
 		</div>
 	);

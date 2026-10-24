@@ -162,16 +162,6 @@ input[type="range"].square::-moz-range-thumb {
 	background: oklch(0.98 0 0);
 }
 
-/* The opening moment: the ring arrives, a little small and faint, and settles. */
-@keyframes splash {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
 /*
  * The surfaces things sit on: the sheet a tile opens into, the sidebars, bars, toasts and banners. Named
  * once here so light mode can turn each over with the rest of the palette.
