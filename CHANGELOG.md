@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.71](https://github.com/maschina-labs/maschina/compare/v0.0.70...v0.0.71) (2026-10-24)
+
+
+### Fixed
+
+* **deps:** give the deploy workflow the wrangler it runs ([#895](https://github.com/maschina-labs/maschina/issues/895)) ([10d5a5b](https://github.com/maschina-labs/maschina/commit/10d5a5be335babcce13045c8d31a5410c231050c))
+
 ## [0.0.70](https://github.com/maschina-labs/maschina/compare/v0.0.69...v0.0.70) (2026-10-24)
 
 
