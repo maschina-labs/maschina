@@ -6,27 +6,27 @@ import { Faq } from "./faq.tsx";
 const QUESTIONS = [
 	[
 		"What is Maschina?",
-		"A way to give an AI its own wallet and a job, like trading SOL. It works on its own, inside limits you set.",
+		"Maschina lets you create machines with a wallet and a defined job. Today, you can build trading machines on Solana, set their budgets, and follow their activity.",
 	],
 	[
 		"What can a machine do with my money?",
-		"Only what you allow: it spends inside the budget and limits you set, and Maschina never holds your own wallet's keys.",
+		"A machine uses a separate wallet funded with the amount you allocate. Its trading budget is checked before signing, and wallet policies restrict transfers. Maschina does not need the private keys to your personal wallet.",
 	],
 	[
 		"What if it makes a bad trade?",
-		"Every trade is checked against your budget and limits before it is signed, so it cannot spend more than you gave it.",
+		"A trade can meet your rules and still lose money. Budget checks constrain spending; they do not guarantee a good price or a profit. You can stop a machine to prevent further trades.",
 	],
 	[
 		"Do I need money to try it?",
-		"No. Make a machine on paper and watch it trade against live prices without risking anything.",
+		"No. Paper mode lets you test a machine against live market prices without funding a wallet or submitting real trades. Paper results are kept separate from real-money activity.",
 	],
 	[
 		"Is it live with real money?",
-		"Yes. Range Finder has traded real money on Solana since September 28, and every trade is on chain.",
+		"Yes. Range Finder began trading founder-funded capital on Solana on September 28, 2026. Its real trades can be checked on chain. This is an early operating record, not evidence of profitability.",
 	],
 	[
 		"Can I read the code?",
-		"Yes. It is source-available: you can read it, but it is not open source.",
+		"Yes. The source is available to inspect, including the runtime and signing checks. The repository license explains how you can use it.",
 	],
 ] as const;
 
@@ -59,7 +59,7 @@ describe("the questions", () => {
 		expect(section.className).not.toMatch(/lg:grid-cols|lg:flex-row/);
 	});
 
-	it("has the title in the hero's pearl gradient with its thin outline, with room below for the letters' tails", () => {
+	it("has the title in the hero's pearl gradient without an outline, with room below for the letters' tails", () => {
 		render(<Faq />);
 		const { className } = screen.getByRole("heading", { level: 2 });
 		expect(className).toContain("bg-clip-text");
@@ -67,7 +67,7 @@ describe("the questions", () => {
 		expect(className).toContain(
 			"linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)",
 		);
-		expect(className).toContain("[-webkit-text-stroke:1px_oklch(1_0_0/0.4)]");
+		expect(className).not.toContain("-webkit-text-stroke");
 		expect(className).toContain("pb-[0.14em]");
 		expect(className).toContain("-mb-[0.14em]");
 	});
@@ -95,8 +95,8 @@ describe("the questions", () => {
 		for (const [index, [, answer]] of QUESTIONS.entries()) {
 			expect(answers()[index]).toHaveTextContent(answer);
 		}
-		// Short: no answer runs past 130 characters.
-		for (const [, answer] of QUESTIONS) expect(answer.length).toBeLessThanOrEqual(130);
+		// Short: no answer runs past 300 characters.
+		for (const [, answer] of QUESTIONS) expect(answer.length).toBeLessThanOrEqual(300);
 	});
 
 	it("starts with every answer shut, and opens one when you press its question", () => {

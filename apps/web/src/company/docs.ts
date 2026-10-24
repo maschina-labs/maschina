@@ -78,7 +78,7 @@ export const DOCS: ArticleDoc = {
 		{
 			heading: "Where the record is",
 			body: [
-				"Every finished trade of every machine on the public record is at live.maschina.dev, real money and paper in separate tables that are never added together, each real trade linking to its transaction on chain.",
+				"Every finished trade of every machine on the public record is at maschina.dev/live, real money and paper in separate tables that are never added together, each real trade linking to its transaction on chain.",
 				"A machine's record is private unless its owner chooses otherwise. The ones on that page are the founder's own.",
 				"The record is what the application reports. It is not, by itself, proof that the controls behind it hold. Maschina is early and has not had an independent security audit.",
 			],

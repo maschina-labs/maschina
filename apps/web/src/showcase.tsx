@@ -24,37 +24,43 @@ export function Showcase() {
 	return (
 		<section
 			aria-label={m.name}
-			className="relative flex flex-col items-center bg-black px-(--gutter) pt-8 pb-12"
+			className="margin-dots relative flex flex-col items-center bg-black px-(--gutter) pt-12 pb-12 sm:pt-16 sm:pb-16"
 		>
-			<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [-webkit-text-stroke:1px_oklch(1_0_0/0.4)] [text-wrap:balance]">
-				{m.title}
-			</h2>
-			<figure className="mt-16 w-full">
-				<Backdrop className="max-sm:-mr-(--gutter) max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
-					<picture>
-						<source
-							type="image/avif"
-							srcSet="/showcase/dashboard.avif 2838w, /showcase/dashboard-4x.avif 5676w"
-							sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
-						/>
-						<img
-							src="/showcase/dashboard.jpg"
-							srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
-							sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
-							alt={m.alt}
-							width={2838}
-							height={1800}
-							decoding="async"
-							loading="lazy"
-							fetchPriority="low"
-							className="relative block h-auto w-full max-sm:w-[320%] max-sm:max-w-none shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
-						/>
-					</picture>
-				</Backdrop>
-				<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
-					{m.caption}
-				</figcaption>
-			</figure>
+			<div
+				aria-hidden="true"
+				className="layout-rails pointer-events-none absolute inset-y-0 left-(--gutter) right-(--gutter) border-x border-[oklch(0.94_0.012_245/0.12)]"
+			/>
+			<div className="relative flex w-full min-w-0 flex-col items-center px-4 sm:px-8 lg:px-12">
+				<h2 className="-mb-[0.14em] max-w-[16ch] bg-clip-text bg-[linear-gradient(105deg,oklch(0.76_0.012_260)_0%,oklch(0.92_0.008_260)_28%,oklch(1_0_0)_44%,oklch(0.86_0.01_260)_60%,oklch(0.78_0.012_260)_100%)] pb-[0.14em] text-center font-display font-normal text-[clamp(2.25rem,5vw,4.5rem)] text-transparent leading-[1.05] tracking-[-0.03em] [text-wrap:balance]">
+					{m.title}
+				</h2>
+				<figure className="mt-12 w-full max-w-[76rem] sm:mt-16">
+					<Backdrop className="max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
+						<picture>
+							<source
+								type="image/avif"
+								srcSet="/showcase/dashboard.avif 2838w, /showcase/dashboard-4x.avif 5676w"
+								sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
+							/>
+							<img
+								src="/showcase/dashboard.jpg"
+								srcSet="/showcase/dashboard.jpg 2838w, /showcase/dashboard-4x.jpg 5676w"
+								sizes="(min-width: 1536px) 1300px, (min-width: 1280px) 900px, 82vw"
+								alt={m.alt}
+								width={2838}
+								height={1800}
+								decoding="async"
+								loading="lazy"
+								fetchPriority="low"
+								className="relative block h-auto w-full max-sm:w-[320%] max-sm:max-w-none shadow-[0_30px_80px_-24px_oklch(0_0_0/0.65)]"
+							/>
+						</picture>
+					</Backdrop>
+					<figcaption className="mt-5 text-center text-[13px] text-neutral-500">
+						{m.caption}
+					</figcaption>
+				</figure>
+			</div>
 		</section>
 	);
 }

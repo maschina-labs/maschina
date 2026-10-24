@@ -17,6 +17,7 @@
 		"@phosphor-icons/react": "2.1.10",
 		"d3-geo": "3.1.1",
 		"ldrs": "1.1.9",
+		"lightweight-charts": "5.2.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"topojson-client": "3.1.0",

@@ -187,7 +187,7 @@ describe("the footer", () => {
 		const footer = screen.getByRole("contentinfo");
 		const nav = within(footer).getByRole("navigation", { name: "Sitemap" });
 		const row = nav.parentElement as HTMLElement;
-		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const line = screen.getByText(/© \d{4} Maschina, Corp\./).parentElement as HTMLElement;
 		const order = [...footer.children];
 		expect(order.indexOf(row)).toBeLessThan(order.indexOf(line));
 		expect(row.className).not.toContain("my-auto");
@@ -198,7 +198,7 @@ describe("the footer", () => {
 		const nav = screen.getByRole("navigation", { name: "Sitemap" });
 		expect((nav.parentElement as HTMLElement).className).toContain("py-12");
 		expect(within(nav).getAllByRole("list")[0]?.className).toContain("gap-2.5");
-		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const line = screen.getByText(/© \d{4} Maschina, Corp\./).parentElement as HTMLElement;
 		expect(line.className).toContain("pb-8");
 	});
 
@@ -361,7 +361,7 @@ describe("the footer", () => {
 
 	it("has Maschina on X, GitHub and YouTube on the left, as square boxes the height of the status", () => {
 		render(<Footer />);
-		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const row = screen.getByText(/© \d{4} Maschina, Corp\./).parentElement as HTMLElement;
 		const x = screen.getByRole("link", { name: "Maschina on X" });
 		const github = screen.getByRole("link", { name: "Maschina on GitHub" });
 		expect(x).toHaveAttribute("href", "https://x.com/maschinalabs");
@@ -390,14 +390,14 @@ describe("the footer", () => {
 
 	it("puts the status and the language together on the right of the line with the copyright", () => {
 		render(<Footer />);
-		const row = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const row = screen.getByText(/© \d{4} Maschina, Corp\./).parentElement as HTMLElement;
 		// The status mark is a link to the status page, so its parent is the link and the right side is above it.
 		const right = screen.getByRole("status").closest("[data-right]") as HTMLElement;
 		expect(right).toBe(screen.getByRole("button", { name: "Language" }).closest("[data-right]"));
 		expect(row.contains(right)).toBe(true);
 		expect(right.className).toContain("sm:justify-self-end");
 		// The copyright is still centered, between them.
-		expect(screen.getByText(/All rights reserved/).className).toContain("text-center");
+		expect(screen.getByText(/© \d{4} Maschina, Corp\./).className).toContain("text-center");
 		expect(row.className).toContain("sm:grid-cols-[1fr_auto_1fr]");
 		expect(row.innerHTML).not.toMatch(/rounded/);
 	});
@@ -407,7 +407,7 @@ describe("the footer", () => {
 		vi.setSystemTime(new Date("2031-03-04T12:00:00Z"));
 		render(<Footer />);
 		const footer = screen.getByRole("contentinfo");
-		const line = screen.getByText("© 2031 Maschina, Corp. All rights reserved.");
+		const line = screen.getByText("© 2031 Maschina, Corp.");
 		expect(line.className).toContain("text-center");
 		// It comes before the wordmark, so it sits above it.
 		const logo = screen.getByRole("img", { name: "Maschina" }).parentElement as HTMLElement;
@@ -426,7 +426,7 @@ describe("the footer", () => {
 		const { className } = screen.getByRole("contentinfo");
 		expect(className).toContain("min-h-lvh");
 		expect(className).not.toContain("justify-end");
-		const line = screen.getByText(/All rights reserved/).parentElement as HTMLElement;
+		const line = screen.getByText(/© \d{4} Maschina, Corp\./).parentElement as HTMLElement;
 		expect(line.className).toContain("mt-auto");
 		expect(className).toContain("flex-col");
 	});

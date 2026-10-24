@@ -210,8 +210,8 @@ export function LegalPage({
 			section.body.filter((block) => typeof block === "string" || Array.isArray(block)).length,
 	);
 	return (
-		<Frame authUrl={authUrl}>
-			<article className="w-full">
+		<Frame authUrl={authUrl} framed={false}>
+			<article className="legal-frame w-full">
 				<div data-head className={HEAD}>
 					<HeadArt />
 					<div data-head-text className="relative mx-auto w-full text-center max-w-[44rem]">
@@ -223,7 +223,15 @@ export function LegalPage({
 						</p>
 					</div>
 				</div>
-				<div data-sheet className={`${SHEET} pt-14 pb-24 sm:pt-20 sm:pb-32`}>
+				<div
+					data-sheet
+					className={`${SHEET} document-frame border-b border-[oklch(0.94_0.012_245/0.12)] pt-28 pb-24 sm:pt-36 sm:pb-32`}
+				>
+					<div
+						data-legal-strip
+						aria-hidden="true"
+						className="pointer-events-none absolute inset-x-0 top-0 h-16 border-y border-[oklch(0.94_0.012_245/0.12)]"
+					/>
 					{englishPath && locale !== "en" ? (
 						<p
 							data-translation
