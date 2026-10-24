@@ -5,13 +5,15 @@
  * which account is answering, that nothing is being approved, and when the offer stops being valid. A
  * person reads it in their wallet before they approve it, so it is written to be read.
  *
- * Five things have to be true before a signature means somebody is signed in:
+ * Six things have to be true before a signature means somebody is signed in:
  *
  *   1. the message names this domain, so a signature collected elsewhere cannot be replayed here
  *   2. the message names this app as the page that asked, so another page under the same domain cannot collect it
- *   3. the nonce is the one this server handed out, so an old message cannot be presented again
- *   4. the moment is inside the window the message itself states
- *   5. the signature is that account's, over exactly these bytes
+ *   3. the message names the browser that asked for it, so a signature somebody collected for their own browser
+ *      cannot be pushed into somebody else's
+ *   4. the nonce is the one this server handed out, so an old message cannot be presented again
+ *   5. the moment is inside the window the message itself states
+ *   6. the signature is that account's, over exactly these bytes
  *
  * The nonce being single use is enforced by whoever handed it out, since that needs somewhere to
  * remember it. Everything else is decided here, from the message alone.
@@ -26,6 +28,8 @@ const CLOCK_DRIFT_MS = 30_000;
 export type SignInRequest = {
 	domain: string;
 	uri: string;
+	/** Says which browser asked: a hash of a secret only that browser holds, which the server also remembers. */
+	requestId: string;
 	address: string;
 	nonce: string;
 	issuedAt: Date;
@@ -52,12 +56,14 @@ export function signInMessage(request: SignInRequest): string {
 		`Nonce: ${request.nonce}`,
 		`Issued At: ${request.issuedAt.toISOString()}`,
 		`Expiration Time: ${request.expiresAt.toISOString()}`,
+		`Request ID: ${request.requestId}`,
 	].join("\n");
 }
 
 const FIELDS = {
 	domain: /^(\S+) wants you to sign in with your Solana account:$/,
 	uri: /^URI: (.+)$/,
+	requestId: /^Request ID: (.+)$/,
 	nonce: /^Nonce: (.+)$/,
 	issuedAt: /^Issued At: (.+)$/,
 	expiresAt: /^Expiration Time: (.+)$/,
@@ -67,6 +73,7 @@ type Parsed = {
 	domain: string;
 	address: string;
 	uri: string | undefined;
+	requestId: string | undefined;
 	nonce: string;
 	issuedAt: Date;
 	expiresAt: Date;
@@ -87,6 +94,7 @@ function parse(message: string): Parsed | undefined {
 	};
 
 	const uri = find(FIELDS.uri);
+	const requestId = find(FIELDS.requestId);
 	const nonce = find(FIELDS.nonce);
 	const issued = find(FIELDS.issuedAt);
 	const expires = find(FIELDS.expiresAt);
@@ -96,7 +104,7 @@ function parse(message: string): Parsed | undefined {
 	const expiresAt = new Date(expires);
 	if (Number.isNaN(issuedAt.getTime()) || Number.isNaN(expiresAt.getTime())) return undefined;
 
-	return { domain, address, uri, nonce, issuedAt, expiresAt };
+	return { domain, address, uri, requestId, nonce, issuedAt, expiresAt };
 }
 
 export type VerifyRequest = {
@@ -107,6 +115,8 @@ export type VerifyRequest = {
 	domain: string;
 	/** The app that asks people to sign in, which the message must name as the page that asked. */
 	uri: string;
+	/** What the browser submitting this holds: the message must name exactly this as the one that asked. */
+	requestId: string;
 	/** The nonce this server handed out for this attempt. */
 	nonce: string;
 	now: Date;
@@ -142,6 +152,10 @@ export async function verifySignIn(
 	if (!sameOrigin(parsed.uri, request.uri)) {
 		// The domain can be right while the page that asked is not: a sibling address under it is not this app.
 		return refuse("that message was asked for by another page", { uri: parsed.uri ?? null });
+	}
+	if (parsed.requestId !== request.requestId) {
+		// A signature collected for somebody else's browser, or for none, says nothing about this one.
+		return refuse("that message was asked for by a different browser");
 	}
 	if (parsed.nonce !== request.nonce) {
 		return refuse("that message answers a different sign in attempt");

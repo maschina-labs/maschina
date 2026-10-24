@@ -9,6 +9,7 @@
  * query string, because a token in a URL ends up in logs, in referrers and in somebody's history.
  */
 
+import { randomBytes } from "node:crypto";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
 	ErrorBody,
@@ -24,17 +25,23 @@ import type { Owner } from "./machines.ts";
 
 export const SESSION_COOKIE = "maschina_session";
 
+/** Holds the secret a browser asked for its sign in message with, so only that browser can finish signing in. */
+export const BINDING_COOKIE = "maschina_siws";
+
+/** A sign in that is not finished by then was abandoned, and a new one is asked for. */
+const BINDING_VALID_SECONDS = 10 * 60;
+
 export type StartedSession = { token: string; expiresAt: Date; owner: Owner };
 
 export type AuthPorts = {
-	/** The sentence this wallet should sign, and the nonce it answers. */
-	challenge(walletAddress: string): Promise<SignInChallenge>;
+	/** The sentence this wallet should sign, and the nonce it answers. `binding` is the secret the asking browser holds. */
+	challenge(walletAddress: string, binding: string): Promise<SignInChallenge>;
 	/** Checks a signed sentence, spends its nonce, and starts a session. */
-	verify(request: SignInRequest): Promise<StartedSession>;
+	verify(request: SignInRequest, binding: string): Promise<StartedSession>;
 	ownerOf(headers: Headers): Promise<Owner | undefined>;
 	signOut(token: string): Promise<void>;
 	/** Checks a signed sentence the same way, spends its nonce, and gives the owner that wallet. Starts no session. */
-	linkWallet(request: SignInRequest, owner: Owner): Promise<Owner>;
+	linkWallet(request: SignInRequest, owner: Owner, binding: string): Promise<Owner>;
 };
 
 export type CookieSettings = {
@@ -143,13 +150,41 @@ export function authRoutes(ports: AuthPorts, cookie: CookieSettings) {
 		...(cookie.domain === undefined ? {} : { domain: cookie.domain }),
 	} as const;
 
+	// Host only and scoped to the sign in routes: nothing else is sent it, and no other subdomain can read it.
+	const bindingAttributes = {
+		httpOnly: true,
+		secure: cookie.secure,
+		sameSite: "Lax",
+		path: "/v1/auth",
+	} as const;
+
+	const bindingOf = (c: Parameters<typeof getCookie>[0]): string => {
+		const held = getCookie(c, BINDING_COOKIE);
+		if (!held) {
+			throw new MaschinaError(
+				"unauthenticated",
+				"this sign in was not started in this browser, so ask for a new one",
+			);
+		}
+		return held;
+	};
+
 	return new OpenAPIHono<ServiceEnv>()
 		.openapi(challenge, async (c) => {
 			const { walletAddress } = c.req.valid("json");
-			return c.json(await ports.challenge(walletAddress), 200);
+			// A secret only this browser holds. The message names its hash, so a signature somebody collected for their
+			// own browser cannot be pushed into this one, and this one's cannot be collected by anybody else.
+			const binding = randomBytes(32).toString("base64url");
+			setCookie(c, BINDING_COOKIE, binding, {
+				...bindingAttributes,
+				maxAge: BINDING_VALID_SECONDS,
+			});
+			return c.json(await ports.challenge(walletAddress, binding), 200);
 		})
 		.openapi(verify, async (c) => {
-			const started = await ports.verify(c.req.valid("json"));
+			const binding = bindingOf(c);
+			const started = await ports.verify(c.req.valid("json"), binding);
+			deleteCookie(c, BINDING_COOKIE, bindingAttributes);
 			setCookie(c, SESSION_COOKIE, started.token, {
 				...attributes,
 				expires: started.expiresAt,
@@ -168,7 +203,8 @@ export function authRoutes(ports: AuthPorts, cookie: CookieSettings) {
 			if (!who) throw new MaschinaError("unauthenticated", "sign in first");
 			// The wallet has to sign a sentence this server wrote, the same as signing in: owning an address is
 			// shown by signing with it, never by saying so.
-			const linked = await ports.linkWallet(c.req.valid("json"), who);
+			const linked = await ports.linkWallet(c.req.valid("json"), who, bindingOf(c));
+			deleteCookie(c, BINDING_COOKIE, bindingAttributes);
 			return c.json(
 				{
 					ownerId: linked.ownerId,

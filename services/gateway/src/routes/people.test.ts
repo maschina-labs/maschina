@@ -137,6 +137,24 @@ describe("linking a wallet", () => {
 		expect(linked).toEqual([]);
 	});
 
+	it("refuses to link from a browser that did not ask for the sentence, and links nothing", async () => {
+		const linked: unknown[] = [];
+		const res = await post(
+			app(
+				undefined,
+				auth({
+					linkWallet: async (r) => {
+						linked.push(r);
+						return person;
+					},
+				}),
+			),
+			{ cookie: "session=1" },
+		);
+		expect(res.status).toBe(401);
+		expect(linked).toEqual([]);
+	});
+
 	it("links the wallet that signed the sentence to the owner who is signed in, and says who they are now", async () => {
 		const seen: { owner: Owner; address: string }[] = [];
 		const res = await post(
@@ -149,7 +167,7 @@ describe("linking a wallet", () => {
 					},
 				}),
 			),
-			{ cookie: "session=1" },
+			{ cookie: "session=1; maschina_siws=a-browser-secret" },
 		);
 		expect(res.status).toBe(200);
 		expect(await res.json()).toEqual({
@@ -170,7 +188,7 @@ describe("linking a wallet", () => {
 					},
 				}),
 			),
-			{ cookie: "session=1" },
+			{ cookie: "session=1; maschina_siws=a-browser-secret" },
 		);
 		expect(res.status).toBe(409);
 	});
