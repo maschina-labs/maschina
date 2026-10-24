@@ -1,3 +1,4 @@
+import { DOC_PAGES } from "./docs/catalog.ts";
 import { contentFor } from "./i18n/content.ts";
 
 /**
@@ -6,11 +7,14 @@ import { contentFor } from "./i18n/content.ts";
  * to a search engine.
  */
 export const CONTENT_PATHS = [
-	"/",
-	...Object.keys(contentFor("en").documents),
-	...Object.keys(contentFor("en").articles),
-	"/contact",
-	"/support",
-	"/brand",
-	"/papers",
+	...new Set([
+		"/",
+		...Object.keys(contentFor("en").documents),
+		...Object.keys(contentFor("en").articles),
+		"/contact",
+		"/support",
+		"/brand",
+		"/papers",
+		...DOC_PAGES.map((page) => page.path),
+	]),
 ];

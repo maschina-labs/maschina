@@ -1,0 +1,33 @@
+# Templates
+
+The application offers four built-in machine kinds. These are concrete starting points with different decision rules, not a marketplace of third-party strategies. Choose one in the application and begin in paper mode.
+
+## Fixed range
+
+The `range` kind works a fixed band: buy at its lower edge and sell at its upper edge. It keeps one position at a time rather than repeatedly buying while already in the market.
+
+Its settings include the spend and base mints, lower and upper prices, amount per trade, slippage and the minimum position considered held. Prices and token amounts use whole base units. A band must satisfy the runtime's minimum-edge checks; do not assume every narrow band is accepted or profitable.
+
+## Following range
+
+The `following_range` kind moves its band as the observed price leaves it. Recentring and trading are separate events. Moving the band does not itself mean a swap happened.
+
+Use the application's range controls to configure it, then inspect its levels and record. Changing the band changes what it waits for, not its authority to spend.
+
+## Price trigger
+
+The `price_trigger` kind watches a price level and proposes a trade on a crossing. Its settings name the spend mint, buy mint, watched price and direction, amount per trade, slippage and optional total-spend bound.
+
+Hysteresis and a minimum gap prevent a noisy price from firing continuously. Repeated crossings may produce more than one action unless the machine's settings and limits end the flow. It is not necessarily a one-shot order.
+
+## Recurring buy
+
+The `recurring_buy` kind spends a fixed amount on scheduled runs. The scheduler determines when a run is due; the kind evaluates the proposed buy.
+
+Its settings are `spendMint`, `buyMint`, `amountPerBuy`, `slippageBps` and optional `stopAfterTotal`. The two mints must differ. The amount must be positive, slippage is an integer from 0 to 10000 basis points, and a total cap cannot be smaller than one buy.
+
+## Choose and validate
+
+Start with a job you can explain and a budget you can inspect. Use the [Quickstart](/docs/quickstart) to create a paper instance, and read the reasons for both actions and refusals.
+
+Settings do not override owner limits. These templates are software behaviors, not recommendations for a token, wallet, trading strategy or expected return. The [Machine Spec](/docs/machine-spec) describes the boundary shared by all of them.

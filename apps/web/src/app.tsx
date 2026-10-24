@@ -9,6 +9,8 @@ import { ContactPage } from "./contact-page.tsx";
  * for the browser's.
  */
 import { CONTENT_PATHS } from "./content-paths.ts";
+import { DOC_PAGES } from "./docs/catalog.ts";
+import { DocsPage } from "./docs-page.tsx";
 import { contentFor } from "./i18n/content.ts";
 import { readLanguage } from "./i18n/language.ts";
 import { AVAILABLE } from "./i18n/languages.ts";
@@ -37,6 +39,8 @@ function Page({ authUrl, clean, locale }: { authUrl: string; clean: string; loca
 	if (clean === "/brand") return <BrandPage authUrl={authUrl} doc={content.brand} />;
 	if (clean === "/papers") return <PapersPage authUrl={authUrl} doc={content.papers} />;
 	if (clean === "/support") return <SupportPage authUrl={authUrl} doc={content.support} />;
+	const docsPage = DOC_PAGES.find((page) => page.path === clean);
+	if (docsPage) return <DocsPage key={clean} page={docsPage} />;
 	const article = content.articles[clean];
 	if (article)
 		return <ArticlePage authUrl={authUrl} doc={article} tab={label(m, titleFor(clean) ?? clean)} />;

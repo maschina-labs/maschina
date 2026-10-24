@@ -75,18 +75,7 @@ describe("the sitemap", () => {
 
 	it("knows which links leave the site: those with a full address", () => {
 		const external = all.filter((item) => item.external).map((item) => item.label);
-		expect(external.sort()).toEqual([
-			"API",
-			"Changelog",
-			"Examples",
-			"GitHub",
-			"Live Record",
-			"Machine Spec",
-			"SDK",
-			"Status",
-			"Templates",
-			"X",
-		]);
+		expect(external.sort()).toEqual(["Changelog", "GitHub", "Live Record", "Status", "X"]);
 		for (const item of all) expect(item.external).toBe(item.href ? leavesSite(item.href) : false);
 	});
 
@@ -121,8 +110,8 @@ describe("the sitemap", () => {
 		expect(hrefOf("Product", "How It Works")).toBe("/how-it-works");
 		expect(hrefOf("Product", "Machines")).toBe("/machines");
 		expect(hrefOf("Developers", "Docs")).toBe("/docs");
-		expect(hrefOf("Developers", "Quickstart")).toBeUndefined();
-		expect(hrefOf("Developers", "Examples")).toBe("https://docs.maschina.dev/examples");
+		expect(hrefOf("Developers", "Quickstart")).toBe("/docs/quickstart");
+		expect(hrefOf("Developers", "Examples")).toBe("/docs/examples");
 		expect(hrefOf("Company", "Support")).toBe("/support");
 		expect(hrefOf("Company", "Brand Assets")).toBe("/brand");
 	});
@@ -131,6 +120,6 @@ describe("the sitemap", () => {
 		const labels = (column: string) =>
 			SITEMAP.find((c) => c.title === column)?.items.map((i) => i.label);
 		expect(labels("Product")?.slice(0, 3)).toEqual(["Overview", "How It Works", "Machines"]);
-		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "API"]);
+		expect(labels("Developers")?.slice(0, 2)).toEqual(["Docs", "Quickstart"]);
 	});
 });

@@ -1,0 +1,62 @@
+# Examples
+
+Start with reads and local decision logic. Neither example below requests a signature or submits a transaction.
+
+## Read the public record
+
+This runs in Node 24 or another environment with `fetch`. It checks the response before reading the record and keeps live and paper counts separate.
+
+```js
+const response = await fetch("https://api.maschina.dev/v1/public/record");
+if (!response.ok) {
+  throw new Error(`Record request failed: ${response.status}`);
+}
+const record = await response.json();
+for (const key of ["live", "paper", "refused"]) {
+  if (!Array.isArray(record[key])) throw new Error(`Missing ${key} list`);
+}
+console.log({
+  liveTrades: record.live.length,
+  paperTrades: record.paper.length,
+  refusals: record.refused.length,
+});
+```
+
+These are counts, not a performance summary. They do not establish a return or prove the controls. Inspect the [API schema](https://api.maschina.dev/openapi.json) before consuming individual entry fields.
+
+## Decision function
+
+This TypeScript example uses the [workspace SDK](/docs/sdk) and Zod from a source checkout. It proposes a numeric action or a skip. It has no wallet, network call or execution adapter.
+
+```ts
+import { defineMachineKind } from "@maschina/sdk";
+import { z } from "zod";
+
+const settings = z.object({ amount: z.number().int().positive() });
+const kind = defineMachineKind<
+  { amount: number },
+  { available: number },
+  { amount: number }
+>({
+  id: "bounded-example",
+  label: "Bounded example",
+  settings,
+  decide: ({ settings, state }) =>
+    state.available >= settings.amount
+      ? { kind: "act", action: { amount: settings.amount }, reason: "Enough available" }
+      : { kind: "skip", reason: "Not enough available" },
+});
+
+const proposal = await kind.decide({
+  settings: settings.parse({ amount: 10 }),
+  state: { available: 5 },
+  now: new Date("2026-10-20T00:00:00Z"),
+});
+console.log(proposal); // { kind: "skip", reason: "Not enough available" }
+```
+
+The input schema is parsed explicitly. Returning an action would still only be a proposal; this function does not install a custom kind in the hosted app or enforce the system's spending policy.
+
+## Next steps
+
+Use [Templates](/docs/templates) to choose an existing kind, [Machine Spec](/docs/machine-spec) to understand its execution context and [Quickstart](/docs/quickstart) to try a paper machine through the application.

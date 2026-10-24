@@ -59,7 +59,6 @@ export const RULES = [
 				"services/bots",
 				"apps/app",
 				"apps/auth",
-				"apps/docs",
 				"apps/live",
 				"apps/web",
 				"packages/core",

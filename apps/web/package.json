@@ -23,6 +23,7 @@
 	},
 	"devDependencies": {
 		"@maschina/config": "workspace:*",
+		"@mdx-js/rollup": "3.1.1",
 		"@tailwindcss/vite": "catalog:",
 		"@testing-library/jest-dom": "catalog:",
 		"@testing-library/react": "catalog:",

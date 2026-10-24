@@ -1,0 +1,49 @@
+# API
+
+The gateway is the entry point for Maschina clients. It exposes JSON over HTTPS at `https://api.maschina.dev`. Versioned routes begin with `/v1`.
+
+## Schema and conventions
+
+The gateway generates an [OpenAPI 3.1 schema](https://api.maschina.dev/openapi.json) from its route definitions. Use that schema for current request fields, response shapes and documented error responses. The API is early and may change.
+
+Amounts are decimal strings in the asset's smallest unit, rather than floating-point numbers. For example, `"1000000"` is one unit of a token with six decimals. SOL network fees are reported in lamports. Do not add amounts of different assets or combine paper results with real money.
+
+## Public reads
+
+`GET /v1/status` reports gateway status, version and server time. If a halt is active, the response includes its reason and start time.
+
+```sh
+curl --fail https://api.maschina.dev/v1/status
+```
+
+`GET /v1/public/record` returns separate `live`, `paper` and `refused` arrays. The public record contains the founder's selected owner record, not every user's private machine history. Live trades carry transaction signatures; paper trades do not.
+
+```sh
+curl --fail https://api.maschina.dev/v1/public/record
+```
+
+## Authentication
+
+Machine routes require an authenticated owner session. Signing in through the application establishes that session. Public reads do not require it. There is no documented API-key flow to substitute for the application session in these examples.
+
+The gateway derives ownership from the session. Do not send `ownerId` or `ownerWallet` when creating a machine. A machine belonging to another owner is not exposed through these routes.
+
+## Machine routes
+
+- `GET /v1/machines`: list the signed-in owner's machines and their state, budget and result.
+- `GET /v1/machines/{machineId}`: read settings, limits and available actions.
+- `GET /v1/machines/{machineId}/record`: read events, newest first. The optional `limit` bounds the result.
+- `GET /v1/machines/{machineId}/balances`: read on-chain wallet and vault balances.
+- `POST /v1/machines`: create a machine with an explicit `paper` boolean, kind, settings and limits.
+- `POST /v1/machines/{machineId}/actions`: request an allowed lifecycle action.
+- `POST /v1/machines/{machineId}/recipe`: change a paused machine's recipe.
+- `POST /v1/machines/{machineId}/funding`: prepare an unsigned funding transaction for the owner's wallet.
+- `POST /v1/machines/{machineId}/withdraw`: request withdrawal to the owner's destination.
+
+The last two routes concern real funds. They are documented here for reference, not called by this page. Availability depends on the machine and account. Use the schema and the application's available actions rather than assuming a state permits an operation.
+
+## Errors and retries
+
+Check the HTTP status before reading a success response. Invalid input, missing sessions, unavailable resources and refused actions are distinct failures. Inspect the schema for each operation's response definitions.
+
+Do not blindly retry a write when a connection drops: the server may already have accepted it. Read the machine and its record before deciding whether another request is appropriate. The [examples](/docs/examples) begin with public reads only.
