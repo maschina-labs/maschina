@@ -413,6 +413,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@maschina/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@maschina/field':
         specifier: workspace:*
         version: link:../../packages/field

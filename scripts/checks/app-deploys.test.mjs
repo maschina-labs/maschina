@@ -50,6 +50,14 @@ const servedApps = readdirSync(apps, { withFileTypes: true })
 	.sort();
 
 describe("every app Cloudflare serves gets deployed by something", () => {
+	it("waits for the website's /live destination before replacing the old record Worker", () => {
+		const destination = workflow.indexOf("https://maschina.dev/live-route.json");
+		const redirect = workflow.indexOf("wrangler deploy --config apps/live/wrangler.jsonc");
+		assert.ok(destination > 0 && redirect > destination);
+		assert.match(workflow, /route\.canonical !== "https:\/\/maschina\.dev\/live"/);
+		assert.match(workflow, /keeping the old record Worker/);
+	});
+
 	it("serves documentation as part of web rather than a separate Worker", () => {
 		assert.ok(!servedApps.includes("docs"));
 		assert.ok(servedApps.includes("web"));

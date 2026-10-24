@@ -1,11 +1,11 @@
 /**
  * The pages there are, each by its address and its name: every page the header, the menus, the search and the footer
  * link to. The ones with nothing on them yet are blank: the header and the footer with a screen of nothing between
- * them, to be filled in one at a time. Docs pages live under /docs. The live record is a separate app on its own address
- * (see links.ts). The status page is run by someone else and the AI files are plain files,
+ * them, to be filled in one at a time. Docs pages live under /docs. The public record lives under /live. The status page is run by someone else and the AI files are plain files,
  * so neither is a page here (see FILES). Sign in and sign up are a separate app and are never pages here.
  */
 export const ROUTES: Record<string, string> = {
+	"/live": "Live Record",
 	"/product": "Product",
 	"/marketplace": "Marketplace",
 	"/network": "Network",

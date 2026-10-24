@@ -13,5 +13,13 @@ export default defineConfig({
 	server: {
 		port: 3000,
 		strictPort: true,
+		proxy: {
+			"/v1/public/record": { target: "https://api.maschina.dev", changeOrigin: true },
+			"/__public-record": {
+				target: "https://api.maschina.dev",
+				changeOrigin: true,
+				rewrite: () => "/v1/public/record",
+			},
+		},
 	},
 });

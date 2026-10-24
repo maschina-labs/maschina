@@ -40,6 +40,12 @@ export function fontsWanted(text) {
 	return found;
 }
 
+/** A Worker with no bucket binding serves no file from it: a redirect has no page to ask for a font. */
+function servesFonts(appsDir, app) {
+	const config = join(appsDir, app, "wrangler.jsonc");
+	return !existsSync(config) || readFileSync(config, "utf8").includes('"FONTS"');
+}
+
 /** Each app that asks for fonts of its own: what it wants and where it wants it, apps in order. */
 export function whatToFetch(appsDir) {
 	const work = [];
@@ -47,6 +53,7 @@ export function whatToFetch(appsDir) {
 		.filter((entry) => entry.isDirectory())
 		.map((entry) => entry.name)
 		.sort()) {
+		if (!servesFonts(appsDir, app)) continue;
 		const text = ["src/styles.css", "index.html"]
 			.map((file) => join(appsDir, app, file))
 			.filter((path) => existsSync(path))
