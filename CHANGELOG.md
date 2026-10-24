@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.68](https://github.com/maschina-labs/maschina/compare/v0.0.67...v0.0.68) (2026-10-24)
+
+
+### Added
+
+* **web:** the live record is a page on the company site ([#885](https://github.com/maschina-labs/maschina/issues/885)) ([b462411](https://github.com/maschina-labs/maschina/commit/b4624118060d122a039ee08cd943fa0c9f42992e))
+
 ## [0.0.67](https://github.com/maschina-labs/maschina/compare/v0.0.66...v0.0.67) (2026-10-24)
 
 
