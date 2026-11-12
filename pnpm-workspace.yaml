@@ -29,7 +29,7 @@ catalog:
   "@biomejs/biome": 2.5.13
   "@commitlint/cli": 21.2.2
   "@commitlint/config-conventional": 21.2.2
-  "@hono/node-server": 2.1.1
+  "@hono/node-server": 2.1.6
   "@hono/zod-openapi": 1.6.3
   "@sentry/node": 10.74.0
   "@sentry/react": 10.74.0
